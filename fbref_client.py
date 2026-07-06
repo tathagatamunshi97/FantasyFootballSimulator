@@ -159,6 +159,10 @@ def _map_fbref_position(pos_raw: str) -> tuple[str, str]:
     text = str(pos_raw).upper()
     if "GK" in text:
         return "GK", "GK"
+    if any(tag in text for tag in ("RW", "RM")):
+        return "FWD", "RW"
+    if any(tag in text for tag in ("LW", "LM")):
+        return "FWD", "LW"
     if any(tag in text for tag in ("FW", "ST", "CF")):
         return "FWD", "ST"
     has_mf = any(tag in text for tag in ("MF", "CM", "DM", "AM", "RM", "LM"))
@@ -335,7 +339,7 @@ def build_fbref_season_entry(
 ) -> dict[str, Any] | None:
     """Build a full season stats dict from FBref (fallback when Sofascore unavailable)."""
     from models import SOFASCORE_POSITION_TO_FPL, SOFASCORE_POSITION_TO_PRIMARY
-    from player_names import KNOWN_PLAYER_POSITIONS
+    from player_names import KNOWN_PLAYER_POSITIONS, KNOWN_PLAYER_PRIMARY, apply_known_position_overrides
 
     index = fetch_fbref_season_index(season_suffix, league=ctx.get("league"))
     hit = lookup_fbref_player(index, display_name, ctx["team"])
@@ -343,10 +347,14 @@ def build_fbref_season_entry(
         return None
 
     season_label = season_label_from_suffix(season_suffix)
+    apply_known_position_overrides(hit, player_id)
     pos = KNOWN_PLAYER_POSITIONS.get(player_id, "M")
-    if player_id in KNOWN_PLAYER_POSITIONS:
+    if player_id in KNOWN_PLAYER_POSITIONS and player_id not in KNOWN_PLAYER_PRIMARY:
         fpl = SOFASCORE_POSITION_TO_FPL[pos]
         primary = SOFASCORE_POSITION_TO_PRIMARY[pos]
+    elif hit.get("primary_position") and hit.get("fpl_position"):
+        fpl = hit["fpl_position"]
+        primary = hit["primary_position"]
     elif hit.get("fpl_position"):
         fpl = hit["fpl_position"]
         primary = hit.get("primary_position") or SOFASCORE_POSITION_TO_PRIMARY.get(pos, "CM")

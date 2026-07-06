@@ -18,6 +18,7 @@ from team_ratings import (
     attack_to_xg,
     combined_attack_xg,
     compute_unit_ratings,
+    compute_wide_matchup_modifier,
     creation_to_xg,
     defence_suppression,
     midfield_battle_multiplier,
@@ -278,6 +279,15 @@ def build_report(
             "midfield_battle": {
                 "home_multiplier": round(h_mid, 3),
                 "away_multiplier": round(a_mid, 3),
+            },
+            "wide_matchup": mc.get("wide_matchup")
+            or {
+                "home": compute_wide_matchup_modifier(
+                    home, away, player_stats, ua.transition_risk
+                ),
+                "away": compute_wide_matchup_modifier(
+                    away, home, player_stats, uh.transition_risk
+                ),
             },
         },
         "monte_carlo": {

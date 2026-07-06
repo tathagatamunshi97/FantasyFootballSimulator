@@ -300,6 +300,7 @@ def build_matchup_analysis(report: dict[str, Any]) -> dict[str, Any]:
                 ),
                 _fullback_narrative(home_name, home_p["fullbacks"]),
                 _fullback_narrative(away_name, away_p["fullbacks"]),
+                _wide_matchup_narrative(home_name, away_name, mech.get("wide_matchup") or {}),
             ],
             "bullets": [],
         },
@@ -430,6 +431,29 @@ def _season_override_notes(report: dict[str, Any], home_name: str, away_name: st
                 f"uses {peak.get('season')} only (stats fully replaced)."
             )
     return lines
+
+
+def _wide_matchup_narrative(home_name: str, away_name: str, wide: dict[str, Any]) -> str:
+    parts: list[str] = []
+    for side_key, team_name, opp_name in (
+        ("home", home_name, away_name),
+        ("away", away_name, home_name),
+    ):
+        row = wide.get(side_key) or {}
+        if not row.get("active"):
+            continue
+        boost_pct = float(row.get("boost", 0)) * 100
+        parts.append(
+            f"Opposition wing threat vs leaky fullbacks: {team_name}'s wide attack gets a "
+            f"+{boost_pct:.1f}% xG edge (winger threat {float(row.get('winger_threat', 0)):.2f}, "
+            f"{opp_name} transition risk {float(row.get('transition_risk', 0)):.2f})."
+        )
+    if not parts:
+        return (
+            "Wide overload matchup: no extra wing boost — either wing threat or fullback "
+            "transition vulnerability is below the activation threshold."
+        )
+    return " ".join(parts)
 
 
 def _fullback_narrative(team_name: str, fb: dict[str, Any]) -> str:
@@ -572,8 +596,13 @@ def _analyze_single_squad(
         strengths.append(f"Reliable goalkeeper ({u['goalkeeper']:.2f}).")
 
     if u.get("transition_risk", 0) >= 0.58:
+        fb_note = ""
+        if fb.get("fullbacks"):
+            top_exposure = max((r.get("attack_exposure", 0) for r in fb["fullbacks"]), default=0)
+            if top_exposure >= 0.45:
+                fb_note = " — elite opposition wingers can exploit wide overloads."
         weaknesses.append(
-            f"High transition risk ({u['transition_risk']:.2f}) — vulnerable on the counter."
+            f"High transition risk ({u['transition_risk']:.2f}) — vulnerable on the counter{fb_note}"
         )
 
     if not strengths:

@@ -1,0 +1,501 @@
+{
+  "generated_at": "2026-07-06T14:15:44.485754+00:00",
+  "sheet_teams": 14,
+  "total_unique_players": 204,
+  "before_full_count": 204,
+  "after_full_count": 204,
+  "fixed_count": 0,
+  "still_missing_count": 0,
+  "updates": [],
+  "still_missing": [],
+  "aliases_in_use": [
+    {
+      "raw": "Alaba",
+      "target": "David Alaba"
+    },
+    {
+      "raw": "Alex Grimaldo",
+      "target": "Alejandro Grimaldo"
+    },
+    {
+      "raw": "Alexis Sanchez",
+      "target": "Alexis S\u00e1nchez"
+    },
+    {
+      "raw": "Alisson",
+      "target": "Alisson"
+    },
+    {
+      "raw": "Angel Di Maria",
+      "target": "\u00c1ngel Di Mar\u00eda"
+    },
+    {
+      "raw": "Arturo Vidal",
+      "target": "Arturo Vidal"
+    },
+    {
+      "raw": "Barella",
+      "target": "Nicol\u00f2 Barella"
+    },
+    {
+      "raw": "Bastoni",
+      "target": "Alessandro Bastoni"
+    },
+    {
+      "raw": "Bellingham",
+      "target": "Jude Bellingham"
+    },
+    {
+      "raw": "Bounou",
+      "target": "Yassine Bounou"
+    },
+    {
+      "raw": "Brahim Diaz",
+      "target": "Brahim D\u00edaz"
+    },
+    {
+      "raw": "Bruno",
+      "target": "Bruno Fernandes"
+    },
+    {
+      "raw": "Bruno G",
+      "target": "Bruno Guimar\u00e3es"
+    },
+    {
+      "raw": "Caicedo",
+      "target": "Mois\u00e9s Caicedo"
+    },
+    {
+      "raw": "Calafiori",
+      "target": "Riccardo Calafiori"
+    },
+    {
+      "raw": "Calvert-Lewin",
+      "target": "Dominic Calvert-Lewin"
+    },
+    {
+      "raw": "Carvajal",
+      "target": "Dani Carvajal"
+    },
+    {
+      "raw": "Casemiro",
+      "target": "Casemiro"
+    },
+    {
+      "raw": "Cherki",
+      "target": "Rayan Cherki"
+    },
+    {
+      "raw": "Cole Palmer",
+      "target": "Cole Palmer"
+    },
+    {
+      "raw": "Courtois",
+      "target": "Thibaut Courtois"
+    },
+    {
+      "raw": "CR7",
+      "target": "Cristiano Ronaldo"
+    },
+    {
+      "raw": "Cubarsi",
+      "target": "Pau Cubars\u00ed"
+    },
+    {
+      "raw": "Cucurella",
+      "target": "Marc Cucurella"
+    },
+    {
+      "raw": "Dani Alves",
+      "target": "Dani Alves"
+    },
+    {
+      "raw": "Dani Olmo",
+      "target": "Dani Olmo"
+    },
+    {
+      "raw": "De Ligt",
+      "target": "Matthijs de Ligt"
+    },
+    {
+      "raw": "Dembele",
+      "target": "Ousmane Demb\u00e9l\u00e9"
+    },
+    {
+      "raw": "Desire Doue",
+      "target": "D\u00e9sir\u00e9 Dou\u00e9"
+    },
+    {
+      "raw": "Diego Godin",
+      "target": "Diego God\u00edn"
+    },
+    {
+      "raw": "Diogo Dalot",
+      "target": "Diogo Dalot"
+    },
+    {
+      "raw": "Doku",
+      "target": "J\u00e9r\u00e9my Doku"
+    },
+    {
+      "raw": "Donnarumma",
+      "target": "Gianluigi Donnarumma"
+    },
+    {
+      "raw": "Dumfries",
+      "target": "Denzel Dumfries"
+    },
+    {
+      "raw": "Eder Militao",
+      "target": "\u00c9der Milit\u00e3o"
+    },
+    {
+      "raw": "Edinson Cavani",
+      "target": "Edinson Cavani"
+    },
+    {
+      "raw": "El Kaabi",
+      "target": "Ayoub El Kaabi"
+    },
+    {
+      "raw": "Emiliano Martinez",
+      "target": "Emiliano Mart\u00ednez"
+    },
+    {
+      "raw": "Enzo F",
+      "target": "Enzo Fern\u00e1ndez"
+    },
+    {
+      "raw": "Eze",
+      "target": "Eberechi Eze"
+    },
+    {
+      "raw": "Fede Valverde",
+      "target": "Federico Valverde"
+    },
+    {
+      "raw": "Fernandinho",
+      "target": "Fernandinho"
+    },
+    {
+      "raw": "Gabriel Magalhaes",
+      "target": "Gabriel Magalh\u00e3es"
+    },
+    {
+      "raw": "Giovanni Lo Celso",
+      "target": "Giovanni Lo Celso"
+    },
+    {
+      "raw": "Gonzalo Higuain",
+      "target": "Gonzalo Higua\u00edn"
+    },
+    {
+      "raw": "Gravenberch",
+      "target": "Ryan Gravenberch"
+    },
+    {
+      "raw": "Guirassy",
+      "target": "Serhou Guirassy"
+    },
+    {
+      "raw": "Gundogan",
+      "target": "\u0130lkay G\u00fcndo\u011fan"
+    },
+    {
+      "raw": "Gvardiol",
+      "target": "Jo\u0161ko Gvardiol"
+    },
+    {
+      "raw": "Gyokeres",
+      "target": "Viktor Gy\u00f6keres"
+    },
+    {
+      "raw": "Haaland",
+      "target": "Erling Haaland"
+    },
+    {
+      "raw": "Hakimi",
+      "target": "Achraf Hakimi"
+    },
+    {
+      "raw": "Joan Garcia",
+      "target": "Joan Garc\u00eda"
+    },
+    {
+      "raw": "Joao Neves",
+      "target": "Jo\u00e3o Neves"
+    },
+    {
+      "raw": "John Stones",
+      "target": "John Stones"
+    },
+    {
+      "raw": "Julian Alvarez",
+      "target": "Juli\u00e1n \u00c1lvarez"
+    },
+    {
+      "raw": "Kane",
+      "target": "Harry Kane"
+    },
+    {
+      "raw": "Kante",
+      "target": "N'Golo Kant\u00e9"
+    },
+    {
+      "raw": "KDB",
+      "target": "Kevin De Bruyne"
+    },
+    {
+      "raw": "Kenan Yildiz",
+      "target": "Kenan Y\u0131ld\u0131z"
+    },
+    {
+      "raw": "Khvicha",
+      "target": "Khvicha Kvaratskhelia"
+    },
+    {
+      "raw": "Kimmich",
+      "target": "Joshua Kimmich"
+    },
+    {
+      "raw": "Konate",
+      "target": "Ibrahima Konat\u00e9"
+    },
+    {
+      "raw": "Kounde",
+      "target": "Jules Kound\u00e9"
+    },
+    {
+      "raw": "Laimer",
+      "target": "Konrad Laimer"
+    },
+    {
+      "raw": "Laporte",
+      "target": "Aymeric Laporte"
+    },
+    {
+      "raw": "Lautaro Martinez",
+      "target": "Lautaro Mart\u00ednez"
+    },
+    {
+      "raw": "Lewandowski",
+      "target": "Robert Lewandowski"
+    },
+    {
+      "raw": "Luis Suarez",
+      "target": "Luis Su\u00e1rez"
+    },
+    {
+      "raw": "Maignan",
+      "target": "Mike Maignan"
+    },
+    {
+      "raw": "Marcelo",
+      "target": "Marcelo"
+    },
+    {
+      "raw": "Marcos Llorente",
+      "target": "Marcos Llorente"
+    },
+    {
+      "raw": "Marcus Thuram",
+      "target": "Marcus Thuram"
+    },
+    {
+      "raw": "Marquinhos",
+      "target": "Marquinhos"
+    },
+    {
+      "raw": "Mbappe",
+      "target": "Kylian Mbapp\u00e9"
+    },
+    {
+      "raw": "Mbuemo",
+      "target": "Bryan Mbeumo"
+    },
+    {
+      "raw": "Mctominay",
+      "target": "Scott McTominay"
+    },
+    {
+      "raw": "Messi",
+      "target": "Lionel Messi"
+    },
+    {
+      "raw": "Modric",
+      "target": "Luka Modri\u0107"
+    },
+    {
+      "raw": "Musiala",
+      "target": "Jamal Musiala"
+    },
+    {
+      "raw": "Neuer",
+      "target": "Manuel Neuer"
+    },
+    {
+      "raw": "Neymar",
+      "target": "Neymar"
+    },
+    {
+      "raw": "Nico Paz",
+      "target": "Nico Paz"
+    },
+    {
+      "raw": "Nunes",
+      "target": "Matheus Nunes"
+    },
+    {
+      "raw": "Nuno",
+      "target": "Nuno Mendes"
+    },
+    {
+      "raw": "Olise",
+      "target": "Michael Olise"
+    },
+    {
+      "raw": "Pavlovic",
+      "target": "Aleksandar Pavlovi\u0107"
+    },
+    {
+      "raw": "Pedri",
+      "target": "Pedri"
+    },
+    {
+      "raw": "Piero Hincapie",
+      "target": "Piero Hincapi\u00e9"
+    },
+    {
+      "raw": "Porro",
+      "target": "Pedro Porro"
+    },
+    {
+      "raw": "Pulisic",
+      "target": "Christian Puli\u0161i\u0107"
+    },
+    {
+      "raw": "Radamel Falcao",
+      "target": "Radamel Falcao"
+    },
+    {
+      "raw": "Raphinha",
+      "target": "Raphinha"
+    },
+    {
+      "raw": "Raya",
+      "target": "David Raya"
+    },
+    {
+      "raw": "Rice",
+      "target": "Declan Rice"
+    },
+    {
+      "raw": "Riyad Mahrez",
+      "target": "Riyad Mahrez"
+    },
+    {
+      "raw": "Roberto Firmino",
+      "target": "Roberto Firmino"
+    },
+    {
+      "raw": "Rodri",
+      "target": "Rodri"
+    },
+    {
+      "raw": "Rrahmani",
+      "target": "Amir Rrahmani"
+    },
+    {
+      "raw": "Rudiger",
+      "target": "Antonio R\u00fcdiger"
+    },
+    {
+      "raw": "Ruiz",
+      "target": "Fabi\u00e1n Ruiz"
+    },
+    {
+      "raw": "Saka",
+      "target": "Bukayo Saka"
+    },
+    {
+      "raw": "Salah",
+      "target": "Mohamed Salah"
+    },
+    {
+      "raw": "Saliba",
+      "target": "William Saliba"
+    },
+    {
+      "raw": "Schlotterbeck",
+      "target": "Nico Schlotterbeck"
+    },
+    {
+      "raw": "Semenyo",
+      "target": "Antoine Semenyo"
+    },
+    {
+      "raw": "Senne Lammens",
+      "target": "Senne Lammens"
+    },
+    {
+      "raw": "Sergio Ramos",
+      "target": "Sergio Ramos"
+    },
+    {
+      "raw": "Stanisic",
+      "target": "Josip Stani\u0161i\u0107"
+    },
+    {
+      "raw": "Szoboszalai",
+      "target": "Dominik Szoboszlai"
+    },
+    {
+      "raw": "Tapsoba",
+      "target": "Edmond Tapsoba"
+    },
+    {
+      "raw": "Tchouameni",
+      "target": "Aur\u00e9lien Tchouam\u00e9ni"
+    },
+    {
+      "raw": "Theo Hernandez",
+      "target": "Theo Hern\u00e1ndez"
+    },
+    {
+      "raw": "Tielemans",
+      "target": "Youri Tielemans"
+    },
+    {
+      "raw": "Timber",
+      "target": "Jurri\u00ebn Timber"
+    },
+    {
+      "raw": "Upamecano",
+      "target": "Dayot Upamecano"
+    },
+    {
+      "raw": "Van Hecke",
+      "target": "Jan Paul van Hecke"
+    },
+    {
+      "raw": "Vinicius",
+      "target": "Vin\u00edcius J\u00fanior"
+    },
+    {
+      "raw": "Vitinha",
+      "target": "Vitinha (Paris Saint-Germain)"
+    },
+    {
+      "raw": "VVD",
+      "target": "Virgil van Dijk"
+    },
+    {
+      "raw": "Willian Pacho",
+      "target": "Willian Pacho"
+    },
+    {
+      "raw": "Yamal",
+      "target": "Lamine Yamal"
+    }
+  ]
+}

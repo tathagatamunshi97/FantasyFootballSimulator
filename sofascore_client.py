@@ -852,8 +852,25 @@ class StatsStore:
             if blended is None:
                 from seasonal_stats import fetch_best_historical_stats
 
-                _, blended = fetch_best_historical_stats(search_name)
-                print(f"  Using best historical top-league season for: {search_name}", flush=True)
+                try:
+                    _, blended = fetch_best_historical_stats(search_name)
+                    print(
+                        f"  Using best historical top-league season for: {search_name}",
+                        flush=True,
+                    )
+                except Exception as exc:
+                    if "403" not in str(exc):
+                        raise
+                    blended = None
+            if blended is None:
+                placeholder = {
+                    "primary_position": "MF",
+                    "fpl_position": "MID",
+                    "positions": ["MF"],
+                }
+                self._add_player_to_cache(canon, placeholder)
+                print(f"  No live stats for {raw}; using placeholder profile", flush=True)
+                return canon
             from understat_client import merge_understat_into_players
 
             name = blended.get("player_name") or raw

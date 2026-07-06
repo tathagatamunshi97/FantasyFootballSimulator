@@ -148,9 +148,22 @@ def _profile_fit(stats: PlayerStats, profile: dict[str, float]) -> float:
     scores = []
     for stat, weight in profile.items():
         cap = STAT_CAPS.get(stat, 1.0)
-        raw = float(getattr(stats, stat, 0.0)) / cap if cap else 0.0
+        raw = _fit_stat_value(stats, stat) / cap if cap else 0.0
         scores.append(min(1.0, raw) * weight)
     return sum(scores) / max(sum(profile.values()), 1e-6)
+
+
+def _fit_stat_value(stats: PlayerStats, stat: str) -> float:
+    val = float(getattr(stats, stat, 0.0))
+    if val > 0:
+        return val
+    fallbacks = {
+        "key_passes90": stats.understat_key_passes90,
+        "xa90": stats.understat_xa90,
+        "shots90": stats.understat_shots90,
+        "xg90": stats.understat_xg90,
+    }
+    return float(fallbacks.get(stat, 0.0))
 
 
 def player_slot_fit(stats: PlayerStats, formation: str, slot_name: str) -> float:

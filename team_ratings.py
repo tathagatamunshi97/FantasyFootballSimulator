@@ -24,7 +24,7 @@ from sample_confidence import (
 
 )
 
-from slot_roles import FULLBACK_SLOTS, slot_role, slot_unit_weights
+from slot_roles import FULLBACK_SLOTS, WINGER_SLOTS, slot_role, slot_unit_weights
 
 
 
@@ -578,5 +578,101 @@ def combined_attack_xg(units: UnitRatings) -> float:
     """Total offensive xG before opponent suppression and midfield battle."""
 
     return attack_to_xg(units.finishing) + creation_to_xg(units.chance_creation)
+
+
+
+
+
+def _winger_threat_score(stats: PlayerStats, fit: float) -> float:
+
+    raw = (
+
+        _scale(stats.dribbles90, 3.0) * 0.28
+
+        + _scale(stats.xg90 or stats.npxg90, 1.0) * 0.22
+
+        + _scale(stats.key_passes90 or stats.understat_key_passes90, 2.5) * 0.18
+
+        + _scale(stats.xa90 or stats.understat_xa90, 0.6) * 0.16
+
+        + _scale(stats.shots90 or stats.understat_shots90, 4.0) * 0.10
+
+        + _scale(stats.big_chances_created90, 1.2) * 0.06
+
+    )
+
+    return _clamp(raw * (0.55 + 0.45 * fit))
+
+
+
+
+
+def compute_wide_matchup_modifier(
+
+    attack_team: FantasyTeam,
+
+    defend_team: FantasyTeam,
+
+    player_stats: dict[str, PlayerStats],
+
+    defend_transition_risk: float,
+
+) -> dict[str, float | bool]:
+
+    """
+
+    Modest xG boost when elite opposition wingers face a high transition-risk back line.
+
+    Capped so wide overloads do not dominate the simulation.
+
+    """
+
+    threats: list[float] = []
+
+    for slot in attack_team.lineup:
+
+        if slot.slot.upper() not in WINGER_SLOTS and slot_role(slot.slot) != "winger":
+
+            continue
+
+        stats = player_stats[slot.player]
+
+        fit = player_slot_fit(stats, attack_team.formation, slot.slot)
+
+        threats.append(_winger_threat_score(stats, fit))
+
+    threat = max(threats) if threats else 0.0
+
+    if threat < 0.42 or defend_transition_risk < 0.22:
+
+        return {
+
+            "multiplier": 1.0,
+
+            "boost": 0.0,
+
+            "winger_threat": round(threat, 3),
+
+            "transition_risk": round(defend_transition_risk, 3),
+
+            "active": False,
+
+        }
+
+    boost = min(0.045, (threat - 0.40) * 0.12 * (defend_transition_risk / 0.48))
+
+    return {
+
+        "multiplier": round(1.0 + boost, 4),
+
+        "boost": round(boost, 4),
+
+        "winger_threat": round(threat, 3),
+
+        "transition_risk": round(defend_transition_risk, 3),
+
+        "active": boost > 0.005,
+
+    }
 
 

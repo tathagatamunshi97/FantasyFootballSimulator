@@ -4,7 +4,7 @@ from __future__ import annotations
 import difflib
 import re
 import unicodedata
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from sofascore_client import StatsStore
@@ -262,6 +262,17 @@ KNOWN_SOFASCORE_IDS: dict[str, int] = {
     "casemiro": 122951,
     "cole palmer": 982780,
     "palmer": 982780,
+    "ismael saibari": 1063767,
+    "saibari": 1063767,
+}
+
+# Primary slot codes when FBref/Sofascore bucket wingers as ST or generic MF/F.
+KNOWN_PLAYER_PRIMARY: dict[int, dict[str, Any]] = {
+    30027: {
+        "primary_position": "RW",
+        "fpl_position": "FWD",
+        "positions": ["RW", "LW", "RM"],
+    },
 }
 
 KNOWN_PLAYER_POSITIONS: dict[int, str] = {
@@ -347,6 +358,15 @@ KNOWN_SEASON_CONTEXT: dict[int, dict[str, dict[str, str]]] = {
 def known_season_context(player_id: int, season_suffix: str) -> dict[str, str] | None:
     ctx = KNOWN_SEASON_CONTEXT.get(player_id, {}).get(season_suffix)
     return dict(ctx) if ctx else None
+
+
+def apply_known_position_overrides(data: dict[str, Any], player_id: int | None) -> None:
+    """Apply curated primary/fpl positions for players mis-tagged by FBref."""
+    if player_id is None:
+        return
+    override = KNOWN_PLAYER_PRIMARY.get(int(player_id))
+    if override:
+        data.update(override)
 
 
 def loose_name_key(name: str) -> str:

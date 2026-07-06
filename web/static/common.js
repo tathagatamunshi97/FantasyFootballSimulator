@@ -27,6 +27,26 @@ function clearSession() {
   localStorage.removeItem(USER_KEY);
 }
 
+function formatApiError(data, res) {
+  const detail = data?.detail;
+  if (typeof detail === "string" && detail.trim()) return detail;
+  if (Array.isArray(detail)) {
+    const parts = detail
+      .map((item) => (item && typeof item.msg === "string" ? item.msg : JSON.stringify(item)))
+      .filter(Boolean);
+    if (parts.length) return parts.join("; ");
+  }
+  if (detail && typeof detail === "object") {
+    if (typeof detail.message === "string" && detail.message.trim()) return detail.message;
+    try {
+      return JSON.stringify(detail);
+    } catch (_) {}
+  }
+  if (typeof data?.message === "string" && data.message.trim()) return data.message;
+  if (res.statusText && res.statusText.trim()) return res.statusText;
+  return `HTTP ${res.status || "error"}`;
+}
+
 async function api(path, options = {}) {
   const headers = { ...(options.headers || {}) };
   const token = getToken();
@@ -40,7 +60,7 @@ async function api(path, options = {}) {
   }
   const res = await fetch(path, { ...options, headers });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.detail || res.statusText);
+  if (!res.ok) throw new Error(formatApiError(data, res));
   return data;
 }
 

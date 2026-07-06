@@ -144,13 +144,29 @@ def prepare_match_player_stats(
 def prepare_team_player_stats(
     team: dict[str, Any],
     store: StatsStore,
+    *,
+    cache_only: bool = False,
 ) -> tuple[dict[str, PlayerStats], dict[str, str]]:
     """Load player stats for a single team dict (sheet roster or lab payload)."""
     all_names = _team_player_names(team)
-    name_map = store.ensure_players(all_names)
-    player_stats: dict[str, PlayerStats] = copy.deepcopy(
-        {name_map[raw]: store.players[name_map[raw]] for raw in all_names}
-    )
+    if cache_only:
+        cached = store.cached_stats_map(all_names)
+        name_map: dict[str, str] = {}
+        player_stats: dict[str, PlayerStats] = {}
+        for raw in all_names:
+            if not raw or not str(raw).strip():
+                continue
+            key = str(raw).strip()
+            ps = cached.get(key)
+            if ps is None:
+                continue
+            name_map[key] = ps.player
+            player_stats[ps.player] = copy.deepcopy(ps)
+    else:
+        name_map = store.ensure_players(all_names)
+        player_stats = copy.deepcopy(
+            {name_map[raw]: store.players[name_map[raw]] for raw in all_names}
+        )
 
     prime = (team.get("prime_player") or "").strip()
     if prime:

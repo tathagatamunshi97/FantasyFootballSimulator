@@ -14,6 +14,7 @@ from team_ratings import (
     UnitRatings,
     combined_attack_xg,
     compute_unit_ratings,
+    compute_wide_matchup_modifier,
     defence_suppression,
     midfield_battle_multiplier,
 )
@@ -192,10 +193,13 @@ def _expected_goals(
     attack: UnitRatings,
     opponent: UnitRatings,
     *,
+    attack_team: FantasyTeam,
+    defend_team: FantasyTeam,
+    player_stats: dict[str, PlayerStats],
     mid_mult: float,
     formation_fit: float,
     home_adv: float = 0.0,
-) -> float:
+) -> tuple[float, dict[str, float | bool]]:
     base = combined_attack_xg(attack)
     suppression = defence_suppression(
         opponent.defence,
@@ -204,7 +208,14 @@ def _expected_goals(
         opponent.transition_risk,
     )
     fit_boost = 0.90 + 0.10 * formation_fit
-    return max(0.25, base * suppression * mid_mult * fit_boost * (1.0 + home_adv))
+    wide = compute_wide_matchup_modifier(
+        attack_team, defend_team, player_stats, opponent.transition_risk
+    )
+    xg = max(
+        0.25,
+        base * suppression * mid_mult * fit_boost * float(wide["multiplier"]) * (1.0 + home_adv),
+    )
+    return xg, wide
 
 
 def simulate_match_once(
@@ -230,16 +241,22 @@ def simulate_match_once(
         home_units.midfield, away_units.midfield
     )
 
-    home_xg = _expected_goals(
+    home_xg, _home_wide = _expected_goals(
         home_units,
         away_units,
+        attack_team=home,
+        defend_team=away,
+        player_stats=player_stats,
         mid_mult=home_mid_mult,
         formation_fit=home_fit_info["average_fit"],
         home_adv=cfg.home_advantage,
     )
-    away_xg = _expected_goals(
+    away_xg, _away_wide = _expected_goals(
         away_units,
         home_units,
+        attack_team=away,
+        defend_team=home,
+        player_stats=player_stats,
         mid_mult=away_mid_mult,
         formation_fit=away_fit_info["average_fit"],
     )
@@ -306,12 +323,24 @@ def monte_carlo_matches(
         away.formation, [(s.player, s.slot) for s in away.lineup], player_stats
     )
     h_mid, a_mid = midfield_battle_multiplier(home_units.midfield, away_units.midfield)
-    expected_home_xg = _expected_goals(
-        home_units, away_units, mid_mult=h_mid, formation_fit=home_fit["average_fit"],
+    expected_home_xg, home_wide = _expected_goals(
+        home_units,
+        away_units,
+        attack_team=home,
+        defend_team=away,
+        player_stats=player_stats,
+        mid_mult=h_mid,
+        formation_fit=home_fit["average_fit"],
         home_adv=cfg.home_advantage,
     )
-    expected_away_xg = _expected_goals(
-        away_units, home_units, mid_mult=a_mid, formation_fit=away_fit["average_fit"],
+    expected_away_xg, away_wide = _expected_goals(
+        away_units,
+        home_units,
+        attack_team=away,
+        defend_team=home,
+        player_stats=player_stats,
+        mid_mult=a_mid,
+        formation_fit=away_fit["average_fit"],
     )
 
     for i in range(cfg.n_simulations):
@@ -369,6 +398,10 @@ def monte_carlo_matches(
         "midfield_battle": {
             "home_chance_multiplier": round(h_mid, 3),
             "away_chance_multiplier": round(a_mid, 3),
+        },
+        "wide_matchup": {
+            "home": home_wide,
+            "away": away_wide,
         },
         "expected_xg": {"home": round(expected_home_xg, 2), "away": round(expected_away_xg, 2)},
         "home_win_pct": round(100 * home_wins / n, 1),

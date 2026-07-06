@@ -460,6 +460,11 @@ def my_squad_api(
         result = build_squad_evaluation(team_payload, store)
     except (KeyError, ValueError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Squad evaluation failed: {exc}",
+        ) from exc
     return {"squad": result}
 
 
@@ -491,6 +496,11 @@ def scout_opponent_api(
         report = build_opponent_scout(my_payload, opp_payload, store)
     except (KeyError, ValueError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Scout report failed: {exc}",
+        ) from exc
     return {"scout": report}
 
 
