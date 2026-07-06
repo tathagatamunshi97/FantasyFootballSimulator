@@ -1,4 +1,12 @@
-"""Build attack / midfield / defence / GK unit ratings from blended player stats."""
+"""Build attack / midfield / defence / GK unit ratings from blended player stats.
+
+Calibration (v2.3):
+- Progressive pool (xA, xG-buildup, xG-chain, key passes) split: 38% attack, 58% creation
+  (96% total — avoids full double-count while crediting all positions).
+- GK suppression: back line 54%, mid shield 32%, GK 14% (was 24%); GK rating compressed
+  toward league avg 0.40 with 55% deviation retention.
+- Overall rating GK weight 10% (was 14%).
+"""
 
 from __future__ import annotations
 
@@ -25,6 +33,14 @@ from sample_confidence import (
 )
 
 from slot_roles import FULLBACK_SLOTS, WINGER_SLOTS, slot_role, slot_unit_weights
+
+
+# --- calibration constants (documented for tuning) ---
+LEAGUE_GK_RATING = 0.40
+GK_DEVIATION_SCALE = 0.55  # retain 55% of deviation from league avg in suppression
+DEFENCE_W, MIDDEF_W, GK_W = 0.54, 0.32, 0.14  # suppression blend (was 0.50/0.26/0.24)
+PROGRESSIVE_ATTACK_SHARE = 0.38
+PROGRESSIVE_CREATION_SHARE = 0.58
 
 
 
@@ -88,56 +104,45 @@ def _scale(value: float, cap: float) -> float:
 
 
 
-def _player_attack_contrib(stats: PlayerStats, fit: float) -> float:
-
-    """Finishing / shooting threat."""
-
-    finisher = (
-
-        _scale(stats.npxg90 or stats.xg90, 0.85) * 0.35
-
-        + _scale(stats.xg90, 0.85) * 0.15
-
-        + _scale(stats.shots90, 4.0) * 0.12
-
-        + _scale(stats.shots_on_target90, 2.5) * 0.08
-
-        + _scale(stats.big_chances_created90, 1.2) * 0.08
-
-        + _scale(max(0.0, stats.big_chances_created90 - stats.big_chances_missed90), 1.0) * 0.05
-
+def _player_progressive_raw(stats: PlayerStats) -> float:
+    """xA / xG-buildup / xG-chain / key-pass involvement — shared across attack & creation."""
+    xa = max(stats.xa90, stats.understat_xa90 or 0.0)
+    kp = max(stats.key_passes90, stats.understat_key_passes90 or 0.0)
+    return (
+        _scale(xa, 0.55) * 0.24
+        + _scale(stats.xg_buildup90, 0.55) * 0.28
+        + _scale(stats.xg_chain90, 0.9) * 0.24
+        + _scale(kp, 2.5) * 0.14
+        + _scale(stats.assists90, 0.45) * 0.10
     )
 
-    carry = _scale(stats.dribbles90, 3.0) * 0.10 * _scale(stats.dribble_pct, 100.0)
 
-    return (finisher + carry) * (0.55 + 0.45 * fit)
+def _player_attack_contrib(stats: PlayerStats, fit: float) -> float:
+    """Finishing / shooting threat plus progressive involvement in attack chains."""
+    finisher = (
+        _scale(stats.npxg90 or stats.xg90, 0.85) * 0.35
+        + _scale(stats.xg90, 0.85) * 0.15
+        + _scale(stats.shots90, 4.0) * 0.12
+        + _scale(stats.shots_on_target90, 2.5) * 0.08
+        + _scale(stats.big_chances_created90, 1.2) * 0.08
+        + _scale(max(0.0, stats.big_chances_created90 - stats.big_chances_missed90), 1.0) * 0.05
+    )
+    carry = _scale(stats.dribbles90, 3.0) * 0.10 * _scale(stats.dribble_pct, 100.0)
+    progressive = _player_progressive_raw(stats) * PROGRESSIVE_ATTACK_SHARE
+    return (finisher + carry + progressive) * (0.55 + 0.45 * fit)
 
 
 
 
 
 def _player_chance_creation_contrib(stats: PlayerStats, fit: float) -> float:
-
-    """Chance creation: crosses, key passes, pre-assist buildup."""
-
+    """Chance creation: crosses, key passes, pre-assist buildup (progressive pool + big chances)."""
+    progressive = _player_progressive_raw(stats) * PROGRESSIVE_CREATION_SHARE
     raw = (
-
-        _scale(stats.xa90, 0.55) * 0.28
-
-        + _scale(stats.assists90, 0.45) * 0.08
-
-        + _scale(stats.key_passes90, 2.5) * 0.22
-
-        + _scale(stats.understat_key_passes90, 2.5) * 0.10
-
-        + _scale(stats.big_chances_created90, 1.2) * 0.20
-
-        + _scale(stats.xg_buildup90, 0.55) * 0.07
-
-        + _scale(stats.xg_chain90, 0.9) * 0.05
-
+        progressive
+        + _scale(stats.big_chances_created90, 1.2) * 0.22
+        + _scale(max(0.0, stats.big_chances_created90 - stats.big_chances_missed90), 1.0) * 0.06
     )
-
     return raw * (0.55 + 0.45 * fit)
 
 
@@ -266,9 +271,9 @@ def _player_gk_contrib(stats: PlayerStats, fit: float) -> tuple[float, float, bo
 
 
 
-    gp_weight = 0.28 if stats.minutes >= MIN_TRUSTED_MINUTES else 0.10
+    gp_weight = 0.22 if stats.minutes >= MIN_TRUSTED_MINUTES else 0.08
 
-    rating_norm = _clamp((shrunk["rating"] - 6.2) / 1.0)
+    rating_norm = _clamp((shrunk["rating"] - 6.2) / 1.2)
 
     conceded_norm = _clamp((1.25 - shrunk["goals_conceded90"]) / 1.25)
 
@@ -280,11 +285,11 @@ def _player_gk_contrib(stats: PlayerStats, fit: float) -> tuple[float, float, bo
 
         gp_norm * gp_weight
 
-        + rating_norm * 0.38
+        + rating_norm * 0.30
 
-        + conceded_norm * 0.27
+        + conceded_norm * 0.32
 
-        + _scale(shrunk["pass_pct"], 100.0) * 0.07
+        + _scale(shrunk["pass_pct"], 100.0) * 0.08
 
     )
 
@@ -455,15 +460,15 @@ def compute_unit_ratings(
 
     overall = (
 
-        0.28 * attack
+        0.30 * attack
 
         + 0.24 * midfield
 
-        + 0.20 * defence
+        + 0.22 * defence
 
-        + 0.14 * goalkeeper
+        + 0.10 * goalkeeper
 
-        + 0.10 * midfield_defence
+        + 0.12 * midfield_defence
 
         + 0.04 * (1.0 - transition_risk)
 
@@ -515,6 +520,11 @@ def midfield_battle_multiplier(home_mid: float, away_mid: float) -> tuple[float,
 
 
 
+def _effective_gk_rating(goalkeeper_rating: float) -> float:
+    """Compress GK deviation from league average to limit match-swing impact."""
+    return LEAGUE_GK_RATING + GK_DEVIATION_SCALE * (goalkeeper_rating - LEAGUE_GK_RATING)
+
+
 def defence_suppression(
 
     defence_rating: float,
@@ -537,11 +547,11 @@ def defence_suppression(
 
     combined = (
 
-        0.50 * defence_rating
+        DEFENCE_W * defence_rating
 
-        + 0.26 * midfield_defence_rating
+        + MIDDEF_W * midfield_defence_rating
 
-        + 0.24 * goalkeeper_rating
+        + GK_W * _effective_gk_rating(goalkeeper_rating)
 
     )
 

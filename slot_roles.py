@@ -50,7 +50,7 @@ def slot_unit_weights(slot: str, fpl_position: FplPosition) -> SlotUnitWeights:
     role = slot_role(slot)
     if role == "fullback":
         return SlotUnitWeights(
-            attack=0.58, creation=1.0, midfield=0.52, defence=0.72, midfield_defence=0.28
+            attack=0.72, creation=1.0, midfield=0.52, defence=0.72, midfield_defence=0.28
         )
     if role == "centre_back":
         return SlotUnitWeights(attack=0.12, creation=0.18, midfield=0.24, defence=1.0, midfield_defence=0.18)

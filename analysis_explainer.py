@@ -115,7 +115,7 @@ def build_matchup_analysis(report: dict[str, Any]) -> dict[str, Any]:
             "home": hu["goalkeeper"],
             "away": au["goalkeeper"],
             "delta": gk_d,
-            "impact": abs(gk_d) * 1.5,
+            "impact": abs(gk_d) * 1.0,
             "explanation": (
                 f"{_edge_phrase(gk_edge, home_name, away_name)} has the stronger keeper "
                 f"({hu['goalkeeper']:.2f} vs {au['goalkeeper']:.2f}), shifting expected goals against."
@@ -266,8 +266,9 @@ def build_matchup_analysis(report: dict[str, Any]) -> dict[str, Any]:
             "title": "Expected goals pipeline",
             "paragraphs": [
                 (
-                    f"The engine splits attack into finishing and chance-creation channels, then applies "
-                    f"opponent suppression and midfield battle modifiers."
+                    f"The engine splits attack into finishing and chance-creation channels (xA / xG-buildup / "
+                    f"xG-chain credit all outfield positions), then applies opponent suppression "
+                    f"(back line 54%, mid shield 32%, GK 14%) and midfield battle modifiers."
                 ),
                 (
                     f"{home_name} raw attack xG: {_fmt(h_raw['finishing'])} finishing + "
@@ -491,6 +492,17 @@ def _rate_label(value: float, *, high: float = 0.62, low: float = 0.48) -> str |
     return None
 
 
+# Attack-style units (top-N aggregation) sit near 0.5–1.0; midfield/defence are
+# XI-weighted averages and typically land ~0.15–0.33 — separate cutoffs avoid
+# labelling every squad as thin in those areas.
+_DEFAULT_UNIT_THRESHOLDS = (0.62, 0.48)
+_UNIT_THRESHOLDS: dict[str, tuple[float, float]] = {
+    "midfield": (0.30, 0.25),
+    "midfield_defence": (0.14, 0.11),
+    "defence": (0.21, 0.17),
+}
+
+
 def _analyze_single_squad(
     team_name: str,
     formation: str,
@@ -519,7 +531,8 @@ def _analyze_single_squad(
         ("Transition safety", "transition_risk", False),
     ):
         val = float(u.get(key, 0))
-        tag = _rate_label(val if higher_better else 1.0 - val)
+        high, low = _UNIT_THRESHOLDS.get(key, _DEFAULT_UNIT_THRESHOLDS)
+        tag = _rate_label(val if higher_better else 1.0 - val, high=high, low=low)
         unit_notes.append(f"{label}: {val:.2f}")
         if tag == "strength":
             strengths.append(f"Strong {label.lower()} ({val:.2f}).")
