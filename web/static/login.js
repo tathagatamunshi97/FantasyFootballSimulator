@@ -15,7 +15,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
       return j;
     });
     setSession(data.token, data.user);
-    const next = new URLSearchParams(window.location.search).get("next") || "/";
+    const next = new URLSearchParams(window.location.search).get("next") || "/home";
     window.location.href = next;
   } catch (ex) {
     err.textContent = ex.message;
@@ -24,5 +24,5 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
 });
 
 if (getToken()) {
-  window.location.href = "/";
+  window.location.href = "/home";
 }

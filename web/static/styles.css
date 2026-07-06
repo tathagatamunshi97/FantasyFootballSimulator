@@ -156,6 +156,17 @@ input, select {
   font-size: 0.85rem;
   font-weight: 600;
 }
+a.landing-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s, background 0.15s;
+}
+a.landing-card:hover {
+  border-color: rgba(77, 163, 255, 0.5);
+  background: var(--panel2);
+}
+a.landing-card h2 { color: var(--text); }
 .error-msg { color: var(--away); font-size: 0.9rem; margin-top: 0.5rem; }
 .log {
   padding: 0.75rem;

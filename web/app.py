@@ -381,7 +381,12 @@ def run_monte_carlo(
 
 
 @app.get("/")
-def index() -> FileResponse:
+def landing_page() -> FileResponse:
+    return FileResponse(STATIC / "landing.html")
+
+
+@app.get("/home")
+def home_page() -> FileResponse:
     return FileResponse(STATIC / "index.html")
 
 
@@ -416,21 +421,13 @@ def tournament_admin_page() -> RedirectResponse:
 
 
 @app.get("/api/tournament")
-def list_tournaments_api(
-    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
-    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
-) -> dict:
-    _session_user_or_admin(x_session_token, x_admin_token)
+def list_tournaments_api() -> dict:
+    """Public read — tournament viewer does not require user login."""
     return {"tournaments": tournament.list_tournaments()}
 
 
 @app.get("/api/tournament/{tournament_id}")
-def get_tournament_api(
-    tournament_id: str,
-    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
-    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
-) -> dict:
-    _session_user_or_admin(x_session_token, x_admin_token)
+def get_tournament_api(tournament_id: str) -> dict:
     t = tournament.load_tournament(tournament_id)
     if not t:
         raise HTTPException(status_code=404, detail="Tournament not found")

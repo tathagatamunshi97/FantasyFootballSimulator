@@ -188,8 +188,8 @@ function bindTabs(t) {
 }
 
 async function init() {
-  if (!requireAuth()) return;
-  document.getElementById("userLabel").textContent = getUser() || "";
+  const user = getUser();
+  if (user) document.getElementById("userLabel").textContent = user;
   tournamentId = qsParam("id");
   document.getElementById("refreshBtn").addEventListener("click", () => loadTournament().catch(showErr));
   await loadTournament().catch(showErr);

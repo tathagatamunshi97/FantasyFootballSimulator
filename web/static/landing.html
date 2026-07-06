@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Football Match Simulator</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Football Match Simulator</h1>
+      <div class="sub">Monte Carlo H2H matchups · fantasy tournaments · team lab</div>
+    </div>
+  </header>
+
+  <main style="max-width: 720px; margin: 2rem auto; padding: 0 1rem;">
+    <div class="grid" style="gap: 1rem;">
+      <a href="/admin" class="card landing-card">
+        <h2>Admin</h2>
+        <p class="muted">Run simulations, manage tournaments. Requires <code>SIM_ADMIN_TOKEN</code> (no user login).</p>
+      </a>
+      <a href="/tournament" class="card landing-card">
+        <h2>Tournament</h2>
+        <p class="muted">Live standings, fixtures, and knockout bracket.</p>
+      </a>
+      <a href="/lab" class="card landing-card">
+        <h2>Team lab</h2>
+        <p class="muted">Build custom matchups and run your own experiments (login required).</p>
+      </a>
+      <a href="/home" class="card landing-card">
+        <h2>My experiments</h2>
+        <p class="muted">View your saved simulation results (login required).</p>
+      </a>
+    </div>
+    <p style="text-align: center; margin-top: 1.5rem;">
+      <a href="/login" class="btn-link">Log in</a>
+    </p>
+  </main>
+
+  <footer>
+    Engine v2 · Sofascore + Understat
+  </footer>
+</body>
+</html>

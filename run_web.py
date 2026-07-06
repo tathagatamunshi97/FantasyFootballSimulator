@@ -26,10 +26,12 @@ if __name__ == "__main__":
     if not public and url_file.exists():
         public = url_file.read_text(encoding="utf-8").strip()
 
-    print(f"Local:      http://localhost:{port}/login")
+    print(f"Home:       http://localhost:{port}/")
     print(f"Admin:      http://localhost:{port}/admin")
+    print(f"Login:      http://localhost:{port}/login")
     if public:
-        print(f"Public:     {public}/login")
+        print(f"Public:     {public}/")
+        print(f"Admin:      {public}/admin")
         print(f"Team lab:   {public}/lab")
     else:
         print("Internet:   run  python run_public.py  (or deploy via Render — see DEPLOY.md)")
