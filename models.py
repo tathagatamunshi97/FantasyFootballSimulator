@@ -176,10 +176,14 @@ def _infer_fpl_position(primary: str) -> FplPosition:
 def _normalize_stat_gaps(data: dict[str, Any]) -> None:
     """Backfill zero Sofascore/FBref fields from Understat and known overrides."""
     from player_names import apply_known_position_overrides
+    from understat_estimation import ensure_minimum_rating, estimate_understat_stats
 
     player_id = data.get("player_id")
     if player_id is not None:
         apply_known_position_overrides(data, int(player_id))
+
+    estimate_understat_stats(data)
+    ensure_minimum_rating(data)
 
     if not data.get("key_passes90") and data.get("understat_key_passes90"):
         data["key_passes90"] = data["understat_key_passes90"]

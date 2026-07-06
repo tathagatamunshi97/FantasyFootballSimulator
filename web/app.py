@@ -515,6 +515,7 @@ def get_my_lineup(
             "player_count": meta.get("player_count"),
             "ready": meta.get("ready"),
             "squad_size": meta.get("squad_size"),
+            "season_pick": meta.get("season_pick"),
         },
     }
 
@@ -640,7 +641,7 @@ def test_my_squad_api(
     except Exception as exc:
         raise HTTPException(
             status_code=502,
-            detail=f"Squad evaluation failed: {exc}",
+            detail=f"Squad evaluation failed: {_format_squad_eval_error(exc)}",
         ) from exc
     return {"squad": result, "draft": True}
 
@@ -739,6 +740,21 @@ def get_experiment(
     return {"experiment": exp}
 
 
+def _format_squad_eval_error(exc: Exception) -> str:
+    msg = str(exc).strip()
+    if "Chrome not found" in msg:
+        return (
+            "Squad evaluation attempted a live stats fetch (Chrome/soccerdata). "
+            "This should use cached stats only — please report if you see this."
+        )
+    if isinstance(exc, KeyError):
+        detail = msg.strip("'")
+        if detail.startswith(("No cached stats", "No top-league stats", "Missing player")):
+            return detail
+        return f"Missing player stats: {detail}"
+    return msg
+
+
 def _load_sheet_team_payload(team_name: str) -> dict[str, Any]:
     from google_sheets_teams import load_team_by_name
 
@@ -819,7 +835,7 @@ def my_squad_api(
     except Exception as exc:
         raise HTTPException(
             status_code=502,
-            detail=f"Squad evaluation failed: {exc}",
+            detail=f"Squad evaluation failed: {_format_squad_eval_error(exc)}",
         ) from exc
     return {"squad": result}
 
@@ -855,7 +871,7 @@ def scout_opponent_api(
     except Exception as exc:
         raise HTTPException(
             status_code=502,
-            detail=f"Scout report failed: {exc}",
+            detail=f"Scout report failed: {_format_squad_eval_error(exc)}",
         ) from exc
     return {"scout": report}
 

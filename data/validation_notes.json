@@ -1,0 +1,106 @@
+{
+  "changes": [
+    {
+      "player": "Lionel Messi",
+      "type": "prime",
+      "season": "14/15",
+      "delta": {
+        "minutes": {
+          "before": 3374.0,
+          "after": 3375.0
+        }
+      }
+    },
+    {
+      "player": "Aymeric Laporte",
+      "type": "prime",
+      "season": "21/22",
+      "delta": {
+        "minutes": {
+          "before": 2848.0,
+          "after": 2828.0
+        }
+      }
+    },
+    {
+      "player": "Gonzalo Higuaín",
+      "type": "season pick",
+      "season": "15/16",
+      "delta": {
+        "minutes": {
+          "before": 2989.0,
+          "after": 2958.0
+        },
+        "goals90": {
+          "before": 1.08,
+          "after": 1.1
+        },
+        "assists90": {
+          "before": 0.15,
+          "after": 0.06
+        },
+        "shots90": {
+          "before": 5.48,
+          "after": 2.53
+        }
+      }
+    }
+  ],
+  "sources": {
+    "Edinson Cavani (season pick 16/17)": "FBref via soccerdata",
+    "Dani Alves (season pick 17/18)": "FBref via soccerdata",
+    "Marcelo (season pick 16/17)": "FBref via soccerdata",
+    "Giovanni Lo Celso (season pick 18/19)": "FBref via soccerdata",
+    "Gonzalo Higuaín (season pick 15/16)": "FBref 2015-16 Napoli Serie A (36g, 2a, 2958 min, 83 shots)",
+    "Diego Godín (season pick 15/16)": "FBref via soccerdata",
+    "Luis Suárez (season pick 15/16)": "FBref via soccerdata",
+    "Arturo Vidal (season pick 15/16)": "FBref via soccerdata + footballcalculator.co.uk defense",
+    "Fernandinho (season pick 17/18)": "FBref via soccerdata",
+    "Roberto Firmino (season pick 17/18)": "FBref via soccerdata",
+    "Neymar (season pick 14/15)": "FBref via soccerdata",
+    "Alexis Sánchez (season pick 16/17)": "FBref via soccerdata",
+    "Radamel Falcao (season pick 16/17)": "FBref via soccerdata",
+    "Cristiano Ronaldo (prime 14/15)": "FBref via soccerdata",
+    "N'Golo Kanté (prime 16/17)": "FBref via soccerdata",
+    "Lionel Messi (prime 14/15)": "FBref via soccerdata",
+    "Ángel Di María (season pick 13/14)": "FBref via soccerdata",
+    "Riyad Mahrez (season pick 22/23)": "FBref via soccerdata",
+    "Rúben Dias (prime 20/21)": "FBref via soccerdata",
+    "Rodri (prime 23/24)": "FBref via soccerdata",
+    "Cole Palmer (prime 23/24)": "FBref via soccerdata",
+    "Carvajal (prime 16/17)": "FBref via soccerdata",
+    "Casemiro (prime 17/18)": "FBref via soccerdata",
+    "Mohamed Salah (prime 17/18)": "FBref via soccerdata",
+    "Sergio Ramos (prime 14/15)": "FBref via soccerdata + footballcalculator.co.uk defense",
+    "Antoine Griezmann (prime 15/16)": "FBref via soccerdata",
+    "Antonio Rüdiger (prime 21/22)": "FBref via soccerdata",
+    "Harry Maguire (prime 18/19)": "FBref via soccerdata",
+    "Luka Modrić (prime 17/18)": "FBref via soccerdata",
+    "Aymeric Laporte (prime 21/22)": "FBref via soccerdata",
+    "Manuel Neuer (prime 13/14)": "FBref via soccerdata",
+    "Alaba (prime 19/20)": "FBref via soccerdata"
+  },
+  "unverified": [],
+  "corrections": [
+    {
+      "player": "Riyad Mahrez",
+      "note": "Prior audit suggested g90~0.51; FBref confirms 5 goals in 1920 PL minutes = 0.23 g90 (verified correct)",
+      "source": "FBref 2022-23 Premier League"
+    },
+    {
+      "player": "Lionel Messi",
+      "note": "Prime season changed 20/21 -> 14/15 (43g+18a in 3375 La Liga minutes, true peak)",
+      "source": "FBref + StatMuse + LaLiga official"
+    },
+    {
+      "player": "Aymeric Laporte",
+      "note": "Prime season changed 20/21 (16 apps injury year) -> 21/22 (33 apps, 4g, 2828 min)",
+      "source": "FBref + Transfermarkt + Wikipedia"
+    },
+    {
+      "player": "Gonzalo Higuaín",
+      "note": "FBref verified 15/16 Napoli Serie A: 36g, 2a, 2958 min, 83 shots (2.53/90). Corrected assists90 0.15->0.06 and minutes 2989->2958.",
+      "source": "FBref 2015-16 Serie A"
+    }
+  ]
+}

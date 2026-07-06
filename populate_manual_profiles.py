@@ -40,6 +40,7 @@ SEASON_PICKS: list[tuple[str, str]] = [
     ("Neymar", "14/15"),
     ("Alexis Sanchez", "16/17"),
     ("Radamel Falcao", "16/17"),
+    ("Angel Di Maria", "13/14"),
     ("Riyad Mahrez", "22/23"),
 ]
 
@@ -47,6 +48,20 @@ PRIME_PLAYERS: list[str] = [
     "Cristiano Ronaldo",
     "Ngolo Kante",
     "Lionel Messi",
+    "Rúben Dias",
+    "Rodri",
+    "Cole Palmer",
+    "Carvajal",
+    "Casemiro",
+    "Mohamed Salah",
+    "Sergio Ramos",
+    "Antoine Griezmann",
+    "Antonio Rüdiger",
+    "Harry Maguire",
+    "Luka Modrić",
+    "Aymeric Laporte",
+    "Manuel Neuer",
+    "Alaba",
 ]
 
 

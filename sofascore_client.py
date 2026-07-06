@@ -788,7 +788,7 @@ class StatsStore:
         return _player_id_from_cache(raw, self._cache)
 
     def _find_cached_player_name(self, raw: str) -> str | None:
-        from player_names import canonical_name, fuzzy_surname_match, known_sofascore_id, names_loosely_match
+        from player_names import canonical_name, fuzzy_surname_match, known_sofascore_id, names_loosely_match, normalize_key
 
         canon = self.resolve(raw)
         if canon in self._players:
@@ -799,9 +799,29 @@ class StatsStore:
         for name in self._players:
             if names_loosely_match(name, raw) or names_loosely_match(name, canon):
                 return name
+        # Surname-only cache keys (e.g. "Carvajal" for alias "Dani Carvajal").
+        canon_parts = normalize_key(canon).split()
+        if len(canon_parts) >= 2:
+            surname = canon_parts[-1]
+            surname_hits = [name for name in self._players if normalize_key(name) == surname]
+            if len(surname_hits) == 1:
+                return surname_hits[0]
         fuzzy = fuzzy_surname_match(raw, list(self._players.keys()))
         if fuzzy:
             return fuzzy
+        fuzzy_canon = fuzzy_surname_match(canon, list(self._players.keys()))
+        if fuzzy_canon:
+            return fuzzy_canon
+        from player_names import normalize_key
+
+        for candidate in (canon, raw):
+            parts = normalize_key(candidate).split()
+            if len(parts) < 2:
+                continue
+            surname = parts[-1]
+            surname_hits = [name for name in self._players if normalize_key(name) == surname]
+            if len(surname_hits) == 1:
+                return surname_hits[0]
         kid = known_sofascore_id(raw)
         if kid is not None:
             for name, data in self._cache.get("players", {}).items():

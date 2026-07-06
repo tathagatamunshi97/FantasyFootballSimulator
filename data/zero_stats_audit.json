@@ -1,0 +1,29 @@
+{
+  "generated_at": "2026-07-06T18:18:36.881624+00:00",
+  "sheet_teams": 14,
+  "total_unique_players": 210,
+  "flagged_count": 0,
+  "rating_zero_count": 0,
+  "understat_missing_count": 0,
+  "cache_only_weak_count": 0,
+  "stub_count": 0,
+  "field_zero_totals": {
+    "rating": 0,
+    "goals90": 30,
+    "assists90": 33,
+    "xg90": 18,
+    "xa90": 13,
+    "key_passes90": 20,
+    "dribbles90": 25,
+    "tackles90": 8,
+    "interceptions90": 12,
+    "understat_xg90": 19,
+    "understat_xa90": 8,
+    "understat_key_passes90": 8,
+    "understat_shots90": 19
+  },
+  "flagged_players": [],
+  "rating_zero": [],
+  "understat_missing": [],
+  "cache_only_weak": []
+}

@@ -162,12 +162,30 @@ def main() -> int:
     }
 
     REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+    # Estimate missing Understat fields and enforce minimum ratings in cache
+    from understat_estimation import apply_estimates_to_cache
+
+    sheet_cached = {
+        store._find_cached_player_name(raw) or raw for raw in players
+    }
+    est_report = apply_estimates_to_cache(store._cache, sheet_names=sheet_cached)
+    save_cache(store._cache, store.cache_path)
+    store.reload()
+    report["understat_estimation"] = {
+        "understat_fixed": est_report["understat_fixed"],
+        "rating_fixed": est_report["rating_fixed"],
+        "ratios": {k: round(v, 4) for k, v in est_report["ratios"].items()},
+    }
+
     REPORT_PATH.write_text(json.dumps(report, indent=2), encoding="utf-8")
 
-    # Refresh audit artifact
+    # Refresh audit artifacts
     from audit_sheet_stats import main as audit_main
+    from audit_zero_stats import main as zero_audit_main
 
     audit_main()
+    zero_audit_main()
 
     print(f"\n=== Sheet Stats Update Report ===")
     print(f"Teams on sheet:        {report['sheet_teams']}")
@@ -175,6 +193,8 @@ def main() -> int:
     print(f"Full stats before:     {report['before_full_count']}")
     print(f"Full stats after:      {report['after_full_count']}")
     print(f"Fixed this run:        {report['fixed_count']}")
+    print(f"Understat estimated:   {report['understat_estimation']['understat_fixed']}")
+    print(f"Rating defaults:       {report['understat_estimation']['rating_fixed']}")
     print(f"Still missing / weak:  {report['still_missing_count']}")
     print(f"\nWritten to: {REPORT_PATH}")
     print(f"Audit refreshed: {AUDIT_PATH}")

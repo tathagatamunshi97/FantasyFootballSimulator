@@ -236,10 +236,28 @@ def fetch_best_historical_stats(player_raw: str) -> tuple[str, dict[str, Any]]:
     return display_name, data
 
 
+def _season_data_from_local_entry(
+    entry: dict[str, Any],
+    season_suffix: str,
+    *,
+    stat_profile: str,
+    prime_label: str | None = None,
+) -> dict[str, Any]:
+    season_label = season_label_from_suffix(season_suffix)
+    data = {k: v for k, v in entry.items() if k != "player_name"}
+    data["stat_profile"] = stat_profile
+    data["season_profile"] = season_label
+    if prime_label:
+        data["prime_season"] = prime_label
+    return data
+
+
 def build_season_stats_dict(
     player_raw: str,
     season_suffix: str,
     store: StatsStore,
+    *,
+    cache_only: bool = False,
 ) -> tuple[str, dict[str, Any], str]:
     """
     Build a full stats dict for one season.
@@ -259,37 +277,38 @@ def build_season_stats_dict(
         return canon, data, manual[2]
 
     canon = store.resolve(player_raw)
-    pid = _resolve_player_id(player_raw, store=store)
-    display_name = _display_name_for_player(player_raw, pid)
-    entry = _load_seed_season_entry(pid, season_suffix)
-    if not entry:
+    season_label = season_label_from_suffix(season_suffix)
+    pid = store.cached_player_id(player_raw) if cache_only else _resolve_player_id(player_raw, store=store)
+    entry = _load_seed_season_entry(pid, season_suffix) if pid else None
+    if not entry and not cache_only:
+        display_name = _display_name_for_player(player_raw, pid)
         try:
             entry = fetch_sofascore_season_entry(pid, season_suffix, player_name=display_name)
         except Exception:
             entry = None
-    if not entry:
-        from player_names import known_season_context
+        if not entry:
+            from player_names import known_season_context
 
-        ctx = known_season_context(pid, season_suffix)
-        if ctx:
-            entry = build_fbref_season_entry(pid, display_name, season_suffix, ctx)
+            ctx = known_season_context(pid, season_suffix)
+            if ctx:
+                entry = build_fbref_season_entry(pid, display_name, season_suffix, ctx)
+        if not entry:
+            entry = _load_seed_season_entry(pid, season_suffix)
+    if not entry and cache_only:
+        cached = _prime_stats_from_cache(store, player_raw, season_suffix)
+        if cached is not None:
+            return cached
+        raise KeyError(f"No cached stats for {player_raw} in {season_label}")
     if not entry:
-        entry = _load_seed_season_entry(pid, season_suffix)
-    if not entry:
-        label = season_label_from_suffix(season_suffix)
-        raise KeyError(f"No top-league stats for {player_raw} in {label}")
+        raise KeyError(f"No top-league stats for {player_raw} in {season_label}")
 
     if entry.get("minutes", 0) < MIN_MINUTES:
-        label = season_label_from_suffix(season_suffix)
-        raise KeyError(f"{player_raw} played insufficient minutes in {label}")
+        raise KeyError(f"{player_raw} played insufficient minutes in {season_label}")
 
-    season_label = season_label_from_suffix(season_suffix)
-    data = {k: v for k, v in entry.items() if k != "player_name"}
-    data["stat_profile"] = "single_season"
-    data["season_profile"] = season_label
-
-    merge_understat_for_player_season(canon, data, season_suffix)
-    merge_fbref_for_player_season(canon, data, season_suffix)
+    data = _season_data_from_local_entry(entry, season_suffix, stat_profile="single_season")
+    if not cache_only:
+        merge_understat_for_player_season(canon, data, season_suffix)
+        merge_fbref_for_player_season(canon, data, season_suffix)
     return canon, data, season_label
 
 
@@ -317,6 +336,8 @@ def _prime_stats_from_cache(
 def build_prime_stats_dict(
     player_raw: str,
     store: StatsStore,
+    *,
+    cache_only: bool = False,
 ) -> tuple[str, dict[str, Any], str]:
     """Use manual prime profile when available; Sofascore only as fallback."""
     from manual_profiles import lookup_manual_prime
@@ -326,6 +347,26 @@ def build_prime_stats_dict(
         canon = store.resolve(player_raw)
         data = manual[1]
         return canon, data, manual[2]
+
+    if cache_only:
+        pid = store.cached_player_id(player_raw)
+        suffix: str | None = None
+        if pid is not None:
+            from player_names import KNOWN_PRIME_SEASON_SUFFIX
+
+            suffix = KNOWN_PRIME_SEASON_SUFFIX.get(pid)
+            entry = _load_seed_season_entry(pid, suffix) if suffix else None
+            if entry:
+                canon = store.resolve(player_raw)
+                label = season_label_from_suffix(suffix)
+                data = _season_data_from_local_entry(
+                    entry, suffix, stat_profile="prime_season", prime_label=label
+                )
+                return canon, data, label
+        cached = _prime_stats_from_cache(store, player_raw, suffix or "24/25")
+        if cached is not None:
+            return cached
+        raise KeyError(f"No cached stats for prime player {player_raw}")
 
     pid = _resolve_player_id(player_raw, store=store)
     suffix = find_prime_season_suffix(player_raw, player_id=pid)

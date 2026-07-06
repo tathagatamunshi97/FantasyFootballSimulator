@@ -274,8 +274,13 @@ def _enrich_with_fbref(stats: dict[str, Any], player_name: str, season_suffix: s
 
 
 def _enrich_manual_stats(stats: dict[str, Any], player_name: str, season_suffix: str) -> dict[str, Any]:
+    from player_names import apply_known_position_overrides, known_sofascore_id
+
     data = _enrich_with_fbref(stats, player_name, season_suffix)
-    return _enrich_with_understat(data, player_name, season_suffix)
+    data = _enrich_with_understat(data, player_name, season_suffix)
+    pid = data.get("player_id") or known_sofascore_id(player_name)
+    apply_known_position_overrides(data, pid)
+    return data
 
 
 def lookup_manual_prime(player_raw: str) -> tuple[str, dict[str, Any], str] | None:

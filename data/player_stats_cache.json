@@ -2745,7 +2745,12 @@
       "teams_by_season": {
         "2024-2025": "Wolverhampton"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.08497356098843281,
+      "understat_xa90": 0.12860955603575275,
+      "understat_key_passes90": 1.349538607219864,
+      "understat_shots90": 1.0349820972932682,
+      "understat_estimated": true
     },
     "Dara O'Shea": {
       "team": "Ipswich Town",
@@ -4145,8 +4150,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 0.34338077312300225,
+      "understat_matched": false,
+      "understat_xg90": 0.03214108132161054,
+      "understat_xa90": 0.022462125504970128,
+      "understat_shots90": 0.2779111994544209,
+      "understat_estimated": true
     },
     "Neco Williams": {
       "team": "Nottingham Forest",
@@ -11971,7 +11980,12 @@
       "teams_by_season": {
         "2024-2025": "Manchester City"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.2796808575067328,
+      "understat_xa90": 0.3466063865546598,
+      "understat_key_passes90": 2.3342037638616637,
+      "understat_shots90": 2.794386692064248,
+      "understat_estimated": true
     },
     "Archie Gray": {
       "team": "Tottenham Hotspur",
@@ -15101,8 +15115,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 0.5579421346926827,
+      "understat_matched": false,
+      "understat_xg90": 0.24755378553765064,
+      "understat_xa90": 0.0606306313452261,
+      "understat_shots90": 1.6400061316034786,
+      "understat_estimated": true
     },
     "Diogo Jota": {
       "team": "Liverpool FC",
@@ -15962,8 +15980,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 0.6648869689496973,
+      "understat_matched": false,
+      "understat_xg90": 0.14061335613287718,
+      "understat_xa90": 0.07948734198924695,
+      "understat_shots90": 0.9248730330128349,
+      "understat_estimated": true
     },
     "Gabriel Jesus": {
       "team": "Arsenal",
@@ -17090,7 +17112,12 @@
       "teams_by_season": {
         "2024-2025": "Bournemouth"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.5434517261133821,
+      "understat_xa90": 0.07822318997107897,
+      "understat_key_passes90": 1.4969350224765017,
+      "understat_shots90": 2.4980123459362216,
+      "understat_estimated": true
     },
     "\u0110or\u0111e Petrovi\u0107": {
       "team": "Bournemouth",
@@ -18869,8 +18896,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 0.33689934253985226,
+      "understat_matched": false,
+      "understat_xg90": 0.08007940763628935,
+      "understat_xa90": 0.048023036954619326,
+      "understat_shots90": 0.7317751813341489,
+      "understat_estimated": true
     },
     "\u00c1lex Jim\u00e9nez": {
       "team": "Bournemouth",
@@ -20592,7 +20623,12 @@
       "teams_by_season": {
         "2025-2026": "Brentford"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.04432571427942624,
+      "understat_xa90": 0.05226019260551123,
+      "understat_key_passes90": 0.5036416898051781,
+      "understat_shots90": 0.5378897612184164,
+      "understat_estimated": true
     },
     "Kiernan Dewsbury-Hall": {
       "team": "Everton",
@@ -21398,8 +21434,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 0.9902086538053448,
+      "understat_matched": false,
+      "understat_xg90": 0.033888872828249615,
+      "understat_xa90": 0.09389408392512025,
+      "understat_shots90": 0.3038768631475192,
+      "understat_estimated": true
     },
     "Rayan Cherki": {
       "team": "Manchester City",
@@ -23450,8 +23490,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 0.7963715314925981,
+      "understat_matched": false,
+      "understat_xg90": 0.25798689525325824,
+      "understat_xa90": 0.1578426703066526,
+      "understat_shots90": 1.625540893266142,
+      "understat_estimated": true
     },
     "William Osula": {
       "team": "Newcastle United",
@@ -35706,8 +35750,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 1.1343945260388075,
+      "understat_matched": false,
+      "understat_xg90": 0.15410560251007674,
+      "understat_xa90": 0.1802626273520156,
+      "understat_shots90": 1.589986186938529,
+      "understat_estimated": true
     },
     "Juanlu S\u00e1nchez": {
       "team": "Sevilla",
@@ -38566,8 +38614,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 1.4026207534842026,
+      "understat_matched": false,
+      "understat_xg90": 0.2979999771360484,
+      "understat_xa90": 0.10877765079582857,
+      "understat_shots90": 2.67455715722759,
+      "understat_estimated": true
     },
     "Abel Ru\u00edz": {
       "team": "Girona FC",
@@ -38830,7 +38882,12 @@
       "teams_by_season": {
         "2024-2025": "Real Valladolid"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.2200308764667366,
+      "understat_xa90": 0.024144101918698684,
+      "understat_key_passes90": 0.7435107727532294,
+      "understat_shots90": 1.6377696837595095,
+      "understat_estimated": true
     },
     "Randy Nteka": {
       "team": "Rayo Vallecano",
@@ -41199,7 +41256,12 @@
       "teams_by_season": {
         "2024-2025": "Deportivo Alav\u00e9s"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.13768523612410574,
+      "understat_xa90": 0.08243661706553988,
+      "understat_key_passes90": 1.2269959200627063,
+      "understat_shots90": 1.4742367943230161,
+      "understat_estimated": true
     },
     "Kike Barja": {
       "team": "Osasuna",
@@ -41624,7 +41686,12 @@
       "teams_by_season": {
         "2024-2025": "Legan\u00e9s"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.009687196543910554,
+      "understat_xa90": 0.20706138521756193,
+      "understat_key_passes90": 2.201375033053679,
+      "understat_shots90": 0.8816514162127841,
+      "understat_estimated": true
     },
     "Luka Romero": {
       "team": "Deportivo Alav\u00e9s",
@@ -42427,7 +42494,12 @@
       "teams_by_season": {
         "2025-2026": "Deportivo Alav\u00e9s"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.01812714229864517,
+      "understat_xa90": 0.06206118903166229,
+      "understat_key_passes90": 0.5092974392681894,
+      "understat_shots90": 0.2699653102346017,
+      "understat_estimated": true
     },
     "David Affengruber": {
       "team": "Elche",
@@ -43933,7 +44005,12 @@
       "teams_by_season": {
         "2025-2026": "Deportivo Alav\u00e9s"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.01709505272454804,
+      "understat_xa90": 0.017400116404837136,
+      "understat_key_passes90": 0.25898529800631515,
+      "understat_shots90": 0.20744739205006685,
+      "understat_estimated": true
     },
     "Abdel Rahim": {
       "team": "Real Oviedo",
@@ -44196,7 +44273,12 @@
       "teams_by_season": {
         "2025-2026": "Rayo Vallecano"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.10853812711757252,
+      "understat_xa90": 0.15897622763235258,
+      "understat_key_passes90": 1.1430046387295458,
+      "understat_shots90": 1.2046677086899393,
+      "understat_estimated": true
     },
     "Clemens Riedel": {
       "team": "Espanyol",
@@ -44459,7 +44541,12 @@
       "teams_by_season": {
         "2025-2026": "Deportivo Alav\u00e9s"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.05795057887960747,
+      "understat_xa90": 0.18516720756755567,
+      "understat_key_passes90": 1.1335365426325403,
+      "understat_shots90": 0.734382248693945,
+      "understat_estimated": true
     },
     "Aleix Febas": {
       "team": "Elche",
@@ -48773,7 +48860,12 @@
       "teams_by_season": {
         "2025-2026": "Deportivo Alav\u00e9s"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.08038731233726454,
+      "understat_xa90": 0.06818486292878553,
+      "understat_key_passes90": 0.6089227210073905,
+      "understat_shots90": 1.8290531075329624,
+      "understat_estimated": true
     },
     "Giacomo Raspadori": {
       "team": "Atalanta",
@@ -48928,7 +49020,11 @@
       "teams_by_season": {
         "2025-2026": "Real Oviedo"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.41903464840727234,
+      "understat_xa90": 0.0052655849643957415,
+      "understat_shots90": 2.8249773126818005,
+      "understat_estimated": true
     },
     "Urko Izeta": {
       "team": "Athletic Club",
@@ -48975,7 +49071,12 @@
       "teams_by_season": {
         "2025-2026": "Athletic Club"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.6587293649859177,
+      "understat_xa90": 0.15963916320628357,
+      "understat_key_passes90": 0.9504349349057153,
+      "understat_shots90": 5.233930629580655,
+      "understat_estimated": true
     },
     "Marcin Bu\u0142ka": {
       "team": "Nice",
@@ -49404,7 +49505,11 @@
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
       "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.0,
+      "understat_xa90": 0.0,
+      "understat_shots90": 0.0,
+      "understat_estimated": true
     },
     "Benjamin Lecomte": {
       "team": "Montpellier",
@@ -49833,7 +49938,11 @@
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
       "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.0,
+      "understat_xa90": 0.0,
+      "understat_shots90": 0.0,
+      "understat_estimated": true
     },
     "Alban Lafont": {
       "team": "Nantes",
@@ -51935,8 +52044,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 0.4522697588433198,
+      "understat_matched": false,
+      "understat_xg90": 0.03191481793098148,
+      "understat_xa90": 0.07204834665209245,
+      "understat_shots90": 0.37428819496764126,
+      "understat_estimated": true
     },
     "Ki-Jana Hoever": {
       "team": "Auxerre",
@@ -52580,8 +52693,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 0.4145527076879486,
+      "understat_matched": false,
+      "understat_xg90": 0.05982826942311823,
+      "understat_xa90": 0.03862364785636852,
+      "understat_shots90": 0.6217584804973592,
+      "understat_estimated": true
     },
     "Nicolas Pallois": {
       "team": "Nantes",
@@ -53600,7 +53717,12 @@
       "teams_by_season": {
         "2024-2025": "Stade Brestois"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.05309851189722935,
+      "understat_xa90": 0.012924058423125528,
+      "understat_key_passes90": 0.05246267602137272,
+      "understat_shots90": 0.5778112669338457,
+      "understat_estimated": true
     },
     "Joseph Okumu": {
       "team": "Stade de Reims",
@@ -53809,7 +53931,12 @@
       "teams_by_season": {
         "2024-2025": "Stade Rennais"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.025290502405709344,
+      "understat_xa90": 0.08500785440734601,
+      "understat_key_passes90": 0.8019294763266974,
+      "understat_shots90": 0.4282306878747808,
+      "understat_estimated": true
     },
     "Gabriel Osho": {
       "team": "Auxerre",
@@ -53913,8 +54040,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 1.5344135330326745,
+      "understat_matched": false,
+      "understat_xg90": 0.08869978508258977,
+      "understat_xa90": 0.16703870067491183,
+      "understat_shots90": 1.1914743374274848,
+      "understat_estimated": true
     },
     "Christian Mawissa": {
       "team": "AS Monaco",
@@ -53964,8 +54095,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 0.21742513922727363,
+      "understat_matched": false,
+      "understat_xg90": 0.01633028872726967,
+      "understat_xa90": 0.03754166430264023,
+      "understat_shots90": 0.1048162046964103,
+      "understat_estimated": true
     },
     "Abdoulaye Bamba": {
       "team": "Angers",
@@ -55203,8 +55338,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 0.37733296605310634,
+      "understat_matched": false,
+      "understat_xg90": 0.0643471167063299,
+      "understat_xa90": 0.029476603096336877,
+      "understat_shots90": 0.4191627906400102,
+      "understat_estimated": true
     },
     "Valentin Atangana Edoa": {
       "team": "Stade de Reims",
@@ -55686,8 +55825,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 0.8257734010058675,
+      "understat_matched": false,
+      "understat_xg90": 0.1327354460342981,
+      "understat_xa90": 0.09171207123233076,
+      "understat_shots90": 1.3157067203830755,
+      "understat_estimated": true
     },
     "Pierre-Emile H\u00f8jbjerg": {
       "team": "Olympique de Marseille",
@@ -57789,8 +57932,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 0.34590084351074407,
+      "understat_matched": false,
+      "understat_xg90": 0.057724699930470955,
+      "understat_xa90": 0.05096626797577323,
+      "understat_shots90": 0.8614028981700668,
+      "understat_estimated": true
     },
     "Jo\u00e3o Neves": {
       "team": "Paris Saint-Germain",
@@ -58488,8 +58635,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 1.031109539276892,
+      "understat_matched": false,
+      "understat_xg90": 0.04944025621748874,
+      "understat_xa90": 0.12045511739967261,
+      "understat_shots90": 0.7570287995717097,
+      "understat_estimated": true
     },
     "Jordan Veretout": {
       "team": "Olympique Lyonnais",
@@ -58863,8 +59014,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 1.7928921833226226,
+      "understat_matched": false,
+      "understat_xg90": 0.10112991000460905,
+      "understat_xa90": 0.21044957919383975,
+      "understat_shots90": 0.8513878773661588,
+      "understat_estimated": true
     },
     "Sorba Thomas": {
       "team": "Nantes",
@@ -59346,8 +59501,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 0.8151143324690948,
+      "understat_matched": false,
+      "understat_xg90": 0.09213983817842515,
+      "understat_xa90": 0.0963847702562264,
+      "understat_shots90": 0.8484607860670395,
+      "understat_estimated": true
     },
     "Ngal'ayel Mukau": {
       "team": "Lille",
@@ -61557,8 +61716,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 1.1391555626367253,
+      "understat_matched": false,
+      "understat_xg90": 0.5228789135560175,
+      "understat_xa90": 0.1317630766802356,
+      "understat_shots90": 2.2283808197761195,
+      "understat_estimated": true
     },
     "Ga\u00ebtan Laborde": {
       "team": "Nice",
@@ -61932,8 +62095,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 1.2701098674147253,
+      "understat_matched": false,
+      "understat_xg90": 0.26040854017386084,
+      "understat_xa90": 0.1705914606338254,
+      "understat_shots90": 2.3828494621997103,
+      "understat_estimated": true
     },
     "Joshua King": {
       "team": "Toulouse",
@@ -62307,8 +62474,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 1.2043933636404984,
+      "understat_matched": false,
+      "understat_xg90": 0.5284789895224867,
+      "understat_xa90": 0.05240510209420768,
+      "understat_shots90": 2.597210808595164,
+      "understat_estimated": true
     },
     "Andr\u00e9 Ayew": {
       "team": "Le Havre",
@@ -63816,8 +63987,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 0.9835888409142869,
+      "understat_matched": false,
+      "understat_xg90": 0.43276194965174575,
+      "understat_xa90": 0.12699731175973958,
+      "understat_shots90": 2.270653965977621,
+      "understat_estimated": true
     },
     "Folarin Balogun": {
       "team": "AS Monaco",
@@ -64083,8 +64258,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 0.831174926872461,
+      "understat_matched": false,
+      "understat_xg90": 0.5450369127765464,
+      "understat_xa90": 0.0961351873243412,
+      "understat_shots90": 3.0905107986760716,
+      "understat_estimated": true
     },
     "Ahmadou Bamba Dieng": {
       "team": "Lorient",
@@ -65103,7 +65282,12 @@
       "teams_by_season": {
         "2024-2025": "RC Strasbourg"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.3193839345386268,
+      "understat_xa90": 0.025397139600999662,
+      "understat_key_passes90": 0.45361667347772777,
+      "understat_shots90": 2.725104377384969,
+      "understat_estimated": true
     },
     "Djylian N'Guessan": {
       "team": "Saint-\u00c9tienne",
@@ -65258,7 +65442,12 @@
       "teams_by_season": {
         "2024-2025": "Nantes"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.595040061741423,
+      "understat_xa90": 0.11113002521542394,
+      "understat_key_passes90": 1.4886646632363,
+      "understat_shots90": 2.4842111727542537,
+      "understat_estimated": true
     },
     "Robin Risser": {
       "team": "RC Lens",
@@ -66331,7 +66520,12 @@
       "teams_by_season": {
         "2025-2026": "Stade Rennais"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.0,
+      "understat_xa90": 0.0,
+      "understat_key_passes90": 0.0,
+      "understat_shots90": 0.0,
+      "understat_estimated": true
     },
     "Ousmane Camara": {
       "team": "Angers",
@@ -68862,7 +69056,12 @@
       "teams_by_season": {
         "2025-2026": "Nantes"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.040830332540449446,
+      "understat_xa90": 0.022857425640899695,
+      "understat_key_passes90": 0.2783556859976966,
+      "understat_shots90": 0.5574077135560164,
+      "understat_estimated": true
     },
     "Chancel Mbemba": {
       "team": "Lille",
@@ -70853,7 +71052,12 @@
       "teams_by_season": {
         "2025-2026": "Nantes"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.1502951164261942,
+      "understat_xa90": 0.15140815798948534,
+      "understat_key_passes90": 1.4011872285271467,
+      "understat_shots90": 2.034262784054146,
+      "understat_estimated": true
     },
     "Lucas Gourna-Douath": {
       "team": "Le Havre",
@@ -71116,7 +71320,12 @@
       "teams_by_season": {
         "2025-2026": "Stade Brestois"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.30145242126474203,
+      "understat_xa90": 0.06136637663590697,
+      "understat_key_passes90": 0.6089227210073905,
+      "understat_shots90": 2.0576847459745826,
+      "understat_estimated": true
     },
     "Khalis Merah": {
       "team": "Olympique Lyonnais",
@@ -77268,8 +77477,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 0.3198655436624357,
+      "understat_matched": false,
+      "understat_xg90": 0.0700147242483039,
+      "understat_xa90": 0.03085872193498773,
+      "understat_shots90": 0.4572328961694557,
+      "understat_estimated": true
     },
     "Sa\u00fal Coco": {
       "team": "Torino",
@@ -77751,8 +77964,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 0.2926033853357064,
+      "understat_matched": false,
+      "understat_xg90": 0.08189227542791826,
+      "understat_xa90": 0.027931715303990357,
+      "understat_shots90": 0.6230065468581503,
+      "understat_estimated": true
     },
     "Marc Kempf": {
       "team": "Como",
@@ -82446,8 +82663,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 1.0326437666102632,
+      "understat_matched": false,
+      "understat_xg90": 0.072331330104404,
+      "understat_xa90": 0.10188237751449002,
+      "understat_shots90": 1.440447743377057,
+      "understat_estimated": true
     },
     "Frank Anguissa": {
       "team": "SSC Napoli",
@@ -82494,7 +82715,12 @@
       "teams_by_season": {
         "2024-2025": "SSC Napoli"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.15390334306198813,
+      "understat_xa90": 0.09328581833142822,
+      "understat_key_passes90": 0.817367390641702,
+      "understat_shots90": 1.3849672929516887,
+      "understat_estimated": true
     },
     "Manuel Locatelli": {
       "team": "Juventus",
@@ -88376,8 +88602,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 2.2263878491362243,
+      "understat_matched": false,
+      "understat_xg90": 0.17321889226619167,
+      "understat_xa90": 0.19385138615438563,
+      "understat_shots90": 2.12872371607573,
+      "understat_estimated": true
     },
     "Du\u0161an Vlahovi\u0107": {
       "team": "Juventus",
@@ -94364,7 +94594,12 @@
       "teams_by_season": {
         "2025-2026": "Genoa"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.1998145740457284,
+      "understat_xa90": 0.14571862817469564,
+      "understat_key_passes90": 1.5568124233755618,
+      "understat_shots90": 2.1982508644238754,
+      "understat_estimated": true
     },
     "Roberto Gagliardini": {
       "team": "Hellas Verona",
@@ -98897,7 +99132,11 @@
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
       "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.0,
+      "understat_xa90": 0.0,
+      "understat_shots90": 0.0,
+      "understat_estimated": true
     },
     "Alexander Meyer": {
       "team": "Borussia Dortmund",
@@ -103211,7 +103450,12 @@
       "teams_by_season": {
         "2024-2025": "TSG Hoffenheim"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.007462945977937134,
+      "understat_xa90": 0.03342294262898929,
+      "understat_key_passes90": 0.47485854187321047,
+      "understat_shots90": 0.20376535752349845,
+      "understat_estimated": true
     },
     "Marco Komenda": {
       "team": "Holstein Kiel",
@@ -111739,8 +111983,12 @@
       "npxg90": 0.0,
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
-      "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_key_passes90": 1.9148096513100754,
+      "understat_matched": false,
+      "understat_xg90": 0.1746240023837983,
+      "understat_xa90": 0.24965740080813031,
+      "understat_shots90": 1.461801835774001,
+      "understat_estimated": true
     },
     "Elias Saad": {
       "team": "FC Augsburg",
@@ -112759,7 +113007,11 @@
       "teams_by_season": {
         "2024-2025": "TSG Hoffenheim"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.2857872014246597,
+      "understat_xa90": 0.009283631337226953,
+      "understat_shots90": 1.6602174360683812,
+      "understat_estimated": true
     },
     "Igor Matanovi\u0107": {
       "team": "SC Freiburg",
@@ -119611,7 +119863,12 @@
       "teams_by_season": {
         "2025-2026": "TSG Hoffenheim"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.24817245843655505,
+      "understat_xa90": 0.32276811277103007,
+      "understat_key_passes90": 0.835498617196187,
+      "understat_shots90": 2.091359173341953,
+      "understat_estimated": true
     },
     "Youssoupha Niang": {
       "team": "1. FC K\u00f6ln",
@@ -119658,7 +119915,12 @@
       "teams_by_season": {
         "2025-2026": "1. FC K\u00f6ln"
       },
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.15236964283552773,
+      "understat_xa90": 0.05639589130091139,
+      "understat_key_passes90": 1.2591042245129453,
+      "understat_shots90": 2.1011318797594387,
+      "understat_estimated": true
     },
     "Salim Musah": {
       "team": "SV Werder Bremen",
@@ -119761,7 +120023,12 @@
       "rating": 7.05,
       "player_id": 234148,
       "league": "Saudi Pro League",
-      "stat_profile": "seeded_sofascore"
+      "stat_profile": "seeded_sofascore",
+      "understat_xg90": 0.06587293649859177,
+      "understat_xa90": 0.10057267281995866,
+      "understat_key_passes90": 0.7484675112382508,
+      "understat_shots90": 0.4496422222685199,
+      "understat_estimated": true
     },
     "Cristiano Ronaldo": {
       "team": "Al-Nassr",
@@ -119811,7 +120078,12 @@
       "rating": 7.45,
       "player_id": 750,
       "league": "Saudi Pro League",
-      "stat_profile": "seeded_sofascore"
+      "stat_profile": "seeded_sofascore",
+      "understat_xg90": 0.7904752379831013,
+      "understat_xa90": 0.15644637994215793,
+      "understat_key_passes90": 1.0977523498161013,
+      "understat_shots90": 4.1966607411728525,
+      "understat_estimated": true
     },
     "Lionel Messi": {
       "team": "Inter Miami CF",
@@ -119861,7 +120133,12 @@
       "rating": 7.85,
       "player_id": 12994,
       "league": "MLS",
-      "stat_profile": "seeded_sofascore"
+      "stat_profile": "seeded_sofascore",
+      "understat_xg90": 0.6038352512370914,
+      "understat_xa90": 0.46933913982647374,
+      "understat_key_passes90": 2.794278708622803,
+      "understat_shots90": 3.49721728431071,
+      "understat_estimated": true
     },
     "Diego God\u00edn": {
       "team": "Inter",
@@ -120316,7 +120593,11 @@
       "xg_chain90": 0.0,
       "xg_buildup90": 0.0,
       "understat_key_passes90": 0.0,
-      "understat_matched": false
+      "understat_matched": false,
+      "understat_xg90": 0.0,
+      "understat_xa90": 0.0,
+      "understat_shots90": 0.0,
+      "understat_estimated": true
     },
     "Brahim Diaz": {
       "team": "Real Madrid",
@@ -120869,7 +121150,12 @@
       "stat_profile": "seeded_fbref",
       "data_source": "fbref",
       "fbref_matched": true,
-      "season_profile": "2023-2024"
+      "season_profile": "2023-2024",
+      "understat_xg90": 0.6038352512370914,
+      "understat_xa90": 0.10057267281995866,
+      "understat_key_passes90": 0.4989783408255006,
+      "understat_shots90": 2.8877022719022722,
+      "understat_estimated": true
     },
     "John Stones": {
       "team": "Manchester City",
@@ -121016,7 +121302,12 @@
       "stat_profile": "seeded_fbref",
       "data_source": "fbref",
       "fbref_matched": true,
-      "season_profile": "2024-2025"
+      "season_profile": "2024-2025",
+      "understat_xg90": 0.18663998674601004,
+      "understat_xa90": 0.07822318997107897,
+      "understat_key_passes90": 1.3971393543114015,
+      "understat_shots90": 4.0367879510329345,
+      "understat_estimated": true
     },
     "Diogo Costa": {
       "team": "FC Porto",
@@ -121069,7 +121360,11 @@
       "understat_key_passes90": 0.0,
       "player_id": 843115,
       "league": "Primeira Liga",
-      "stat_profile": "seeded_sofascore"
+      "stat_profile": "seeded_sofascore",
+      "understat_xg90": 0.0,
+      "understat_xa90": 0.0,
+      "understat_shots90": 0.0,
+      "understat_estimated": true
     }
   },
   "meta": {
@@ -121100,6 +121395,15 @@
       "Bundesliga 25/26: 320 players"
     ],
     "seed_merged_at": "2026-07-06T15:26:20Z",
-    "position_enriched_at": "2026-07-06T16:29:16Z"
+    "position_enriched_at": "2026-07-06T16:29:16Z",
+    "understat_estimation_at": "2026-07-06T18:18:32Z",
+    "understat_estimation_ratios": {
+      "xg": 1.0979,
+      "xa": 1.1175,
+      "kp": 0.998,
+      "sh": 0.9992
+    },
+    "understat_estimated_count": 6,
+    "rating_estimated_count": 0
   }
 }

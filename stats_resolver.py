@@ -171,13 +171,17 @@ def prepare_team_player_stats(
     prime = (team.get("prime_player") or "").strip()
     if prime:
         meta: dict[str, Any] = {"type": "prime", "requested": prime}
-        _apply_override(
-            store,
-            player_stats,
-            prime,
-            lambda r, s: build_prime_stats_dict(r, s),
-            meta,
-        )
+        try:
+            _apply_override(
+                store,
+                player_stats,
+                prime,
+                lambda r, s, co=cache_only: build_prime_stats_dict(r, s, cache_only=co),
+                meta,
+            )
+        except KeyError:
+            if not cache_only:
+                raise
 
     peak = team.get("peak_season") or {}
     peak_player = (peak.get("player") or "").strip()
@@ -189,12 +193,18 @@ def prepare_team_player_stats(
             "requested": peak_player,
             "season_input": peak_season_raw,
         }
-        _apply_override(
-            store,
-            player_stats,
-            peak_player,
-            lambda r, s, suf=suffix: build_season_stats_dict(r, suf, s),
-            meta,
-        )
+        try:
+            _apply_override(
+                store,
+                player_stats,
+                peak_player,
+                lambda r, s, suf=suffix, co=cache_only: build_season_stats_dict(
+                    r, suf, s, cache_only=co
+                ),
+                meta,
+            )
+        except KeyError:
+            if not cache_only:
+                raise
 
     return player_stats, name_map

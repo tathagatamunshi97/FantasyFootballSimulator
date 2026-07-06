@@ -11,11 +11,37 @@ import pandas as pd
 
 from formation_fit import FORMATION_SLOTS
 from lineup_builder import assign_lineup_slots, lineup_from_assignments, select_starting_xi
-from player_names import normalize_key, resolve_player_name
+from player_names import canonical_name, names_loosely_match, normalize_key, resolve_player_name
 
 # Default: user's teams sheet tab
 DEFAULT_SPREADSHEET_ID = "1bjdf22AWQfPam1Aakiz4STgt7Gal0I4hCkY11GSroDg"
 DEFAULT_TEAMS_GID = "2011460593"
+
+# Round 3 season picks live on a separate sheet tab; keyed by normalized team name.
+ROUND3_SEASON_PICKS: dict[str, dict[str, str]] = {
+    "subhadro+shubhajit": {"player": "Edinson Cavani", "season": "16/17"},
+    "sohom+mayukh": {"player": "Dani Alves", "season": "17/18"},
+    "dilshad": {"player": "Marcelo", "season": "16/17"},
+    "kp+ss": {"player": "Giovanni Lo Celso", "season": "18/19"},
+    "anindo": {"player": "Gonzalo Higuain", "season": "15/16"},
+    "kinjal+sayan c": {"player": "Diego Godin", "season": "15/16"},
+    "rishav": {"player": "Luis Suarez", "season": "15/16"},
+    "ddr": {"player": "Arturo Vidal", "season": "15/16"},
+    "moga+sanmitro": {"player": "Angel Di Maria", "season": "13/14"},
+    "chintu": {"player": "Fernandinho", "season": "17/18"},
+    "rohan + anac": {"player": "Roberto Firmino", "season": "17/18"},
+    "ryan": {"player": "Neymar", "season": "14/15"},
+    "raktim": {"player": "Alexis Sanchez", "season": "16/17"},
+    "sugata": {"player": "Radamel Falcao", "season": "16/17"},
+}
+
+# Alternate spellings from sheet / login -> canonical normalized team key in ROUND3_SEASON_PICKS.
+TEAM_NAME_ALIASES: dict[str, str] = {
+    "subhadro+subhajit": "subhadro+shubhajit",
+    "subhadro+shubhajit": "subhadro+shubhajit",
+    "rohan+anac": "rohan + anac",
+    "rohan + anac": "rohan + anac",
+}
 
 _TEAM_NAME_ROW = 1
 _PLAYER_START_ROW = 2
@@ -106,7 +132,7 @@ def parse_teams_from_dataframe(df: pd.DataFrame) -> dict[str, SheetRoster]:
             budgets.append(budget)
         if not players:
             continue
-        key = normalize_key(name)
+        key = _canonical_team_key(name)
         teams[key] = SheetRoster(name=name, players=players, budgets=budgets)
     return teams
 
@@ -129,17 +155,37 @@ def list_sheet_teams(
     return out
 
 
-def _find_roster(team_name: str, rosters: dict[str, SheetRoster]) -> SheetRoster | None:
+def _canonical_team_key(team_name: str) -> str:
     key = normalize_key(team_name)
+    return TEAM_NAME_ALIASES.get(key, key)
+
+
+def _find_roster(team_name: str, rosters: dict[str, SheetRoster]) -> SheetRoster | None:
+    key = _canonical_team_key(team_name)
     if key in rosters:
         return rosters[key]
     loose = re.sub(r"[^a-z0-9]+", "", key)
     for roster in rosters.values():
-        if normalize_key(roster.name) == key:
+        roster_key = _canonical_team_key(roster.name)
+        if roster_key == key or normalize_key(roster.name) == key:
             return roster
-        if re.sub(r"[^a-z0-9]+", "", normalize_key(roster.name)) == loose:
+        if re.sub(r"[^a-z0-9]+", "", roster_key) == loose:
             return roster
     return None
+
+
+def default_peak_season(roster: SheetRoster) -> dict[str, str]:
+    """Round 3 season-pick default when the picked player is on the roster."""
+    pick = ROUND3_SEASON_PICKS.get(_canonical_team_key(roster.name))
+    if not pick:
+        return {"player": "", "season": ""}
+
+    player_raw = pick["player"]
+    season = pick["season"]
+    for player in roster.players:
+        if names_loosely_match(player, player_raw) or names_loosely_match(player, canonical_name(player_raw)):
+            return {"player": player, "season": season}
+    return {"player": player_raw, "season": season}
 
 
 def team_payload_from_roster(
@@ -160,7 +206,8 @@ def team_payload_from_roster(
     full_resolved: list[str] = []
     for raw in raw_squad:
         if resolve_names and store is not None:
-            full_resolved.append(resolve_player_name(raw, store))
+            cached = store._find_cached_player_name(raw)
+            full_resolved.append(cached if cached else resolve_player_name(raw, store))
         else:
             full_resolved.append(raw)
 
@@ -193,13 +240,15 @@ def team_payload_from_roster(
                 {"slot": slot, "player": player, "captain": False, "vice_captain": False}
             )
 
+    peak_season = default_peak_season(roster)
+
     return {
         "name": roster.name,
         "formation": formation,
         "lineup": lineup,
         "bench": bench_players,
         "prime_player": "",
-        "peak_season": {"player": "", "season": "23/24"},
+        "peak_season": peak_season,
         "sheet_meta": {
             "source": "google_sheets",
             "player_count": roster.player_count,
@@ -209,6 +258,7 @@ def team_payload_from_roster(
             "roster_players": starting_pool,
             "bench_players": bench_players,
             "squad_size": len(full_resolved),
+            "season_pick": dict(peak_season) if peak_season.get("player") else None,
         },
     }
 
