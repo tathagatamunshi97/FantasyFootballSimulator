@@ -83,7 +83,7 @@ function renderKnockout(t, { showRun = false } = {}) {
           return `<tr><td class="muted">${esc(tie.id)}</td><td>${teams}</td><td>${res}</td></tr>`;
         })
         .join("");
-      return `<div class="card"><h3>${esc(rnd.name)}</h3>
+      return `<div class="card"><h3>${esc(rnd.label || rnd.name)}</h3>
         <table><thead><tr><th>ID</th><th>Match</th><th>Result</th></tr></thead><tbody>${rows}</tbody></table></div>`;
     })
     .join("");
@@ -118,10 +118,15 @@ function renderTables(t) {
 function renderTournament(t, activeTab) {
   const settings = t.settings || {};
   const showRun = Boolean(getAdminToken());
+  const advance = settings.advance_per_group || "?";
+  const koTeams =
+    settings.group_count && advance !== "?"
+      ? Number(settings.group_count) * Number(advance)
+      : "?";
   const meta = `<div class="card" style="margin-bottom:1rem">
     <p><strong>${esc(t.name)}</strong> · ${(t.team_names || []).length} teams ·
     ${settings.group_count || "?"} groups × ${settings.teams_per_group || "?"} ·
-    top ${settings.advance_per_group || "?"} advance</p>
+    top ${advance} advance (${koTeams} knockout teams)</p>
     ${showRun ? `<p class="muted">Admin token detected — Run buttons start matchday broadcast.</p>` : ""}
   </div>`;
 

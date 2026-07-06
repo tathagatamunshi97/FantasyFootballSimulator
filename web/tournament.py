@@ -15,12 +15,19 @@ from stats_resolver import prepare_match_player_stats
 from web.experiments import _apply_name_map, validate_team_payload
 from web import matchday_session
 from web.state import get_stats_store
-from web.team_lineups import apply_saved_lineup
+from web.team_lineups import apply_team_lineup
 
 ROOT = Path(__file__).resolve().parent.parent
 TOURNAMENTS_DIR = ROOT / "data" / "tournaments"
 
 GROUP_LETTERS = "ABCDEFGHIJKLMNOPQR"
+VALID_KNOCKOUT_SIZES = (2, 4, 8, 16)
+ROUND_LABELS = {
+    "R16": "Round of 16",
+    "QF": "Quarter-finals",
+    "SF": "Semi-finals",
+    "Final": "Final",
+}
 
 
 def _now() -> str:
@@ -61,7 +68,7 @@ def _default_settings(team_count: int) -> dict[str, Any]:
     if team_count % group_count != 0:
         group_count = _best_group_count(team_count)
     teams_per_group = team_count // group_count
-    advance = 2 if teams_per_group >= 4 else 1
+    advance = _default_advance_per_group(group_count, teams_per_group)
     return {
         "group_count": group_count,
         "teams_per_group": teams_per_group,
@@ -99,10 +106,70 @@ def _validate_group_settings(team_count: int, group_count: int) -> None:
         raise ValueError(f"Each group needs at least 2 teams (would be {per_group})")
 
 
-def _settings_from_group_count(team_count: int, group_count: int) -> dict[str, Any]:
+def valid_advance_per_group_options(group_count: int, teams_per_group: int) -> list[int]:
+    """Values of advance_per_group that yield a valid single-elimination bracket."""
+    return [
+        a
+        for a in range(1, teams_per_group + 1)
+        if group_count * a in VALID_KNOCKOUT_SIZES
+    ]
+
+
+def _default_advance_per_group(group_count: int, teams_per_group: int) -> int:
+    opts = valid_advance_per_group_options(group_count, teams_per_group)
+    if not opts:
+        return min(2, teams_per_group) if teams_per_group >= 4 else 1
+    if 2 in opts:
+        return 2
+    return opts[-1]
+
+
+def _validate_advance_per_group(
+    group_count: int, teams_per_group: int, advance: int
+) -> None:
+    if advance < 1:
+        raise ValueError("advance_per_group must be at least 1")
+    if advance > teams_per_group:
+        raise ValueError(
+            f"Cannot advance {advance} teams from groups of {teams_per_group}"
+        )
+    total = group_count * advance
+    if total not in VALID_KNOCKOUT_SIZES:
+        raise ValueError(
+            f"{advance} per group → {total} knockout teams; "
+            "must be 2, 4, 8, or 16 for a single-elimination bracket"
+        )
+
+
+def knockout_bracket_preview(group_count: int, advance_per_group: int) -> dict[str, Any]:
+    """Preview knockout size and round names for admin UI."""
+    total = group_count * advance_per_group
+    short_names = _knockout_round_short_names(total)
+    return {
+        "group_count": group_count,
+        "advance_per_group": advance_per_group,
+        "knockout_teams": total,
+        "rounds": [
+            {"name": s, "label": ROUND_LABELS.get(s, s)} for s in short_names
+        ],
+    }
+
+
+def _settings_from_group_count(
+    team_count: int,
+    group_count: int,
+    advance_per_group: int | None = None,
+) -> dict[str, Any]:
     _validate_group_settings(team_count, group_count)
     teams_per_group = team_count // group_count
-    advance = 2 if teams_per_group >= 4 else 1
+    if advance_per_group is not None:
+        try:
+            _validate_advance_per_group(group_count, teams_per_group, advance_per_group)
+            advance = advance_per_group
+        except ValueError:
+            advance = _default_advance_per_group(group_count, teams_per_group)
+    else:
+        advance = _default_advance_per_group(group_count, teams_per_group)
     return {
         "group_count": group_count,
         "teams_per_group": teams_per_group,
@@ -300,6 +367,145 @@ def generate_group_fixtures(tournament_id: str) -> dict[str, Any]:
     return t
 
 
+ACTIVE_TOURNAMENT_STATUSES = ("group_stage", "knockout")
+
+
+def fixture_round_key(stage_key: str, fx: dict[str, Any], *, knockout_round_name: str | None = None) -> str:
+    if stage_key == "knockout":
+        label = knockout_round_name or fx.get("round") or "KO"
+        return f"knockout:{label}"
+    return f"group:{stage_key}:{int(fx.get('round') or 1)}"
+
+
+def find_active_tournament_for_team(team_name: str) -> dict[str, Any] | None:
+    """Most recently updated in-progress tournament containing the team."""
+    if not TOURNAMENTS_DIR.exists():
+        return None
+    needle = team_name.strip().lower()
+    candidates: list[dict[str, Any]] = []
+    for path in TOURNAMENTS_DIR.glob("*.json"):
+        try:
+            t = json.loads(path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            continue
+        if t.get("status") not in ACTIVE_TOURNAMENT_STATUSES:
+            continue
+        names = [n.strip().lower() for n in t.get("team_names") or []]
+        if needle in names:
+            candidates.append(t)
+    if not candidates:
+        return None
+    candidates.sort(key=lambda row: row.get("updated_at") or "", reverse=True)
+    return candidates[0]
+
+
+def get_team_immediate_round(team_name: str, tournament: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Round context a team should finalize for (next unplayed group matchday or KO tie)."""
+    t = tournament or find_active_tournament_for_team(team_name)
+    if not t:
+        return {
+            "round_key": "ready",
+            "label": "Ready (no active tournament)",
+            "tournament_id": None,
+            "tournament_name": None,
+        }
+
+    name = team_name.strip()
+    best: dict[str, Any] | None = None
+
+    for gkey, group in (t.get("groups") or {}).items():
+        for fx in group.get("fixtures") or []:
+            if fx.get("played"):
+                continue
+            if name not in (fx.get("home"), fx.get("away")):
+                continue
+            rnd = int(fx.get("round") or 1)
+            if best is None or rnd < best["round"]:
+                best = {
+                    "round_key": fixture_round_key(gkey, fx),
+                    "label": f"Group {gkey.upper()} · Matchday {rnd}",
+                    "round": rnd,
+                    "stage": "group",
+                    "group": gkey,
+                    "tournament_id": t["id"],
+                    "tournament_name": t.get("name"),
+                }
+
+    if best:
+        return best
+
+    for rnd in (t.get("knockout") or {}).get("rounds") or []:
+        rname = rnd.get("name") or rnd.get("short") or "KO"
+        for tie in rnd.get("ties") or []:
+            if tie.get("played"):
+                continue
+            if name not in (tie.get("home"), tie.get("away")):
+                continue
+            return {
+                "round_key": fixture_round_key("knockout", tie, knockout_round_name=rname),
+                "label": str(rname),
+                "round": rname,
+                "stage": "knockout",
+                "tournament_id": t["id"],
+                "tournament_name": t.get("name"),
+            }
+
+    return {
+        "round_key": "ready",
+        "label": "Awaiting next stage",
+        "tournament_id": t.get("id"),
+        "tournament_name": t.get("name"),
+    }
+
+
+def resolve_fixture_round_key(
+    tournament_id: str | None,
+    match_id: str | None,
+    *,
+    home_name: str | None = None,
+    away_name: str | None = None,
+) -> str | None:
+    """Round key for a tournament fixture (by id or home/away pairing)."""
+    tournaments: list[dict[str, Any]] = []
+    if tournament_id:
+        t = load_tournament(tournament_id)
+        if t:
+            tournaments.append(t)
+    else:
+        if not TOURNAMENTS_DIR.exists():
+            return None
+        for path in TOURNAMENTS_DIR.glob("*.json"):
+            try:
+                tournaments.append(json.loads(path.read_text(encoding="utf-8")))
+            except (json.JSONDecodeError, OSError):
+                continue
+
+    for t in tournaments:
+        if match_id:
+            found = _find_fixture(t, match_id)
+            if found:
+                stage_key, fx = found
+                if stage_key == "knockout":
+                    for rnd in (t.get("knockout") or {}).get("rounds") or []:
+                        for tie in rnd.get("ties") or []:
+                            if tie.get("id") == match_id:
+                                rname = rnd.get("name") or rnd.get("short") or "KO"
+                                return fixture_round_key("knockout", tie, knockout_round_name=rname)
+                return fixture_round_key(stage_key, fx)
+
+        if home_name and away_name:
+            for gkey, group in (t.get("groups") or {}).items():
+                for fx in group.get("fixtures") or []:
+                    if fx.get("home") == home_name and fx.get("away") == away_name:
+                        return fixture_round_key(gkey, fx)
+            for rnd in (t.get("knockout") or {}).get("rounds") or []:
+                rname = rnd.get("name") or rnd.get("short") or "KO"
+                for tie in rnd.get("ties") or []:
+                    if tie.get("home") == home_name and tie.get("away") == away_name:
+                        return fixture_round_key("knockout", tie, knockout_round_name=rname)
+    return None
+
+
 def _find_fixture(t: dict[str, Any], match_id: str) -> tuple[str, dict[str, Any]] | None:
     for gkey, group in t.get("groups", {}).items():
         for fx in group.get("fixtures", []):
@@ -312,7 +518,13 @@ def _find_fixture(t: dict[str, Any], match_id: str) -> tuple[str, dict[str, Any]
     return None
 
 
-def _load_teams_for_match(home_name: str, away_name: str) -> tuple[dict[str, Any], dict[str, Any]]:
+def _load_teams_for_match(
+    home_name: str,
+    away_name: str,
+    *,
+    tournament_id: str | None = None,
+    match_id: str | None = None,
+) -> tuple[dict[str, Any], dict[str, Any]]:
     from google_sheets_teams import load_team_by_name
 
     store = get_stats_store()
@@ -333,8 +545,23 @@ def _load_teams_for_match(home_name: str, away_name: str) -> tuple[dict[str, Any
         if roster:
             store.ensure_players(roster)
 
-    team_a = apply_saved_lineup(load_team_by_name(home_name, formation="4-3-3", store=store))
-    team_b = apply_saved_lineup(load_team_by_name(away_name, formation="4-3-3", store=store))
+    round_key = resolve_fixture_round_key(
+        tournament_id,
+        match_id,
+        home_name=home_name,
+        away_name=away_name,
+    )
+    home_round = round_key or get_team_immediate_round(home_name).get("round_key")
+    away_round = round_key or get_team_immediate_round(away_name).get("round_key")
+
+    team_a = apply_team_lineup(
+        load_team_by_name(home_name, formation="4-3-3", store=store),
+        round_key=home_round,
+    )
+    team_b = apply_team_lineup(
+        load_team_by_name(away_name, formation="4-3-3", store=store),
+        round_key=away_round,
+    )
     for label, payload in (("Home", team_a), ("Away", team_b)):
         errors = validate_team_payload(payload, label)
         if errors:
@@ -654,7 +881,7 @@ def start_matchday_session(tournament_id: str, match_id: str) -> dict[str, Any]:
 
     home = fx["home"]
     away = fx["away"]
-    team_a, team_b = _load_teams_for_match(home, away)
+    team_a, team_b = _load_teams_for_match(home, away, tournament_id=tournament_id, match_id=match_id)
     _preflight_match_stats(team_a, team_b)
     stage = f"group_{stage_key}" if stage_key != "knockout" else "knockout"
 
@@ -691,7 +918,12 @@ def execute_matchday_simulation() -> dict[str, Any]:
     if not t:
         raise KeyError("Tournament not found")
 
-    team_a, team_b = _load_teams_for_match(session["home"], session["away"])
+    team_a, team_b = _load_teams_for_match(
+        session["home"],
+        session["away"],
+        tournament_id=tournament_id,
+        match_id=match_id,
+    )
     _preflight_match_stats(team_a, team_b)
     n_sims = int(t["settings"].get("simulations_per_match", 10000))
     payload = {"team_a": team_a, "team_b": team_b, "simulations": n_sims}
@@ -747,7 +979,7 @@ def _qualified_teams(t: dict[str, Any]) -> list[tuple[str, str, int]]:
     return out
 
 
-def _knockout_round_names(n_teams: int) -> list[str]:
+def _knockout_round_short_names(n_teams: int) -> list[str]:
     if n_teams <= 2:
         return ["Final"]
     if n_teams <= 4:
@@ -770,10 +1002,9 @@ def _pair_crossover(qualifiers: list[tuple[str, str, int]]) -> list[tuple[str, s
             g2 = groups[len(groups) - 1 - i]
             r1 = sorted(by_group[g1], key=lambda x: x[1])
             r2 = sorted(by_group[g2], key=lambda x: x[1])
-            if r1 and r2:
-                pairs.append((r1[0][0], r2[-1][0]))
-                if len(r1) > 1 and len(r2) > 1:
-                    pairs.append((r2[0][0], r1[-1][0]))
+            n = min(len(r1), len(r2))
+            for j in range(n):
+                pairs.append((r1[j][0], r2[n - 1 - j][0]))
     if not pairs:
         teams = [q[0] for q in qualifiers]
         for i in range(0, len(teams) - 1, 2):
@@ -788,13 +1019,25 @@ def generate_knockout_bracket(tournament_id: str) -> dict[str, Any]:
     if t["status"] not in ("group_stage", "knockout"):
         raise ValueError("Complete group stage before knockout")
 
+    cfg = t["settings"]
+    g_count = int(cfg["group_count"])
+    per_group = int(cfg["teams_per_group"])
+    advance = int(cfg.get("advance_per_group", 2))
+    _validate_advance_per_group(g_count, per_group, advance)
+
     qualifiers = _qualified_teams(t)
-    if len(qualifiers) < 2:
-        raise ValueError("Not enough qualified teams")
+    expected = g_count * advance
+    if len(qualifiers) != expected:
+        raise ValueError(
+            f"Expected {expected} qualifiers ({advance} per group × {g_count} groups), "
+            f"got {len(qualifiers)}"
+        )
 
     pairs = _pair_crossover(qualifiers)
     n_first = len(pairs) * 2
-    round_names = _knockout_round_names(n_first)
+    if n_first not in VALID_KNOCKOUT_SIZES:
+        raise ValueError(f"Invalid knockout bracket size: {n_first} teams")
+    round_names = _knockout_round_short_names(n_first)
     first_name = round_names[0]
 
     ties: list[dict[str, Any]] = []
@@ -812,7 +1055,13 @@ def generate_knockout_bracket(tournament_id: str) -> dict[str, Any]:
             }
         )
 
-    rounds_out: list[dict[str, Any]] = [{"name": first_name, "ties": ties}]
+    rounds_out: list[dict[str, Any]] = [
+        {
+            "name": first_name,
+            "label": ROUND_LABELS.get(first_name, first_name),
+            "ties": ties,
+        }
+    ]
     prev_ids = [tie["id"] for tie in ties]
     for rname in round_names[1:]:
         next_ties: list[dict[str, Any]] = []
@@ -830,7 +1079,13 @@ def generate_knockout_bracket(tournament_id: str) -> dict[str, Any]:
                     "feeds": feeds,
                 }
             )
-        rounds_out.append({"name": rname, "ties": next_ties})
+        rounds_out.append(
+            {
+                "name": rname,
+                "label": ROUND_LABELS.get(rname, rname),
+                "ties": next_ties,
+            }
+        )
         prev_ids = [tie["id"] for tie in next_ties]
 
     t["knockout"] = {
@@ -872,21 +1127,22 @@ def update_settings(tournament_id: str, settings: dict[str, Any]) -> dict[str, A
     t = load_tournament(tournament_id)
     if not t:
         raise KeyError("Tournament not found")
-    if t["status"] != "draft":
-        raise ValueError("Settings can only be changed in draft status")
+    if t["status"] not in ("draft", "group_draw", "group_stage"):
+        raise ValueError("Settings can only be changed before knockout stage")
+    if (t.get("knockout") or {}).get("rounds"):
+        raise ValueError("Cannot change settings after knockout bracket is generated")
     team_count = len(t.get("team_names") or [])
     if team_count < 2:
         raise ValueError("Add at least 2 teams before configuring groups")
 
-    merged = {**t["settings"], **settings}
+    prev = t.get("settings") or {}
+    advance_hint = settings.get("advance_per_group", prev.get("advance_per_group"))
+
     if "group_count" in settings:
-        merged = _settings_from_group_count(team_count, int(settings["group_count"]))
-        merged["simulations_per_match"] = int(
-            settings.get("simulations_per_match")
-            or t["settings"].get("simulations_per_match", 10000)
-        )
-        merged["knockout_format"] = settings.get("knockout_format") or t["settings"].get(
-            "knockout_format", "single_elim"
+        merged = _settings_from_group_count(
+            team_count,
+            int(settings["group_count"]),
+            advance_per_group=int(advance_hint) if advance_hint is not None else None,
         )
     elif "teams_per_group" in settings:
         per_group = int(settings["teams_per_group"])
@@ -896,16 +1152,29 @@ def update_settings(tournament_id: str, settings: dict[str, Any]) -> dict[str, A
             raise ValueError(
                 f"{team_count} teams do not divide evenly into groups of {per_group}"
             )
-        merged = _settings_from_group_count(team_count, team_count // per_group)
-        merged["simulations_per_match"] = int(
-            settings.get("simulations_per_match")
-            or t["settings"].get("simulations_per_match", 10000)
+        merged = _settings_from_group_count(
+            team_count,
+            team_count // per_group,
+            advance_per_group=int(advance_hint) if advance_hint is not None else None,
         )
-        merged["knockout_format"] = settings.get("knockout_format") or t["settings"].get(
-            "knockout_format", "single_elim"
-        )
+    elif "advance_per_group" in settings:
+        merged = {**prev}
+        g_count = int(merged.get("group_count", 1))
+        per_group = int(merged.get("teams_per_group", team_count))
+        advance = int(settings["advance_per_group"])
+        _validate_advance_per_group(g_count, per_group, advance)
+        merged["advance_per_group"] = advance
     else:
+        merged = {**prev, **settings}
         _validate_group_settings(team_count, int(merged.get("group_count", 1)))
+
+    merged["simulations_per_match"] = int(
+        settings.get("simulations_per_match")
+        or prev.get("simulations_per_match", 10000)
+    )
+    merged["knockout_format"] = settings.get("knockout_format") or prev.get(
+        "knockout_format", "single_elim"
+    )
 
     t["settings"] = merged
     t["knockout"]["format"] = merged.get("knockout_format", "single_elim")

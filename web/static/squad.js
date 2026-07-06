@@ -31,22 +31,6 @@ function seasonSelectOptions(selected) {
     .join("");
 }
 
-function slotPlayerControl(slot, val, roster) {
-  const opts = ['<option value="">— pick player —</option>'];
-  roster.forEach((p) => {
-    opts.push(`<option value="${esc(p)}" data-slot="${esc(slot)}" ${p === val ? "selected" : ""}>${esc(p)}</option>`);
-  });
-  return `<select data-slot="${esc(slot)}">${opts.join("")}</select>`;
-}
-
-function lineupMapFromConfig(config) {
-  const map = {};
-  (config?.lineup || []).forEach((r) => {
-    map[r.slot] = r.player || "";
-  });
-  return map;
-}
-
 function renderLineupBuilder(data) {
   const config = data.lineup || {};
   const roster = data.roster || [];
@@ -58,6 +42,9 @@ function renderLineupBuilder(data) {
   const peak = config.peak_season || {};
   const peakPlayer = peak.player || "";
   const peakSeason = peak.season || "23/24";
+  const locked = Boolean(data.locked);
+  const disabled = locked ? "disabled" : "";
+  const roundLabel = data.immediate_round?.label || "current round";
 
   const formationOpts = formations
     .map((f) => `<option value="${esc(f)}" ${f === formation ? "selected" : ""}>${esc(f)}</option>`)
@@ -66,45 +53,68 @@ function renderLineupBuilder(data) {
   const slotRows = slots
     .map((slot) => {
       const val = lineupMap[slot] || "";
-      return `<div class="form-row slot-row"><label>${esc(slot)}</label>${slotPlayerControl(slot, val, roster)}</div>`;
+      return `<div class="form-row slot-row"><label>${esc(slot)}</label>${slotPlayerControl(slot, val, roster, locked)}</div>`;
     })
     .join("");
 
   const savedBadge = data.saved
     ? `<span class="badge ready">Saved lineup</span>`
     : `<span class="badge muted">Using auto lineup — save to persist</span>`;
+  const finalizedBadge = locked
+    ? `<span class="badge ready">Squad finalized ✓ — locked for ${esc(roundLabel)}</span>`
+    : data.finalized
+      ? `<span class="badge muted">Finalized for a prior round — edit and re-finalize for ${esc(roundLabel)}</span>`
+      : `<span class="badge muted">Not finalized for ${esc(roundLabel)}</span>`;
 
   return `
     <div class="card" style="margin-bottom:1rem">
       <h2>Lineup builder — ${esc(data.team_name)}</h2>
-      <p class="muted">Select your starting XI from your ${roster.length}-player roster. Used in tournament matches and squad reports.</p>
-      <p style="margin:0.5rem 0">${savedBadge}</p>
+      <p class="muted">Select your starting XI from your ${roster.length}-player roster. Finalize locks your XI for the current tournament matchday.</p>
+      <p style="margin:0.5rem 0;display:flex;gap:0.5rem;flex-wrap:wrap">${savedBadge}${finalizedBadge}</p>
       <div class="form-row" style="margin-top:0.75rem">
         <label for="lineupFormation">Formation</label>
-        <select id="lineupFormation">${formationOpts}</select>
+        <select id="lineupFormation" ${disabled}>${formationOpts}</select>
       </div>
       <div class="slot-grid">${slotRows}</div>
       <div class="season-picks" style="margin-top:1rem;padding-top:0.75rem;border-top:1px solid var(--border)">
         <h3 style="font-size:0.9rem;margin:0 0 0.5rem">Season overrides</h3>
         <div class="form-row">
           <label for="lineupPrime">Prime player</label>
-          <select id="lineupPrime">${playerSelectOptions(roster, prime)}</select>
+          <select id="lineupPrime" ${disabled}>${playerSelectOptions(roster, prime)}</select>
         </div>
         <div class="form-row">
           <label for="lineupPeakPlayer">Peak season player</label>
-          <select id="lineupPeakPlayer">${playerSelectOptions(roster, peakPlayer)}</select>
+          <select id="lineupPeakPlayer" ${disabled}>${playerSelectOptions(roster, peakPlayer)}</select>
         </div>
         <div class="form-row">
           <label for="lineupPeakSeason">Season</label>
-          <select id="lineupPeakSeason">${seasonSelectOptions(peakSeason)}</select>
+          <select id="lineupPeakSeason" ${disabled}>${seasonSelectOptions(peakSeason)}</select>
         </div>
       </div>
       <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-top:1rem">
-        <button type="button" id="saveLineupBtn" class="btn-primary">Save lineup</button>
-        <button type="button" id="runReportBtn" class="btn-ghost">Run squad report</button>
+        <button type="button" id="saveLineupBtn" class="btn-primary" ${disabled}>Save lineup</button>
+        <button type="button" id="testSquadBtn" class="btn-ghost">Test squad</button>
+        <button type="button" id="finalizeSquadBtn" class="btn-ghost" ${locked ? "disabled" : ""}>Finalize squad</button>
       </div>
       <p id="lineupStatus" class="muted" style="margin-top:0.5rem"></p>
     </div>`;
+}
+
+function slotPlayerControl(slot, val, roster, locked = false) {
+  const disabled = locked ? "disabled" : "";
+  const opts = ['<option value="">— pick player —</option>'];
+  roster.forEach((p) => {
+    opts.push(`<option value="${esc(p)}" data-slot="${esc(slot)}" ${p === val ? "selected" : ""}>${esc(p)}</option>`);
+  });
+  return `<select data-slot="${esc(slot)}" ${disabled}>${opts.join("")}</select>`;
+}
+
+function lineupMapFromConfig(config) {
+  const map = {};
+  (config?.lineup || []).forEach((r) => {
+    map[r.slot] = r.player || "";
+  });
+  return map;
 }
 
 function renderAdminTeamPicker() {
@@ -164,6 +174,7 @@ function collectLineupPayload() {
 }
 
 async function onFormationChange() {
+  if (lineupData?.locked) return;
   const formation = document.getElementById("lineupFormation")?.value;
   const roster = lineupData?.roster || [];
   const players = [...document.querySelectorAll("[data-slot]")]
@@ -186,7 +197,7 @@ async function onFormationChange() {
       grid.innerHTML = slots
         .map((slot) => {
           const val = lineupMap[slot] || "";
-          return `<div class="form-row slot-row"><label>${esc(slot)}</label>${slotPlayerControl(slot, val, roster)}</div>`;
+          return `<div class="form-row slot-row"><label>${esc(slot)}</label>${slotPlayerControl(slot, val, roster, lineupData?.locked)}</div>`;
         })
         .join("");
     }
@@ -204,8 +215,50 @@ async function saveLineup() {
     await api(`/api/my-lineup${q}`, { method: "PUT", json: payload });
     if (status) status.textContent = "Lineup saved.";
     lineupData = await loadLineup(currentTeam);
+    document.getElementById("lineupSection").innerHTML = renderLineupBuilder(lineupData);
+    wireLineupBuilder();
   } catch (e) {
     if (status) status.textContent = `Save failed: ${e.message}`;
+  }
+}
+
+async function testSquad() {
+  const status = document.getElementById("lineupStatus");
+  const q = currentTeam ? `?team=${encodeURIComponent(currentTeam)}` : "";
+  document.getElementById("mySquadSection").innerHTML =
+    '<div class="empty">Running squad evaluation…</div>';
+  try {
+    const payload = collectLineupPayload();
+    const data = await api(`/api/my-squad/test${q}`, { method: "POST", json: payload });
+    document.getElementById("mySquadSection").innerHTML = renderSingleSquadEval(
+      data.squad.evaluation,
+      data.squad.team
+    );
+    if (status) status.textContent = "Test report generated (not saved).";
+  } catch (e) {
+    document.getElementById("mySquadSection").innerHTML = `<div class="empty"><span class="badge error">Error</span><p>${esc(e.message)}</p></div>`;
+    if (status) status.textContent = `Test failed: ${e.message}`;
+  }
+}
+
+async function finalizeSquad() {
+  const roundLabel = lineupData?.immediate_round?.label || "the current round";
+  const ok = window.confirm(
+    `This locks your XI for ${roundLabel}. You cannot edit until that matchday is complete. Continue?`
+  );
+  if (!ok) return;
+  const status = document.getElementById("lineupStatus");
+  const q = currentTeam ? `?team=${encodeURIComponent(currentTeam)}` : "";
+  try {
+    const payload = collectLineupPayload();
+    await api(`/api/my-lineup/finalize${q}`, { method: "POST", json: payload });
+    if (status) status.textContent = "Squad finalized for this round.";
+    lineupData = await loadLineup(currentTeam);
+    document.getElementById("lineupSection").innerHTML = renderLineupBuilder(lineupData);
+    wireLineupBuilder();
+    await refreshSquad(currentTeam);
+  } catch (e) {
+    if (status) status.textContent = `Finalize failed: ${e.message}`;
   }
 }
 
@@ -273,9 +326,12 @@ function wireAdminPicker(allTeams, teamName) {
 }
 
 function wireLineupBuilder() {
-  document.getElementById("lineupFormation")?.addEventListener("change", onFormationChange);
-  document.getElementById("saveLineupBtn")?.addEventListener("click", saveLineup);
-  document.getElementById("runReportBtn")?.addEventListener("click", () => refreshSquad(currentTeam));
+  if (!lineupData?.locked) {
+    document.getElementById("lineupFormation")?.addEventListener("change", onFormationChange);
+    document.getElementById("saveLineupBtn")?.addEventListener("click", saveLineup);
+  }
+  document.getElementById("testSquadBtn")?.addEventListener("click", testSquad);
+  document.getElementById("finalizeSquadBtn")?.addEventListener("click", finalizeSquad);
 }
 
 async function reloadTeam(teamName) {
@@ -283,7 +339,12 @@ async function reloadTeam(teamName) {
   lineupData = await loadLineup(teamName);
   document.getElementById("lineupSection").innerHTML = renderLineupBuilder(lineupData);
   wireLineupBuilder();
-  await refreshSquad(teamName);
+  if (lineupData.locked) {
+    await refreshSquad(teamName);
+  } else {
+    document.getElementById("mySquadSection").innerHTML =
+      '<div class="empty">Use Test squad to preview your lineup report, then finalize before matchday.</div>';
+  }
 }
 
 async function init() {
@@ -300,7 +361,7 @@ async function init() {
     document.getElementById("app").innerHTML = `
       ${isAdmin ? renderAdminTeamPicker() : ""}
       <section id="lineupSection"></section>
-      <section id="mySquadSection"><div class="empty">Save your lineup, then run squad report.</div></section>
+      <section id="mySquadSection"><div class="empty">Use Test squad to preview your lineup report, then finalize before matchday.</div></section>
       ${renderOpponentScoutPanel()}
     `;
 

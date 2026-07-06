@@ -91,6 +91,7 @@ class TournamentStatusRequest(BaseModel):
 class TournamentSettingsRequest(BaseModel):
     group_count: int | None = None
     teams_per_group: int | None = None
+    advance_per_group: int | None = None
 
 
 def _session_user(x_session_token: str | None) -> str:
@@ -390,6 +391,30 @@ def ensure_players(
     return {"players": mapping}
 
 
+def _enrich_matchday_status(status: dict[str, Any]) -> dict[str, Any]:
+    session = status.get("session")
+    if not session:
+        return status
+    out = dict(status)
+    sess = dict(session)
+    teams_meta: dict[str, Any] = {}
+    for side in ("home", "away"):
+        name = sess.get(side)
+        if not name:
+            continue
+        round_ctx = tournament.get_team_immediate_round(name)
+        ls = team_lineups.lineup_status(name, immediate_round_key=round_ctx.get("round_key"))
+        teams_meta[name] = {
+            "finalized": ls["locked"],
+            "finalized_round": ls.get("finalized_round"),
+            "can_edit": ls["can_edit"],
+            "immediate_round": round_ctx,
+        }
+    sess["teams_meta"] = teams_meta
+    out["session"] = sess
+    return out
+
+
 @app.get("/api/matchday/active")
 def matchday_active(
     x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
@@ -399,7 +424,7 @@ def matchday_active(
     user = auth.get_user(x_session_token)
     if not user and not _is_admin(x_admin_token):
         raise HTTPException(status_code=401, detail="Login required")
-    return matchday_session.active_status()
+    return _enrich_matchday_status(matchday_session.active_status())
 
 
 @app.get("/api/matchday")
@@ -411,7 +436,7 @@ def matchday_session_api(
     user = auth.get_user(x_session_token)
     if not user and not _is_admin(x_admin_token):
         raise HTTPException(status_code=401, detail="Login required")
-    return matchday_session.active_status()
+    return _enrich_matchday_status(matchday_session.active_status())
 
 
 @app.post("/api/matchday/run")
@@ -457,9 +482,11 @@ def get_my_lineup(
         raise HTTPException(status_code=403, detail="You can only edit your own lineup.")
 
     sheet_payload = _load_sheet_team_payload(team_name)
-    saved = team_lineups.get_team_lineup(team_name)
     meta = sheet_payload.get("sheet_meta") or {}
     roster = meta.get("full_roster") or meta.get("roster_players") or []
+    saved = team_lineups.get_team_lineup(team_name)
+    round_ctx = tournament.get_team_immediate_round(team_name)
+    status = team_lineups.lineup_status(team_name, immediate_round_key=round_ctx.get("round_key"))
 
     if saved:
         lineup_config = saved
@@ -478,6 +505,12 @@ def get_my_lineup(
         "roster": roster,
         "saved": bool(saved),
         "lineup": lineup_config,
+        "finalized": status["finalized"],
+        "finalized_at": status["finalized_at"],
+        "finalized_round": status["finalized_round"],
+        "locked": status["locked"],
+        "can_edit": status["can_edit"],
+        "immediate_round": round_ctx,
         "sheet_meta": {
             "player_count": meta.get("player_count"),
             "ready": meta.get("ready"),
@@ -517,6 +550,99 @@ def put_my_lineup(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return {"ok": True, "lineup": saved}
+
+
+@app.post("/api/my-lineup/finalize")
+def finalize_my_lineup(
+    body: LineupSaveRequest | None = None,
+    team: str | None = None,
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Lock saved lineup for the team's immediate tournament round."""
+    user = _session_user(x_session_token)
+    is_admin = _is_admin(x_admin_token)
+    if not (auth.is_team_user(user) or _is_admin_session(user) or is_admin):
+        raise HTTPException(status_code=403, detail="Finalize requires team or admin login.")
+
+    team_name = _resolve_squad_team_name(user, team=team, is_admin_token=is_admin)
+    if auth.is_team_user(user) and team_name.lower() != user.lower():
+        raise HTTPException(status_code=403, detail="You can only finalize your own lineup.")
+
+    round_ctx = tournament.get_team_immediate_round(team_name)
+    round_key = round_ctx.get("round_key") or "ready"
+    config = None
+    if body is not None:
+        peak = body.peak_season or {"player": "", "season": ""}
+        config = {
+            "formation": body.formation,
+            "lineup": body.lineup,
+            "prime_player": body.prime_player,
+            "peak_season": peak,
+        }
+    try:
+        saved = team_lineups.finalize_team_lineup(
+            team_name,
+            config,
+            round_key=round_key,
+            round_label=round_ctx.get("label"),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    status = team_lineups.lineup_status(team_name, immediate_round_key=round_key)
+    return {
+        "ok": True,
+        "lineup": saved,
+        "finalized": True,
+        "locked": status["locked"],
+        "immediate_round": round_ctx,
+    }
+
+
+@app.post("/api/my-squad/test")
+def test_my_squad_api(
+    body: LineupSaveRequest,
+    team: str | None = None,
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Evaluate draft lineup from the form without saving or finalizing."""
+    user = _session_user(x_session_token)
+    is_admin = _is_admin(x_admin_token)
+    if not (auth.is_team_user(user) or _is_admin_session(user) or is_admin):
+        raise HTTPException(status_code=403, detail="Squad test requires team or admin login.")
+
+    team_name = _resolve_squad_team_name(user, team=team, is_admin_token=is_admin)
+    if auth.is_team_user(user) and team_name.lower() != user.lower():
+        raise HTTPException(status_code=403, detail="You can only test your own squad.")
+
+    from squad_intel import build_squad_evaluation
+
+    team_payload = _load_sheet_team_payload(team_name)
+    peak = body.peak_season or {"player": "", "season": ""}
+    draft = {
+        "formation": body.formation,
+        "lineup": body.lineup,
+        "prime_player": body.prime_player,
+        "peak_season": peak,
+    }
+    try:
+        team_lineups._build_record_payload(team_name, draft)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    team_payload = team_lineups.apply_lineup_config(team_payload, draft)
+    store = sim_state.get_stats_store()
+    try:
+        result = build_squad_evaluation(team_payload, store, use_saved_lineup=False)
+    except (KeyError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Squad evaluation failed: {exc}",
+        ) from exc
+    return {"squad": result, "draft": True}
 
 
 def _can_view_experiment(
@@ -740,6 +866,26 @@ def admin_experiments(
 ) -> dict:
     _check_admin(x_admin_token)
     return {"experiments": experiments.list_experiments()}
+
+
+@app.get("/api/admin/team-lineups")
+def admin_team_lineups(
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    _check_admin(x_admin_token)
+    return {"teams": team_lineups.list_team_lineups()}
+
+
+@app.post("/api/admin/team-lineups/{team_name}/unfinalize")
+def admin_unfinalize_lineup(
+    team_name: str,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    _check_admin(x_admin_token)
+    record = team_lineups.admin_unfinalize_team_lineup(team_name)
+    if not record:
+        raise HTTPException(status_code=404, detail="No saved lineup for that team.")
+    return {"ok": True, "lineup": record}
 
 
 @app.get("/api/admin/team-passwords")
@@ -1042,8 +1188,13 @@ def patch_tournament_settings_api(
         payload["group_count"] = body.group_count
     if body.teams_per_group is not None:
         payload["teams_per_group"] = body.teams_per_group
+    if body.advance_per_group is not None:
+        payload["advance_per_group"] = body.advance_per_group
     if not payload:
-        raise HTTPException(status_code=400, detail="Provide group_count or teams_per_group")
+        raise HTTPException(
+            status_code=400,
+            detail="Provide group_count, teams_per_group, or advance_per_group",
+        )
     try:
         t = tournament.update_settings(tournament_id, payload)
     except KeyError as exc:

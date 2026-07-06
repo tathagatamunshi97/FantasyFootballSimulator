@@ -36,9 +36,15 @@ def _apply_name_map(team: dict[str, Any], name_map: dict[str, str]) -> dict[str,
     return out
 
 
-def build_squad_evaluation(team_dict: dict[str, Any], store: Any) -> dict[str, Any]:
+def build_squad_evaluation(
+    team_dict: dict[str, Any],
+    store: Any,
+    *,
+    use_saved_lineup: bool = True,
+) -> dict[str, Any]:
     """Full squad strengths/weaknesses for one team using saved lineup when available."""
-    team_dict = apply_saved_lineup(team_dict)
+    if use_saved_lineup:
+        team_dict = apply_saved_lineup(team_dict)
     player_stats, name_map = prepare_team_player_stats(team_dict, store, cache_only=True)
     resolved = _apply_name_map(team_dict, name_map)
     fantasy = FantasyTeam.from_dict(resolved)

@@ -1,1 +1,85 @@
-{}
+{
+  "Anindo": {
+    "team_name": "Anindo",
+    "formation": "4-3-3",
+    "lineup": [
+      {
+        "slot": "GK",
+        "player": "MUTATED_PLAYER_XYZ",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RB",
+        "player": "Dayot Upamecano",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB1",
+        "player": "Pau Cubarsí",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB2",
+        "player": "Edmond Tapsoba",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LB",
+        "player": "Josip Stanišić",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "DM",
+        "player": "Manuel Locatelli",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CM",
+        "player": "Declan Rice",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "AM",
+        "player": "Enzo Fernández",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RW",
+        "player": "Antoine Griezmann",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "ST",
+        "player": "Gonzalo Higuaín",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LW",
+        "player": "Matheus Cunha",
+        "captain": false,
+        "vice_captain": false
+      }
+    ],
+    "prime_player": "",
+    "peak_season": {
+      "player": "",
+      "season": ""
+    },
+    "updated_at": "2026-07-06T18:04:16.749695+00:00",
+    "finalized": false,
+    "finalized_at": null,
+    "finalized_round": null,
+    "finalized_snapshot": null,
+    "finalized_round_label": null
+  }
+}

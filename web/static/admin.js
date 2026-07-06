@@ -290,27 +290,79 @@ function validGroupCounts(teamCount) {
   return out;
 }
 
+function validAdvanceOptions(groupCount, teamsPerGroup) {
+  const validTotals = [2, 4, 8, 16];
+  const opts = [];
+  for (let a = 1; a <= teamsPerGroup; a++) {
+    const total = groupCount * a;
+    if (validTotals.includes(total)) opts.push(a);
+  }
+  return opts;
+}
+
+function knockoutPreview(groupCount, advancePerGroup) {
+  const total = groupCount * advancePerGroup;
+  let rounds;
+  if (total <= 2) rounds = ["Final"];
+  else if (total <= 4) rounds = ["Semi-finals", "Final"];
+  else if (total <= 8) rounds = ["Quarter-finals", "Semi-finals", "Final"];
+  else rounds = ["Round of 16", "Quarter-finals", "Semi-finals", "Final"];
+  return { total, rounds };
+}
+
+function renderAdvancePreview(groupCount, advancePerGroup) {
+  const { total, rounds } = knockoutPreview(groupCount, advancePerGroup);
+  return `${advancePerGroup} per group → ${total} teams → ${rounds.join(", ")}`;
+}
+
 function renderGroupSettings(t) {
   const n = (t.team_names || []).length;
-  if (t.status !== "draft" || n < 2) return "";
-  const opts = validGroupCounts(n);
-  if (!opts.length) return "";
-  const cur = t.settings?.group_count ?? opts[0];
-  const options = opts
-    .map((g) => {
-      const per = n / g;
-      const sel = g === cur ? " selected" : "";
-      return `<option value="${g}"${sel}>${g} group${g === 1 ? "" : "s"} × ${per} teams</option>`;
+  const st = t.status;
+  const koGenerated = ((t.knockout || {}).rounds || []).length > 0;
+  if (!["draft", "group_draw", "group_stage"].includes(st) || n < 2 || koGenerated) {
+    return "";
+  }
+
+  const gCount = t.settings?.group_count ?? 1;
+  const perGroup = t.settings?.teams_per_group ?? n;
+  const advanceOpts = validAdvanceOptions(gCount, perGroup);
+  const curAdvance = t.settings?.advance_per_group ?? advanceOpts[0] ?? 1;
+  const advanceOptions = advanceOpts
+    .map((a) => {
+      const sel = a === curAdvance ? " selected" : "";
+      return `<option value="${a}"${sel}>${a} per group</option>`;
     })
     .join("");
-  const advance = t.settings?.advance_per_group ?? "?";
-  return `
+
+  const layoutRow =
+    st === "draft"
+      ? (() => {
+          const opts = validGroupCounts(n);
+          if (!opts.length) return "";
+          const cur = gCount;
+          const options = opts
+            .map((g) => {
+              const per = n / g;
+              const sel = g === cur ? " selected" : "";
+              return `<option value="${g}"${sel}>${g} group${g === 1 ? "" : "s"} × ${per} teams</option>`;
+            })
+            .join("");
+          return `
     <div class="form-row inline" style="margin-top:0.5rem">
       <label for="groupCount">Group layout</label>
       <select id="groupCount">${options}</select>
-      <button type="button" class="btn-ghost" id="saveGroupBtn">Save layout</button>
+    </div>`;
+        })()
+      : `<p class="muted">Group layout: ${gCount} groups × ${perGroup} teams (locked after draw)</p>`;
+
+  return `
+    ${layoutRow}
+    <div class="form-row inline" style="margin-top:0.5rem">
+      <label for="advancePerGroup">Knockout qualifiers</label>
+      <select id="advancePerGroup">${advanceOptions}</select>
+      <button type="button" class="btn-ghost" id="saveGroupBtn">Save settings</button>
     </div>
-    <p class="muted">Top ${advance} from each group advance. Choose layout before running the draw.</p>`;
+    <p class="muted" id="advancePreview">${esc(renderAdvancePreview(gCount, curAdvance))}</p>`;
 }
 
 function renderControls(t) {
@@ -338,20 +390,50 @@ function renderControls(t) {
   if (saveBtn) {
     saveBtn.addEventListener("click", () => saveGroupSettings().catch((e) => tLog(e.message)));
   }
+  const advanceSel = document.getElementById("advancePerGroup");
+  const groupSel = document.getElementById("groupCount");
+  const previewEl = document.getElementById("advancePreview");
+  const updatePreview = () => {
+    if (!previewEl || !advanceSel) return;
+    const gCount = groupSel ? Number(groupSel.value) : (t.settings?.group_count ?? 1);
+    const advance = Number(advanceSel.value);
+    previewEl.textContent = renderAdvancePreview(gCount, advance);
+  };
+  if (advanceSel) advanceSel.addEventListener("change", updatePreview);
+  if (groupSel) {
+    groupSel.addEventListener("change", () => {
+      const n = (t.team_names || []).length;
+      const gCount = Number(groupSel.value);
+      const perGroup = n / gCount;
+      const opts = validAdvanceOptions(gCount, perGroup);
+      if (advanceSel && opts.length) {
+        advanceSel.innerHTML = opts
+          .map((a) => `<option value="${a}">${a} per group</option>`)
+          .join("");
+        if (!opts.includes(Number(advanceSel.value))) {
+          advanceSel.value = String(opts.includes(2) ? 2 : opts[opts.length - 1]);
+        }
+      }
+      updatePreview();
+    });
+  }
 }
 
 async function saveGroupSettings() {
   if (!currentId) return;
-  const sel = document.getElementById("groupCount");
-  if (!sel) return;
-  const group_count = Number(sel.value);
-  tLog("Saving group layout…");
+  const advanceSel = document.getElementById("advancePerGroup");
+  const groupSel = document.getElementById("groupCount");
+  const payload = {};
+  if (groupSel) payload.group_count = Number(groupSel.value);
+  if (advanceSel) payload.advance_per_group = Number(advanceSel.value);
+  if (!Object.keys(payload).length) return;
+  tLog("Saving tournament settings…");
   await adminApi(`/api/tournament/${currentId}/settings`, {
     method: "PATCH",
-    json: { group_count },
+    json: payload,
   });
   await loadCurrent();
-  tLog(`Group layout saved: ${group_count} groups`);
+  tLog("Tournament settings saved");
 }
 
 function renderMatchControls(t) {
@@ -375,7 +457,7 @@ function renderMatchControls(t) {
   for (const rnd of (t.knockout || {}).rounds || []) {
     const pending = (rnd.ties || []).filter((tie) => !tie.played && tie.home && tie.away);
     if (!pending.length) continue;
-    parts.push(`<h3 style="font-size:0.9rem;margin:0.5rem 0">${esc(rnd.name)} — pending</h3>`);
+    parts.push(`<h3 style="font-size:0.9rem;margin:0.5rem 0">${esc(rnd.label || rnd.name)} — pending</h3>`);
     parts.push(
       pending
         .map(

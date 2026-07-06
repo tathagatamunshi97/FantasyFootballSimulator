@@ -400,17 +400,32 @@ function renderMatchdaySession(status, { isAdmin = false } = {}) {
   if (phase === "setup") {
     const myTeam = getUser();
     const involved = myTeam && (myTeam === session.home || myTeam === session.away);
+    const teamsMeta = session.teams_meta || {};
+    const homeMeta = teamsMeta[session.home] || {};
+    const awayMeta = teamsMeta[session.away] || {};
+    const unfinalized = [session.home, session.away].filter((t) => teamsMeta[t] && !teamsMeta[t].finalized);
+    const warnUnfinalized = unfinalized.length
+      ? `<p class="badge error" style="display:inline-block;margin-top:0.75rem">Not finalized: ${unfinalized.map(esc).join(", ")} — <a href="/squad">finalize on Squad hub</a></p>`
+      : "";
+    const myFinalized = myTeam && teamsMeta[myTeam]?.finalized;
+    const myWarn =
+      involved && !myFinalized
+        ? `<p class="badge error" style="display:inline-block">Your squad is not finalized for this matchday.</p>`
+        : involved && myFinalized
+          ? `<p class="badge ready" style="display:inline-block">Your squad is finalized ✓</p>`
+          : "";
     const squadLink = involved
-      ? `<p><a href="/squad" class="btn-link">Configure your lineup on Squad hub</a> before the admin runs the simulation.</p>`
-      : `<p class="muted">Involved teams can configure lineups on <a href="/squad">Squad hub</a>.</p>`;
+      ? `<p><a href="/squad" class="btn-link">Configure your lineup on Squad hub</a> and finalize before the admin runs the simulation.</p>${myWarn}`
+      : `<p class="muted">Involved teams can configure and finalize lineups on <a href="/squad">Squad hub</a>.</p>`;
     const adminRun = isAdmin || getAdminToken()
-      ? `<button type="button" id="matchdayRunBtn" class="btn-primary" style="margin-top:1rem">Run simulation</button>`
+      ? `<button type="button" id="matchdayRunBtn" class="btn-primary" style="margin-top:1rem">Run simulation</button>${warnUnfinalized ? `<p class="muted" style="margin-top:0.5rem">Admin: ${unfinalized.length} team(s) have not finalized.</p>` : ""}`
       : `<p class="muted">Waiting for admin to start the simulation…</p>`;
     phaseBody = `
       <section>
         <h3 style="margin-bottom:0.75rem">Lineups</h3>
         <div class="grid grid-2">${renderMatchdayTeamCard(session.team_a, "Home")}${renderMatchdayTeamCard(session.team_b, "Away")}</div>
         ${squadLink}
+        ${warnUnfinalized && !isAdmin && !getAdminToken() ? warnUnfinalized : ""}
         ${adminRun}
       </section>`;
   } else if (phase === "running") {

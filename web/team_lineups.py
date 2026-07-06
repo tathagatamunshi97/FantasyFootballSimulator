@@ -48,6 +48,18 @@ def _resolve_key(team_name: str, store: dict[str, Any]) -> str | None:
     return None
 
 
+def _lineup_config_from_record(record: dict[str, Any], *, snapshot: bool = False) -> dict[str, Any]:
+    source = record.get("finalized_snapshot") if snapshot else record
+    return {
+        "formation": source.get("formation") or record.get("formation"),
+        "lineup": copy.deepcopy(source.get("lineup") or record.get("lineup") or []),
+        "prime_player": source.get("prime_player") if snapshot else record.get("prime_player", ""),
+        "peak_season": copy.deepcopy(
+            source.get("peak_season") if snapshot else record.get("peak_season") or {"player": "", "season": ""}
+        ),
+    }
+
+
 def get_team_lineup(team_name: str) -> dict[str, Any] | None:
     with _lock:
         store = _load_all()
@@ -61,12 +73,7 @@ def has_saved_lineup(team_name: str) -> bool:
     return get_team_lineup(team_name) is not None
 
 
-def save_team_lineup(team_name: str, config: dict[str, Any]) -> dict[str, Any]:
-    """Validate and persist a team's saved lineup configuration."""
-    name = team_name.strip()
-    if not name:
-        raise ValueError("Team name is required.")
-
+def _build_record_payload(name: str, config: dict[str, Any]) -> dict[str, Any]:
     formation = (config.get("formation") or "4-3-3").strip()
     if formation not in FORMATION_SLOTS:
         raise ValueError(f"Unsupported formation: {formation}")
@@ -89,12 +96,105 @@ def save_team_lineup(team_name: str, config: dict[str, Any]) -> dict[str, Any]:
     if errors:
         raise ValueError("; ".join(errors))
 
-    record = {
+    return {
         "team_name": name,
         "formation": formation,
         "lineup": lineup,
         "prime_player": prime,
         "peak_season": peak,
+    }
+
+
+def lineup_status(team_name: str, *, immediate_round_key: str | None = None) -> dict[str, Any]:
+    """Return finalized / lock state for squad hub."""
+    saved = get_team_lineup(team_name)
+    if immediate_round_key is None:
+        from web.tournament import get_team_immediate_round
+
+        immediate_round_key = get_team_immediate_round(team_name).get("round_key")
+
+    finalized = bool(saved and saved.get("finalized"))
+    finalized_round = (saved or {}).get("finalized_round")
+    locked = bool(
+        finalized
+        and finalized_round
+        and immediate_round_key
+        and finalized_round == immediate_round_key
+    )
+    return {
+        "finalized": finalized,
+        "finalized_at": (saved or {}).get("finalized_at"),
+        "finalized_round": finalized_round,
+        "immediate_round_key": immediate_round_key,
+        "locked": locked,
+        "can_edit": not locked,
+    }
+
+
+def save_team_lineup(team_name: str, config: dict[str, Any], *, allow_locked: bool = False) -> dict[str, Any]:
+    """Validate and persist a team's saved lineup configuration."""
+    name = team_name.strip()
+    if not name:
+        raise ValueError("Team name is required.")
+
+    if not allow_locked:
+        status = lineup_status(name)
+        if status["locked"]:
+            raise ValueError(
+                "Lineup is finalized for the current round. "
+                "Wait until matchday completes before editing."
+            )
+
+    record = _build_record_payload(name, config)
+    record["updated_at"] = _now()
+
+    with _lock:
+        store = _load_all()
+        existing = store.get(name) or {}
+        record["finalized"] = existing.get("finalized", False)
+        record["finalized_at"] = existing.get("finalized_at")
+        record["finalized_round"] = existing.get("finalized_round")
+        record["finalized_round_label"] = existing.get("finalized_round_label")
+        record["finalized_snapshot"] = existing.get("finalized_snapshot")
+        store[name] = record
+        _save_all(store)
+    return copy.deepcopy(record)
+
+
+def finalize_team_lineup(
+    team_name: str,
+    config: dict[str, Any] | None = None,
+    *,
+    round_key: str,
+    round_label: str | None = None,
+) -> dict[str, Any]:
+    """Save (optional) and lock lineup for the given tournament round."""
+    name = team_name.strip()
+    if not name:
+        raise ValueError("Team name is required.")
+    if not round_key:
+        raise ValueError("Round key is required.")
+
+    status = lineup_status(name, immediate_round_key=round_key)
+    if status["locked"]:
+        raise ValueError("Squad is already finalized for this round.")
+
+    if config is not None:
+        record = save_team_lineup(name, config, allow_locked=True)
+    else:
+        record = get_team_lineup(name)
+        if not record:
+            raise ValueError("Save your lineup before finalizing.")
+
+    snapshot = _lineup_config_from_record(record)
+    record = {
+        **record,
+        **snapshot,
+        "finalized": True,
+        "finalized_at": _now(),
+        "finalized_round": round_key,
+        "finalized_round_label": round_label or round_key,
+        "finalized_snapshot": snapshot,
         "updated_at": _now(),
     }
 
@@ -105,8 +205,32 @@ def save_team_lineup(team_name: str, config: dict[str, Any]) -> dict[str, Any]:
     return copy.deepcopy(record)
 
 
-def apply_saved_lineup(team_dict: dict[str, Any]) -> dict[str, Any]:
-    """Merge saved squad-hub lineup into a sheet-loaded team payload if available."""
+def admin_unfinalize_team_lineup(team_name: str) -> dict[str, Any] | None:
+    """Admin clears finalized lock (keeps saved lineup)."""
+    name = team_name.strip()
+    with _lock:
+        store = _load_all()
+        key = _resolve_key(name, store)
+        if not key:
+            return None
+        record = store[key]
+        record["finalized"] = False
+        record["finalized_at"] = None
+        record["finalized_round"] = None
+        record["finalized_round_label"] = None
+        record["finalized_snapshot"] = None
+        record["updated_at"] = _now()
+        store[key] = record
+        _save_all(store)
+        return copy.deepcopy(record)
+
+
+def apply_team_lineup(
+    team_dict: dict[str, Any],
+    *,
+    round_key: str | None = None,
+) -> dict[str, Any]:
+    """Merge saved or finalized lineup into a sheet-loaded team payload."""
     name = (team_dict.get("name") or "").strip()
     if not name:
         return team_dict
@@ -114,11 +238,40 @@ def apply_saved_lineup(team_dict: dict[str, Any]) -> dict[str, Any]:
     if not saved:
         return team_dict
 
+    use_snapshot = bool(
+        round_key
+        and saved.get("finalized")
+        and saved.get("finalized_round") == round_key
+        and saved.get("finalized_snapshot")
+    )
+    cfg = _lineup_config_from_record(saved, snapshot=use_snapshot)
+
     out = copy.deepcopy(team_dict)
-    out["formation"] = saved.get("formation") or out.get("formation")
-    out["lineup"] = copy.deepcopy(saved.get("lineup") or out.get("lineup"))
-    out["prime_player"] = saved.get("prime_player") or ""
-    out["peak_season"] = copy.deepcopy(saved.get("peak_season") or {"player": "", "season": ""})
+    out["formation"] = cfg.get("formation") or out.get("formation")
+    out["lineup"] = copy.deepcopy(cfg.get("lineup") or out.get("lineup"))
+    out["prime_player"] = cfg.get("prime_player") or ""
+    out["peak_season"] = copy.deepcopy(cfg.get("peak_season") or {"player": "", "season": ""})
+
+    meta = out.get("sheet_meta") or {}
+    roster = meta.get("full_roster") or meta.get("roster_players") or []
+    lineup_players = {(r.get("player") or "").strip() for r in out.get("lineup", [])}
+    if roster:
+        out["bench"] = [p for p in roster if p and p not in lineup_players]
+    return out
+
+
+def apply_saved_lineup(team_dict: dict[str, Any]) -> dict[str, Any]:
+    """Merge saved squad-hub lineup (not finalized snapshot) into team payload."""
+    return apply_team_lineup(team_dict, round_key=None)
+
+
+def apply_lineup_config(team_dict: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
+    """Merge an arbitrary lineup config (e.g. draft from test endpoint)."""
+    out = copy.deepcopy(team_dict)
+    out["formation"] = config.get("formation") or out.get("formation")
+    out["lineup"] = copy.deepcopy(config.get("lineup") or out.get("lineup"))
+    out["prime_player"] = config.get("prime_player") or ""
+    out["peak_season"] = copy.deepcopy(config.get("peak_season") or {"player": "", "season": ""})
 
     meta = out.get("sheet_meta") or {}
     roster = meta.get("full_roster") or meta.get("roster_players") or []
@@ -133,12 +286,18 @@ def list_team_lineups() -> list[dict[str, Any]]:
         store = _load_all()
     rows = []
     for name, cfg in store.items():
+        status = lineup_status(name)
         rows.append(
             {
                 "team_name": name,
                 "formation": cfg.get("formation"),
                 "updated_at": cfg.get("updated_at"),
                 "player_count": len([r for r in cfg.get("lineup", []) if (r.get("player") or "").strip()]),
+                "finalized": status["finalized"],
+                "finalized_at": cfg.get("finalized_at"),
+                "finalized_round": cfg.get("finalized_round"),
+                "finalized_round_label": cfg.get("finalized_round_label"),
+                "locked": status["locked"],
             }
         )
     rows.sort(key=lambda r: (r.get("team_name") or "").lower())

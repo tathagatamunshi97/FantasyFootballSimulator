@@ -9,6 +9,7 @@ from scipy.optimize import linear_sum_assignment
 
 from formation_fit import FORMATION_SLOTS, player_slot_fit
 from models import FantasyTeam, LineupSlot, PlayerStats
+from slot_roles import slot_role
 
 _FPL_QUOTAS: dict[str, int] = {"GK": 1, "DEF": 4, "MID": 4, "FWD": 2}
 
@@ -24,13 +25,153 @@ def _is_gk(stats: PlayerStats | None) -> bool:
     return stats.fpl_position == "GK" or stats.primary_position.upper() == "GK"
 
 
+def _player_quality(stats: PlayerStats | None) -> float:
+    """Normalize Sofascore rating to 0–1 (typical range ~6.0–8.5)."""
+    if stats is None or stats.rating <= 0:
+        return 0.05
+    return min(1.0, max(0.0, (stats.rating - 6.0) / 2.5))
+
+
+def _assignment_score(stats: PlayerStats | None, formation: str, slot: str) -> float:
+    """Combined slot fit + player quality for optimal XI/slot assignment."""
+    if stats is None:
+        return 0.0
+    fit = player_slot_fit(stats, formation, slot)
+    quality = _player_quality(stats)
+    # Emphasize fit (wrong-position stars stay penalized); quality breaks close ties.
+    return (fit ** 1.35) * (0.30 + 0.70 * quality)
+
+
+def _hungarian_assign(
+    formation: str,
+    slots: list[str],
+    players: list[str],
+    player_stats: dict[str, PlayerStats],
+) -> list[tuple[str, str]]:
+    """Assign players to slots maximizing total combined fit + quality."""
+    if not slots or not players:
+        return []
+
+    n_slots = len(slots)
+    n_players = len(players)
+    cost = np.zeros((n_slots, n_players))
+    for i, slot in enumerate(slots):
+        for j, player in enumerate(players):
+            stats = player_stats.get(player)
+            cost[i, j] = -_assignment_score(stats, formation, slot)
+
+    row_ind, col_ind = linear_sum_assignment(cost)
+    return [(players[col_ind[i]], slots[row_ind[i]]) for i in range(len(row_ind))]
+
+
+def _slot_bucket(slot: str) -> str:
+    """Map formation slot to broad role bucket for XI selection."""
+    role = slot_role(slot)
+    if role == "gk":
+        return "GK"
+    if role in ("centre_back", "fullback"):
+        return "DEF"
+    if role in ("winger", "striker"):
+        return "FWD"
+    return "MID"
+
+
+def _formation_bucket_needs(formation: str) -> dict[str, int]:
+    """How many GK/DEF/MID/FWD slots a formation requires."""
+    needs: dict[str, int] = {"GK": 0, "DEF": 0, "MID": 0, "FWD": 0}
+    for slot in _slot_order(formation):
+        needs[_slot_bucket(slot)] += 1
+    return needs
+
+
+def _best_bucket_score(
+    stats: PlayerStats | None,
+    formation: str,
+    bucket: str,
+) -> float:
+    if stats is None:
+        return 0.0
+    slots = [s for s in _slot_order(formation) if _slot_bucket(s) == bucket]
+    if not slots:
+        return 0.0
+    return max(_assignment_score(stats, formation, slot) for slot in slots)
+
+
+def _eligible_for_bucket(stats: PlayerStats | None, bucket: str) -> bool:
+    """FPL bucket must match formation role bucket for XI selection."""
+    if stats is None:
+        return False
+    return _fpl_bucket(stats) == bucket
+
+
+def _select_xi_by_formation_roles(
+    formation: str,
+    players: list[str],
+    player_stats: dict[str, PlayerStats],
+) -> list[str]:
+    """
+    Pick 11 players matching formation role counts (e.g. 4-3-3 → 1 GK, 4 DEF, 3 MID, 3 FWD).
+    Rank within each bucket by best assignment score for that bucket's slots.
+    """
+    needs = _formation_bucket_needs(formation)
+    selected: list[str] = []
+
+    for bucket, quota in needs.items():
+        if quota <= 0:
+            continue
+        ranked = sorted(
+            (
+                (_best_bucket_score(player_stats.get(p), formation, bucket), p)
+                for p in players
+                if p not in selected and _eligible_for_bucket(player_stats.get(p), bucket)
+            ),
+            reverse=True,
+        )
+        for _, player in ranked[:quota]:
+            selected.append(player)
+
+    if len(selected) < 11:
+        remaining = [p for p in players if p not in selected]
+        ranked = sorted(
+            (
+                (
+                    max(
+                        _assignment_score(player_stats.get(p), formation, slot)
+                        for slot in _slot_order(formation)
+                    ),
+                    p,
+                )
+                for p in remaining
+            ),
+            reverse=True,
+        )
+        for _, player in ranked:
+            selected.append(player)
+            if len(selected) >= 11:
+                break
+
+    return selected[:11]
+
+
 def select_starting_xi(
     formation: str,
     player_names: list[str],
     player_stats: dict[str, PlayerStats],
 ) -> list[str]:
-    """Pick the best 11 from a squad of any size (uses optimal slot assignment)."""
-    pairs = assign_lineup_slots(formation, player_names, player_stats, max_players=None)
+    """Pick the best 11 from a squad of any size for the given formation."""
+    players = [p for p in player_names if p]
+    if not players:
+        return []
+
+    if len(players) <= 11:
+        all_slots = _slot_order(formation)
+        pairs = _hungarian_assign(formation, all_slots, players, player_stats)
+        return [player for player, _ in pairs if player]
+
+    # Squad > 11: pick role-balanced XI, then confirm via global slot assignment.
+    candidates = _select_xi_by_formation_roles(formation, players, player_stats)
+    all_slots = _slot_order(formation)
+    pairs = _hungarian_assign(formation, all_slots, candidates, player_stats)
     return [player for player, _ in pairs if player]
 
 
@@ -42,9 +183,8 @@ def assign_lineup_slots(
     max_players: int | None = 11,
 ) -> list[tuple[str, str]]:
     """
-    Optimal slot assignment (max total fit) via Hungarian algorithm.
+    Optimal slot assignment (max total fit + quality) via Hungarian algorithm.
     Works for 1–11 players; partial rosters leave other slots empty in the UI.
-    GK slot stays empty unless a goalkeeper is in the squad.
     When max_players is None, all named players are eligible (for squads > 11).
     """
     players = [p for p in player_names if p]
@@ -54,37 +194,7 @@ def assign_lineup_slots(
         return []
 
     all_slots = _slot_order(formation)
-    assignments: list[tuple[str, str]] = []
-    remaining_players = players[:]
-    remaining_slots = all_slots[:]
-
-    gk_players = [p for p in remaining_players if _is_gk(player_stats.get(p))]
-    if "GK" in remaining_slots:
-        if gk_players:
-            gk = gk_players[0]
-            assignments.append((gk, "GK"))
-            remaining_players.remove(gk)
-        remaining_slots = [s for s in remaining_slots if s != "GK"]
-
-    if not remaining_players or not remaining_slots:
-        return assignments
-
-    n_slots = len(remaining_slots)
-    n_players = len(remaining_players)
-    cost = np.zeros((n_slots, n_players))
-    for i, slot in enumerate(remaining_slots):
-        for j, player in enumerate(remaining_players):
-            stats = player_stats.get(player)
-            if stats is None:
-                cost[i, j] = 0.0
-            else:
-                cost[i, j] = -player_slot_fit(stats, formation, slot)
-
-    row_ind, col_ind = linear_sum_assignment(cost)
-    assignments.extend(
-        (remaining_players[col_ind[i]], remaining_slots[row_ind[i]]) for i in range(len(col_ind))
-    )
-    return assignments
+    return _hungarian_assign(formation, all_slots, players, player_stats)
 
 
 def lineup_from_assignments(
