@@ -48,6 +48,8 @@ header .sub { color: var(--muted); font-size: 0.85rem; }
 }
 .badge.ready { background: rgba(61, 214, 140, 0.15); color: var(--accent); border-color: rgba(61, 214, 140, 0.35); }
 .badge.running { background: rgba(255, 176, 32, 0.15); color: var(--warn); border-color: rgba(255, 176, 32, 0.35); }
+.badge.live { background: rgba(61, 214, 140, 0.2); color: var(--accent); border-color: rgba(61, 214, 140, 0.45); animation: pulse-live 1.5s ease-in-out infinite; }
+@keyframes pulse-live { 0%, 100% { opacity: 1; } 50% { opacity: 0.65; } }
 .badge.error { background: rgba(255, 107, 107, 0.15); color: var(--away); }
 main { max-width: 1200px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
 .grid { display: grid; gap: 1rem; }

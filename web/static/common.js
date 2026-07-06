@@ -347,7 +347,7 @@ function renderReport(report, matchup) {
 
 function renderMatchdayList(items) {
   if (!items.length) {
-    return `<div class="empty"><p>No matchday simulations yet.</p><p class="muted">When the admin runs a match simulation, it will appear here.</p></div>`;
+    return `<div class="empty"><p>Admin hasn't started a match yet.</p><p class="muted">When the admin runs a tournament fixture or test simulation, it will appear here with a Live badge while running.</p></div>`;
   }
   const rows = items
     .map((e) => {
@@ -364,11 +364,17 @@ function renderMatchdayList(items) {
         .join(", ");
       const scoresCell = e.status === "ready" && topScores ? topScores : "—";
       const running = e.running || e.status === "running" || e.status === "queued";
-      const statusCls = running ? "running" : esc(e.status);
+      const statusBadge = running
+        ? `<span class="badge live">Live</span>`
+        : `<span class="badge ${esc(e.status)}">${esc(e.status)}</span>`;
+      const tournamentCell = e.tournament_name
+        ? `<a href="/tournament?id=${esc(e.tournament_id)}" class="muted">${esc(e.tournament_name)}</a>${e.stage ? `<div class="muted">${esc(e.stage)}</div>` : ""}`
+        : `<span class="muted">Ad-hoc</span>`;
       return `<tr class="${running ? "matchday-live" : ""}">
         <td><a href="/experiment/${esc(e.id)}?from=matchday">${esc(e.team_a_name)} vs ${esc(e.team_b_name)}</a></td>
+        <td>${tournamentCell}</td>
         <td class="muted">${esc(e.team_a_formation)} / ${esc(e.team_b_formation)}</td>
-        <td><span class="badge ${statusCls}">${esc(e.status)}</span></td>
+        <td>${statusBadge}</td>
         <td>${xg}</td>
         <td class="muted">${outcome}</td>
         <td class="muted">${scoresCell}</td>
@@ -377,10 +383,10 @@ function renderMatchdayList(items) {
     .join("");
   return `
     <div class="card">
-      <h2>Admin matchday</h2>
-      <p class="muted">Simulations run by the admin. Click a match for full results, scorelines, and analysis. Refreshes every 5 seconds while running.</p>
+      <h2>Matchday broadcast</h2>
+      <p class="muted">Admin-run simulations appear here. Click a match for full results and analysis. Auto-refreshes every 5 seconds while a match is live.</p>
       <table>
-        <thead><tr><th>Matchup</th><th>Formations</th><th>Status</th><th>xG</th><th>Win probs</th><th>Top scores</th></tr></thead>
+        <thead><tr><th>Matchup</th><th>Tournament</th><th>Formations</th><th>Status</th><th>xG</th><th>Win probs</th><th>Top scores</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>`;

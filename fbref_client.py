@@ -124,16 +124,17 @@ def _row_to_fbref_entry(row: pd.Series, league_name: str) -> dict[str, Any]:
     red90 = _per90(_num(_col(row, "Performance_CrdR")), minutes)
 
     pos_raw = str(_col(row, "pos") or "M")
-    fpl_pos, primary = _map_fbref_position(pos_raw)
+    fpl_pos, primary, positions = _map_fbref_position(pos_raw)
 
     rating = min(8.5, max(6.2, 6.5 + goals90 * 0.75 + assists90 * 0.45 + tackles90 * 0.08))
 
     return {
         "team": str(_col(row, "team") or ""),
         "league": league_name,
+        "pos_raw": pos_raw,
         "primary_position": primary,
         "fpl_position": fpl_pos,
-        "positions": [primary],
+        "positions": positions,
         "minutes": minutes,
         "games": max(games, 1),
         "starts": max(starts, 1),
@@ -155,28 +156,14 @@ def _row_to_fbref_entry(row: pd.Series, league_name: str) -> dict[str, Any]:
     }
 
 
-def _map_fbref_position(pos_raw: str) -> tuple[str, str]:
-    text = str(pos_raw).upper()
-    if "GK" in text:
-        return "GK", "GK"
-    if any(tag in text for tag in ("RW", "RM")):
-        return "FWD", "RW"
-    if any(tag in text for tag in ("LW", "LM")):
-        return "FWD", "LW"
-    if any(tag in text for tag in ("FW", "ST", "CF")):
-        return "FWD", "ST"
-    has_mf = any(tag in text for tag in ("MF", "CM", "DM", "AM", "RM", "LM"))
-    has_df = any(tag in text for tag in ("DF", "CB", "LB", "RB", "WB"))
-    # Dual MF/DF listings (e.g. Rodri "MF,DF") — midfielder, not pure defender.
-    if has_mf:
-        if "DM" in text:
-            return "MID", "DM"
-        if "AM" in text:
-            return "MID", "AM"
-        return "MID", "CM"
-    if has_df:
-        return "DEF", "CB"
-    return "MID", "CM"
+def _map_fbref_position(pos_raw: str) -> tuple[str, str, list[str]]:
+    from position_enrichment import infer_fpl_from_primary, parse_fbref_positions, pick_primary_position
+    from collections import Counter
+
+    positions = parse_fbref_positions(pos_raw)
+    primary = pick_primary_position(Counter({p: 1.0 for p in positions}))
+    fpl = infer_fpl_from_primary(primary, positions)
+    return fpl, primary, positions
 
 
 def _merge_stat_frames(frames: list[pd.DataFrame]) -> pd.DataFrame:

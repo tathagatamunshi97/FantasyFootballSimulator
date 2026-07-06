@@ -384,9 +384,25 @@ def matchday_experiments(
     x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
 ) -> dict:
-    """Admin matchday simulation history (admin session or SIM_ADMIN_TOKEN only)."""
-    _require_admin_session_or_token(x_session_token, x_admin_token)
-    return {"experiments": experiments.list_matchday_experiments()}
+    """Live and recent admin matchday broadcasts. All logged-in users may watch."""
+    user = auth.get_user(x_session_token)
+    if not user and not _is_admin(x_admin_token):
+        raise HTTPException(status_code=401, detail="Login required")
+    watch_only = not (_is_admin_session(user) or _is_admin(x_admin_token))
+    return {"experiments": experiments.list_matchday_experiments(watch_only=watch_only)}
+
+
+def _can_view_experiment(
+    exp: dict[str, Any],
+    user: str | None,
+    *,
+    is_admin_token: bool,
+) -> bool:
+    if _is_admin_session(user) or is_admin_token:
+        return True
+    if not user:
+        return False
+    return experiments.can_team_view_experiment(exp)
 
 
 @app.get("/api/experiments")
@@ -442,7 +458,15 @@ def get_experiment(
     exp = experiments.load_experiment(exp_id)
     if not exp:
         raise HTTPException(status_code=404, detail="Experiment not found")
-    _require_admin_session_or_token(x_session_token, x_admin_token)
+    user = auth.get_user(x_session_token)
+    is_admin_token = _is_admin(x_admin_token)
+    if not user and not is_admin_token:
+        raise HTTPException(status_code=401, detail="Login required")
+    if not _can_view_experiment(exp, user, is_admin_token=is_admin_token):
+        raise HTTPException(
+            status_code=403,
+            detail="This simulation is not available. Watch live matches on /matchday.",
+        )
     return {"experiment": exp}
 
 

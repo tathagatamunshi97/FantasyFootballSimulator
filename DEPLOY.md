@@ -10,6 +10,7 @@ You do **not** need Cloudflare, a custom domain, or quick tunnels (`*.trycloudfl
 |------|-------|
 | **Your fixed URL** | `https://fantasy-football-simulator.onrender.com` |
 | **Viewer login** | `https://fantasy-football-simulator.onrender.com/login` |
+| **Matchday (watch live)** | `https://fantasy-football-simulator.onrender.com/matchday` |
 | **Admin panel** | `https://fantasy-football-simulator.onrender.com/admin` |
 | **Tournament admin** | Same URL — `/admin#tournament` tab |
 | **Team lab** | `https://fantasy-football-simulator.onrender.com/lab` |
@@ -93,7 +94,7 @@ First build takes ~3–5 minutes. When status is **Live**:
 https://fantasy-football-simulator.onrender.com/login
 ```
 
-Use `/admin` with your `SIM_ADMIN_TOKEN` to run simulations. Share the login URL with viewers (password = their display name, case-insensitive).
+Use `/admin` with your `SIM_ADMIN_TOKEN` to run simulations. Share `/login` with viewers; teams land on `/matchday` to watch live admin fixtures. See [MATCHDAY.md](MATCHDAY.md) for the full admin + player workflow.
 
 Every future `git push` to `main` triggers an automatic redeploy. **The URL never changes.**
 
@@ -180,4 +181,5 @@ Open `http://localhost:8080/login`.
 ## See also
 
 - [README.md](README.md) — features and local development
+- [MATCHDAY.md](MATCHDAY.md) — admin run live fixtures, player watch flow
 - [setup_named_tunnel.md](setup_named_tunnel.md) — optional; only if you have a domain and want local hosting with a fixed URL

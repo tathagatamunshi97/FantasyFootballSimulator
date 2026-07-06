@@ -1,5 +1,5 @@
 function redirectAfterLogin(user) {
-  const defaultNext = user === "admin" ? "/home" : "/squad";
+  const defaultNext = user === "admin" ? "/home" : "/matchday";
   const next = new URLSearchParams(window.location.search).get("next") || defaultNext;
   window.location.href = next;
 }
@@ -74,5 +74,5 @@ document.getElementById("setupForm").addEventListener("submit", async (e) => {
 });
 
 if (getToken()) {
-  window.location.href = isAdminUser() ? "/home" : "/squad";
+  window.location.href = isAdminUser() ? "/home" : "/matchday";
 }

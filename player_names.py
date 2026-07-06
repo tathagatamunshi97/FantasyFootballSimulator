@@ -279,6 +279,11 @@ KNOWN_PLAYER_PRIMARY: dict[int, dict[str, Any]] = {
         "fpl_position": "FWD",
         "positions": ["RW", "LW", "RM"],
     },
+    827606: {
+        "primary_position": "DM",
+        "fpl_position": "MID",
+        "positions": ["DM", "CM", "CB"],
+    },
 }
 
 KNOWN_PLAYER_POSITIONS: dict[int, str] = {

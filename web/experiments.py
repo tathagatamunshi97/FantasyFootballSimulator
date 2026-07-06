@@ -4,9 +4,11 @@ from __future__ import annotations
 import json
 import threading
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
+
+MATCHDAY_WATCH_HOURS = 24
 
 from formation_fit import FORMATION_SLOTS, supported_formations
 from models import FantasyTeam
@@ -30,8 +32,15 @@ def _experiment_path(exp_id: str) -> Path:
     return EXPERIMENTS_DIR / f"{exp_id}.json"
 
 
-def _default_experiment(exp_id: str, user: str, payload: dict[str, Any], *, matchday: bool = False) -> dict[str, Any]:
-    return {
+def _default_experiment(
+    exp_id: str,
+    user: str,
+    payload: dict[str, Any],
+    *,
+    matchday: bool = False,
+    tournament: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    exp: dict[str, Any] = {
         "id": exp_id,
         "user": user,
         "matchday": matchday,
@@ -46,6 +55,38 @@ def _default_experiment(exp_id: str, user: str, payload: dict[str, Any], *, matc
         "team_b": payload["team_b"],
         "report": None,
     }
+    if tournament:
+        exp["tournament_id"] = tournament.get("tournament_id")
+        exp["tournament_name"] = tournament.get("tournament_name")
+        exp["match_id"] = tournament.get("match_id")
+        exp["stage"] = tournament.get("stage")
+    return exp
+
+
+def is_matchday_experiment(exp: dict[str, Any]) -> bool:
+    return bool(exp.get("matchday") or exp.get("user") == "admin")
+
+
+def _parse_ts(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def can_team_view_experiment(exp: dict[str, Any]) -> bool:
+    """Team users may watch live or recently finished admin/matchday broadcasts."""
+    if not is_matchday_experiment(exp):
+        return False
+    if exp.get("running") or exp.get("status") in ("running", "queued"):
+        return True
+    updated = _parse_ts(exp.get("updated_at"))
+    if not updated:
+        return False
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=MATCHDAY_WATCH_HOURS)
+    return updated >= cutoff
 
 
 def validate_team_payload(team: dict[str, Any], label: str) -> list[str]:
@@ -219,7 +260,11 @@ def _summary(exp: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": exp["id"],
         "user": exp.get("user"),
-        "matchday": bool(exp.get("matchday") or exp.get("user") == "admin"),
+        "matchday": is_matchday_experiment(exp),
+        "tournament_id": exp.get("tournament_id"),
+        "tournament_name": exp.get("tournament_name"),
+        "match_id": exp.get("match_id"),
+        "stage": exp.get("stage"),
         "created_at": exp.get("created_at"),
         "updated_at": exp.get("updated_at"),
         "status": exp.get("status"),
@@ -239,8 +284,8 @@ def _summary(exp: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def list_matchday_experiments(*, limit: int = 20) -> list[dict[str, Any]]:
-    """Recent admin/matchday experiments (admin-only API)."""
+def list_matchday_experiments(*, limit: int = 20, watch_only: bool = False) -> list[dict[str, Any]]:
+    """Recent admin/matchday experiments. Teams use watch_only=True."""
     if not EXPERIMENTS_DIR.exists():
         return []
     rows: list[dict[str, Any]] = []
@@ -249,11 +294,50 @@ def list_matchday_experiments(*, limit: int = 20) -> list[dict[str, Any]]:
             exp = json.loads(path.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError):
             continue
-        if not (exp.get("matchday") or exp.get("user") == "admin"):
+        if not is_matchday_experiment(exp):
+            continue
+        if watch_only and not can_team_view_experiment(exp):
             continue
         rows.append(_summary(exp))
     rows.sort(key=lambda r: r.get("created_at") or "", reverse=True)
     return rows[:limit]
+
+
+def start_matchday_run(
+    user: str,
+    payload: dict[str, Any],
+    *,
+    run_fn,
+    tournament: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Create a matchday experiment and run ``run_fn(exp)`` in a background thread."""
+    exp_id = uuid.uuid4().hex[:12]
+    exp = _default_experiment(exp_id, user, payload, matchday=True, tournament=tournament)
+
+    with _lock:
+        if exp_id in _running_ids:
+            raise RuntimeError("Experiment already running.")
+        _running_ids.add(exp_id)
+
+    exp["status"] = "running"
+    exp["running"] = True
+    exp["message"] = f"Running {exp['simulations']:,} simulations…"
+    save_experiment(exp)
+
+    def _job() -> None:
+        try:
+            run_fn(exp)
+        except Exception as exc:
+            exp["status"] = "error"
+            exp["running"] = False
+            exp["message"] = str(exc)
+            save_experiment(exp)
+        finally:
+            with _lock:
+                _running_ids.discard(exp_id)
+
+    threading.Thread(target=_job, daemon=True).start()
+    return _summary(exp) | {"id": exp_id}
 
 
 def is_experiment_running(exp_id: str) -> bool:

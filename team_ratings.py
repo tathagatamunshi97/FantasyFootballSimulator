@@ -435,7 +435,7 @@ def compute_unit_ratings(
 
     finishing = _clamp(sum(finishing_top) / 2.0 if finishing_top else 0.0)
 
-    chance_creation = _clamp(sum(creation_top) / 1.75 if creation_top else 0.0)
+    chance_creation = _clamp(sum(creation_top) / 3.0 if creation_top else 0.0)
 
     attack = _clamp(0.56 * finishing + 0.44 * chance_creation)
 

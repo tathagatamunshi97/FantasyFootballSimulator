@@ -440,7 +440,21 @@ def _apply_group_result(
         table[team]["gd"] = table[team]["gf"] - table[team]["ga"]
 
 
-def run_group_match(tournament_id: str, match_id: str) -> dict[str, Any]:
+def _finalize_experiment_from_report(exp: dict[str, Any], report: dict[str, Any]) -> None:
+    exp["status"] = "ready"
+    exp["running"] = False
+    exp["message"] = f"Completed {exp['simulations']:,} simulations."
+    exp["report"] = report
+    save_experiment(exp)
+
+
+def _run_group_match_job(
+    tournament_id: str,
+    match_id: str,
+    exp: dict[str, Any],
+) -> None:
+    from web import experiments
+
     t = load_tournament(tournament_id)
     if not t:
         raise KeyError("Tournament not found")
@@ -451,7 +465,10 @@ def run_group_match(tournament_id: str, match_id: str) -> dict[str, Any]:
     if fx.get("played"):
         raise ValueError(f"Match {match_id} already played")
 
-    n_sims = int(t["settings"].get("simulations_per_match", 10000))
+    n_sims = int(exp["simulations"])
+    exp["message"] = "Loading player stats…"
+    experiments.save_experiment(exp)
+
     report, snapshot = _run_simulation(fx["home"], fx["away"], match_id, n_sims)
     winner = _resolve_winner(
         fx["home"], fx["away"], snapshot["home_goals"], snapshot["away_goals"], report, require_winner=False
@@ -467,12 +484,14 @@ def run_group_match(tournament_id: str, match_id: str) -> dict[str, Any]:
         **snapshot,
         "winner": winner,
         "played_at": _now(),
+        "experiment_id": exp["id"],
     }
 
     fx["played"] = True
     fx["result_id"] = result_id
     fx["score"] = snapshot["score"]
     fx["winner"] = winner
+    fx["experiment_id"] = exp["id"]
 
     _apply_group_result(
         t["groups"][gkey]["table"],
@@ -482,7 +501,145 @@ def run_group_match(tournament_id: str, match_id: str) -> dict[str, Any]:
         snapshot["away_goals"],
     )
     save_tournament(t)
-    return {"tournament": _summary(t) | {"id": t["id"]}, "result": t["match_results"][result_id]}
+    _finalize_experiment_from_report(exp, report)
+
+
+def _run_knockout_match_job(
+    tournament_id: str,
+    match_id: str,
+    exp: dict[str, Any],
+) -> None:
+    from web import experiments
+
+    t = load_tournament(tournament_id)
+    if not t:
+        raise KeyError("Tournament not found")
+    found = _find_fixture(t, match_id)
+    if not found or found[0] != "knockout":
+        raise KeyError(f"Knockout fixture '{match_id}' not found")
+    _, tie = found
+    if tie.get("played"):
+        raise ValueError(f"Match {match_id} already played")
+    if not tie.get("home") or not tie.get("away"):
+        raise ValueError(f"Match {match_id} is not ready (missing teams)")
+
+    n_sims = int(exp["simulations"])
+    exp["message"] = "Loading player stats…"
+    experiments.save_experiment(exp)
+
+    report, snapshot = _run_simulation(tie["home"], tie["away"], match_id, n_sims)
+    winner = _resolve_winner(
+        tie["home"],
+        tie["away"],
+        snapshot["home_goals"],
+        snapshot["away_goals"],
+        report,
+        require_winner=True,
+    )
+    if not winner:
+        winner = tie["home"]
+
+    result_id = match_id
+    t["match_results"][result_id] = {
+        "match_id": match_id,
+        "stage": "knockout",
+        "home": tie["home"],
+        "away": tie["away"],
+        **snapshot,
+        "winner": winner,
+        "played_at": _now(),
+        "experiment_id": exp["id"],
+    }
+
+    tie["played"] = True
+    tie["result_id"] = result_id
+    tie["score"] = snapshot["score"]
+    tie["winner"] = winner
+    tie["experiment_id"] = exp["id"]
+    _advance_knockout_winner(t, tie, winner)
+
+    all_done = all(
+        t2.get("played")
+        for rnd in t["knockout"]["rounds"]
+        for t2 in rnd.get("ties", [])
+        if t2.get("home") and t2.get("away")
+    )
+    if all_done:
+        t["status"] = "complete"
+    save_tournament(t)
+    _finalize_experiment_from_report(exp, report)
+
+
+def run_group_match(tournament_id: str, match_id: str) -> dict[str, Any]:
+    from web import experiments
+
+    t = load_tournament(tournament_id)
+    if not t:
+        raise KeyError("Tournament not found")
+    found = _find_fixture(t, match_id)
+    if not found or found[0] == "knockout":
+        raise KeyError(f"Group fixture '{match_id}' not found")
+    gkey, fx = found
+    if fx.get("played"):
+        raise ValueError(f"Match {match_id} already played")
+
+    team_a, team_b = _load_teams_for_match(fx["home"], fx["away"])
+    n_sims = int(t["settings"].get("simulations_per_match", 10000))
+    payload = {"team_a": team_a, "team_b": team_b, "simulations": n_sims}
+
+    summary = experiments.start_matchday_run(
+        "admin",
+        payload,
+        tournament={
+            "tournament_id": tournament_id,
+            "tournament_name": t.get("name"),
+            "match_id": match_id,
+            "stage": f"group_{gkey}",
+        },
+        run_fn=lambda exp: _run_group_match_job(tournament_id, match_id, exp),
+    )
+    return {
+        "tournament": _summary(t) | {"id": t["id"]},
+        "experiment": summary,
+        "status": "running",
+    }
+
+
+def run_knockout_match(tournament_id: str, match_id: str) -> dict[str, Any]:
+    from web import experiments
+
+    t = load_tournament(tournament_id)
+    if not t:
+        raise KeyError("Tournament not found")
+    found = _find_fixture(t, match_id)
+    if not found or found[0] != "knockout":
+        raise KeyError(f"Knockout fixture '{match_id}' not found")
+    _, tie = found
+    if tie.get("played"):
+        raise ValueError(f"Match {match_id} already played")
+    if not tie.get("home") or not tie.get("away"):
+        raise ValueError(f"Match {match_id} is not ready (missing teams)")
+
+    team_a, team_b = _load_teams_for_match(tie["home"], tie["away"])
+    n_sims = int(t["settings"].get("simulations_per_match", 10000))
+    payload = {"team_a": team_a, "team_b": team_b, "simulations": n_sims}
+
+    summary = experiments.start_matchday_run(
+        "admin",
+        payload,
+        tournament={
+            "tournament_id": tournament_id,
+            "tournament_name": t.get("name"),
+            "match_id": match_id,
+            "stage": "knockout",
+        },
+        run_fn=lambda exp: _run_knockout_match_job(tournament_id, match_id, exp),
+    )
+    return {
+        "tournament": _summary(t) | {"id": t["id"]},
+        "experiment": summary,
+        "status": "running",
+    }
 
 
 def _qualified_teams(t: dict[str, Any]) -> list[tuple[str, str, int]]:
@@ -603,61 +760,6 @@ def _advance_knockout_winner(t: dict[str, Any], tie: dict[str, Any], winner: str
                 nxt["home"] = winner
             else:
                 nxt["away"] = winner
-
-
-def run_knockout_match(tournament_id: str, match_id: str) -> dict[str, Any]:
-    t = load_tournament(tournament_id)
-    if not t:
-        raise KeyError("Tournament not found")
-    found = _find_fixture(t, match_id)
-    if not found or found[0] != "knockout":
-        raise KeyError(f"Knockout fixture '{match_id}' not found")
-    _, tie = found
-    if tie.get("played"):
-        raise ValueError(f"Match {match_id} already played")
-    if not tie.get("home") or not tie.get("away"):
-        raise ValueError(f"Match {match_id} is not ready (missing teams)")
-
-    n_sims = int(t["settings"].get("simulations_per_match", 10000))
-    report, snapshot = _run_simulation(tie["home"], tie["away"], match_id, n_sims)
-    winner = _resolve_winner(
-        tie["home"],
-        tie["away"],
-        snapshot["home_goals"],
-        snapshot["away_goals"],
-        report,
-        require_winner=True,
-    )
-    if not winner:
-        winner = tie["home"]
-
-    result_id = match_id
-    t["match_results"][result_id] = {
-        "match_id": match_id,
-        "stage": "knockout",
-        "home": tie["home"],
-        "away": tie["away"],
-        **snapshot,
-        "winner": winner,
-        "played_at": _now(),
-    }
-
-    tie["played"] = True
-    tie["result_id"] = result_id
-    tie["score"] = snapshot["score"]
-    tie["winner"] = winner
-    _advance_knockout_winner(t, tie, winner)
-
-    all_done = all(
-        tie.get("played")
-        for rnd in t["knockout"]["rounds"]
-        for tie in rnd.get("ties", [])
-        if tie.get("home") and tie.get("away")
-    )
-    if all_done:
-        t["status"] = "complete"
-    save_tournament(t)
-    return {"tournament": _summary(t) | {"id": t["id"]}, "result": t["match_results"][result_id]}
 
 
 def set_status(tournament_id: str, status: str) -> dict[str, Any]:

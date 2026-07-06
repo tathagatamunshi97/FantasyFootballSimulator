@@ -358,10 +358,18 @@ async function runAction(action) {
 async function runGroupMatch(matchId) {
   if (!currentId) return;
   try {
-    tLog(`Simulating ${matchId}… (may take a minute)`);
+    tLog(`Starting ${matchId}… viewers can watch on /matchday`);
     const res = await adminApi(`/api/tournament/${currentId}/matches/${matchId}/run`, { method: "POST" });
-    tLog(`Result: ${res.result.home} ${res.result.score} ${res.result.away} · winner: ${res.result.winner || "Draw"}`);
+    const exp = res.experiment;
+    if (exp?.id) {
+      tLog(`Live on matchday: /experiment/${exp.id}?from=matchday`);
+    }
     await loadCurrent();
+    if (res.result) {
+      tLog(`Result: ${res.result.home} ${res.result.score} ${res.result.away} · winner: ${res.result.winner || "Draw"}`);
+    } else {
+      tLog("Simulation running in background — refresh tournament state in a minute.");
+    }
   } catch (err) {
     tLog(`Error: ${err.message}`);
   }
@@ -370,10 +378,18 @@ async function runGroupMatch(matchId) {
 async function runKoMatch(matchId) {
   if (!currentId) return;
   try {
-    tLog(`Simulating knockout ${matchId}…`);
+    tLog(`Starting knockout ${matchId}… viewers can watch on /matchday`);
     const res = await adminApi(`/api/tournament/${currentId}/knockout/matches/${matchId}/run`, { method: "POST" });
-    tLog(`Result: ${res.result.score} · winner: ${res.result.winner}`);
+    const exp = res.experiment;
+    if (exp?.id) {
+      tLog(`Live on matchday: /experiment/${exp.id}?from=matchday`);
+    }
     await loadCurrent();
+    if (res.result) {
+      tLog(`Result: ${res.result.score} · winner: ${res.result.winner}`);
+    } else {
+      tLog("Simulation running in background — refresh tournament state in a minute.");
+    }
   } catch (err) {
     tLog(`Error: ${err.message}`);
   }

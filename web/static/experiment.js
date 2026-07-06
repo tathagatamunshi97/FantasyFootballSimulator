@@ -1,16 +1,17 @@
 if (!requireAuthOrAdmin()) throw new Error("auth");
-if (isTeamUser()) {
-  window.location.replace("/squad");
-  throw new Error("redirect");
-}
 
 const expId = window.location.pathname.split("/").pop();
 const fromMatchday = new URLSearchParams(window.location.search).get("from") === "matchday";
 
+if (isTeamUser() && !fromMatchday) {
+  window.location.replace("/matchday");
+  throw new Error("redirect");
+}
+
 if (isAdminUser() || getAdminToken()) {
   document.getElementById("adminLink").hidden = false;
 }
-document.getElementById("navBack").innerHTML = fromMatchday
+document.getElementById("navBack").innerHTML = fromMatchday || isTeamUser()
   ? '<a href="/matchday" class="btn-link">← Matchday</a>'
   : '<a href="/home" class="btn-link">My experiments</a>';
 
@@ -30,7 +31,7 @@ async function refresh() {
     const app = document.getElementById("app");
 
     if (exp.running || exp.status === "running" || exp.status === "queued") {
-      app.innerHTML = `<div class="empty"><span class="badge running">${esc(exp.status)}</span><p>${esc(exp.message)}</p><p class="muted">Refreshing every 5 seconds…</p></div>`;
+      app.innerHTML = `<div class="empty"><span class="badge live">Live</span><p>${esc(exp.message)}</p><p class="muted">Refreshing every 5 seconds…</p></div>`;
       return;
     }
 
@@ -46,6 +47,10 @@ async function refresh() {
 
     app.innerHTML = renderReport(exp.report, exp.report.matchup);
   } catch (e) {
+    if (e.message.includes("403")) {
+      window.location.replace("/matchday");
+      return;
+    }
     document.getElementById("app").innerHTML = `<div class="empty">Failed to load: ${esc(e.message)}</div>`;
   }
 }
