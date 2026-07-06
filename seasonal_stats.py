@@ -270,7 +270,7 @@ def build_season_stats_dict(
     if start < MIN_SEASON_START_YEAR:
         raise ValueError(f"Season must be {MIN_SEASON_START_YEAR}-{MIN_SEASON_START_YEAR + 1} or later")
 
-    manual = lookup_manual_season_pick(player_raw, season_suffix)
+    manual = lookup_manual_season_pick(player_raw, season_suffix, cache_only=cache_only)
     if manual is not None:
         canon = store.resolve(player_raw)
         data = manual[1]
@@ -342,7 +342,7 @@ def build_prime_stats_dict(
     """Use manual prime profile when available; Sofascore only as fallback."""
     from manual_profiles import lookup_manual_prime
 
-    manual = lookup_manual_prime(player_raw)
+    manual = lookup_manual_prime(player_raw, cache_only=cache_only)
     if manual is not None:
         canon = store.resolve(player_raw)
         data = manual[1]

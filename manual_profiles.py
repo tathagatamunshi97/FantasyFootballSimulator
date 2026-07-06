@@ -260,7 +260,14 @@ def _enrich_with_understat(stats: dict[str, Any], player_name: str, season_suffi
 
 
 def _enrich_with_fbref(stats: dict[str, Any], player_name: str, season_suffix: str) -> dict[str, Any]:
-    if stats.get("fbref_matched") and stats.get("tackles90", 0) > 0:
+    if stats.get("fbref_matched"):
+        return stats
+    src = str(stats.get("data_source", ""))
+    if src in ("manual_profiles", "fbref+verified", "fbref+understat", "fbref"):
+        return stats
+    if stats.get("minutes", 0) > 0 and (
+        stats.get("tackles90", 0) > 0 or stats.get("goals90", 0) > 0
+    ):
         return stats
     from fbref_client import merge_fbref_for_player_season
 
@@ -283,13 +290,20 @@ def _enrich_manual_stats(stats: dict[str, Any], player_name: str, season_suffix:
     return data
 
 
-def lookup_manual_prime(player_raw: str) -> tuple[str, dict[str, Any], str] | None:
+def lookup_manual_prime(
+    player_raw: str,
+    *,
+    cache_only: bool = False,
+) -> tuple[str, dict[str, Any], str] | None:
     """Return (canonical_name, stats_dict, season_label) for a prime manual row."""
     profile = _find_profile(player_raw, "prime")
     if not profile:
         return None
     name = profile["player_name"]
-    data = _enrich_manual_stats(dict(profile["stats"]), name, profile["season_suffix"])
+    if cache_only:
+        data = dict(profile["stats"])
+    else:
+        data = _enrich_manual_stats(dict(profile["stats"]), name, profile["season_suffix"])
     data["stat_profile"] = "prime_season"
     data["prime_season"] = profile["season_label"]
     data["data_source"] = "manual_profiles"
@@ -301,6 +315,8 @@ def lookup_manual_prime(player_raw: str) -> tuple[str, dict[str, Any], str] | No
 def lookup_manual_season_pick(
     player_raw: str,
     season_suffix: str,
+    *,
+    cache_only: bool = False,
 ) -> tuple[str, dict[str, Any], str] | None:
     """Return (canonical_name, stats_dict, season_label) for a season-pick manual row."""
     suf = _normalize_season_suffix(season_suffix)
@@ -308,7 +324,10 @@ def lookup_manual_season_pick(
     if not profile:
         return None
     name = profile["player_name"]
-    data = _enrich_manual_stats(dict(profile["stats"]), name, profile["season_suffix"])
+    if cache_only:
+        data = dict(profile["stats"])
+    else:
+        data = _enrich_manual_stats(dict(profile["stats"]), name, profile["season_suffix"])
     data["stat_profile"] = "single_season"
     data["data_source"] = "manual_profiles"
     data["manual_profile_type"] = "season_pick"
