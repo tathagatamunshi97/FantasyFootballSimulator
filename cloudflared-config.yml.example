@@ -1,0 +1,10 @@
+# Copy to cloudflared-config.yml and edit (file is gitignored — do not commit secrets).
+# One-time setup: see setup_named_tunnel.md
+
+tunnel: fantasy-football-sim
+credentials-file: 'C:\Users\YOUR_USER\.cloudflared\TUNNEL-UUID.json'
+
+ingress:
+  - hostname: sim.yourdomain.com
+    service: http://127.0.0.1:8080
+  - service: http_status:404

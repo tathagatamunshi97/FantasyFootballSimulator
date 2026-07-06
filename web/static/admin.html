@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin — Match Simulator</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Admin Dashboard</h1>
+      <div class="sub">Simulations &amp; tournaments · <a href="/">Home</a> · <a href="/lab">Team lab</a> · <a href="/tournament">Tournament viewer</a></div>
+    </div>
+    <span id="statusBadge" class="badge">admin</span>
+  </header>
+
+  <main style="max-width: 1200px; margin: 0 auto; padding: 1rem;">
+    <div class="card">
+      <h2>Admin token</h2>
+      <p class="muted">Must match <code>SIM_ADMIN_TOKEN</code> on the server. One token unlocks simulation controls and tournament management.</p>
+      <div class="form-row">
+        <label for="token">Token</label>
+        <input id="token" type="password" placeholder="SIM_ADMIN_TOKEN" autocomplete="current-password" />
+      </div>
+    </div>
+
+    <nav class="tab-bar" style="margin-top:1rem" role="tablist">
+      <button type="button" class="tab-btn active" data-tab="simulations" role="tab">Simulations</button>
+      <button type="button" class="tab-btn" data-tab="tournament" role="tab">Tournament</button>
+    </nav>
+
+    <div id="panel-simulations" class="tab-panel" role="tabpanel">
+      <div class="card" style="margin-top:0">
+        <h2>Quick test simulation</h2>
+        <p class="muted">Run the default <code>team_a_vs_b.json</code> matchup as a new experiment (no user login required).</p>
+        <div class="form-row inline">
+          <label for="testSims">Simulations</label>
+          <input id="testSims" type="number" value="5000" min="100" max="100000" step="1000" style="max-width:160px" />
+        </div>
+        <div class="form-row inline">
+          <label for="testSeed">Seed (optional)</label>
+          <input id="testSeed" type="number" placeholder="42" style="max-width:160px" />
+        </div>
+        <button type="button" id="testRunBtn" class="btn-primary">Run test simulation</button>
+        <div id="testLog" class="log" style="margin-top:0.75rem">Enter token, then run a test.</div>
+      </div>
+
+      <div class="card" style="margin-top:1rem">
+        <h2>All experiments</h2>
+        <button type="button" id="refreshBtn" class="btn-ghost" style="margin-bottom:0.75rem">Refresh experiments</button>
+        <div id="expTable" class="table-wrap"><p class="muted">Enter token and refresh.</p></div>
+        <div id="simLog" class="log" style="margin-top:0.75rem">Ready.</div>
+      </div>
+
+      <details class="card" style="margin-top:1rem">
+        <summary style="cursor:pointer;font-weight:600">Legacy global simulation</summary>
+        <p class="muted">Runs the default matchup into global <code>/api/state</code> (home page legacy viewer).</p>
+        <div class="form-row">
+          <label for="sims">Simulations</label>
+          <input id="sims" type="number" value="20000" min="100" max="100000" step="1000" style="max-width:160px" />
+        </div>
+        <div class="form-row">
+          <label for="seed">Seed (optional)</label>
+          <input id="seed" type="number" placeholder="42" style="max-width:160px" />
+        </div>
+        <button type="button" id="runBtn" class="btn-ghost">Run legacy sim</button>
+        <div id="legacyLog" class="log" style="margin-top:0.5rem">—</div>
+      </details>
+    </div>
+
+    <div id="panel-tournament" class="tab-panel" role="tabpanel" hidden>
+      <div class="card" style="margin-top:0">
+        <h2>Create tournament</h2>
+        <div class="form-row">
+          <label for="tName">Name</label>
+          <input id="tName" type="text" value="Fantasy Cup" />
+        </div>
+        <div class="form-row">
+          <label>Teams from Google Sheet</label>
+          <p class="muted">Select teams with 11 players including a goalkeeper. Incomplete rosters are marked.</p>
+          <div id="teamPicker" class="muted">Enter admin token to load teams…</div>
+        </div>
+        <button type="button" id="createBtn" class="btn-primary">Create tournament</button>
+      </div>
+
+      <div class="card" style="margin-top:1rem">
+        <h2>Active tournament</h2>
+        <div class="form-row">
+          <label for="tSelect">Select</label>
+          <select id="tSelect"><option value="">—</option></select>
+        </div>
+        <div id="controls" class="grid grid-2" style="margin-top:0.75rem"></div>
+        <div id="matchControls" style="margin-top:1rem"></div>
+        <div id="tLog" class="log" style="margin-top:0.75rem">Ready.</div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/static/common.js"></script>
+  <script src="/static/admin.js"></script>
+</body>
+</html>

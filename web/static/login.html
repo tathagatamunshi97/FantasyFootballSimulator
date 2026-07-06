@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login — Match Simulator</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Football Match Simulator</h1>
+      <div class="sub">Log in to build teams and run your own experiments</div>
+    </div>
+  </header>
+
+  <main style="max-width: 420px; margin: 2rem auto; padding: 0 1rem;">
+    <div class="card">
+      <h2>Login</h2>
+      <p class="muted">Your password must match your name (not case-sensitive).</p>
+      <form id="loginForm">
+        <div class="form-row">
+          <label for="name">Your name</label>
+          <input id="name" type="text" required autocomplete="username" placeholder="e.g. Alex" />
+        </div>
+        <div class="form-row">
+          <label for="password">Password</label>
+          <input id="password" type="password" required autocomplete="current-password" placeholder="Same as your name" />
+        </div>
+        <button type="submit" class="btn-primary">Log in</button>
+        <p id="error" class="error-msg" hidden></p>
+      </form>
+    </div>
+  </main>
+
+  <script src="/static/common.js"></script>
+  <script src="/static/login.js"></script>
+</body>
+</html>

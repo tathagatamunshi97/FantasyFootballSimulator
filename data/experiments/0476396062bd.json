@@ -1,0 +1,166 @@
+{
+  "id": "0476396062bd",
+  "user": "Tatha",
+  "created_at": "2026-07-02T14:04:44.835658+00:00",
+  "updated_at": "2026-07-02T14:05:05.324471+00:00",
+  "status": "error",
+  "message": "HTTP 403 for URL: https://api.sofascore.com/api/v1/search/Jurien%20Timber",
+  "running": false,
+  "simulations": 10100,
+  "seed": null,
+  "team_a": {
+    "name": "Kinjal+Sayan C",
+    "formation": "4-3-3",
+    "lineup": [
+      {
+        "slot": "GK",
+        "player": "Joan Garcia",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RB",
+        "player": "Jules Koundé",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB1",
+        "player": "Willian Pacho",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB2",
+        "player": "Diego Godín",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LB",
+        "player": "Nico O'Reilly",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "DM",
+        "player": "Casemiro",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CM",
+        "player": "João Neves",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "AM",
+        "player": "Bruno Guimarães",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RW",
+        "player": "Michael Olise",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "ST",
+        "player": "Harry Kane",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LW",
+        "player": "Leandro Trossard",
+        "captain": false,
+        "vice_captain": false
+      }
+    ],
+    "prime_player": "Casemiro",
+    "peak_season": {
+      "player": "Diego Godín",
+      "season": "15/16"
+    }
+  },
+  "team_b": {
+    "name": "Moga+Sanmitro",
+    "formation": "4-2-3-1",
+    "lineup": [
+      {
+        "slot": "GK",
+        "player": "Emiliano Martinez",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RB",
+        "player": "Jurien Timber",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB1",
+        "player": "Ruben Dias",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB2",
+        "player": "Josko Gvardiol",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LB",
+        "player": "Marc Cucurella",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "DM1",
+        "player": "Rodri",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "DM2",
+        "player": "Fabian Ruiz",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RW",
+        "player": "Angel Di Maria",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "AM",
+        "player": "Jude Bellingham",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LW",
+        "player": "Khvicha Kvaratskhelia",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "ST",
+        "player": "Julian Alvarez",
+        "captain": false,
+        "vice_captain": false
+      }
+    ],
+    "prime_player": "Rodri",
+    "peak_season": {
+      "player": "Angel Di Maria",
+      "season": "14/15"
+    }
+  },
+  "report": null
+}

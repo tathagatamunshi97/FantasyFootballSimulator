@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Experiment — Match Simulator</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header>
+    <div>
+      <h1 id="pageTitle">Experiment</h1>
+      <div class="sub" id="pageSub">—</div>
+    </div>
+    <div class="header-actions">
+      <span id="statusBadge" class="badge">loading</span>
+      <a href="/admin" class="btn-link" id="adminLink">Admin</a>
+      <a href="/" class="btn-link">My experiments</a>
+    </div>
+  </header>
+
+  <main id="app">
+    <div class="empty">Loading experiment…</div>
+  </main>
+
+  <footer>Engine v2 · auto-refresh while running</footer>
+
+  <script src="/static/common.js"></script>
+  <script src="/static/experiment.js"></script>
+</body>
+</html>

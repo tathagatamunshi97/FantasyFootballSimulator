@@ -1,0 +1,178 @@
+﻿======================================================================
+MATCHUP: Team A (4-3-3) vs Team B (4-2-3-1)
+Engine: slot-aware ratings, chance-creation xG channel, midfield shield, transition risk
+======================================================================
+
+================================================================
+Team A  |  4-3-3
+================================================================
+Units (0-1):  ATK 0.88  (fin 0.78  create 1.00)  MID 0.28  DEF 0.17  MID-DEF 0.11  GK 0.39  trans-risk 0.27  overall 0.44
+Silverware boost: x1.073  (avg player bonus 0.072)
+Formation fit: 0.68
+
+Squad averages (per 90, blended seasons):
+  xG 0.20  npxG 0.21  xA 0.14  xGBuildup 0.49  xGChain 0.74
+  Shots 1.57  Key passes 1.20  Big chances 0.27
+  Tackles 1.38  Interceptions 0.61  Pass% 86.1  Poss lost 11.4
+Line groups ù FWD xG 0.65  MID/DEF buildup 0.59  DEF tackles 1.73  GK prevented 0.011
+
+Players:
+  David Raya                   GK     xG 0.00  xA 0.00  build 0.16  min 3375  +0.070
+      ╖ 2025-2026: league winner (Arsenal)
+      ╖ 2025-2026: UCL finalist (Arsenal)
+  Jules KoundΘ                 RB     xG 0.06  xA 0.13  build 0.72  min 2437  +0.090
+      ╖ 2024-2025: league winner (FC Barcelona)
+      ╖ 2025-2026: league winner (FC Barcelona)
+  William Saliba               CB1    xG 0.05  xA 0.04  build 0.39  min 2828  +0.070
+      ╖ 2025-2026: league winner (Arsenal)
+      ╖ 2025-2026: UCL finalist (Arsenal)
+  Pau Cubarsφ                  CB2    xG 0.02  xA 0.03  build 0.60  min 2664  +0.090
+      ╖ 2024-2025: league winner (FC Barcelona)
+      ╖ 2025-2026: league winner (FC Barcelona)
+  Piero HincapiΘ               LB     xG 0.06  xA 0.10  build 0.35  min 2231  +0.070
+      ╖ 2025-2026: league winner (Arsenal)
+      ╖ 2025-2026: UCL finalist (Arsenal)
+  Vitinha (Paris Saint-Germain) DM     xG 0.10  xA 0.16  build 0.96  min 2078  +0.180
+      ╖ 2024-2025: league winner (Paris Saint-Germain)
+      ╖ 2024-2025: UCL winner (Paris Saint-Germain)
+      ╖ 2025-2026: league winner (Paris Saint-Germain)
+      ╖ 2025-2026: UCL winner (Paris Saint-Germain)
+  Pedri                        CM     xG 0.07  xA 0.26  build 0.77  min 2499  +0.090
+      ╖ 2024-2025: league winner (FC Barcelona)
+      ╖ 2025-2026: league winner (FC Barcelona)
+  Bruno Guimarπes              AM     xG 0.16  xA 0.17  build 0.36  min 2868
+  Lamine Yamal                 RW     xG 0.41  xA 0.38  build 0.60  min 2564  +0.090
+      ╖ 2024-2025: league winner (FC Barcelona)
+      ╖ 2025-2026: league winner (FC Barcelona)
+  Kai Havertz                  ST     xG 0.49  xA 0.09  build 0.17  min 1228  +0.048
+      ╖ 2025-2026: league winner (Arsenal)
+      ╖ 2025-2026: UCL finalist (Arsenal)
+  Kylian MbappΘ                LW     xG 0.81  xA 0.21  build 0.29  min 2759
+
+================================================================
+Team B  |  4-2-3-1
+================================================================
+Units (0-1):  ATK 0.94  (fin 0.89  create 1.00)  MID 0.29  DEF 0.19  MID-DEF 0.13  GK 0.76  trans-risk 0.42  overall 0.51
+Silverware boost: x1.096  (avg player bonus 0.096)
+Formation fit: 0.72
+
+Squad averages (per 90, blended seasons):
+  xG 0.27  npxG 0.26  xA 0.17  xGBuildup 0.50  xGChain 0.80
+  Shots 2.02  Key passes 1.58  Big chances 0.39
+  Tackles 1.38  Interceptions 0.67  Pass% 85.3  Poss lost 11.9
+Line groups ù FWD xG 0.62  MID/DEF buildup 0.55  DEF tackles 1.61  GK prevented 0.269
+
+Players:
+  Joan Garcφa                  GK     xG 0.00  xA 0.00  build 0.38  min 3060  +0.045
+      ╖ 2025-2026: league winner (FC Barcelona)
+  Achraf Hakimi                RB     xG 0.14  xA 0.19  build 0.69  min 1720  +0.180
+      ╖ 2024-2025: league winner (Paris Saint-Germain)
+      ╖ 2024-2025: UCL winner (Paris Saint-Germain)
+      ╖ 2025-2026: league winner (Paris Saint-Germain)
+      ╖ 2025-2026: UCL winner (Paris Saint-Germain)
+  Gabriel Magalhπes            CB1    xG 0.10  xA 0.05  build 0.33  min 2558  +0.070
+      ╖ 2025-2026: league winner (Arsenal)
+      ╖ 2025-2026: UCL finalist (Arsenal)
+  Dayot Upamecano              CB2    xG 0.06  xA 0.07  build 0.72  min 1779  +0.089
+      ╖ 2024-2025: league winner (FC Bayern Mⁿnchen)
+      ╖ 2025-2026: league winner (FC Bayern Mⁿnchen)
+  Nuno Mendes                  LB     xG 0.21  xA 0.24  build 0.79  min 1467  +0.163
+      ╖ 2024-2025: league winner (Paris Saint-Germain)
+      ╖ 2024-2025: UCL winner (Paris Saint-Germain)
+      ╖ 2025-2026: league winner (Paris Saint-Germain)
+      ╖ 2025-2026: UCL winner (Paris Saint-Germain)
+  Declan Rice                  DM1    xG 0.10  xA 0.19  build 0.35  min 2966  +0.070
+      ╖ 2025-2026: league winner (Arsenal)
+      ╖ 2025-2026: UCL finalist (Arsenal)
+  Joπo Neves                   DM2    xG 0.17  xA 0.17  build 0.63  min 1572  +0.175
+      ╖ 2024-2025: league winner (Paris Saint-Germain)
+      ╖ 2024-2025: UCL winner (Paris Saint-Germain)
+      ╖ 2025-2026: league winner (Paris Saint-Germain)
+      ╖ 2025-2026: UCL winner (Paris Saint-Germain)
+  Bruno Fernandes              AM     xG 0.31  xA 0.30  build 0.37  min 3045
+  Khvicha Kvaratskhelia        LW     xG 0.40  xA 0.26  build 0.61  min 1335  +0.107
+      ╖ 2024-2025: league winner (SSC Napoli)
+      ╖ 2025-2026: league winner (Paris Saint-Germain)
+      ╖ 2025-2026: UCL winner (Paris Saint-Germain)
+  Erling Haaland               ST     xG 0.75  xA 0.08  build 0.14  min 2849
+  Ousmane DembΘlΘ              RW     xG 0.71  xA 0.38  build 0.44  min 1399  +0.155
+      ╖ 2024-2025: league winner (Paris Saint-Germain)
+      ╖ 2024-2025: UCL winner (Paris Saint-Germain)
+      ╖ 2025-2026: league winner (Paris Saint-Germain)
+      ╖ 2025-2026: UCL winner (Paris Saint-Germain)
+
+--- Team A extended profile (0-1 scale unless noted) ---
+  Defensive unit:          0.51  (DEF 0.17, MID-DEF 0.11, GK 0.39, trans-risk 0.27, xGA suppress 0.85)
+  Possession control:      0.75  (pass% 86.1, poss lost 11.4/90)
+  Chance creation:         0.52
+  Attacking effectiveness: 0.85  (FWD xG 0.65/90)
+  Midfield progression:    buildup 0.67/90  |  MID unit 0.28
+  Overall balance:         0.00  (ATK 0.88 MID 0.28 DEF 0.17 GK 0.39)
+  Formation fit:           0.68
+  Pressing / transitions:  press 0.44  |  counter 0.76  |  aerial DEF 0.63
+  Engine units:  FIN 0.78  CREATE 1.00  MID-DEF 0.11  TRANS-RISK 0.27
+  Raw xG split:  finishing 2.27  + creation 0.37  = 2.64 (pre-suppression)
+
+--- Team B extended profile (0-1 scale unless noted) ---
+  Defensive unit:          0.51  (DEF 0.19, MID-DEF 0.13, GK 0.76, trans-risk 0.42, xGA suppress 0.80)
+  Possession control:      0.73  (pass% 85.3, poss lost 12.1/90)
+  Chance creation:         0.65
+  Attacking effectiveness: 0.85  (FWD xG 0.62/90)
+  Midfield progression:    buildup 0.45/90  |  MID unit 0.29
+  Overall balance:         0.00  (ATK 0.94 MID 0.29 DEF 0.19 GK 0.76)
+  Formation fit:           0.72
+  Pressing / transitions:  press 0.46  |  counter 0.42  |  aerial DEF 0.43
+  Engine units:  FIN 0.89  CREATE 1.00  MID-DEF 0.13  TRANS-RISK 0.42
+  Raw xG split:  finishing 2.47  + creation 0.37  = 2.84 (pre-suppression)
+
+--- Team A fullback / transition profile ---
+  Jules KoundΘ                 RB    xa 0.13  key-pass 1.01  create-score 0.31  attack-exposure 0.28  fit 0.61
+  Piero HincapiΘ               LB    xa 0.10  key-pass 0.60  create-score 0.19  attack-exposure 0.15  fit 0.56
+  Team transition risk: 0.273
+  xGA suppression: 0.835 without transition penalty  ->  0.847 with fullbacks pushed
+
+--- Team B fullback / transition profile ---
+  Achraf Hakimi                RB    xa 0.19  key-pass 1.80  create-score 0.45  attack-exposure 0.39  fit 0.63
+  Nuno Mendes                  LB    xa 0.24  key-pass 1.91  create-score 0.54  attack-exposure 0.48  fit 0.63
+  Team transition risk: 0.421
+  xGA suppression: 0.772 without transition penalty  ->  0.797 with fullbacks pushed
+
+--- Matchup mechanics ---
+  Team A attacks vs Team B defence: suppress 0.797 (B trans-risk 0.42)
+  Team B attacks vs Team A defence: suppress 0.847 (A trans-risk 0.27)
+  Midfield battle: A x0.999  B x1.001
+
+======================================================================
+MONTE CARLO ù 20,000 simulations (neutral venue)
+======================================================================
+
+Expected xG:  Team A 2.07  |  Team B 2.45
+
+OUTCOME PROBABILITIES
+  Team A win:  32.7%
+  Draw:             19.1%
+  Team B win:  48.3%
+
+Top 3 most likely results:
+  1. 2-2  (7.0%)
+  2. 1-2  (6.8%)
+  3. 2-3  (6.0%)
+
+Goals:  avg Team A 2.05  |  Team B 2.46  |  total 4.50
+Both teams score: 79.8%  |  Over 2.5: 82.8%
+
+Top 8 scorelines:
+  2-2     7.0%
+  1-2     6.8%
+  2-3     6.0%
+  2-1     5.9%
+  1-1     5.5%
+  1-3     5.5%
+  3-2     4.7%
+  3-3     4.1%
+
+Unit ratings (trophy-boosted, new engine):
+  Team A     ATK 0.94  FIN 0.84  CREATE 1.00  MID 0.31  DEF 0.19  MID-DEF 0.12  TRANS 0.27  GK 0.41
+  Team B     ATK 1.00  FIN 0.98  CREATE 1.00  MID 0.32  DEF 0.21  MID-DEF 0.14  TRANS 0.42  GK 0.83
+  Silverware: Team A x1.073  |  Team B x1.096
+  Midfield multipliers: Team A x0.998  |  Team B x1.002

@@ -1,0 +1,1383 @@
+{
+  "id": "9afd36a0cd90",
+  "user": "Tathagata",
+  "created_at": "2026-07-06T08:49:40.080475+00:00",
+  "updated_at": "2026-07-06T08:50:40.322914+00:00",
+  "status": "ready",
+  "message": "Completed 10,100 simulations.",
+  "running": false,
+  "simulations": 10100,
+  "seed": null,
+  "team_a": {
+    "name": "Moga+Sanmitro",
+    "formation": "4-3-3",
+    "lineup": [
+      {
+        "slot": "GK",
+        "player": "Emiliano Martínez",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RB",
+        "player": "Jurriën Timber",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB1",
+        "player": "Rúben Dias",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB2",
+        "player": "Joško Gvardiol",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LB",
+        "player": "Riccardo Calafiori",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "DM",
+        "player": "Rodri",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CM",
+        "player": "Jude Bellingham",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "AM",
+        "player": "Rayan Cherki",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RW",
+        "player": "Ángel Di María",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "ST",
+        "player": "Julián Alvarez",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LW",
+        "player": "Khvicha Kvaratskhelia",
+        "captain": false,
+        "vice_captain": false
+      }
+    ],
+    "prime_player": "Rodri",
+    "peak_season": {
+      "player": "Ángel Di María",
+      "season": "13/14"
+    },
+    "sheet_meta": {}
+  },
+  "team_b": {
+    "name": "Subhadro+Shubhajit",
+    "formation": "4-2-3-1",
+    "lineup": [
+      {
+        "slot": "GK",
+        "player": "Joan García",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RB",
+        "player": "Guéla Doué",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB1",
+        "player": "Ibrahima Konaté",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB2",
+        "player": "Nico Schlotterbeck",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LB",
+        "player": "Nuno Mendes",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "DM1",
+        "player": "N'Golo Kanté",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "DM2",
+        "player": "Vitinha (Paris Saint-Germain)",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RW",
+        "player": "Désiré Doué",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "AM",
+        "player": "Fermín López",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LW",
+        "player": "Ademola Lookman",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "ST",
+        "player": "Edinson Cavani",
+        "captain": false,
+        "vice_captain": false
+      }
+    ],
+    "prime_player": "N'Golo Kanté",
+    "peak_season": {
+      "player": "Edinson Cavani",
+      "season": "16/17"
+    },
+    "sheet_meta": {}
+  },
+  "report": {
+    "generated_at": "2026-07-06T08:50:40.320613+00:00",
+    "engine_version": "slot-aware-v2",
+    "matchup": {
+      "home": {
+        "name": "Moga+Sanmitro",
+        "formation": "4-3-3",
+        "lineup": [
+          {
+            "player": "Emiliano Martínez",
+            "slot": "GK",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Jurriën Timber",
+            "slot": "RB",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Rúben Dias",
+            "slot": "CB1",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Joško Gvardiol",
+            "slot": "CB2",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Riccardo Calafiori",
+            "slot": "LB",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Rodri",
+            "slot": "DM",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Jude Bellingham",
+            "slot": "CM",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Rayan Cherki",
+            "slot": "AM",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Ángel Di María",
+            "slot": "RW",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Julián Alvarez",
+            "slot": "ST",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Khvicha Kvaratskhelia",
+            "slot": "LW",
+            "captain": false,
+            "vice_captain": false
+          }
+        ]
+      },
+      "away": {
+        "name": "Subhadro+Shubhajit",
+        "formation": "4-2-3-1",
+        "lineup": [
+          {
+            "player": "Joan García",
+            "slot": "GK",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Guéla Doué",
+            "slot": "RB",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Ibrahima Konaté",
+            "slot": "CB1",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Nico Schlotterbeck",
+            "slot": "CB2",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Nuno Mendes",
+            "slot": "LB",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "N'Golo Kanté",
+            "slot": "DM1",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Vitinha (Paris Saint-Germain)",
+            "slot": "DM2",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Désiré Doué",
+            "slot": "RW",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Fermín López",
+            "slot": "AM",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Ademola Lookman",
+            "slot": "LW",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Edinson Cavani",
+            "slot": "ST",
+            "captain": false,
+            "vice_captain": false
+          }
+        ]
+      }
+    },
+    "profiles": {
+      "home": {
+        "extended": {
+          "defensive_unit": 0.449,
+          "possession_control": 0.651,
+          "chance_creation": 0.439,
+          "attacking_effectiveness": 0.512,
+          "formation_fit": 0.668,
+          "pressing_intensity": 0.384,
+          "transition_threat": 0.577,
+          "aerial_defence": 0.426,
+          "units": {
+            "attack": 0.777,
+            "finishing": 0.601,
+            "chance_creation": 1.0,
+            "midfield": 0.231,
+            "defence": 0.153,
+            "midfield_defence": 0.104,
+            "transition_risk": 0.163,
+            "goalkeeper": 0.57,
+            "overall": 0.427,
+            "gk_confidence": 0.95,
+            "gk_is_backup": false
+          },
+          "xga_suppression": 0.822,
+          "xg_split": {
+            "finishing": 1.95,
+            "creation": 0.37,
+            "total_raw": 2.31
+          },
+          "fwd_xg90": 0.28,
+          "avg_pass_pct": 70.1,
+          "formation_fit_players": [
+            {
+              "player": "Emiliano Martínez",
+              "slot": "GK",
+              "fit": 0.761,
+              "position": "GK"
+            },
+            {
+              "player": "Jurriën Timber",
+              "slot": "RB",
+              "fit": 0.596,
+              "position": "CB"
+            },
+            {
+              "player": "Rúben Dias",
+              "slot": "CB1",
+              "fit": 0.771,
+              "position": "CB"
+            },
+            {
+              "player": "Joško Gvardiol",
+              "slot": "CB2",
+              "fit": 0.802,
+              "position": "CB"
+            },
+            {
+              "player": "Riccardo Calafiori",
+              "slot": "LB",
+              "fit": 0.55,
+              "position": "CB"
+            },
+            {
+              "player": "Rodri",
+              "slot": "DM",
+              "fit": 0.255,
+              "position": "CB"
+            },
+            {
+              "player": "Jude Bellingham",
+              "slot": "CM",
+              "fit": 0.839,
+              "position": "CM"
+            },
+            {
+              "player": "Rayan Cherki",
+              "slot": "AM",
+              "fit": 0.951,
+              "position": "CM"
+            },
+            {
+              "player": "Ángel Di María",
+              "slot": "RW",
+              "fit": 0.384,
+              "position": "ST"
+            },
+            {
+              "player": "Julián Alvarez",
+              "slot": "ST",
+              "fit": 0.824,
+              "position": "ST"
+            },
+            {
+              "player": "Khvicha Kvaratskhelia",
+              "slot": "LW",
+              "fit": 0.618,
+              "position": "ST"
+            }
+          ]
+        },
+        "fullbacks": {
+          "fullbacks": [
+            {
+              "player": "Jurriën Timber",
+              "slot": "RB",
+              "xa90": 0.05,
+              "key_passes90": 0.81,
+              "creation_score": 0.194,
+              "attack_exposure": 0.166,
+              "fit": 0.596
+            },
+            {
+              "player": "Riccardo Calafiori",
+              "slot": "LB",
+              "xa90": 0.04,
+              "key_passes90": 0.47,
+              "creation_score": 0.133,
+              "attack_exposure": 0.156,
+              "fit": 0.55
+            }
+          ],
+          "transition_risk": 0.163,
+          "xga_suppression_base": 0.814,
+          "xga_suppression_with_transition": 0.822
+        },
+        "trophy_multiplier": 1.0225,
+        "players": [
+          {
+            "player": "Emiliano Martínez",
+            "slot": "GK",
+            "team": "Aston Villa",
+            "xg90": 0.0,
+            "npxg90": 0.0,
+            "xa90": 0.0,
+            "xg_buildup90": 0.16,
+            "rating": 7.02,
+            "minutes": 3015,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Jurriën Timber",
+            "slot": "RB",
+            "team": "Arsenal",
+            "xg90": 0.11,
+            "npxg90": 0.1,
+            "xa90": 0.05,
+            "xg_buildup90": 0.33,
+            "rating": 6.94,
+            "minutes": 2439,
+            "trophy_bonus": 0.07,
+            "trophy_notes": [
+              "2025-2026: league winner (Arsenal)",
+              "2025-2026: UCL finalist (Arsenal)"
+            ]
+          },
+          {
+            "player": "Rúben Dias",
+            "slot": "CB1",
+            "team": "Manchester City",
+            "xg90": 0.04,
+            "npxg90": 0.04,
+            "xa90": 0.04,
+            "xg_buildup90": 0.59,
+            "rating": 7.17,
+            "minutes": 2211,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Joško Gvardiol",
+            "slot": "CB2",
+            "team": "Manchester City",
+            "xg90": 0.14,
+            "npxg90": 0.12,
+            "xa90": 0.06,
+            "xg_buildup90": 0.57,
+            "rating": 7.18,
+            "minutes": 2326,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Riccardo Calafiori",
+            "slot": "LB",
+            "team": "Arsenal",
+            "xg90": 0.18,
+            "npxg90": 0.12,
+            "xa90": 0.04,
+            "xg_buildup90": 0.34,
+            "rating": 6.87,
+            "minutes": 1707,
+            "trophy_bonus": 0.07,
+            "trophy_notes": [
+              "2025-2026: league winner (Arsenal)",
+              "2025-2026: UCL finalist (Arsenal)"
+            ]
+          },
+          {
+            "player": "Rodri",
+            "slot": "DM",
+            "team": "Manchester City",
+            "xg90": 0.13,
+            "npxg90": 0.13,
+            "xa90": 0.0,
+            "xg_buildup90": 0.8,
+            "rating": 6.92,
+            "minutes": 2931,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Jude Bellingham",
+            "slot": "CM",
+            "team": "Real Madrid",
+            "xg90": 0.38,
+            "npxg90": 0.39,
+            "xa90": 0.13,
+            "xg_buildup90": 0.47,
+            "rating": 7.36,
+            "minutes": 2205,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Rayan Cherki",
+            "slot": "AM",
+            "team": "Manchester City",
+            "xg90": 0.21,
+            "npxg90": 0.23,
+            "xa90": 0.47,
+            "xg_buildup90": 0.56,
+            "rating": 7.4,
+            "minutes": 1923,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Ángel Di María",
+            "slot": "RW",
+            "team": "Real Madrid",
+            "xg90": 0.0,
+            "npxg90": 0.0,
+            "xa90": 0.0,
+            "xg_buildup90": 0.0,
+            "rating": 6.91,
+            "minutes": 2357,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Julián Alvarez",
+            "slot": "ST",
+            "team": "Atlético Madrid",
+            "xg90": 0.44,
+            "npxg90": 0.35,
+            "xa90": 0.22,
+            "xg_buildup90": 0.35,
+            "rating": 7.1,
+            "minutes": 2210,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Khvicha Kvaratskhelia",
+            "slot": "LW",
+            "team": "Paris Saint-Germain",
+            "xg90": 0.4,
+            "npxg90": 0.41,
+            "xa90": 0.26,
+            "xg_buildup90": 0.61,
+            "rating": 7.22,
+            "minutes": 1335,
+            "trophy_bonus": 0.1075,
+            "trophy_notes": [
+              "2024-2025: league winner (SSC Napoli)",
+              "2025-2026: league winner (Paris Saint-Germain)",
+              "2025-2026: UCL winner (Paris Saint-Germain)"
+            ]
+          }
+        ]
+      },
+      "away": {
+        "extended": {
+          "defensive_unit": 0.585,
+          "possession_control": 0.705,
+          "chance_creation": 0.501,
+          "attacking_effectiveness": 0.799,
+          "formation_fit": 0.774,
+          "pressing_intensity": 0.527,
+          "transition_threat": 0.484,
+          "aerial_defence": 0.693,
+          "units": {
+            "attack": 0.936,
+            "finishing": 0.885,
+            "chance_creation": 1.0,
+            "midfield": 0.255,
+            "defence": 0.221,
+            "midfield_defence": 0.148,
+            "transition_risk": 0.395,
+            "goalkeeper": 0.787,
+            "overall": 0.517,
+            "gk_confidence": 0.949,
+            "gk_is_backup": false
+          },
+          "xga_suppression": 0.781,
+          "xg_split": {
+            "finishing": 2.46,
+            "creation": 0.37,
+            "total_raw": 2.83
+          },
+          "fwd_xg90": 0.56,
+          "avg_pass_pct": 70.9,
+          "formation_fit_players": [
+            {
+              "player": "Joan García",
+              "slot": "GK",
+              "fit": 0.803,
+              "position": "GK"
+            },
+            {
+              "player": "Guéla Doué",
+              "slot": "RB",
+              "fit": 0.651,
+              "position": "CB"
+            },
+            {
+              "player": "Ibrahima Konaté",
+              "slot": "CB1",
+              "fit": 0.819,
+              "position": "CB"
+            },
+            {
+              "player": "Nico Schlotterbeck",
+              "slot": "CB2",
+              "fit": 0.821,
+              "position": "CB"
+            },
+            {
+              "player": "Nuno Mendes",
+              "slot": "LB",
+              "fit": 0.65,
+              "position": "CB"
+            },
+            {
+              "player": "N'Golo Kanté",
+              "slot": "DM1",
+              "fit": 0.851,
+              "position": "CM"
+            },
+            {
+              "player": "Vitinha (Paris Saint-Germain)",
+              "slot": "DM2",
+              "fit": 0.825,
+              "position": "CM"
+            },
+            {
+              "player": "Désiré Doué",
+              "slot": "RW",
+              "fit": 0.669,
+              "position": "ST"
+            },
+            {
+              "player": "Fermín López",
+              "slot": "AM",
+              "fit": 0.841,
+              "position": "CM"
+            },
+            {
+              "player": "Ademola Lookman",
+              "slot": "LW",
+              "fit": 0.617,
+              "position": "ST"
+            },
+            {
+              "player": "Edinson Cavani",
+              "slot": "ST",
+              "fit": 0.972,
+              "position": "ST"
+            }
+          ]
+        },
+        "fullbacks": {
+          "fullbacks": [
+            {
+              "player": "Guéla Doué",
+              "slot": "RB",
+              "xa90": 0.07,
+              "key_passes90": 0.6,
+              "creation_score": 0.191,
+              "attack_exposure": 0.166,
+              "fit": 0.651
+            },
+            {
+              "player": "Nuno Mendes",
+              "slot": "LB",
+              "xa90": 0.24,
+              "key_passes90": 1.91,
+              "creation_score": 0.544,
+              "attack_exposure": 0.486,
+              "fit": 0.65
+            }
+          ],
+          "transition_risk": 0.395,
+          "xga_suppression_base": 0.757,
+          "xga_suppression_with_transition": 0.781
+        },
+        "trophy_multiplier": 1.0591,
+        "players": [
+          {
+            "player": "Joan García",
+            "slot": "GK",
+            "team": "FC Barcelona",
+            "xg90": 0.0,
+            "npxg90": 0.0,
+            "xa90": 0.0,
+            "xg_buildup90": 0.38,
+            "rating": 7.37,
+            "minutes": 3060,
+            "trophy_bonus": 0.045,
+            "trophy_notes": [
+              "2025-2026: league winner (FC Barcelona)"
+            ]
+          },
+          {
+            "player": "Guéla Doué",
+            "slot": "RB",
+            "team": "RC Strasbourg",
+            "xg90": 0.07,
+            "npxg90": 0.06,
+            "xa90": 0.07,
+            "xg_buildup90": 0.31,
+            "rating": 6.95,
+            "minutes": 2389,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Ibrahima Konaté",
+            "slot": "CB1",
+            "team": "Liverpool FC",
+            "xg90": 0.05,
+            "npxg90": 0.06,
+            "xa90": 0.03,
+            "xg_buildup90": 0.45,
+            "rating": 7.07,
+            "minutes": 2832,
+            "trophy_bonus": 0.045,
+            "trophy_notes": [
+              "2024-2025: league winner (Liverpool FC)"
+            ]
+          },
+          {
+            "player": "Nico Schlotterbeck",
+            "slot": "CB2",
+            "team": "Borussia Dortmund",
+            "xg90": 0.1,
+            "npxg90": 0.11,
+            "xa90": 0.1,
+            "xg_buildup90": 0.46,
+            "rating": 7.38,
+            "minutes": 2252,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Nuno Mendes",
+            "slot": "LB",
+            "team": "Paris Saint-Germain",
+            "xg90": 0.21,
+            "npxg90": 0.16,
+            "xa90": 0.24,
+            "xg_buildup90": 0.79,
+            "rating": 7.27,
+            "minutes": 1467,
+            "trophy_bonus": 0.163,
+            "trophy_notes": [
+              "2024-2025: league winner (Paris Saint-Germain)",
+              "2024-2025: UCL winner (Paris Saint-Germain)",
+              "2025-2026: league winner (Paris Saint-Germain)",
+              "2025-2026: UCL winner (Paris Saint-Germain)"
+            ]
+          },
+          {
+            "player": "N'Golo Kanté",
+            "slot": "DM1",
+            "team": "Chelsea",
+            "xg90": 0.08,
+            "npxg90": 0.06,
+            "xa90": 0.11,
+            "xg_buildup90": 0.34,
+            "rating": 6.73,
+            "minutes": 3141,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Vitinha (Paris Saint-Germain)",
+            "slot": "DM2",
+            "team": "Paris Saint-Germain",
+            "xg90": 0.1,
+            "npxg90": 0.07,
+            "xa90": 0.16,
+            "xg_buildup90": 0.96,
+            "rating": 7.53,
+            "minutes": 2078,
+            "trophy_bonus": 0.18,
+            "trophy_notes": [
+              "2024-2025: league winner (Paris Saint-Germain)",
+              "2024-2025: UCL winner (Paris Saint-Germain)",
+              "2025-2026: league winner (Paris Saint-Germain)",
+              "2025-2026: UCL winner (Paris Saint-Germain)"
+            ]
+          },
+          {
+            "player": "Désiré Doué",
+            "slot": "RW",
+            "team": "Paris Saint-Germain",
+            "xg90": 0.4,
+            "npxg90": 0.4,
+            "xa90": 0.25,
+            "xg_buildup90": 0.5,
+            "rating": 7.22,
+            "minutes": 1545,
+            "trophy_bonus": 0.1717,
+            "trophy_notes": [
+              "2024-2025: league winner (Paris Saint-Germain)",
+              "2024-2025: UCL winner (Paris Saint-Germain)",
+              "2025-2026: league winner (Paris Saint-Germain)",
+              "2025-2026: UCL winner (Paris Saint-Germain)"
+            ]
+          },
+          {
+            "player": "Fermín López",
+            "slot": "AM",
+            "team": "FC Barcelona",
+            "xg90": 0.35,
+            "npxg90": 0.37,
+            "xa90": 0.22,
+            "xg_buildup90": 0.6,
+            "rating": 7.06,
+            "minutes": 1797,
+            "trophy_bonus": 0.045,
+            "trophy_notes": [
+              "2025-2026: league winner (FC Barcelona)"
+            ]
+          },
+          {
+            "player": "Ademola Lookman",
+            "slot": "LW",
+            "team": "Atalanta",
+            "xg90": 0.36,
+            "npxg90": 0.47,
+            "xa90": 0.24,
+            "xg_buildup90": 0.25,
+            "rating": 7.04,
+            "minutes": 1530,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Edinson Cavani",
+            "slot": "ST",
+            "team": "PSG",
+            "xg90": 0.93,
+            "npxg90": 0.93,
+            "xa90": 0.07,
+            "xg_buildup90": 0.08,
+            "rating": 7.39,
+            "minutes": 2983,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          }
+        ]
+      }
+    },
+    "mechanics": {
+      "home_attacks_vs_away_defence": 0.781,
+      "away_attacks_vs_home_defence": 0.822,
+      "midfield_battle": {
+        "home_multiplier": 0.998,
+        "away_multiplier": 1.002
+      }
+    },
+    "monte_carlo": {
+      "simulations": 10100,
+      "expected_xg": {
+        "home": 1.74,
+        "away": 2.35
+      },
+      "home_win_pct": 29.0,
+      "draw_pct": 19.5,
+      "away_win_pct": 51.5,
+      "home_goals_avg": 1.76,
+      "away_goals_avg": 2.35,
+      "total_goals_avg": 4.1,
+      "btts_pct": 75.2,
+      "over_2_5_pct": 78.2,
+      "scorelines": [
+        {
+          "score": "1-2",
+          "pct": 8.5
+        },
+        {
+          "score": "2-2",
+          "pct": 7.0
+        },
+        {
+          "score": "1-1",
+          "pct": 6.7
+        },
+        {
+          "score": "2-1",
+          "pct": 6.2
+        },
+        {
+          "score": "1-3",
+          "pct": 6.1
+        },
+        {
+          "score": "2-3",
+          "pct": 5.4
+        },
+        {
+          "score": "0-2",
+          "pct": 4.2
+        },
+        {
+          "score": "3-2",
+          "pct": 4.1
+        }
+      ],
+      "unit_ratings": {
+        "home": {
+          "attack": 0.794,
+          "finishing": 0.615,
+          "chance_creation": 1.0,
+          "midfield": 0.236,
+          "defence": 0.156,
+          "midfield_defence": 0.106,
+          "transition_risk": 0.163,
+          "goalkeeper": 0.583,
+          "overall": 0.437,
+          "gk_confidence": 0.95,
+          "gk_is_backup": false
+        },
+        "away": {
+          "attack": 0.991,
+          "finishing": 0.937,
+          "chance_creation": 1.0,
+          "midfield": 0.27,
+          "defence": 0.234,
+          "midfield_defence": 0.157,
+          "transition_risk": 0.395,
+          "goalkeeper": 0.834,
+          "overall": 0.548,
+          "gk_confidence": 0.949,
+          "gk_is_backup": false
+        }
+      },
+      "home_trophy_multiplier": 1.0225,
+      "away_trophy_multiplier": 1.0591,
+      "midfield_battle": {
+        "home_chance_multiplier": 0.997,
+        "away_chance_multiplier": 1.003
+      },
+      "bench_impact": {
+        "home": {
+          "bench_count": 0,
+          "bench_players": [],
+          "starting_xi": [
+            "Emiliano Martínez",
+            "Jurriën Timber",
+            "Rúben Dias",
+            "Joško Gvardiol",
+            "Riccardo Calafiori",
+            "Rodri",
+            "Jude Bellingham",
+            "Rayan Cherki",
+            "Ángel Di María",
+            "Julián Alvarez",
+            "Khvicha Kvaratskhelia"
+          ],
+          "full_squad_size": 11,
+          "players": [],
+          "boosts": {
+            "attack": 0.0,
+            "creation": 0.0,
+            "defence": 0.0,
+            "total_applied_pct": 0.0
+          },
+          "contributed": false,
+          "summary": "No bench players — squad has 11 or fewer.",
+          "team": "Moga+Sanmitro"
+        },
+        "away": {
+          "bench_count": 0,
+          "bench_players": [],
+          "starting_xi": [
+            "Joan García",
+            "Guéla Doué",
+            "Ibrahima Konaté",
+            "Nico Schlotterbeck",
+            "Nuno Mendes",
+            "N'Golo Kanté",
+            "Vitinha (Paris Saint-Germain)",
+            "Désiré Doué",
+            "Fermín López",
+            "Ademola Lookman",
+            "Edinson Cavani"
+          ],
+          "full_squad_size": 11,
+          "players": [],
+          "boosts": {
+            "attack": 0.0,
+            "creation": 0.0,
+            "defence": 0.0,
+            "total_applied_pct": 0.0
+          },
+          "contributed": false,
+          "summary": "No bench players — squad has 11 or fewer.",
+          "team": "Subhadro+Shubhajit"
+        }
+      }
+    },
+    "bench_impact": {
+      "home": {
+        "bench_count": 0,
+        "bench_players": [],
+        "starting_xi": [
+          "Emiliano Martínez",
+          "Jurriën Timber",
+          "Rúben Dias",
+          "Joško Gvardiol",
+          "Riccardo Calafiori",
+          "Rodri",
+          "Jude Bellingham",
+          "Rayan Cherki",
+          "Ángel Di María",
+          "Julián Alvarez",
+          "Khvicha Kvaratskhelia"
+        ],
+        "full_squad_size": 11,
+        "players": [],
+        "boosts": {
+          "attack": 0.0,
+          "creation": 0.0,
+          "defence": 0.0,
+          "total_applied_pct": 0.0
+        },
+        "contributed": false,
+        "summary": "No bench players — squad has 11 or fewer.",
+        "team": "Moga+Sanmitro"
+      },
+      "away": {
+        "bench_count": 0,
+        "bench_players": [],
+        "starting_xi": [
+          "Joan García",
+          "Guéla Doué",
+          "Ibrahima Konaté",
+          "Nico Schlotterbeck",
+          "Nuno Mendes",
+          "N'Golo Kanté",
+          "Vitinha (Paris Saint-Germain)",
+          "Désiré Doué",
+          "Fermín López",
+          "Ademola Lookman",
+          "Edinson Cavani"
+        ],
+        "full_squad_size": 11,
+        "players": [],
+        "boosts": {
+          "attack": 0.0,
+          "creation": 0.0,
+          "defence": 0.0,
+          "total_applied_pct": 0.0
+        },
+        "contributed": false,
+        "summary": "No bench players — squad has 11 or fewer.",
+        "team": "Subhadro+Shubhajit"
+      }
+    },
+    "sample_match": {
+      "scoreline": "0-3",
+      "home": {
+        "team": "Moga+Sanmitro",
+        "goals": 0,
+        "xg": 1.74,
+        "scorers": []
+      },
+      "away": {
+        "team": "Subhadro+Shubhajit",
+        "goals": 3,
+        "xg": 2.35,
+        "scorers": [
+          {
+            "minute": 15,
+            "scorer": "Edinson Cavani",
+            "assister": null
+          },
+          {
+            "minute": 40,
+            "scorer": "Edinson Cavani",
+            "assister": "Fermín López"
+          },
+          {
+            "minute": 53,
+            "scorer": "Ademola Lookman",
+            "assister": "Nuno Mendes"
+          }
+        ]
+      },
+      "winner": "Subhadro+Shubhajit"
+    },
+    "season_overrides": {
+      "team_a": {
+        "prime": {
+          "type": "prime",
+          "requested": "Rodri",
+          "resolved_name": "Rodri",
+          "season": "2023-2024"
+        },
+        "peak_season": {
+          "type": "peak_season",
+          "requested": "Ángel Di María",
+          "season_input": "13/14",
+          "resolved_name": "Ángel Di María",
+          "season": "2013-2014",
+          "source": "manual_profiles",
+          "profile_type": "season_pick"
+        }
+      },
+      "team_b": {
+        "prime": {
+          "type": "prime",
+          "requested": "N'Golo Kanté",
+          "resolved_name": "N'Golo Kanté",
+          "season": "2016-2017",
+          "source": "manual_profiles",
+          "profile_type": "prime"
+        },
+        "peak_season": {
+          "type": "peak_season",
+          "requested": "Edinson Cavani",
+          "season_input": "16/17",
+          "resolved_name": "Edinson Cavani",
+          "season": "2016-2017",
+          "source": "manual_profiles",
+          "profile_type": "season_pick"
+        }
+      }
+    },
+    "analysis": {
+      "favorite": "Subhadro+Shubhajit",
+      "favorite_side": "away",
+      "margin": "clear",
+      "summary": "Subhadro+Shubhajit is favoured (51.5% win vs 29.0% for Moga+Sanmitro, 19.5% draw). Expected goals: Moga+Sanmitro 1.74 – 2.35 Subhadro+Shubhajit.",
+      "expected_xg": {
+        "home": 1.74,
+        "away": 2.35,
+        "edge_side": "away",
+        "delta": 0.61
+      },
+      "outcomes": {
+        "home_win_pct": 29.0,
+        "draw_pct": 19.5,
+        "away_win_pct": 51.5
+      },
+      "key_factors": [
+        {
+          "factor": "Finishing quality",
+          "edge": "away",
+          "home": 0.601,
+          "away": 0.885,
+          "delta": 0.284,
+          "impact": 0.39759999999999995,
+          "explanation": "Subhadro+Shubhajit converts chances better (finishing 0.60 vs 0.89)."
+        },
+        {
+          "factor": "Goalkeeper",
+          "edge": "away",
+          "home": 0.57,
+          "away": 0.787,
+          "delta": 0.217,
+          "impact": 0.3255,
+          "explanation": "Subhadro+Shubhajit has the stronger keeper (0.57 vs 0.79), shifting expected goals against."
+        },
+        {
+          "factor": "Transition risk",
+          "edge": "home",
+          "home": 0.163,
+          "away": 0.395,
+          "delta": 0.232,
+          "impact": 0.25520000000000004,
+          "explanation": "Moga+Sanmitro is more exposed on the counter (transition risk 0.16 vs 0.40 — lower is safer)."
+        },
+        {
+          "factor": "Formation fit",
+          "edge": "away",
+          "home": 0.668,
+          "away": 0.774,
+          "delta": 0.106,
+          "impact": 0.0848,
+          "explanation": "Subhadro+Shubhajit fits the chosen shape better (avg fit 0.67 vs 0.77)."
+        },
+        {
+          "factor": "Back-line defence",
+          "edge": "away",
+          "home": 0.153,
+          "away": 0.221,
+          "delta": 0.068,
+          "impact": 0.068,
+          "explanation": "Subhadro+Shubhajit defends better in the back line (0.15 vs 0.22)."
+        },
+        {
+          "factor": "Midfield shield",
+          "edge": "away",
+          "home": 0.104,
+          "away": 0.148,
+          "delta": 0.044,
+          "impact": 0.039599999999999996,
+          "explanation": "Subhadro+Shubhajit shields the defence better (mid-def 0.10 vs 0.15)."
+        }
+      ],
+      "head_to_head": {
+        "finishing": {
+          "home": 0.601,
+          "away": 0.885,
+          "edge": "away"
+        },
+        "chance_creation": {
+          "home": 1.0,
+          "away": 1.0,
+          "edge": null
+        },
+        "goalkeeper": {
+          "home": 0.57,
+          "away": 0.787,
+          "edge": "away"
+        },
+        "defence": {
+          "home": 0.153,
+          "away": 0.221,
+          "edge": "away"
+        },
+        "midfield_defence": {
+          "home": 0.104,
+          "away": 0.148,
+          "edge": "away"
+        },
+        "transition_risk": {
+          "home": 0.163,
+          "away": 0.395,
+          "edge": "home"
+        },
+        "possession": {
+          "home": 0.651,
+          "away": 0.705,
+          "edge": "away"
+        },
+        "formation_fit": {
+          "home": 0.668,
+          "away": 0.774,
+          "edge": "away"
+        }
+      },
+      "mechanics_summary": {
+        "home_attacks_vs_away_defence": 0.781,
+        "away_attacks_vs_home_defence": 0.822,
+        "midfield_battle": {
+          "home_multiplier": 0.998,
+          "away_multiplier": 1.002
+        }
+      },
+      "sections": [
+        {
+          "title": "Verdict",
+          "paragraphs": [
+            "Subhadro+Shubhajit is favoured (51.5% win vs 29.0% for Moga+Sanmitro, 19.5% draw). Expected goals: Moga+Sanmitro 1.74 – 2.35 Subhadro+Shubhajit."
+          ],
+          "bullets": [
+            "Subhadro+Shubhajit converts chances better (finishing 0.60 vs 0.89).",
+            "Subhadro+Shubhajit has the stronger keeper (0.57 vs 0.79), shifting expected goals against.",
+            "Moga+Sanmitro is more exposed on the counter (transition risk 0.16 vs 0.40 — lower is safer)."
+          ]
+        },
+        {
+          "title": "Season profiles (prime / pick-season)",
+          "paragraphs": [
+            "Moga+Sanmitro prime: Rodri uses peak season 2023-2024 (stats fully replaced).",
+            "Moga+Sanmitro pick-season: Ángel Di María uses 2013-2014 only (stats fully replaced).",
+            "Subhadro+Shubhajit prime: N'Golo Kanté uses peak season 2016-2017 (stats fully replaced).",
+            "Subhadro+Shubhajit pick-season: Edinson Cavani uses 2016-2017 only (stats fully replaced)."
+          ],
+          "bullets": [
+            "Prime player: entire stat line replaced by their best top-league season (2014-15+).",
+            "Pick-season player: stats replaced by the chosen season only (not blended with current form)."
+          ]
+        },
+        {
+          "title": "Expected goals pipeline",
+          "paragraphs": [
+            "The engine splits attack into finishing and chance-creation channels, then applies opponent suppression and midfield battle modifiers.",
+            "Moga+Sanmitro raw attack xG: 1.95 finishing + 0.37 creation = 2.31 before suppression. When Subhadro+Shubhajit defends, suppression factor is 0.822 (DEF 0.22, mid-def 0.15, GK 0.79, transition risk 0.40).",
+            "Subhadro+Shubhajit raw attack xG: 2.46 + 0.37 = 2.83. Moga+Sanmitro suppression when defending: 0.781 (transition risk 0.16).",
+            "Midfield battle multipliers: Moga+Sanmitro ×0.998, Subhadro+Shubhajit ×1.002. Net xG edge: Subhadro+Shubhajit by 0.61."
+          ],
+          "bullets": []
+        },
+        {
+          "title": "Defensive structure & transitions",
+          "paragraphs": [
+            "Moga+Sanmitro xGA suppression: 0.822 (base without transition penalty: 0.814). Subhadro+Shubhajit: 0.781 (base 0.757).",
+            "Moga+Sanmitro fullbacks: Jurriën Timber (RB, exposure 0.17), Riccardo Calafiori (LB, exposure 0.16). Team transition risk 0.163 — high attacking fullbacks increase counter vulnerability when midfield cover is thin.",
+            "Subhadro+Shubhajit fullbacks: Guéla Doué (RB, exposure 0.17), Nuno Mendes (LB, exposure 0.49). Team transition risk 0.395 — high attacking fullbacks increase counter vulnerability when midfield cover is thin."
+          ],
+          "bullets": []
+        },
+        {
+          "title": "Formation & squad fit",
+          "paragraphs": [
+            "Moga+Sanmitro (4-3-3): average formation fit 0.67. Chance creation index 0.44, possession 0.65. Weak slots: Rodri (DM, fit 0.26), Ángel Di María (RW, fit 0.38).",
+            "Subhadro+Shubhajit (4-2-3-1): average formation fit 0.77. Chance creation index 0.50, possession 0.70."
+          ],
+          "bullets": []
+        },
+        {
+          "title": "Monte Carlo interpretation",
+          "paragraphs": [
+            "Across 10,100 neutral-venue runs, average scoreline tendency is 1.76–2.35. Both teams score 75.2% of the time; over 2.5 goals 78.2%.",
+            "Most common scoreline: 1-2 (8.5%)."
+          ],
+          "bullets": [
+            "Trophy boost: Moga+Sanmitro ×1.022, Subhadro+Shubhajit ×1.059 (applied in simulation units)."
+          ]
+        }
+      ]
+    }
+  }
+}

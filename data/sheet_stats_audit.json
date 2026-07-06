@@ -1,0 +1,880 @@
+{
+  "generated_at": "2026-07-06T07:40:15.433327+00:00",
+  "sheet_teams": 14,
+  "total_unique_players": 191,
+  "full_stats_count": 191,
+  "missing_or_weak_count": 0,
+  "alias_failures_count": 0,
+  "nickname_failures_count": 0,
+  "ambiguous_count": 0,
+  "teams": [
+    {
+      "team": "Anindo",
+      "player_count": 14,
+      "full_count": 14,
+      "missing_count": 0,
+      "missing_players": []
+    },
+    {
+      "team": "Chintu",
+      "player_count": 14,
+      "full_count": 14,
+      "missing_count": 0,
+      "missing_players": []
+    },
+    {
+      "team": "DDR",
+      "player_count": 13,
+      "full_count": 13,
+      "missing_count": 0,
+      "missing_players": []
+    },
+    {
+      "team": "Dilshad",
+      "player_count": 14,
+      "full_count": 14,
+      "missing_count": 0,
+      "missing_players": []
+    },
+    {
+      "team": "Kinjal+Sayan C",
+      "player_count": 13,
+      "full_count": 13,
+      "missing_count": 0,
+      "missing_players": []
+    },
+    {
+      "team": "KP+SS",
+      "player_count": 15,
+      "full_count": 15,
+      "missing_count": 0,
+      "missing_players": []
+    },
+    {
+      "team": "Moga+Sanmitro",
+      "player_count": 15,
+      "full_count": 15,
+      "missing_count": 0,
+      "missing_players": []
+    },
+    {
+      "team": "Raktim",
+      "player_count": 13,
+      "full_count": 13,
+      "missing_count": 0,
+      "missing_players": []
+    },
+    {
+      "team": "Rishav",
+      "player_count": 14,
+      "full_count": 14,
+      "missing_count": 0,
+      "missing_players": []
+    },
+    {
+      "team": "Rohan + AnaC",
+      "player_count": 14,
+      "full_count": 14,
+      "missing_count": 0,
+      "missing_players": []
+    },
+    {
+      "team": "Ryan",
+      "player_count": 13,
+      "full_count": 13,
+      "missing_count": 0,
+      "missing_players": []
+    },
+    {
+      "team": "Sohom+Mayukh",
+      "player_count": 11,
+      "full_count": 11,
+      "missing_count": 0,
+      "missing_players": []
+    },
+    {
+      "team": "Subhadro+Shubhajit",
+      "player_count": 14,
+      "full_count": 14,
+      "missing_count": 0,
+      "missing_players": []
+    },
+    {
+      "team": "Sugata",
+      "player_count": 14,
+      "full_count": 14,
+      "missing_count": 0,
+      "missing_players": []
+    }
+  ],
+  "missing_or_weak": [],
+  "alias_failures": [],
+  "nickname_failures": [],
+  "ambiguous": [],
+  "full_players": [
+    {
+      "raw": "Rice",
+      "cached_as": "Declan Rice"
+    },
+    {
+      "raw": "Cubarsi",
+      "cached_as": "Pau Cubars\u00ed"
+    },
+    {
+      "raw": "Cucurella",
+      "cached_as": "Marc Cucurella"
+    },
+    {
+      "raw": "Upamecano",
+      "cached_as": "Dayot Upamecano"
+    },
+    {
+      "raw": "Enzo F",
+      "cached_as": "Enzo Fern\u00e1ndez"
+    },
+    {
+      "raw": "Joao Palhinha",
+      "cached_as": "Jo\u00e3o Palhinha"
+    },
+    {
+      "raw": "Gonzalo Higuain",
+      "cached_as": "Gonzalo Higua\u00edn"
+    },
+    {
+      "raw": "Maignan",
+      "cached_as": "Mike Maignan"
+    },
+    {
+      "raw": "Luis Diaz",
+      "cached_as": "Luis D\u00edaz"
+    },
+    {
+      "raw": "Stanisic",
+      "cached_as": "Josip Stani\u0161i\u0107"
+    },
+    {
+      "raw": "Cole Palmer",
+      "cached_as": "Cole Palmer"
+    },
+    {
+      "raw": "Tapsoba",
+      "cached_as": "Edmond Tapsoba"
+    },
+    {
+      "raw": "Manuel Locatelli",
+      "cached_as": "Manuel Locatelli"
+    },
+    {
+      "raw": "Matheus Cunha",
+      "cached_as": "Matheus Cunha"
+    },
+    {
+      "raw": "Haaland",
+      "cached_as": "Erling Haaland"
+    },
+    {
+      "raw": "Bruno",
+      "cached_as": "Bruno Fernandes"
+    },
+    {
+      "raw": "Sergio Ramos",
+      "cached_as": "Sergio Ramos"
+    },
+    {
+      "raw": "Bounou",
+      "cached_as": "Yassine Bounou"
+    },
+    {
+      "raw": "Fernandinho",
+      "cached_as": "Fernandinho"
+    },
+    {
+      "raw": "Doku",
+      "cached_as": "J\u00e9r\u00e9my Doku"
+    },
+    {
+      "raw": "Barella",
+      "cached_as": "Nicol\u00f2 Barella"
+    },
+    {
+      "raw": "Mason Greenwood",
+      "cached_as": "Mason Greenwood"
+    },
+    {
+      "raw": "Djed Spence",
+      "cached_as": "Djed Spence"
+    },
+    {
+      "raw": "Leandro Trossard",
+      "cached_as": "Leandro Trossard"
+    },
+    {
+      "raw": "Malick Thiaw",
+      "cached_as": "Malick Thiaw"
+    },
+    {
+      "raw": "Jordan Pickford",
+      "cached_as": "Jordan Pickford"
+    },
+    {
+      "raw": "Adam Wharton",
+      "cached_as": "Adam Wharton"
+    },
+    {
+      "raw": "Maxence Lacroix",
+      "cached_as": "Maxence Lacroix"
+    },
+    {
+      "raw": "Yamal",
+      "cached_as": "Lamine Yamal"
+    },
+    {
+      "raw": "CR7",
+      "cached_as": "Cristiano Ronaldo"
+    },
+    {
+      "raw": "Carvajal",
+      "cached_as": "Carvajal"
+    },
+    {
+      "raw": "Arturo Vidal",
+      "cached_as": "Arturo Vidal"
+    },
+    {
+      "raw": "Gravenberch",
+      "cached_as": "Ryan Gravenberch"
+    },
+    {
+      "raw": "Van Hecke",
+      "cached_as": "Jan Paul van Hecke"
+    },
+    {
+      "raw": "Marc Guehi",
+      "cached_as": "Marc Gu\u00e9hi"
+    },
+    {
+      "raw": "Laimer",
+      "cached_as": "Konrad Laimer"
+    },
+    {
+      "raw": "Arda Guler",
+      "cached_as": "Arda G\u00fcler"
+    },
+    {
+      "raw": "Abdessamad Ezzalzouli",
+      "cached_as": "Abdessamad Ezzalzouli"
+    },
+    {
+      "raw": "Yan Diomande",
+      "cached_as": "Yan Diomande"
+    },
+    {
+      "raw": "Matvei Safonov",
+      "cached_as": "Matvey Safonov"
+    },
+    {
+      "raw": "Gregor Kobel",
+      "cached_as": "Gregor Kobel"
+    },
+    {
+      "raw": "Mbappe",
+      "cached_as": "Kylian Mbapp\u00e9"
+    },
+    {
+      "raw": "Neuer",
+      "cached_as": "Manuel Neuer"
+    },
+    {
+      "raw": "Fede Valverde",
+      "cached_as": "Federico Valverde"
+    },
+    {
+      "raw": "Dani Olmo",
+      "cached_as": "Dani Olmo"
+    },
+    {
+      "raw": "Nico Paz",
+      "cached_as": "Nico Paz"
+    },
+    {
+      "raw": "Marcelo",
+      "cached_as": "Marcelo"
+    },
+    {
+      "raw": "Nunes",
+      "cached_as": "Matheus Nunes"
+    },
+    {
+      "raw": "Eliott Anderson",
+      "cached_as": "Elliot Anderson"
+    },
+    {
+      "raw": "Pulisic",
+      "cached_as": "Christian Puli\u0161i\u0107"
+    },
+    {
+      "raw": "Morgan Rogers",
+      "cached_as": "Morgan Rogers"
+    },
+    {
+      "raw": "Kim Min Jae",
+      "cached_as": "Kim Min-jae"
+    },
+    {
+      "raw": "Hugo Ekitike",
+      "cached_as": "Hugo Ekitik\u00e9"
+    },
+    {
+      "raw": "Hakan Calhanoglu",
+      "cached_as": "Hakan \u00c7alhano\u011flu"
+    },
+    {
+      "raw": "Rrahmani",
+      "cached_as": "Amir Rrahmani"
+    },
+    {
+      "raw": "Olise",
+      "cached_as": "Michael Olise"
+    },
+    {
+      "raw": "Kane",
+      "cached_as": "Harry Kane"
+    },
+    {
+      "raw": "Kounde",
+      "cached_as": "Jules Kound\u00e9"
+    },
+    {
+      "raw": "Willian Pacho",
+      "cached_as": "Willian Pacho"
+    },
+    {
+      "raw": "Casemiro",
+      "cached_as": "Casemiro"
+    },
+    {
+      "raw": "Pape Matar Sarr",
+      "cached_as": "Pape Matar Sarr"
+    },
+    {
+      "raw": "Joao Neves",
+      "cached_as": "Jo\u00e3o Neves"
+    },
+    {
+      "raw": "Diego Godin",
+      "cached_as": "Diego God\u00edn"
+    },
+    {
+      "raw": "Bruno G",
+      "cached_as": "Bruno Guimar\u00e3es"
+    },
+    {
+      "raw": "Nico O'Reilly",
+      "cached_as": "Nico O'Reilly"
+    },
+    {
+      "raw": "Rafael Leao",
+      "cached_as": "Rafael Le\u00e3o"
+    },
+    {
+      "raw": "Marco Carnesecchi",
+      "cached_as": "Marco Carnesecchi"
+    },
+    {
+      "raw": "Jeremy Jacquet",
+      "cached_as": "J\u00e9r\u00e9my Jacquet"
+    },
+    {
+      "raw": "Dembele",
+      "cached_as": "Ousmane Demb\u00e9l\u00e9"
+    },
+    {
+      "raw": "Modric",
+      "cached_as": "Luka Modri\u0107"
+    },
+    {
+      "raw": "Raya",
+      "cached_as": "David Raya"
+    },
+    {
+      "raw": "Lautaro Martinez",
+      "cached_as": "Lautaro Mart\u00ednez"
+    },
+    {
+      "raw": "Marcus Thuram",
+      "cached_as": "Marcus Thuram"
+    },
+    {
+      "raw": "Giovanni Lo Celso",
+      "cached_as": "Giovani Lo Celso"
+    },
+    {
+      "raw": "Laporte",
+      "cached_as": "Aymeric Laporte"
+    },
+    {
+      "raw": "Musiala",
+      "cached_as": "Jamal Musiala"
+    },
+    {
+      "raw": "Caicedo",
+      "cached_as": "Mois\u00e9s Caicedo"
+    },
+    {
+      "raw": "Eric Garcia",
+      "cached_as": "Eric Garc\u00eda"
+    },
+    {
+      "raw": "Karim Adeyemi",
+      "cached_as": "Karim Adeyemi"
+    },
+    {
+      "raw": "Alphonso Davies",
+      "cached_as": "Alphonso Davies"
+    },
+    {
+      "raw": "Sandro Tonali",
+      "cached_as": "Sandro Tonali"
+    },
+    {
+      "raw": "Reece James",
+      "cached_as": "Reece James"
+    },
+    {
+      "raw": "Dean Huijsen",
+      "cached_as": "Dean Huijsen"
+    },
+    {
+      "raw": "Ruiz",
+      "cached_as": "Fabi\u00e1n Ruiz"
+    },
+    {
+      "raw": "Khvicha",
+      "cached_as": "Khvicha Kvaratskhelia"
+    },
+    {
+      "raw": "Rodri",
+      "cached_as": "Rodri"
+    },
+    {
+      "raw": "Julian Alvarez",
+      "cached_as": "Juli\u00e1n Alvarez"
+    },
+    {
+      "raw": "Emiliano Martinez",
+      "cached_as": "Emiliano Mart\u00ednez"
+    },
+    {
+      "raw": "Ruben Dias",
+      "cached_as": "R\u00faben Dias"
+    },
+    {
+      "raw": "Gvardiol",
+      "cached_as": "Jo\u0161ko Gvardiol"
+    },
+    {
+      "raw": "Angel Di Maria",
+      "cached_as": "\u00c1ngel Di Mar\u00eda"
+    },
+    {
+      "raw": "Bellingham",
+      "cached_as": "Jude Bellingham"
+    },
+    {
+      "raw": "Timber",
+      "cached_as": "Jurri\u00ebn Timber"
+    },
+    {
+      "raw": "Calafiori",
+      "cached_as": "Riccardo Calafiori"
+    },
+    {
+      "raw": "Cherki",
+      "cached_as": "Rayan Cherki"
+    },
+    {
+      "raw": "Anthony Gordon",
+      "cached_as": "Anthony Gordon"
+    },
+    {
+      "raw": "John Stones",
+      "cached_as": "John Stones"
+    },
+    {
+      "raw": "Benjamin Sesko",
+      "cached_as": "Benjamin \u0160e\u0161ko"
+    },
+    {
+      "raw": "Trent",
+      "cached_as": "Trent Alexander-Arnold"
+    },
+    {
+      "raw": "Alisson",
+      "cached_as": "Alisson"
+    },
+    {
+      "raw": "Hakimi",
+      "cached_as": "Achraf Hakimi"
+    },
+    {
+      "raw": "El Kaabi",
+      "cached_as": "Ayoub El Kaabi"
+    },
+    {
+      "raw": "Mikel Merino",
+      "cached_as": "Mikel Merino"
+    },
+    {
+      "raw": "Gyokeres",
+      "cached_as": "Viktor Gy\u00f6keres"
+    },
+    {
+      "raw": "Alexis Sanchez",
+      "cached_as": "Alexis S\u00e1nchez"
+    },
+    {
+      "raw": "Tielemans",
+      "cached_as": "Youri Tielemans"
+    },
+    {
+      "raw": "Eze",
+      "cached_as": "Eberechi Eze"
+    },
+    {
+      "raw": "Jonathan Tah",
+      "cached_as": "Jonathan Tah"
+    },
+    {
+      "raw": "Eder Militao",
+      "cached_as": "\u00c9der Milit\u00e3o"
+    },
+    {
+      "raw": "Antonee Robinson",
+      "cached_as": "Antonee Robinson"
+    },
+    {
+      "raw": "Nick Pope",
+      "cached_as": "Nick Pope"
+    },
+    {
+      "raw": "KDB",
+      "cached_as": "Kevin De Bruyne"
+    },
+    {
+      "raw": "Marquinhos",
+      "cached_as": "Marquinhos"
+    },
+    {
+      "raw": "Saliba",
+      "cached_as": "William Saliba"
+    },
+    {
+      "raw": "Luis Suarez",
+      "cached_as": "Luis Su\u00e1rez"
+    },
+    {
+      "raw": "Dumfries",
+      "cached_as": "Denzel Dumfries"
+    },
+    {
+      "raw": "Kenan Yildiz",
+      "cached_as": "Kenan Y\u0131ld\u0131z"
+    },
+    {
+      "raw": "Tijjiani Reijnders",
+      "cached_as": "Tijjani Reijnders"
+    },
+    {
+      "raw": "Pavlovic",
+      "cached_as": "Aleksandar Pavlovi\u0107"
+    },
+    {
+      "raw": "Semenyo",
+      "cached_as": "Antoine Semenyo"
+    },
+    {
+      "raw": "Courtois",
+      "cached_as": "Thibaut Courtois"
+    },
+    {
+      "raw": "Calvert-Lewin",
+      "cached_as": "Dominic Calvert-Lewin"
+    },
+    {
+      "raw": "Kingsley Coman",
+      "cached_as": "Kingsley Coman"
+    },
+    {
+      "raw": "Alejandro Balde",
+      "cached_as": "Alejandro Balde"
+    },
+    {
+      "raw": "Marcus Rashford",
+      "cached_as": "Marcus Rashford"
+    },
+    {
+      "raw": "Vinicius",
+      "cached_as": "Vin\u00edcius J\u00fanior"
+    },
+    {
+      "raw": "Bastoni",
+      "cached_as": "Alessandro Bastoni"
+    },
+    {
+      "raw": "Gabriel Magalhaes",
+      "cached_as": "Gabriel Magalh\u00e3es"
+    },
+    {
+      "raw": "Roberto Firmino",
+      "cached_as": "Roberto Firmino"
+    },
+    {
+      "raw": "Tchouameni",
+      "cached_as": "Aur\u00e9lien Tchouam\u00e9ni"
+    },
+    {
+      "raw": "Salah",
+      "cached_as": "Mohamed Salah"
+    },
+    {
+      "raw": "Nathaniel Brown",
+      "cached_as": "Nathaniel Brown"
+    },
+    {
+      "raw": "Daniel Munoz",
+      "cached_as": "Daniel Mu\u00f1oz"
+    },
+    {
+      "raw": "Morgan Gibbs-White",
+      "cached_as": "Morgan Gibbs-White"
+    },
+    {
+      "raw": "Mateusz Fernandes",
+      "cached_as": "Mateus Fernandes"
+    },
+    {
+      "raw": "Matz Sels",
+      "cached_as": "Matz Sels"
+    },
+    {
+      "raw": "Micky Van de Ven",
+      "cached_as": "Micky van de Ven"
+    },
+    {
+      "raw": "Alexis Mac Allister",
+      "cached_as": "Alexis Mac Allister"
+    },
+    {
+      "raw": "Joao Pedro",
+      "cached_as": "Jo\u00e3o Pedro"
+    },
+    {
+      "raw": "Messi",
+      "cached_as": "Lionel Messi"
+    },
+    {
+      "raw": "Bernardo",
+      "cached_as": "Bernardo"
+    },
+    {
+      "raw": "VVD",
+      "cached_as": "Virgil van Dijk"
+    },
+    {
+      "raw": "Neymar",
+      "cached_as": "Neymar"
+    },
+    {
+      "raw": "Marcos Llorente",
+      "cached_as": "Marcos Llorente"
+    },
+    {
+      "raw": "Szoboszalai",
+      "cached_as": "Dominik Szoboszlai"
+    },
+    {
+      "raw": "Christian Romero",
+      "cached_as": "Cristian Romero"
+    },
+    {
+      "raw": "Lewandowski",
+      "cached_as": "Robert Lewandowski"
+    },
+    {
+      "raw": "Warren Zaire Emery",
+      "cached_as": "Warren Za\u00efre-Emery"
+    },
+    {
+      "raw": "Unai Simon",
+      "cached_as": "Unai Sim\u00f3n"
+    },
+    {
+      "raw": "Alex Grimaldo",
+      "cached_as": "Alejandro Grimaldo"
+    },
+    {
+      "raw": "Granit Xhaka",
+      "cached_as": "Granit Xhaka"
+    },
+    {
+      "raw": "Martin Zubimendi",
+      "cached_as": "Mart\u00edn Zubimendi"
+    },
+    {
+      "raw": "Rudiger",
+      "cached_as": "Antonio R\u00fcdiger"
+    },
+    {
+      "raw": "Pedri",
+      "cached_as": "Pedri"
+    },
+    {
+      "raw": "Raphinha",
+      "cached_as": "Raphinha"
+    },
+    {
+      "raw": "Dani Alves",
+      "cached_as": "Dani Alves"
+    },
+    {
+      "raw": "Kimmich",
+      "cached_as": "Joshua Kimmich"
+    },
+    {
+      "raw": "Federico DiMarco",
+      "cached_as": "Federico Dimarco"
+    },
+    {
+      "raw": "Mbuemo",
+      "cached_as": "Bryan Mbeumo"
+    },
+    {
+      "raw": "Endrick",
+      "cached_as": "Endrick"
+    },
+    {
+      "raw": "Jamie Vardy",
+      "cached_as": "Jamie Vardy"
+    },
+    {
+      "raw": "Yan Sommer",
+      "cached_as": "Yann Sommer"
+    },
+    {
+      "raw": "Sean Lammens",
+      "cached_as": "Senne Lammens"
+    },
+    {
+      "raw": "Vitinha",
+      "cached_as": "Vitinha (Paris Saint-Germain)"
+    },
+    {
+      "raw": "Nuno",
+      "cached_as": "Nuno Mendes"
+    },
+    {
+      "raw": "Kante",
+      "cached_as": "N'Golo Kant\u00e9"
+    },
+    {
+      "raw": "Guirassy",
+      "cached_as": "Serhou Guirassy"
+    },
+    {
+      "raw": "Desire Doue",
+      "cached_as": "D\u00e9sir\u00e9 Dou\u00e9"
+    },
+    {
+      "raw": "Nico Williams",
+      "cached_as": "Nico Williams"
+    },
+    {
+      "raw": "Edinson Cavani",
+      "cached_as": "Edinson Cavani"
+    },
+    {
+      "raw": "Schlotterbeck",
+      "cached_as": "Nico Schlotterbeck"
+    },
+    {
+      "raw": "Konate",
+      "cached_as": "Ibrahima Konat\u00e9"
+    },
+    {
+      "raw": "Joan Garcia",
+      "cached_as": "Joan Garc\u00eda"
+    },
+    {
+      "raw": "Guela Doue",
+      "cached_as": "Gu\u00e9la Dou\u00e9"
+    },
+    {
+      "raw": "Frenkie de Jong",
+      "cached_as": "Frenkie de Jong"
+    },
+    {
+      "raw": "Ademola Lookman",
+      "cached_as": "Ademola Lookman"
+    },
+    {
+      "raw": "Fermin Lopez",
+      "cached_as": "Ferm\u00edn L\u00f3pez"
+    },
+    {
+      "raw": "Porro",
+      "cached_as": "Pedro Porro"
+    },
+    {
+      "raw": "De Ligt",
+      "cached_as": "Matthijs de Ligt"
+    },
+    {
+      "raw": "Alaba",
+      "cached_as": "Alaba"
+    },
+    {
+      "raw": "Brahim Diaz",
+      "cached_as": "Brahim Diaz"
+    },
+    {
+      "raw": "Diogo Dalot",
+      "cached_as": "Diogo Dalot"
+    },
+    {
+      "raw": "Bradley Barcola",
+      "cached_as": "Bradley Barcola"
+    },
+    {
+      "raw": "Radamel Falcao",
+      "cached_as": "Radamel Falcao"
+    },
+    {
+      "raw": "Saka",
+      "cached_as": "Bukayo Saka"
+    },
+    {
+      "raw": "Mctominay",
+      "cached_as": "Scott McTominay"
+    },
+    {
+      "raw": "Florian Wirtz",
+      "cached_as": "Florian Wirtz"
+    },
+    {
+      "raw": "Gundogan",
+      "cached_as": "\u0130lkay G\u00fcndo\u011fan"
+    },
+    {
+      "raw": "Donnarumma",
+      "cached_as": "Gianluigi Donnarumma"
+    },
+    {
+      "raw": "Riyad Mahrez",
+      "cached_as": "Riyad Mahrez"
+    },
+    {
+      "raw": "Kobbie Mainoo",
+      "cached_as": "Kobbie Mainoo"
+    }
+  ]
+}

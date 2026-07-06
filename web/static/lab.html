@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Team Lab — Match Simulator</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Team Lab</h1>
+      <div class="sub">Pick two distinct teams, formations, and lineups</div>
+    </div>
+    <div class="header-actions">
+      <a href="/" class="btn-link">My experiments</a>
+    </div>
+  </header>
+
+  <main style="max-width: 1100px; margin: 0 auto; padding: 1rem;">
+    <form id="labForm" class="card">
+      <p class="muted">New players are fetched from Sofascore automatically. Each team can designate one <strong>prime</strong> player (best season) and one <strong>pick-season</strong> player (chosen year) — their stats fully replace current form.</p>
+
+      <div class="card sheet-load" style="margin-bottom:1rem;background:var(--panel2)">
+        <h2 style="margin-top:0">Team sources</h2>
+        <p class="muted" style="margin:0 0 0.75rem">Load rosters from the shared Google Sheet or generate random squads from the player catalog. Edit lineups after loading.</p>
+
+        <div class="grid grid-2">
+          <div class="source-side" data-side="a">
+            <h3 style="font-size:0.95rem;margin:0 0 0.5rem">Team A</h3>
+            <div class="tab-bar source-tabs">
+              <button type="button" class="tab-btn active" data-source="sheet">From sheet</button>
+              <button type="button" class="tab-btn" data-source="random">Random squad</button>
+            </div>
+            <div class="source-panel sheet-panel">
+              <div class="form-row">
+                <label for="sheetTeamA">Sheet team</label>
+                <select id="sheetTeamA"><option value="">— select team —</option></select>
+              </div>
+            </div>
+            <div class="source-panel random-panel" hidden>
+              <p class="muted" style="margin:0 0 0.5rem">11 players (1 GK + mix of DEF/MID/FWD), slotted to the current formation.</p>
+              <button type="button" class="btn-primary" id="genRandomA">Generate random team</button>
+            </div>
+          </div>
+
+          <div class="source-side" data-side="b">
+            <h3 style="font-size:0.95rem;margin:0 0 0.5rem">Team B</h3>
+            <div class="tab-bar source-tabs">
+              <button type="button" class="tab-btn active" data-source="sheet">From sheet</button>
+              <button type="button" class="tab-btn" data-source="random">Random squad</button>
+            </div>
+            <div class="source-panel sheet-panel">
+              <div class="form-row">
+                <label for="sheetTeamB">Sheet team</label>
+                <select id="sheetTeamB"><option value="">— select team —</option></select>
+              </div>
+            </div>
+            <div class="source-panel random-panel" hidden>
+              <p class="muted" style="margin:0 0 0.5rem">11 players (1 GK + mix of DEF/MID/FWD), slotted to the current formation.</p>
+              <button type="button" class="btn-primary" id="genRandomB">Generate random team</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row inline" style="margin-top:0.5rem">
+          <button type="button" class="btn-ghost" id="refreshSheetTeams">Refresh sheet teams</button>
+          <button type="button" class="btn-primary" id="loadSheetTeams">Load selected sheet teams</button>
+        </div>
+        <p id="sheetStatus" class="muted" style="margin:0.5rem 0 0"></p>
+      </div>
+
+      <div class="form-row inline">
+        <label for="sims">Simulations</label>
+        <input id="sims" type="number" value="10000" min="100" max="100000" step="1000" style="max-width:140px" />
+      </div>
+
+      <div class="grid grid-2 lab-teams">
+        <div id="teamAPanel" class="team-panel"></div>
+        <div id="teamBPanel" class="team-panel"></div>
+      </div>
+
+      <p id="formError" class="error-msg" hidden></p>
+      <button type="submit" class="btn-primary" id="submitBtn">Run simulation</button>
+    </form>
+  </main>
+
+  <datalist id="playerList"></datalist>
+
+  <script src="/static/common.js"></script>
+  <script src="/static/lab.js"></script>
+</body>
+</html>

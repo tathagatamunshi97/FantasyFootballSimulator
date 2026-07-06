@@ -1,0 +1,38 @@
+{
+  "home": {
+    "name": "Team A",
+    "formation": "4-3-3",
+    "lineup": [
+      {"player": "David Raya", "slot": "GK", "captain": false, "vice_captain": false},
+      {"player": "Jules Koundé", "slot": "RB", "captain": false, "vice_captain": false},
+      {"player": "William Saliba", "slot": "CB1", "captain": false, "vice_captain": false},
+      {"player": "Pau Cubarsí", "slot": "CB2", "captain": false, "vice_captain": false},
+      {"player": "Piero Hincapié", "slot": "LB", "captain": false, "vice_captain": false},
+      {"player": "Vitinha (Paris Saint-Germain)", "slot": "DM", "captain": false, "vice_captain": false},
+      {"player": "Pedri", "slot": "CM", "captain": false, "vice_captain": false},
+      {"player": "Bruno Guimarães", "slot": "AM", "captain": false, "vice_captain": false},
+      {"player": "Lamine Yamal", "slot": "RW", "captain": false, "vice_captain": true},
+      {"player": "Kai Havertz", "slot": "ST", "captain": false, "vice_captain": false},
+      {"player": "Kylian Mbappé", "slot": "LW", "captain": true, "vice_captain": false}
+    ],
+    "bench": []
+  },
+  "away": {
+    "name": "Team B",
+    "formation": "4-2-3-1",
+    "lineup": [
+      {"player": "Joan García", "slot": "GK", "captain": false, "vice_captain": false},
+      {"player": "Achraf Hakimi", "slot": "RB", "captain": false, "vice_captain": false},
+      {"player": "Gabriel Magalhães", "slot": "CB1", "captain": false, "vice_captain": false},
+      {"player": "Dayot Upamecano", "slot": "CB2", "captain": false, "vice_captain": false},
+      {"player": "Nuno Mendes", "slot": "LB", "captain": false, "vice_captain": false},
+      {"player": "Declan Rice", "slot": "DM1", "captain": false, "vice_captain": false},
+      {"player": "João Neves", "slot": "DM2", "captain": false, "vice_captain": false},
+      {"player": "Bruno Fernandes", "slot": "AM", "captain": true, "vice_captain": false},
+      {"player": "Khvicha Kvaratskhelia", "slot": "LW", "captain": false, "vice_captain": false},
+      {"player": "Erling Haaland", "slot": "ST", "captain": false, "vice_captain": true},
+      {"player": "Ousmane Dembélé", "slot": "RW", "captain": false, "vice_captain": false}
+    ],
+    "bench": []
+  }
+}

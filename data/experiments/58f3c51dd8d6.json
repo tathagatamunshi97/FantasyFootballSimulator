@@ -1,0 +1,166 @@
+{
+  "id": "58f3c51dd8d6",
+  "user": "Tathagata",
+  "created_at": "2026-07-02T06:38:43.464718+00:00",
+  "updated_at": "2026-07-02T06:38:43.652660+00:00",
+  "status": "error",
+  "message": "HTTP 403 for URL: https://api.sofascore.com/api/v1/search/Kante",
+  "running": false,
+  "simulations": 10100,
+  "seed": null,
+  "team_a": {
+    "name": "Team A",
+    "formation": "4-3-3",
+    "lineup": [
+      {
+        "slot": "GK",
+        "player": "David Raya",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RB",
+        "player": "Jules Koundé",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB1",
+        "player": "William Saliba",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB2",
+        "player": "Pau Cubarsí",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LB",
+        "player": "Piero Hincapié",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "DM",
+        "player": "Vitinha (Paris Saint-Germain)",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CM",
+        "player": "Kante",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "AM",
+        "player": "Bruno Guimarães",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RW",
+        "player": "Lamine Yamal",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "ST",
+        "player": "Cristiano Ronaldo",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LW",
+        "player": "Kylian Mbappé",
+        "captain": false,
+        "vice_captain": false
+      }
+    ],
+    "prime_player": "Cristiano Ronaldo",
+    "peak_season": {
+      "player": "Kante",
+      "season": "20/21"
+    }
+  },
+  "team_b": {
+    "name": "Team B",
+    "formation": "4-2-3-1",
+    "lineup": [
+      {
+        "slot": "GK",
+        "player": "Joan García",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RB",
+        "player": "Achraf Hakimi",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB1",
+        "player": "Aymeric Laporte",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB2",
+        "player": "Dayot Upamecano",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LB",
+        "player": "Nuno Mendes",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "DM1",
+        "player": "Declan Rice",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "DM2",
+        "player": "João Neves",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RW",
+        "player": "Ousmane Dembélé",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "AM",
+        "player": "Mesut Ozil",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LW",
+        "player": "Khvicha Kvaratskhelia",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "ST",
+        "player": "Erling Haaland",
+        "captain": false,
+        "vice_captain": false
+      }
+    ],
+    "prime_player": "Mesut Ozil",
+    "peak_season": {
+      "player": "Aymeric Laporte",
+      "season": "18/19"
+    }
+  },
+  "report": null
+}

@@ -1,0 +1,1190 @@
+{
+  "id": "aafc4c70116e",
+  "user": "Subhadro",
+  "created_at": "2026-06-29T15:27:27.855556+00:00",
+  "updated_at": "2026-06-29T15:27:28.344216+00:00",
+  "status": "ready",
+  "message": "Completed 100 simulations.",
+  "running": false,
+  "simulations": 100,
+  "seed": null,
+  "team_a": {
+    "name": "Team A",
+    "formation": "3-4-3",
+    "lineup": [
+      {
+        "slot": "GK",
+        "player": "Aaron Ramsdale",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB1",
+        "player": "Wesley Fofana",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB2",
+        "player": "Trevoh Chalobah",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB3",
+        "player": "Levi Colwill",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RM",
+        "player": "Reece James",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CM1",
+        "player": "Moisés Caicedo",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CM2",
+        "player": "Enzo Fernández",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LM",
+        "player": "Ben Chilwell",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RW",
+        "player": "Cole Palmer",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "ST",
+        "player": "João Pedro",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LW",
+        "player": "Pedro Neto",
+        "captain": false,
+        "vice_captain": false
+      }
+    ]
+  },
+  "team_b": {
+    "name": "Team B",
+    "formation": "4-2-3-1",
+    "lineup": [
+      {
+        "slot": "GK",
+        "player": "Joan García",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RB",
+        "player": "Achraf Hakimi",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB1",
+        "player": "Gabriel Magalhães",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB2",
+        "player": "Dayot Upamecano",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LB",
+        "player": "Nuno Mendes",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "DM1",
+        "player": "Declan Rice",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "DM2",
+        "player": "João Neves",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RW",
+        "player": "Ousmane Dembélé",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "AM",
+        "player": "Bruno Fernandes",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LW",
+        "player": "Khvicha Kvaratskhelia",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "ST",
+        "player": "Erling Haaland",
+        "captain": false,
+        "vice_captain": false
+      }
+    ]
+  },
+  "report": {
+    "generated_at": "2026-06-29T15:27:28.333210+00:00",
+    "engine_version": "slot-aware-v2",
+    "matchup": {
+      "home": {
+        "name": "Team A",
+        "formation": "3-4-3",
+        "lineup": [
+          {
+            "player": "Aaron Ramsdale",
+            "slot": "GK",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Wesley Fofana",
+            "slot": "CB1",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Trevoh Chalobah",
+            "slot": "CB2",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Levi Colwill",
+            "slot": "CB3",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Reece James",
+            "slot": "RM",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Moisés Caicedo",
+            "slot": "CM1",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Enzo Fernández",
+            "slot": "CM2",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Ben Chilwell",
+            "slot": "LM",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Cole Palmer",
+            "slot": "RW",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "João Pedro",
+            "slot": "ST",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Pedro Neto",
+            "slot": "LW",
+            "captain": false,
+            "vice_captain": false
+          }
+        ]
+      },
+      "away": {
+        "name": "Team B",
+        "formation": "4-2-3-1",
+        "lineup": [
+          {
+            "player": "Joan García",
+            "slot": "GK",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Achraf Hakimi",
+            "slot": "RB",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Gabriel Magalhães",
+            "slot": "CB1",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Dayot Upamecano",
+            "slot": "CB2",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Nuno Mendes",
+            "slot": "LB",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Declan Rice",
+            "slot": "DM1",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "João Neves",
+            "slot": "DM2",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Ousmane Dembélé",
+            "slot": "RW",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Bruno Fernandes",
+            "slot": "AM",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Khvicha Kvaratskhelia",
+            "slot": "LW",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Erling Haaland",
+            "slot": "ST",
+            "captain": false,
+            "vice_captain": false
+          }
+        ]
+      }
+    },
+    "profiles": {
+      "home": {
+        "extended": {
+          "defensive_unit": 0.54,
+          "possession_control": 0.658,
+          "chance_creation": 0.388,
+          "attacking_effectiveness": 0.605,
+          "formation_fit": 0.655,
+          "pressing_intensity": 0.491,
+          "transition_threat": 0.42,
+          "aerial_defence": 0.683,
+          "units": {
+            "attack": 0.682,
+            "finishing": 0.518,
+            "chance_creation": 0.891,
+            "midfield": 0.203,
+            "defence": 0.173,
+            "midfield_defence": 0.111,
+            "transition_risk": 0.0,
+            "goalkeeper": 0.3,
+            "overall": 0.368,
+            "gk_confidence": 0.624,
+            "gk_is_backup": true
+          },
+          "xga_suppression": 0.849,
+          "xg_split": {
+            "finishing": 1.8,
+            "creation": 0.33,
+            "total_raw": 2.12
+          },
+          "fwd_xg90": 0.46,
+          "avg_pass_pct": 84.9,
+          "formation_fit_players": [
+            {
+              "player": "Aaron Ramsdale",
+              "slot": "GK",
+              "fit": 0.647,
+              "position": "GK"
+            },
+            {
+              "player": "Wesley Fofana",
+              "slot": "CB1",
+              "fit": 0.783,
+              "position": "CB"
+            },
+            {
+              "player": "Trevoh Chalobah",
+              "slot": "CB2",
+              "fit": 0.798,
+              "position": "CB"
+            },
+            {
+              "player": "Levi Colwill",
+              "slot": "CB3",
+              "fit": 0.71,
+              "position": "CB"
+            },
+            {
+              "player": "Reece James",
+              "slot": "RM",
+              "fit": 0.416,
+              "position": "CB"
+            },
+            {
+              "player": "Moisés Caicedo",
+              "slot": "CM1",
+              "fit": 0.94,
+              "position": "CM"
+            },
+            {
+              "player": "Enzo Fernández",
+              "slot": "CM2",
+              "fit": 0.815,
+              "position": "CM"
+            },
+            {
+              "player": "Ben Chilwell",
+              "slot": "LM",
+              "fit": 0.329,
+              "position": "CB"
+            },
+            {
+              "player": "Cole Palmer",
+              "slot": "RW",
+              "fit": 0.538,
+              "position": "CM"
+            },
+            {
+              "player": "João Pedro",
+              "slot": "ST",
+              "fit": 0.733,
+              "position": "ST"
+            },
+            {
+              "player": "Pedro Neto",
+              "slot": "LW",
+              "fit": 0.494,
+              "position": "CM"
+            }
+          ]
+        },
+        "fullbacks": {
+          "fullbacks": [],
+          "transition_risk": 0.0,
+          "xga_suppression_base": 0.849,
+          "xga_suppression_with_transition": 0.849
+        },
+        "trophy_multiplier": 1.0,
+        "players": [
+          {
+            "player": "Aaron Ramsdale",
+            "slot": "GK",
+            "team": "Newcastle United",
+            "xg90": 0.0,
+            "npxg90": 0.0,
+            "xa90": 0.0,
+            "xg_buildup90": 0.22,
+            "rating": 6.9,
+            "minutes": 1851,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Wesley Fofana",
+            "slot": "CB1",
+            "team": "Chelsea",
+            "xg90": 0.04,
+            "npxg90": 0.02,
+            "xa90": 0.02,
+            "xg_buildup90": 0.39,
+            "rating": 6.87,
+            "minutes": 1451,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Trevoh Chalobah",
+            "slot": "CB2",
+            "team": "Chelsea",
+            "xg90": 0.07,
+            "npxg90": 0.09,
+            "xa90": 0.03,
+            "xg_buildup90": 0.36,
+            "rating": 7.0,
+            "minutes": 2381,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Levi Colwill",
+            "slot": "CB3",
+            "team": "Chelsea",
+            "xg90": 0.05,
+            "npxg90": 0.04,
+            "xa90": 0.03,
+            "xg_buildup90": 0.47,
+            "rating": 6.97,
+            "minutes": 3149,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Reece James",
+            "slot": "RM",
+            "team": "Chelsea",
+            "xg90": 0.05,
+            "npxg90": 0.05,
+            "xa90": 0.15,
+            "xg_buildup90": 0.38,
+            "rating": 7.18,
+            "minutes": 1961,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Moisés Caicedo",
+            "slot": "CM1",
+            "team": "Chelsea",
+            "xg90": 0.03,
+            "npxg90": 0.03,
+            "xa90": 0.08,
+            "xg_buildup90": 0.48,
+            "rating": 7.2,
+            "minutes": 3079,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Enzo Fernández",
+            "slot": "CM2",
+            "team": "Chelsea",
+            "xg90": 0.26,
+            "npxg90": 0.24,
+            "xa90": 0.2,
+            "xg_buildup90": 0.4,
+            "rating": 7.23,
+            "minutes": 3033,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Ben Chilwell",
+            "slot": "LM",
+            "team": "RC Strasbourg",
+            "xg90": 0.02,
+            "npxg90": 0.02,
+            "xa90": 0.05,
+            "xg_buildup90": 0.35,
+            "rating": 6.61,
+            "minutes": 1602,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Cole Palmer",
+            "slot": "RW",
+            "team": "Chelsea",
+            "xg90": 0.49,
+            "npxg90": 0.29,
+            "xa90": 0.19,
+            "xg_buildup90": 0.37,
+            "rating": 7.33,
+            "minutes": 2580,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "João Pedro",
+            "slot": "ST",
+            "team": "Chelsea",
+            "xg90": 0.46,
+            "npxg90": 0.52,
+            "xa90": 0.1,
+            "xg_buildup90": 0.16,
+            "rating": 7.12,
+            "minutes": 2313,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Pedro Neto",
+            "slot": "LW",
+            "team": "Chelsea",
+            "xg90": 0.15,
+            "npxg90": 0.18,
+            "xa90": 0.21,
+            "xg_buildup90": 0.3,
+            "rating": 6.98,
+            "minutes": 2462,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          }
+        ]
+      },
+      "away": {
+        "extended": {
+          "defensive_unit": 0.509,
+          "possession_control": 0.727,
+          "chance_creation": 0.651,
+          "attacking_effectiveness": 0.854,
+          "formation_fit": 0.722,
+          "pressing_intensity": 0.455,
+          "transition_threat": 0.424,
+          "aerial_defence": 0.426,
+          "units": {
+            "attack": 0.941,
+            "finishing": 0.894,
+            "chance_creation": 1.0,
+            "midfield": 0.295,
+            "defence": 0.192,
+            "midfield_defence": 0.126,
+            "transition_risk": 0.421,
+            "goalkeeper": 0.758,
+            "overall": 0.514,
+            "gk_confidence": 0.949,
+            "gk_is_backup": false
+          },
+          "xga_suppression": 0.797,
+          "xg_split": {
+            "finishing": 2.47,
+            "creation": 0.37,
+            "total_raw": 2.84
+          },
+          "fwd_xg90": 0.62,
+          "avg_pass_pct": 85.3,
+          "formation_fit_players": [
+            {
+              "player": "Joan García",
+              "slot": "GK",
+              "fit": 0.715,
+              "position": "GK"
+            },
+            {
+              "player": "Achraf Hakimi",
+              "slot": "RB",
+              "fit": 0.626,
+              "position": "CB"
+            },
+            {
+              "player": "Gabriel Magalhães",
+              "slot": "CB1",
+              "fit": 0.707,
+              "position": "CB"
+            },
+            {
+              "player": "Dayot Upamecano",
+              "slot": "CB2",
+              "fit": 0.727,
+              "position": "CB"
+            },
+            {
+              "player": "Nuno Mendes",
+              "slot": "LB",
+              "fit": 0.633,
+              "position": "CB"
+            },
+            {
+              "player": "Declan Rice",
+              "slot": "DM1",
+              "fit": 0.749,
+              "position": "CM"
+            },
+            {
+              "player": "João Neves",
+              "slot": "DM2",
+              "fit": 0.805,
+              "position": "CM"
+            },
+            {
+              "player": "Ousmane Dembélé",
+              "slot": "RW",
+              "fit": 0.671,
+              "position": "ST"
+            },
+            {
+              "player": "Bruno Fernandes",
+              "slot": "AM",
+              "fit": 0.801,
+              "position": "CM"
+            },
+            {
+              "player": "Khvicha Kvaratskhelia",
+              "slot": "LW",
+              "fit": 0.609,
+              "position": "ST"
+            },
+            {
+              "player": "Erling Haaland",
+              "slot": "ST",
+              "fit": 0.895,
+              "position": "ST"
+            }
+          ]
+        },
+        "fullbacks": {
+          "fullbacks": [
+            {
+              "player": "Achraf Hakimi",
+              "slot": "RB",
+              "xa90": 0.19,
+              "key_passes90": 1.8,
+              "creation_score": 0.446,
+              "attack_exposure": 0.392,
+              "fit": 0.626
+            },
+            {
+              "player": "Nuno Mendes",
+              "slot": "LB",
+              "xa90": 0.24,
+              "key_passes90": 1.91,
+              "creation_score": 0.539,
+              "attack_exposure": 0.481,
+              "fit": 0.633
+            }
+          ],
+          "transition_risk": 0.421,
+          "xga_suppression_base": 0.772,
+          "xga_suppression_with_transition": 0.797
+        },
+        "trophy_multiplier": 1.0959,
+        "players": [
+          {
+            "player": "Joan García",
+            "slot": "GK",
+            "team": "FC Barcelona",
+            "xg90": 0.0,
+            "npxg90": 0.0,
+            "xa90": 0.0,
+            "xg_buildup90": 0.38,
+            "rating": 7.37,
+            "minutes": 3060,
+            "trophy_bonus": 0.045,
+            "trophy_notes": [
+              "2025-2026: league winner (FC Barcelona)"
+            ]
+          },
+          {
+            "player": "Achraf Hakimi",
+            "slot": "RB",
+            "team": "Paris Saint-Germain",
+            "xg90": 0.14,
+            "npxg90": 0.18,
+            "xa90": 0.19,
+            "xg_buildup90": 0.69,
+            "rating": 7.26,
+            "minutes": 1720,
+            "trophy_bonus": 0.18,
+            "trophy_notes": [
+              "2024-2025: league winner (Paris Saint-Germain)",
+              "2024-2025: UCL winner (Paris Saint-Germain)",
+              "2025-2026: league winner (Paris Saint-Germain)",
+              "2025-2026: UCL winner (Paris Saint-Germain)"
+            ]
+          },
+          {
+            "player": "Gabriel Magalhães",
+            "slot": "CB1",
+            "team": "Arsenal",
+            "xg90": 0.1,
+            "npxg90": 0.16,
+            "xa90": 0.05,
+            "xg_buildup90": 0.33,
+            "rating": 7.25,
+            "minutes": 2558,
+            "trophy_bonus": 0.07,
+            "trophy_notes": [
+              "2025-2026: league winner (Arsenal)",
+              "2025-2026: UCL finalist (Arsenal)"
+            ]
+          },
+          {
+            "player": "Dayot Upamecano",
+            "slot": "CB2",
+            "team": "FC Bayern München",
+            "xg90": 0.06,
+            "npxg90": 0.07,
+            "xa90": 0.07,
+            "xg_buildup90": 0.72,
+            "rating": 7.27,
+            "minutes": 1779,
+            "trophy_bonus": 0.0889,
+            "trophy_notes": [
+              "2024-2025: league winner (FC Bayern München)",
+              "2025-2026: league winner (FC Bayern München)"
+            ]
+          },
+          {
+            "player": "Nuno Mendes",
+            "slot": "LB",
+            "team": "Paris Saint-Germain",
+            "xg90": 0.21,
+            "npxg90": 0.16,
+            "xa90": 0.24,
+            "xg_buildup90": 0.79,
+            "rating": 7.27,
+            "minutes": 1467,
+            "trophy_bonus": 0.163,
+            "trophy_notes": [
+              "2024-2025: league winner (Paris Saint-Germain)",
+              "2024-2025: UCL winner (Paris Saint-Germain)",
+              "2025-2026: league winner (Paris Saint-Germain)",
+              "2025-2026: UCL winner (Paris Saint-Germain)"
+            ]
+          },
+          {
+            "player": "Declan Rice",
+            "slot": "DM1",
+            "team": "Arsenal",
+            "xg90": 0.1,
+            "npxg90": 0.11,
+            "xa90": 0.19,
+            "xg_buildup90": 0.35,
+            "rating": 7.41,
+            "minutes": 2966,
+            "trophy_bonus": 0.07,
+            "trophy_notes": [
+              "2025-2026: league winner (Arsenal)",
+              "2025-2026: UCL finalist (Arsenal)"
+            ]
+          },
+          {
+            "player": "João Neves",
+            "slot": "DM2",
+            "team": "Paris Saint-Germain",
+            "xg90": 0.17,
+            "npxg90": 0.2,
+            "xa90": 0.17,
+            "xg_buildup90": 0.63,
+            "rating": 7.28,
+            "minutes": 1572,
+            "trophy_bonus": 0.1747,
+            "trophy_notes": [
+              "2024-2025: league winner (Paris Saint-Germain)",
+              "2024-2025: UCL winner (Paris Saint-Germain)",
+              "2025-2026: league winner (Paris Saint-Germain)",
+              "2025-2026: UCL winner (Paris Saint-Germain)"
+            ]
+          },
+          {
+            "player": "Ousmane Dembélé",
+            "slot": "RW",
+            "team": "Paris Saint-Germain",
+            "xg90": 0.71,
+            "npxg90": 0.64,
+            "xa90": 0.38,
+            "xg_buildup90": 0.44,
+            "rating": 7.58,
+            "minutes": 1399,
+            "trophy_bonus": 0.1554,
+            "trophy_notes": [
+              "2024-2025: league winner (Paris Saint-Germain)",
+              "2024-2025: UCL winner (Paris Saint-Germain)",
+              "2025-2026: league winner (Paris Saint-Germain)",
+              "2025-2026: UCL winner (Paris Saint-Germain)"
+            ]
+          },
+          {
+            "player": "Bruno Fernandes",
+            "slot": "AM",
+            "team": "Manchester United",
+            "xg90": 0.31,
+            "npxg90": 0.22,
+            "xa90": 0.3,
+            "xg_buildup90": 0.37,
+            "rating": 7.62,
+            "minutes": 3045,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Khvicha Kvaratskhelia",
+            "slot": "LW",
+            "team": "Paris Saint-Germain",
+            "xg90": 0.4,
+            "npxg90": 0.41,
+            "xa90": 0.26,
+            "xg_buildup90": 0.61,
+            "rating": 7.22,
+            "minutes": 1335,
+            "trophy_bonus": 0.1075,
+            "trophy_notes": [
+              "2024-2025: league winner (SSC Napoli)",
+              "2025-2026: league winner (Paris Saint-Germain)",
+              "2025-2026: UCL winner (Paris Saint-Germain)"
+            ]
+          },
+          {
+            "player": "Erling Haaland",
+            "slot": "ST",
+            "team": "Manchester City",
+            "xg90": 0.75,
+            "npxg90": 0.73,
+            "xa90": 0.08,
+            "xg_buildup90": 0.14,
+            "rating": 7.29,
+            "minutes": 2849,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          }
+        ]
+      }
+    },
+    "mechanics": {
+      "home_attacks_vs_away_defence": 0.797,
+      "away_attacks_vs_home_defence": 0.849,
+      "midfield_battle": {
+        "home_multiplier": 0.991,
+        "away_multiplier": 1.009
+      }
+    },
+    "monte_carlo": {
+      "simulations": 100,
+      "expected_xg": {
+        "home": 1.58,
+        "away": 2.5
+      },
+      "home_win_pct": 26.0,
+      "draw_pct": 25.0,
+      "away_win_pct": 49.0,
+      "home_goals_avg": 1.67,
+      "away_goals_avg": 2.2,
+      "total_goals_avg": 3.87,
+      "btts_pct": 79.0,
+      "over_2_5_pct": 75.0,
+      "scorelines": [
+        {
+          "score": "1-2",
+          "pct": 11.0
+        },
+        {
+          "score": "1-1",
+          "pct": 10.0
+        },
+        {
+          "score": "2-2",
+          "pct": 8.0
+        },
+        {
+          "score": "2-1",
+          "pct": 7.0
+        },
+        {
+          "score": "0-2",
+          "pct": 6.0
+        },
+        {
+          "score": "3-2",
+          "pct": 5.0
+        },
+        {
+          "score": "2-3",
+          "pct": 5.0
+        },
+        {
+          "score": "1-4",
+          "pct": 5.0
+        }
+      ],
+      "unit_ratings": {
+        "home": {
+          "attack": 0.682,
+          "finishing": 0.518,
+          "chance_creation": 0.891,
+          "midfield": 0.203,
+          "defence": 0.173,
+          "midfield_defence": 0.111,
+          "transition_risk": 0.0,
+          "goalkeeper": 0.3,
+          "overall": 0.368,
+          "gk_confidence": 0.624,
+          "gk_is_backup": true
+        },
+        "away": {
+          "attack": 1.0,
+          "finishing": 0.98,
+          "chance_creation": 1.0,
+          "midfield": 0.323,
+          "defence": 0.21,
+          "midfield_defence": 0.138,
+          "transition_risk": 0.421,
+          "goalkeeper": 0.831,
+          "overall": 0.563,
+          "gk_confidence": 0.949,
+          "gk_is_backup": false
+        }
+      },
+      "home_trophy_multiplier": 1.0,
+      "away_trophy_multiplier": 1.0959,
+      "midfield_battle": {
+        "home_chance_multiplier": 0.988,
+        "away_chance_multiplier": 1.012
+      }
+    },
+    "sample_match": {
+      "scoreline": "1-2",
+      "home": {
+        "team": "Team A",
+        "goals": 1,
+        "xg": 1.58,
+        "scorers": [
+          {
+            "minute": 66,
+            "scorer": "Pedro Neto",
+            "assister": null
+          }
+        ]
+      },
+      "away": {
+        "team": "Team B",
+        "goals": 2,
+        "xg": 2.5,
+        "scorers": [
+          {
+            "minute": 47,
+            "scorer": "Ousmane Dembélé",
+            "assister": "Gabriel Magalhães"
+          },
+          {
+            "minute": 63,
+            "scorer": "Erling Haaland",
+            "assister": "Achraf Hakimi"
+          }
+        ]
+      },
+      "winner": "Team B"
+    },
+    "analysis": {
+      "favorite": "Team B",
+      "favorite_side": "away",
+      "margin": "clear",
+      "summary": "Team B is favoured (49.0% win vs 26.0% for Team A, 25.0% draw). Expected goals: Team A 1.58 – 2.50 Team B.",
+      "expected_xg": {
+        "home": 1.58,
+        "away": 2.5,
+        "edge_side": "away",
+        "delta": 0.92
+      },
+      "outcomes": {
+        "home_win_pct": 26.0,
+        "draw_pct": 25.0,
+        "away_win_pct": 49.0
+      },
+      "key_factors": [
+        {
+          "factor": "Goalkeeper",
+          "edge": "away",
+          "home": 0.3,
+          "away": 0.758,
+          "delta": 0.458,
+          "impact": 0.687,
+          "explanation": "Team B has the stronger keeper (0.30 vs 0.76), shifting expected goals against."
+        },
+        {
+          "factor": "Finishing quality",
+          "edge": "away",
+          "home": 0.518,
+          "away": 0.894,
+          "delta": 0.376,
+          "impact": 0.5264,
+          "explanation": "Team B converts chances better (finishing 0.52 vs 0.89)."
+        },
+        {
+          "factor": "Transition risk",
+          "edge": "home",
+          "home": 0.0,
+          "away": 0.421,
+          "delta": 0.421,
+          "impact": 0.4631,
+          "explanation": "Team A is more exposed on the counter (transition risk 0.00 vs 0.42 — lower is safer)."
+        },
+        {
+          "factor": "Chance creation",
+          "edge": "away",
+          "home": 0.891,
+          "away": 1.0,
+          "delta": 0.109,
+          "impact": 0.1417,
+          "explanation": "Team B builds more volume (creation 0.89 vs 1.00)."
+        },
+        {
+          "factor": "Formation fit",
+          "edge": "away",
+          "home": 0.655,
+          "away": 0.722,
+          "delta": 0.067,
+          "impact": 0.05360000000000001,
+          "explanation": "Team B fits the chosen shape better (avg fit 0.66 vs 0.72)."
+        },
+        {
+          "factor": "Possession control",
+          "edge": "away",
+          "home": 0.658,
+          "away": 0.727,
+          "delta": 0.069,
+          "impact": 0.0483,
+          "explanation": "Team B controls the ball better (0.66 vs 0.73)."
+        }
+      ],
+      "head_to_head": {
+        "finishing": {
+          "home": 0.518,
+          "away": 0.894,
+          "edge": "away"
+        },
+        "chance_creation": {
+          "home": 0.891,
+          "away": 1.0,
+          "edge": "away"
+        },
+        "goalkeeper": {
+          "home": 0.3,
+          "away": 0.758,
+          "edge": "away"
+        },
+        "defence": {
+          "home": 0.173,
+          "away": 0.192,
+          "edge": null
+        },
+        "midfield_defence": {
+          "home": 0.111,
+          "away": 0.126,
+          "edge": null
+        },
+        "transition_risk": {
+          "home": 0.0,
+          "away": 0.421,
+          "edge": "home"
+        },
+        "possession": {
+          "home": 0.658,
+          "away": 0.727,
+          "edge": "away"
+        },
+        "formation_fit": {
+          "home": 0.655,
+          "away": 0.722,
+          "edge": "away"
+        }
+      },
+      "mechanics_summary": {
+        "home_attacks_vs_away_defence": 0.797,
+        "away_attacks_vs_home_defence": 0.849,
+        "midfield_battle": {
+          "home_multiplier": 0.991,
+          "away_multiplier": 1.009
+        }
+      },
+      "sections": [
+        {
+          "title": "Verdict",
+          "paragraphs": [
+            "Team B is favoured (49.0% win vs 26.0% for Team A, 25.0% draw). Expected goals: Team A 1.58 – 2.50 Team B."
+          ],
+          "bullets": [
+            "Team B has the stronger keeper (0.30 vs 0.76), shifting expected goals against.",
+            "Team B converts chances better (finishing 0.52 vs 0.89).",
+            "Team A is more exposed on the counter (transition risk 0.00 vs 0.42 — lower is safer)."
+          ]
+        },
+        {
+          "title": "Expected goals pipeline",
+          "paragraphs": [
+            "The engine splits attack into finishing and chance-creation channels, then applies opponent suppression and midfield battle modifiers.",
+            "Team A raw attack xG: 1.80 finishing + 0.33 creation = 2.12 before suppression. When Team B defends, suppression factor is 0.849 (DEF 0.19, mid-def 0.13, GK 0.76, transition risk 0.42).",
+            "Team B raw attack xG: 2.47 + 0.37 = 2.84. Team A suppression when defending: 0.797 (transition risk 0.00).",
+            "Midfield battle multipliers: Team A ×0.991, Team B ×1.009. Net xG edge: Team B by 0.92."
+          ],
+          "bullets": []
+        },
+        {
+          "title": "Defensive structure & transitions",
+          "paragraphs": [
+            "Team A xGA suppression: 0.849 (base without transition penalty: 0.849). Team B: 0.797 (base 0.772).",
+            "Team A has no wide fullback slots in this formation.",
+            "Team B fullbacks: Achraf Hakimi (RB, exposure 0.39), Nuno Mendes (LB, exposure 0.48). Team transition risk 0.421 — high attacking fullbacks increase counter vulnerability when midfield cover is thin."
+          ],
+          "bullets": []
+        },
+        {
+          "title": "Formation & squad fit",
+          "paragraphs": [
+            "Team A (3-4-3): average formation fit 0.66. Chance creation index 0.39, possession 0.66. Weak slots: Reece James (RM, fit 0.42), Ben Chilwell (LM, fit 0.33), Cole Palmer (RW, fit 0.54).",
+            "Team B (4-2-3-1): average formation fit 0.72. Chance creation index 0.65, possession 0.73."
+          ],
+          "bullets": []
+        },
+        {
+          "title": "Monte Carlo interpretation",
+          "paragraphs": [
+            "Across 100 neutral-venue runs, average scoreline tendency is 1.67–2.20. Both teams score 79.0% of the time; over 2.5 goals 75.0%.",
+            "Most common scoreline: 1-2 (11.0%)."
+          ],
+          "bullets": [
+            "Trophy boost: Team A ×1.000, Team B ×1.096 (applied in simulation units)."
+          ]
+        }
+      ]
+    }
+  }
+}

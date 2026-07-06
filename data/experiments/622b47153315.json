@@ -1,0 +1,166 @@
+{
+  "id": "622b47153315",
+  "user": "Tathagata",
+  "created_at": "2026-07-06T08:33:53.468358+00:00",
+  "updated_at": "2026-07-06T08:34:03.311358+00:00",
+  "status": "error",
+  "message": "HTTP 403 for URL: https://api.sofascore.com/api/v1/search/Rodri",
+  "running": false,
+  "simulations": 10100,
+  "seed": null,
+  "team_a": {
+    "name": "Moga+Sanmitro",
+    "formation": "4-3-3",
+    "lineup": [
+      {
+        "slot": "GK",
+        "player": "Emiliano Martínez",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RB",
+        "player": "Jurriën Timber",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB1",
+        "player": "Rúben Dias",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB2",
+        "player": "Joško Gvardiol",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LB",
+        "player": "Riccardo Calafiori",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "DM",
+        "player": "Rodri",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CM",
+        "player": "Fabián Ruiz",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "AM",
+        "player": "Jude Bellingham",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RW",
+        "player": "Ángel Di María",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "ST",
+        "player": "Julián Álvarez",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LW",
+        "player": "Khvicha Kvaratskhelia",
+        "captain": false,
+        "vice_captain": false
+      }
+    ],
+    "prime_player": "Rodri",
+    "peak_season": {
+      "player": "Ángel Di María",
+      "season": "13/14"
+    }
+  },
+  "team_b": {
+    "name": "Subhadro+Shubhajit",
+    "formation": "4-2-3-1",
+    "lineup": [
+      {
+        "slot": "GK",
+        "player": "Joan García",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RB",
+        "player": "Guéla Doué",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB1",
+        "player": "Ibrahima Konaté",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB2",
+        "player": "Nico Schlotterbeck",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LB",
+        "player": "Nuno Mendes",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "DM1",
+        "player": "N'Golo Kanté",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "DM2",
+        "player": "Vitinha (Paris Saint-Germain)",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RW",
+        "player": "Désiré Doué",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "AM",
+        "player": "Fermín López",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LW",
+        "player": "Nico Williams",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "ST",
+        "player": "Edinson Cavani",
+        "captain": false,
+        "vice_captain": false
+      }
+    ],
+    "prime_player": "N'Golo Kanté",
+    "peak_season": {
+      "player": "Edinson Cavani",
+      "season": "16/17"
+    }
+  },
+  "report": null
+}

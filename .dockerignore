@@ -1,0 +1,13 @@
+.git
+.gitignore
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+.venv
+venv
+cloudflared-config.yml
+cloudflared-config.yaml
+data/public_url.txt
+data/tunnel_out.txt
+analysis_output.txt

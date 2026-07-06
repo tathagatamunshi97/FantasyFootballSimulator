@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Experiments — Match Simulator</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Football Match Simulator</h1>
+      <div class="sub">Your Monte Carlo experiments</div>
+    </div>
+    <div class="header-actions">
+      <span id="userLabel" class="muted"></span>
+      <a href="/lab" class="btn-link">+ New experiment</a>
+      <a href="/tournament" class="btn-link">Tournament</a>
+      <button type="button" id="logoutBtn" class="btn-ghost">Log out</button>
+    </div>
+  </header>
+
+  <main id="app">
+    <div class="empty">Loading…</div>
+  </main>
+
+  <footer>
+    Engine v2 · Sofascore + Understat · <a href="/admin">Admin</a>
+  </footer>
+
+  <script src="/static/common.js"></script>
+  <script src="/static/index.js"></script>
+</body>
+</html>

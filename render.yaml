@@ -1,0 +1,28 @@
+# Render Blueprint — fixed URL (free tier, no custom domain):
+#   https://fantasy-football-simulator.onrender.com
+# Connect repo in Render dashboard → New → Blueprint → select this file.
+# Hostname = `name` below (lowercased). Do not rename unless you want a new URL.
+#
+# Limitations (free tier):
+# - Service sleeps after ~15 min inactivity; first request may take 30–60s.
+# - Ephemeral disk: data/ written at runtime (tournaments, experiments) resets on redeploy.
+# - Commit data/player_stats_cache.json to the repo (bundled in Docker image).
+
+services:
+  - type: web
+    name: fantasy-football-simulator
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: SIM_ADMIN_TOKEN
+        generateValue: true
+      - key: SIM_HOST
+        value: 0.0.0.0
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      # Optional — defaults work for the bundled Google Sheet (public CSV export).
+      # - key: GOOGLE_SHEETS_ID
+      #   sync: false
+      # - key: GOOGLE_SHEETS_TEAMS_GID
+      #   sync: false

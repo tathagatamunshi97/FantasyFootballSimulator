@@ -1,0 +1,5361 @@
+{
+  "generated_at": "2026-07-06T07:47:59.476998+00:00",
+  "total_sheet_players": 191,
+  "tier_counts": {
+    "A": 141,
+    "B": 41,
+    "D": 4,
+    "C": 5
+  },
+  "tier_percentages": {
+    "A": 73.8,
+    "B": 21.5,
+    "C": 2.6,
+    "D": 2.1
+  },
+  "data_source_breakdown": {
+    "sofascore_default": 181,
+    "fbref": 5,
+    "manual_profiles": 5
+  },
+  "stat_profile_breakdown": {
+    "blended_cache": 168,
+    "historical_best": 14,
+    "single_season": 5,
+    "seeded_sofascore": 3,
+    "seeded_fbref": 1
+  },
+  "flag_counts": {
+    "historical_best_not_current": 14,
+    "fbref_missing_pass_dribble_stats": 11,
+    "legend_or_season_pick_profile": 11,
+    "old_season_2015-2016": 5,
+    "manual_profile_in_cache": 5,
+    "old_season_2017-2018": 4,
+    "old_season_2023-2024": 3,
+    "old_season_2016-2017": 3,
+    "old_season_2019-2020": 2,
+    "low_minutes_548": 1,
+    "non_top5_league_Super_League_Greece": 1,
+    "low_minutes_496": 1,
+    "old_season_2014-2015": 1,
+    "low_minutes_813": 1,
+    "old_season_2022-2023": 1
+  },
+  "concern_count": 23,
+  "spotlight_players": {
+    "John Stones": {
+      "tier": "D",
+      "flags": [
+        "low_minutes_548",
+        "fbref_missing_pass_dribble_stats",
+        "historical_best_not_current"
+      ],
+      "stats_summary": {
+        "team": "Manchester City",
+        "league": "Premier League",
+        "minutes": 548.0,
+        "games": 11,
+        "seasons_used": [
+          "2024-2025"
+        ],
+        "data_source": "fbref",
+        "stat_profile": "historical_best",
+        "goals90": 0.33,
+        "assists90": 0.0,
+        "rating": 6.79,
+        "dribbles90": 0.0,
+        "passes_completed90": 0.0,
+        "key_passes90": 0.0,
+        "fbref_matched": true,
+        "understat_matched": true
+      },
+      "manual_profile_match": null
+    },
+    "Riyad Mahrez": {
+      "tier": "D",
+      "flags": [
+        "fbref_missing_pass_dribble_stats",
+        "historical_best_not_current",
+        "old_season_2022-2023",
+        "legend_or_season_pick_profile"
+      ],
+      "stats_summary": {
+        "team": "Manchester City",
+        "league": "Premier League",
+        "minutes": 1920.0,
+        "games": 30,
+        "seasons_used": [
+          "2022-2023"
+        ],
+        "data_source": "fbref",
+        "stat_profile": "historical_best",
+        "goals90": 0.23,
+        "assists90": 0.47,
+        "rating": 6.93,
+        "dribbles90": 0.0,
+        "passes_completed90": 0.0,
+        "key_passes90": 0.0,
+        "fbref_matched": true,
+        "understat_matched": false
+      },
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "22/23",
+        "diffs": {
+          "minutes": {
+            "cache": 1920.0,
+            "manual": 1941.0
+          }
+        },
+        "aligned": false
+      }
+    },
+    "Cristiano Ronaldo": {
+      "tier": "A",
+      "flags": [
+        "legend_or_season_pick_profile"
+      ],
+      "stats_summary": {
+        "team": "Al-Nassr",
+        "league": "Saudi Pro League",
+        "minutes": 2572,
+        "games": 30,
+        "seasons_used": [
+          "2024-2025",
+          "2025-2026"
+        ],
+        "data_source": null,
+        "stat_profile": "seeded_sofascore",
+        "goals90": 0.95,
+        "assists90": 0.18,
+        "rating": 7.45,
+        "dribbles90": 0.65,
+        "passes_completed90": 18.0,
+        "key_passes90": 1.1,
+        "fbref_matched": null,
+        "understat_matched": null
+      },
+      "manual_profile_match": {
+        "profile_type": "prime",
+        "season_suffix": "14/15",
+        "diffs": {
+          "minutes": {
+            "cache": 2572,
+            "manual": 3103.0
+          },
+          "goals90": {
+            "cache": 0.95,
+            "manual": 1.39
+          },
+          "assists90": {
+            "cache": 0.18,
+            "manual": 0.46
+          },
+          "rating": {
+            "cache": 7.45,
+            "manual": 7.75
+          },
+          "seasons_used": {
+            "cache": [
+              "2024-2025",
+              "2025-2026"
+            ],
+            "manual": [
+              "2014-2015"
+            ]
+          },
+          "team": {
+            "cache": "Al-Nassr",
+            "manual": "Real Madrid"
+          }
+        },
+        "aligned": false
+      }
+    },
+    "Lionel Messi": {
+      "tier": "A",
+      "flags": [
+        "legend_or_season_pick_profile"
+      ],
+      "stats_summary": {
+        "team": "Inter Miami CF",
+        "league": "MLS",
+        "minutes": 2358,
+        "games": 27,
+        "seasons_used": [
+          "2024-2025",
+          "2025-2026"
+        ],
+        "data_source": null,
+        "stat_profile": "seeded_sofascore",
+        "goals90": 0.72,
+        "assists90": 0.48,
+        "rating": 7.85,
+        "dribbles90": 2.1,
+        "passes_completed90": 38.0,
+        "key_passes90": 2.8,
+        "fbref_matched": null,
+        "understat_matched": null
+      },
+      "manual_profile_match": {
+        "profile_type": "prime",
+        "season_suffix": "20/21",
+        "diffs": {
+          "minutes": {
+            "cache": 2358,
+            "manual": 3017.0
+          },
+          "goals90": {
+            "cache": 0.72,
+            "manual": 0.89
+          },
+          "assists90": {
+            "cache": 0.48,
+            "manual": 0.27
+          },
+          "rating": {
+            "cache": 7.85,
+            "manual": 7.32
+          },
+          "seasons_used": {
+            "cache": [
+              "2024-2025",
+              "2025-2026"
+            ],
+            "manual": [
+              "2020-2021"
+            ]
+          },
+          "team": {
+            "cache": "Inter Miami CF",
+            "manual": "Barcelona"
+          }
+        },
+        "aligned": false
+      }
+    }
+  },
+  "concerns": [
+    {
+      "raw": "Gonzalo Higuain",
+      "cached_as": "Gonzalo Higua\u00edn",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "historical_best",
+      "team": "SSC Napoli",
+      "league": "Serie A",
+      "minutes": 2989.0,
+      "games": 35,
+      "seasons_used": [
+        "2015-2016"
+      ],
+      "goals90": 1.0883439704400404,
+      "assists90": 0.06046355391333557,
+      "rating": 7.69,
+      "flags": [
+        "historical_best_not_current",
+        "old_season_2015-2016"
+      ],
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "15/16",
+        "diffs": {
+          "goals90": {
+            "cache": 1.0883439704400404,
+            "manual": 1.08
+          },
+          "assists90": {
+            "cache": 0.06046355391333557,
+            "manual": 0.15
+          },
+          "rating": {
+            "cache": 7.69,
+            "manual": 7.45
+          },
+          "team": {
+            "cache": "SSC Napoli",
+            "manual": "Napoli"
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "raw": "Sergio Ramos",
+      "cached_as": "Sergio Ramos",
+      "tier": "D",
+      "data_source": "fbref",
+      "stat_profile": "historical_best",
+      "team": "Real Madrid",
+      "league": "LaLiga",
+      "minutes": 3013.0,
+      "games": 35,
+      "seasons_used": [
+        "2019-2020"
+      ],
+      "goals90": 0.33,
+      "assists90": 0.0,
+      "rating": 6.82,
+      "flags": [
+        "fbref_missing_pass_dribble_stats",
+        "historical_best_not_current",
+        "old_season_2019-2020"
+      ],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Fernandinho",
+      "cached_as": "Fernandinho",
+      "tier": "C",
+      "data_source": "manual_profiles",
+      "stat_profile": "single_season",
+      "team": "Manchester City",
+      "league": "Premier League",
+      "minutes": 2890.0,
+      "games": 34,
+      "seasons_used": [
+        "2017-2018"
+      ],
+      "goals90": 0.16,
+      "assists90": 0.09,
+      "rating": 6.76,
+      "flags": [
+        "manual_profile_in_cache",
+        "old_season_2017-2018",
+        "legend_or_season_pick_profile"
+      ],
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "17/18",
+        "diffs": {},
+        "aligned": true
+      }
+    },
+    {
+      "raw": "CR7",
+      "cached_as": "Cristiano Ronaldo",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "seeded_sofascore",
+      "team": "Al-Nassr",
+      "league": "Saudi Pro League",
+      "minutes": 2572,
+      "games": 30,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.95,
+      "assists90": 0.18,
+      "rating": 7.45,
+      "flags": [
+        "legend_or_season_pick_profile"
+      ],
+      "manual_profile_match": {
+        "profile_type": "prime",
+        "season_suffix": "14/15",
+        "diffs": {
+          "minutes": {
+            "cache": 2572,
+            "manual": 3103.0
+          },
+          "goals90": {
+            "cache": 0.95,
+            "manual": 1.39
+          },
+          "assists90": {
+            "cache": 0.18,
+            "manual": 0.46
+          },
+          "rating": {
+            "cache": 7.45,
+            "manual": 7.75
+          },
+          "seasons_used": {
+            "cache": [
+              "2024-2025",
+              "2025-2026"
+            ],
+            "manual": [
+              "2014-2015"
+            ]
+          },
+          "team": {
+            "cache": "Al-Nassr",
+            "manual": "Real Madrid"
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "raw": "Carvajal",
+      "cached_as": "Carvajal",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "historical_best",
+      "team": "Real Madrid",
+      "league": "LaLiga",
+      "minutes": 1632.0,
+      "games": 22,
+      "seasons_used": [
+        "2015-2016"
+      ],
+      "goals90": 0.0,
+      "assists90": 0.22,
+      "rating": 6.7,
+      "flags": [
+        "fbref_missing_pass_dribble_stats",
+        "historical_best_not_current",
+        "old_season_2015-2016"
+      ],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Arturo Vidal",
+      "cached_as": "Arturo Vidal",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "historical_best",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "minutes": 2042.0,
+      "games": 30,
+      "seasons_used": [
+        "2015-2016"
+      ],
+      "goals90": 0.18,
+      "assists90": 0.22,
+      "rating": 6.73,
+      "flags": [
+        "fbref_missing_pass_dribble_stats",
+        "historical_best_not_current",
+        "old_season_2015-2016",
+        "legend_or_season_pick_profile"
+      ],
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "15/16",
+        "diffs": {
+          "minutes": {
+            "cache": 2042.0,
+            "manual": 2045.0
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "raw": "Marcelo",
+      "cached_as": "Marcelo",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "historical_best",
+      "team": "Real Madrid",
+      "league": "LaLiga",
+      "minutes": 2260.0,
+      "games": 28,
+      "seasons_used": [
+        "2017-2018"
+      ],
+      "goals90": 0.08,
+      "assists90": 0.24,
+      "rating": 6.79,
+      "flags": [
+        "fbref_missing_pass_dribble_stats",
+        "historical_best_not_current",
+        "old_season_2017-2018",
+        "legend_or_season_pick_profile"
+      ],
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "16/17",
+        "diffs": {
+          "minutes": {
+            "cache": 2260.0,
+            "manual": 2274.0
+          },
+          "assists90": {
+            "cache": 0.24,
+            "manual": 0.39
+          },
+          "rating": {
+            "cache": 6.79,
+            "manual": 6.85
+          },
+          "seasons_used": {
+            "cache": [
+              "2017-2018"
+            ],
+            "manual": [
+              "2016-2017"
+            ]
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "raw": "Diego Godin",
+      "cached_as": "Diego God\u00edn",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "historical_best",
+      "team": "Inter",
+      "league": "Serie A",
+      "minutes": 1632.0,
+      "games": 23,
+      "seasons_used": [
+        "2019-2020"
+      ],
+      "goals90": 0.0550122249388753,
+      "assists90": 0.0550122249388753,
+      "rating": 7.09,
+      "flags": [
+        "historical_best_not_current",
+        "old_season_2019-2020"
+      ],
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "15/16",
+        "diffs": {
+          "minutes": {
+            "cache": 1632.0,
+            "manual": 2650.0
+          },
+          "goals90": {
+            "cache": 0.0550122249388753,
+            "manual": 0.03
+          },
+          "assists90": {
+            "cache": 0.0550122249388753,
+            "manual": 0.03
+          },
+          "rating": {
+            "cache": 7.09,
+            "manual": 6.67
+          },
+          "seasons_used": {
+            "cache": [
+              "2019-2020"
+            ],
+            "manual": [
+              "2015-2016"
+            ]
+          },
+          "team": {
+            "cache": "Inter",
+            "manual": "Atl\u00e9tico Madrid"
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "raw": "Angel Di Maria",
+      "cached_as": "\u00c1ngel Di Mar\u00eda",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "historical_best",
+      "team": "PSG",
+      "league": "Ligue 1",
+      "minutes": 2122.0,
+      "games": 29,
+      "seasons_used": [
+        "2015-2016"
+      ],
+      "goals90": 0.42,
+      "assists90": 0.76,
+      "rating": 7.16,
+      "flags": [
+        "fbref_missing_pass_dribble_stats",
+        "historical_best_not_current",
+        "old_season_2015-2016"
+      ],
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "13/14",
+        "diffs": {
+          "minutes": {
+            "cache": 2122.0,
+            "manual": 2357.0
+          },
+          "goals90": {
+            "cache": 0.42,
+            "manual": 0.15
+          },
+          "assists90": {
+            "cache": 0.76,
+            "manual": 0.65
+          },
+          "rating": {
+            "cache": 7.16,
+            "manual": 6.91
+          },
+          "seasons_used": {
+            "cache": [
+              "2015-2016"
+            ],
+            "manual": [
+              "2013-2014"
+            ]
+          },
+          "team": {
+            "cache": "PSG",
+            "manual": "Real Madrid"
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "raw": "John Stones",
+      "cached_as": "John Stones",
+      "tier": "D",
+      "data_source": "fbref",
+      "stat_profile": "historical_best",
+      "team": "Manchester City",
+      "league": "Premier League",
+      "minutes": 548.0,
+      "games": 11,
+      "seasons_used": [
+        "2024-2025"
+      ],
+      "goals90": 0.33,
+      "assists90": 0.0,
+      "rating": 6.79,
+      "flags": [
+        "low_minutes_548",
+        "fbref_missing_pass_dribble_stats",
+        "historical_best_not_current"
+      ],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "El Kaabi",
+      "cached_as": "Ayoub El Kaabi",
+      "tier": "B",
+      "data_source": "fbref",
+      "stat_profile": "seeded_fbref",
+      "team": "Olympiacos",
+      "league": "Super League Greece",
+      "minutes": 1964,
+      "games": 31,
+      "seasons_used": [
+        "2023-2024"
+      ],
+      "goals90": 0.78,
+      "assists90": 0.09,
+      "rating": 7.2,
+      "flags": [
+        "non_top5_league_Super_League_Greece",
+        "old_season_2023-2024"
+      ],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Eder Militao",
+      "cached_as": "\u00c9der Milit\u00e3o",
+      "tier": "D",
+      "data_source": "fbref",
+      "stat_profile": "historical_best",
+      "team": "Real Madrid",
+      "league": "LaLiga",
+      "minutes": 496.0,
+      "games": 10,
+      "seasons_used": [
+        "2023-2024"
+      ],
+      "goals90": 0.0,
+      "assists90": 0.0,
+      "rating": 6.54,
+      "flags": [
+        "low_minutes_496",
+        "fbref_missing_pass_dribble_stats",
+        "historical_best_not_current",
+        "old_season_2023-2024"
+      ],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Luis Suarez",
+      "cached_as": "Luis Su\u00e1rez",
+      "tier": "C",
+      "data_source": "manual_profiles",
+      "stat_profile": "single_season",
+      "team": "Barcelona",
+      "league": "LaLiga",
+      "minutes": 3150.0,
+      "games": 35,
+      "seasons_used": [
+        "2015-2016"
+      ],
+      "goals90": 1.14,
+      "assists90": 0.49,
+      "rating": 7.62,
+      "flags": [
+        "manual_profile_in_cache",
+        "old_season_2015-2016"
+      ],
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "15/16",
+        "diffs": {},
+        "aligned": true
+      }
+    },
+    {
+      "raw": "Roberto Firmino",
+      "cached_as": "Roberto Firmino",
+      "tier": "C",
+      "data_source": "manual_profiles",
+      "stat_profile": "single_season",
+      "team": "Liverpool",
+      "league": "Premier League",
+      "minutes": 2814.0,
+      "games": 37,
+      "seasons_used": [
+        "2017-2018"
+      ],
+      "goals90": 0.49,
+      "assists90": 0.23,
+      "rating": 7.11,
+      "flags": [
+        "manual_profile_in_cache",
+        "old_season_2017-2018",
+        "legend_or_season_pick_profile"
+      ],
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "17/18",
+        "diffs": {},
+        "aligned": true
+      }
+    },
+    {
+      "raw": "Messi",
+      "cached_as": "Lionel Messi",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "seeded_sofascore",
+      "team": "Inter Miami CF",
+      "league": "MLS",
+      "minutes": 2358,
+      "games": 27,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.72,
+      "assists90": 0.48,
+      "rating": 7.85,
+      "flags": [
+        "legend_or_season_pick_profile"
+      ],
+      "manual_profile_match": {
+        "profile_type": "prime",
+        "season_suffix": "20/21",
+        "diffs": {
+          "minutes": {
+            "cache": 2358,
+            "manual": 3017.0
+          },
+          "goals90": {
+            "cache": 0.72,
+            "manual": 0.89
+          },
+          "assists90": {
+            "cache": 0.48,
+            "manual": 0.27
+          },
+          "rating": {
+            "cache": 7.85,
+            "manual": 7.32
+          },
+          "seasons_used": {
+            "cache": [
+              "2024-2025",
+              "2025-2026"
+            ],
+            "manual": [
+              "2020-2021"
+            ]
+          },
+          "team": {
+            "cache": "Inter Miami CF",
+            "manual": "Barcelona"
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "raw": "Neymar",
+      "cached_as": "Neymar",
+      "tier": "C",
+      "data_source": "manual_profiles",
+      "stat_profile": "single_season",
+      "team": "Barcelona",
+      "league": "LaLiga",
+      "minutes": 2562.0,
+      "games": 33,
+      "seasons_used": [
+        "2014-2015"
+      ],
+      "goals90": 0.77,
+      "assists90": 0.25,
+      "rating": 7.19,
+      "flags": [
+        "manual_profile_in_cache",
+        "old_season_2014-2015",
+        "legend_or_season_pick_profile"
+      ],
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "14/15",
+        "diffs": {
+          "minutes": {
+            "cache": 2562.0,
+            "manual": 2573.0
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "raw": "Dani Alves",
+      "cached_as": "Dani Alves",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "historical_best",
+      "team": "Juventus",
+      "league": "Serie A",
+      "minutes": 1360.0,
+      "games": 19,
+      "seasons_used": [
+        "2016-2017"
+      ],
+      "goals90": 0.133630289532294,
+      "assists90": 0.133630289532294,
+      "rating": 7.2578947368421,
+      "flags": [
+        "historical_best_not_current",
+        "old_season_2016-2017",
+        "legend_or_season_pick_profile"
+      ],
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "17/18",
+        "diffs": {
+          "minutes": {
+            "cache": 1360.0,
+            "manual": 2064.0
+          },
+          "goals90": {
+            "cache": 0.133630289532294,
+            "manual": 0.04
+          },
+          "assists90": {
+            "cache": 0.133630289532294,
+            "manual": 0.31
+          },
+          "rating": {
+            "cache": 7.2578947368421,
+            "manual": 6.86
+          },
+          "seasons_used": {
+            "cache": [
+              "2016-2017"
+            ],
+            "manual": [
+              "2017-2018"
+            ]
+          },
+          "team": {
+            "cache": "Juventus",
+            "manual": "PSG"
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "raw": "Endrick",
+      "cached_as": "Endrick",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Olympique Lyonnais",
+      "league": null,
+      "minutes": 813.0,
+      "games": 19,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.29551052486590723,
+      "assists90": 0.25777414075286414,
+      "rating": 6.875,
+      "flags": [
+        "low_minutes_813"
+      ],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Edinson Cavani",
+      "cached_as": "Edinson Cavani",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "historical_best",
+      "team": "PSG",
+      "league": "Ligue 1",
+      "minutes": 2581.0,
+      "games": 32,
+      "seasons_used": [
+        "2017-2018"
+      ],
+      "goals90": 0.98,
+      "assists90": 0.21,
+      "rating": 7.35,
+      "flags": [
+        "fbref_missing_pass_dribble_stats",
+        "historical_best_not_current",
+        "old_season_2017-2018",
+        "legend_or_season_pick_profile"
+      ],
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "16/17",
+        "diffs": {
+          "minutes": {
+            "cache": 2581.0,
+            "manual": 2983.0
+          },
+          "goals90": {
+            "cache": 0.98,
+            "manual": 1.06
+          },
+          "assists90": {
+            "cache": 0.21,
+            "manual": 0.12
+          },
+          "rating": {
+            "cache": 7.35,
+            "manual": 7.39
+          },
+          "seasons_used": {
+            "cache": [
+              "2017-2018"
+            ],
+            "manual": [
+              "2016-2017"
+            ]
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "raw": "Alaba",
+      "cached_as": "Alaba",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "historical_best",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "minutes": 2506.0,
+      "games": 32,
+      "seasons_used": [
+        "2016-2017"
+      ],
+      "goals90": 0.14,
+      "assists90": 0.14,
+      "rating": 6.75,
+      "flags": [
+        "fbref_missing_pass_dribble_stats",
+        "historical_best_not_current",
+        "old_season_2016-2017"
+      ],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Brahim Diaz",
+      "cached_as": "Brahim Diaz",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "historical_best",
+      "team": "Real Madrid",
+      "league": "LaLiga",
+      "minutes": 1545.0,
+      "games": 31,
+      "seasons_used": [
+        "2023-2024"
+      ],
+      "goals90": 0.47,
+      "assists90": 0.35,
+      "rating": 7.09,
+      "flags": [
+        "fbref_missing_pass_dribble_stats",
+        "historical_best_not_current",
+        "old_season_2023-2024"
+      ],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Radamel Falcao",
+      "cached_as": "Radamel Falcao",
+      "tier": "C",
+      "data_source": "manual_profiles",
+      "stat_profile": "single_season",
+      "team": "Monaco",
+      "league": "Ligue 1",
+      "minutes": 1969.0,
+      "games": 29,
+      "seasons_used": [
+        "2016-2017"
+      ],
+      "goals90": 0.98,
+      "assists90": 0.19,
+      "rating": 7.37,
+      "flags": [
+        "manual_profile_in_cache",
+        "old_season_2016-2017",
+        "legend_or_season_pick_profile"
+      ],
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "16/17",
+        "diffs": {},
+        "aligned": true
+      }
+    },
+    {
+      "raw": "Riyad Mahrez",
+      "cached_as": "Riyad Mahrez",
+      "tier": "D",
+      "data_source": "fbref",
+      "stat_profile": "historical_best",
+      "team": "Manchester City",
+      "league": "Premier League",
+      "minutes": 1920.0,
+      "games": 30,
+      "seasons_used": [
+        "2022-2023"
+      ],
+      "goals90": 0.23,
+      "assists90": 0.47,
+      "rating": 6.93,
+      "flags": [
+        "fbref_missing_pass_dribble_stats",
+        "historical_best_not_current",
+        "old_season_2022-2023",
+        "legend_or_season_pick_profile"
+      ],
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "22/23",
+        "diffs": {
+          "minutes": {
+            "cache": 1920.0,
+            "manual": 1941.0
+          }
+        },
+        "aligned": false
+      }
+    }
+  ],
+  "all_players": [
+    {
+      "raw": "Rice",
+      "cached_as": "Declan Rice",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Arsenal",
+      "league": null,
+      "minutes": 2966.0,
+      "games": 35,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.12162013935470115,
+      "assists90": 0.18379361753965245,
+      "rating": 7.41,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Cubarsi",
+      "cached_as": "Pau Cubars\u00ed",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "FC Barcelona",
+      "league": null,
+      "minutes": 2664.0,
+      "games": 33,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.016617429837518464,
+      "assists90": 0.05152671755725191,
+      "rating": 7.0649999999999995,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Cucurella",
+      "cached_as": "Marc Cucurella",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Chelsea",
+      "league": null,
+      "minutes": 2850.0,
+      "games": 35,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.09185600217206186,
+      "assists90": 0.08147083143072234,
+      "rating": 6.855,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Upamecano",
+      "cached_as": "Dayot Upamecano",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "FC Bayern M\u00fcnchen",
+      "league": null,
+      "minutes": 1779.0,
+      "games": 22,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.07614906161035001,
+      "assists90": 0.025041736227045076,
+      "rating": 7.265000000000001,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Enzo F",
+      "cached_as": "Enzo Fern\u00e1ndez",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Chelsea",
+      "league": null,
+      "minutes": 3033.5,
+      "games": 36,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.23583425073299524,
+      "assists90": 0.16459846607731216,
+      "rating": 7.23,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Joao Palhinha",
+      "cached_as": "Jo\u00e3o Palhinha",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Tottenham Hotspur",
+      "league": "Premier League",
+      "minutes": 2197.0,
+      "games": 33,
+      "seasons_used": [
+        "2025-2026"
+      ],
+      "goals90": 0.2048247610377788,
+      "assists90": 0.08192990441511151,
+      "rating": 7.02,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Gonzalo Higuain",
+      "cached_as": "Gonzalo Higua\u00edn",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "historical_best",
+      "team": "SSC Napoli",
+      "league": "Serie A",
+      "minutes": 2989.0,
+      "games": 35,
+      "seasons_used": [
+        "2015-2016"
+      ],
+      "goals90": 1.0883439704400404,
+      "assists90": 0.06046355391333557,
+      "rating": 7.69,
+      "flags": [
+        "historical_best_not_current",
+        "old_season_2015-2016"
+      ],
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "15/16",
+        "diffs": {
+          "goals90": {
+            "cache": 1.0883439704400404,
+            "manual": 1.08
+          },
+          "assists90": {
+            "cache": 0.06046355391333557,
+            "manual": 0.15
+          },
+          "rating": {
+            "cache": 7.69,
+            "manual": 7.45
+          },
+          "team": {
+            "cache": "SSC Napoli",
+            "manual": "Napoli"
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "raw": "Maignan",
+      "cached_as": "Mike Maignan",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "AC Milan",
+      "league": null,
+      "minutes": 3295.5,
+      "games": 37,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.0,
+      "assists90": 0.0,
+      "rating": 7.155,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Luis Diaz",
+      "cached_as": "Luis D\u00edaz",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "FC Bayern M\u00fcnchen",
+      "league": null,
+      "minutes": 2430.0,
+      "games": 34,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.5182487932932509,
+      "assists90": 0.3505038529934795,
+      "rating": 7.245,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Stanisic",
+      "cached_as": "Josip Stani\u0161i\u0107",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "FC Bayern M\u00fcnchen",
+      "league": "Bundesliga",
+      "minutes": 1855.0,
+      "games": 26,
+      "seasons_used": [
+        "2025-2026"
+      ],
+      "goals90": 0.09703504043126684,
+      "assists90": 0.14555256064690028,
+      "rating": 6.91,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Cole Palmer",
+      "cached_as": "Cole Palmer",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Chelsea",
+      "league": null,
+      "minutes": 2580.0,
+      "games": 31,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.44027523922158907,
+      "assists90": 0.1355768196968068,
+      "rating": 7.335,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Tapsoba",
+      "cached_as": "Edmond Tapsoba",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Bayer 04 Leverkusen",
+      "league": null,
+      "minutes": 2543.5,
+      "games": 29,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.08734472049689442,
+      "assists90": 0.05240683229813665,
+      "rating": 7.04,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Manuel Locatelli",
+      "cached_as": "Manuel Locatelli",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Juventus",
+      "league": null,
+      "minutes": 2922.0,
+      "games": 36,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.046670167476228874,
+      "assists90": 0.061650194107387334,
+      "rating": 7.484999999999999,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Matheus Cunha",
+      "cached_as": "Matheus Cunha",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Manchester United",
+      "league": null,
+      "minutes": 2551.5,
+      "games": 33,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.43939964350471744,
+      "assists90": 0.13980300562402043,
+      "rating": 7.35,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Haaland",
+      "cached_as": "Erling Haaland",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Manchester City",
+      "league": null,
+      "minutes": 2849.5,
+      "games": 33,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.7719325574459803,
+      "assists90": 0.1709559517299101,
+      "rating": 7.289999999999999,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Bruno",
+      "cached_as": "Bruno Fernandes",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Manchester United",
+      "league": null,
+      "minutes": 3045.0,
+      "games": 35,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.2511415525114155,
+      "assists90": 0.4570287018917156,
+      "rating": 7.615,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Sergio Ramos",
+      "cached_as": "Sergio Ramos",
+      "tier": "D",
+      "data_source": "fbref",
+      "stat_profile": "historical_best",
+      "team": "Real Madrid",
+      "league": "LaLiga",
+      "minutes": 3013.0,
+      "games": 35,
+      "seasons_used": [
+        "2019-2020"
+      ],
+      "goals90": 0.33,
+      "assists90": 0.0,
+      "rating": 6.82,
+      "flags": [
+        "fbref_missing_pass_dribble_stats",
+        "historical_best_not_current",
+        "old_season_2019-2020"
+      ],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Bounou",
+      "cached_as": "Yassine Bounou",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Al-Hilal",
+      "league": null,
+      "minutes": 2565.0,
+      "games": 28,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.0,
+      "assists90": 0.0,
+      "rating": 6.865,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Fernandinho",
+      "cached_as": "Fernandinho",
+      "tier": "C",
+      "data_source": "manual_profiles",
+      "stat_profile": "single_season",
+      "team": "Manchester City",
+      "league": "Premier League",
+      "minutes": 2890.0,
+      "games": 34,
+      "seasons_used": [
+        "2017-2018"
+      ],
+      "goals90": 0.16,
+      "assists90": 0.09,
+      "rating": 6.76,
+      "flags": [
+        "manual_profile_in_cache",
+        "old_season_2017-2018",
+        "legend_or_season_pick_profile"
+      ],
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "17/18",
+        "diffs": {},
+        "aligned": true
+      }
+    },
+    {
+      "raw": "Doku",
+      "cached_as": "J\u00e9r\u00e9my Doku",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Manchester City",
+      "league": null,
+      "minutes": 1658.5,
+      "games": 29,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.2141836985423815,
+      "assists90": 0.30224632085157915,
+      "rating": 7.34,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Barella",
+      "cached_as": "Nicol\u00f2 Barella",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Inter",
+      "league": null,
+      "minutes": 2529.5,
+      "games": 33,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.10674066690235214,
+      "assists90": 0.24901232472456214,
+      "rating": 7.19,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Mason Greenwood",
+      "cached_as": "Mason Greenwood",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Olympique de Marseille",
+      "league": null,
+      "minutes": 2641.5,
+      "games": 33,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.6274369344045265,
+      "assists90": 0.20753937308769466,
+      "rating": 7.465,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Djed Spence",
+      "cached_as": "Djed Spence",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Tottenham Hotspur",
+      "league": null,
+      "minutes": 1942.0,
+      "games": 27,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.024930747922437674,
+      "assists90": 0.04986149584487535,
+      "rating": 6.72,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Leandro Trossard",
+      "cached_as": "Leandro Trossard",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Arsenal",
+      "league": null,
+      "minutes": 2282.0,
+      "games": 34,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.27533116054494844,
+      "assists90": 0.25773929189756767,
+      "rating": 7.015000000000001,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Malick Thiaw",
+      "cached_as": "Malick Thiaw",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Newcastle United",
+      "league": null,
+      "minutes": 2383.5,
+      "games": 28,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.06072874493927125,
+      "assists90": 0.0,
+      "rating": 6.984999999999999,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Jordan Pickford",
+      "cached_as": "Jordan Pickford",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Everton",
+      "league": null,
+      "minutes": 3420.0,
+      "games": 38,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.0,
+      "assists90": 0.013157894736842105,
+      "rating": 7.125,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Adam Wharton",
+      "cached_as": "Adam Wharton",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Crystal Palace",
+      "league": "Premier League",
+      "minutes": 2562.0,
+      "games": 34,
+      "seasons_used": [
+        "2025-2026"
+      ],
+      "goals90": 0.0351288056206089,
+      "assists90": 0.1756440281030445,
+      "rating": 7.06,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Maxence Lacroix",
+      "cached_as": "Maxence Lacroix",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Crystal Palace",
+      "league": null,
+      "minutes": 3102.5,
+      "games": 35,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.029009587890869715,
+      "assists90": 0.04358684736608837,
+      "rating": 6.965,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Yamal",
+      "cached_as": "Lamine Yamal",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "FC Barcelona",
+      "league": null,
+      "minutes": 2564.5,
+      "games": 31,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.45901921295140446,
+      "assists90": 0.42272792840776063,
+      "rating": 7.859999999999999,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "CR7",
+      "cached_as": "Cristiano Ronaldo",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "seeded_sofascore",
+      "team": "Al-Nassr",
+      "league": "Saudi Pro League",
+      "minutes": 2572,
+      "games": 30,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.95,
+      "assists90": 0.18,
+      "rating": 7.45,
+      "flags": [
+        "legend_or_season_pick_profile"
+      ],
+      "manual_profile_match": {
+        "profile_type": "prime",
+        "season_suffix": "14/15",
+        "diffs": {
+          "minutes": {
+            "cache": 2572,
+            "manual": 3103.0
+          },
+          "goals90": {
+            "cache": 0.95,
+            "manual": 1.39
+          },
+          "assists90": {
+            "cache": 0.18,
+            "manual": 0.46
+          },
+          "rating": {
+            "cache": 7.45,
+            "manual": 7.75
+          },
+          "seasons_used": {
+            "cache": [
+              "2024-2025",
+              "2025-2026"
+            ],
+            "manual": [
+              "2014-2015"
+            ]
+          },
+          "team": {
+            "cache": "Al-Nassr",
+            "manual": "Real Madrid"
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "raw": "Carvajal",
+      "cached_as": "Carvajal",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "historical_best",
+      "team": "Real Madrid",
+      "league": "LaLiga",
+      "minutes": 1632.0,
+      "games": 22,
+      "seasons_used": [
+        "2015-2016"
+      ],
+      "goals90": 0.0,
+      "assists90": 0.22,
+      "rating": 6.7,
+      "flags": [
+        "fbref_missing_pass_dribble_stats",
+        "historical_best_not_current",
+        "old_season_2015-2016"
+      ],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Arturo Vidal",
+      "cached_as": "Arturo Vidal",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "historical_best",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "minutes": 2042.0,
+      "games": 30,
+      "seasons_used": [
+        "2015-2016"
+      ],
+      "goals90": 0.18,
+      "assists90": 0.22,
+      "rating": 6.73,
+      "flags": [
+        "fbref_missing_pass_dribble_stats",
+        "historical_best_not_current",
+        "old_season_2015-2016",
+        "legend_or_season_pick_profile"
+      ],
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "15/16",
+        "diffs": {
+          "minutes": {
+            "cache": 2042.0,
+            "manual": 2045.0
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "raw": "Gravenberch",
+      "cached_as": "Ryan Gravenberch",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Liverpool FC",
+      "league": null,
+      "minutes": 3082.0,
+      "games": 36,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.07510013351134846,
+      "assists90": 0.10187826192499089,
+      "rating": 7.04,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Van Hecke",
+      "cached_as": "Jan Paul van Hecke",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Brighton & Hove Albion",
+      "league": null,
+      "minutes": 3085.5,
+      "games": 35,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.05724567996835203,
+      "assists90": 0.04204297726564933,
+      "rating": 7.155,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Marc Guehi",
+      "cached_as": "Marc Gu\u00e9hi",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Manchester City",
+      "league": null,
+      "minutes": 3105.0,
+      "games": 34,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.08697478991596638,
+      "assists90": 0.0722689075630252,
+      "rating": 7.199999999999999,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Laimer",
+      "cached_as": "Konrad Laimer",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "FC Bayern M\u00fcnchen",
+      "league": null,
+      "minutes": 1850.5,
+      "games": 29,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.12041830351160543,
+      "assists90": 0.2556211077179149,
+      "rating": 6.869999999999999,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Arda Guler",
+      "cached_as": "Arda G\u00fcler",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Real Madrid",
+      "league": "LaLiga",
+      "minutes": 2026.0,
+      "games": 33,
+      "seasons_used": [
+        "2025-2026"
+      ],
+      "goals90": 0.17769002961500494,
+      "assists90": 0.3998025666337611,
+      "rating": 7.17,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Abdessamad Ezzalzouli",
+      "cached_as": "Abdessamad Ezzalzouli",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Real Betis",
+      "league": null,
+      "minutes": 2125.0,
+      "games": 30,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.24466932297484287,
+      "assists90": 0.20475801477085173,
+      "rating": 7.105,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Yan Diomande",
+      "cached_as": "Yan Diomande",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "RB Leipzig",
+      "league": null,
+      "minutes": 1513.5,
+      "games": 21,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.3814330824554562,
+      "assists90": 0.22706549114695268,
+      "rating": 7.4399999999999995,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Matvei Safonov",
+      "cached_as": "Matvey Safonov",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Paris Saint-Germain",
+      "league": null,
+      "minutes": 1114.0,
+      "games": 12,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.0,
+      "assists90": 0.0,
+      "rating": 7.055,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Gregor Kobel",
+      "cached_as": "Gregor Kobel",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Borussia Dortmund",
+      "league": null,
+      "minutes": 2970.0,
+      "games": 33,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.0,
+      "assists90": 0.0,
+      "rating": 7.015,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Mbappe",
+      "cached_as": "Kylian Mbapp\u00e9",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Real Madrid",
+      "league": null,
+      "minutes": 2759.5,
+      "games": 32,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.9105868264419694,
+      "assists90": 0.13271770834156715,
+      "rating": 7.63,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Neuer",
+      "cached_as": "Manuel Neuer",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "FC Bayern M\u00fcnchen",
+      "league": null,
+      "minutes": 1920.0,
+      "games": 22,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.0,
+      "assists90": 0.0,
+      "rating": 6.93,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Fede Valverde",
+      "cached_as": "Federico Valverde",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Real Madrid",
+      "league": null,
+      "minutes": 2889.0,
+      "games": 34,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.170987495363849,
+      "assists90": 0.19046653611777842,
+      "rating": 7.38,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Dani Olmo",
+      "cached_as": "Dani Olmo",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "FC Barcelona",
+      "league": "LaLiga",
+      "minutes": 2077.0,
+      "games": 33,
+      "seasons_used": [
+        "2025-2026"
+      ],
+      "goals90": 0.3033220991815118,
+      "assists90": 0.3466538276360135,
+      "rating": 7.01,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Nico Paz",
+      "cached_as": "Nico Paz",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Como",
+      "league": null,
+      "minutes": 2790.5,
+      "games": 35,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.2874069327859112,
+      "assists90": 0.22706767535923938,
+      "rating": 7.28,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Marcelo",
+      "cached_as": "Marcelo",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "historical_best",
+      "team": "Real Madrid",
+      "league": "LaLiga",
+      "minutes": 2260.0,
+      "games": 28,
+      "seasons_used": [
+        "2017-2018"
+      ],
+      "goals90": 0.08,
+      "assists90": 0.24,
+      "rating": 6.79,
+      "flags": [
+        "fbref_missing_pass_dribble_stats",
+        "historical_best_not_current",
+        "old_season_2017-2018",
+        "legend_or_season_pick_profile"
+      ],
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "16/17",
+        "diffs": {
+          "minutes": {
+            "cache": 2260.0,
+            "manual": 2274.0
+          },
+          "assists90": {
+            "cache": 0.24,
+            "manual": 0.39
+          },
+          "rating": {
+            "cache": 6.79,
+            "manual": 6.85
+          },
+          "seasons_used": {
+            "cache": [
+              "2017-2018"
+            ],
+            "manual": [
+              "2016-2017"
+            ]
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "raw": "Nunes",
+      "cached_as": "Matheus Nunes",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Manchester City",
+      "league": null,
+      "minutes": 2273.5,
+      "games": 30,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.042460670729809316,
+      "assists90": 0.23905721809613337,
+      "rating": 7.075,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Eliott Anderson",
+      "cached_as": "Elliot Anderson",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Nottingham Forest",
+      "league": null,
+      "minutes": 3038.0,
+      "games": 37,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.08681195927116546,
+      "assists90": 0.1524574734943602,
+      "rating": 7.1850000000000005,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Pulisic",
+      "cached_as": "Christian Puli\u0161i\u0107",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "AC Milan",
+      "league": null,
+      "minutes": 2050.0,
+      "games": 32,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.42233873737181027,
+      "assists90": 0.2744477937562145,
+      "rating": 7.135,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Morgan Rogers",
+      "cached_as": "Morgan Rogers",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Aston Villa",
+      "league": null,
+      "minutes": 3207.0,
+      "games": 37,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.25203903387225995,
+      "assists90": 0.22600769644991398,
+      "rating": 6.915,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Kim Min Jae",
+      "cached_as": "Kim Min-jae",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "FC Bayern M\u00fcnchen",
+      "league": null,
+      "minutes": 1955.0,
+      "games": 26,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.06707912126472422,
+      "assists90": 0.027760641579272053,
+      "rating": 7.1850000000000005,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Hugo Ekitike",
+      "cached_as": "Hugo Ekitik\u00e9",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Liverpool FC",
+      "league": null,
+      "minutes": 2194.0,
+      "games": 30,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.5353115396319903,
+      "assists90": 0.23909064802472257,
+      "rating": 7.095,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Hakan Calhanoglu",
+      "cached_as": "Hakan \u00c7alhano\u011flu",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Inter",
+      "league": null,
+      "minutes": 1805.0,
+      "games": 25,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.36034077488589655,
+      "assists90": 0.24684191955379753,
+      "rating": 7.455,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Rrahmani",
+      "cached_as": "Amir Rrahmani",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "SSC Napoli",
+      "league": null,
+      "minutes": 2603.0,
+      "games": 29,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.06321197886083382,
+      "assists90": 0.06463593658250147,
+      "rating": 7.25,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Olise",
+      "cached_as": "Michael Olise",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "FC Bayern M\u00fcnchen",
+      "league": null,
+      "minutes": 2331.5,
+      "games": 33,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.5215040173431779,
+      "assists90": 0.6567354381658088,
+      "rating": 7.890000000000001,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Kane",
+      "cached_as": "Harry Kane",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "FC Bayern M\u00fcnchen",
+      "league": null,
+      "minutes": 2385.5,
+      "games": 31,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 1.1698454187064347,
+      "assists90": 0.24514910383759314,
+      "rating": 7.785,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Kounde",
+      "cached_as": "Jules Kound\u00e9",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "FC Barcelona",
+      "league": null,
+      "minutes": 2437.5,
+      "games": 31,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.054368212217999146,
+      "assists90": 0.11130110633933896,
+      "rating": 7.035,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Willian Pacho",
+      "cached_as": "Willian Pacho",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Paris Saint-Germain",
+      "league": null,
+      "minutes": 2022.5,
+      "games": 25,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.0,
+      "assists90": 0.02112676056338028,
+      "rating": 7.005,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Casemiro",
+      "cached_as": "Casemiro",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Manchester United",
+      "league": "Premier League",
+      "minutes": 2593.0,
+      "games": 34,
+      "seasons_used": [
+        "2025-2026"
+      ],
+      "goals90": 0.3123794832240648,
+      "assists90": 0.06941766293868107,
+      "rating": 7.22,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Pape Matar Sarr",
+      "cached_as": "Pape Matar Sarr",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Tottenham Hotspur",
+      "league": "Premier League",
+      "minutes": 1913.0,
+      "games": 36,
+      "seasons_used": [
+        "2024-2025"
+      ],
+      "goals90": 0.1411395713538944,
+      "assists90": 0.09409304756926294,
+      "rating": 6.83,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Joao Neves",
+      "cached_as": "Jo\u00e3o Neves",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Paris Saint-Germain",
+      "league": null,
+      "minutes": 1572.0,
+      "games": 25,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.24752307466362394,
+      "assists90": 0.22882610120089927,
+      "rating": 7.28,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Diego Godin",
+      "cached_as": "Diego God\u00edn",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "historical_best",
+      "team": "Inter",
+      "league": "Serie A",
+      "minutes": 1632.0,
+      "games": 23,
+      "seasons_used": [
+        "2019-2020"
+      ],
+      "goals90": 0.0550122249388753,
+      "assists90": 0.0550122249388753,
+      "rating": 7.09,
+      "flags": [
+        "historical_best_not_current",
+        "old_season_2019-2020"
+      ],
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "15/16",
+        "diffs": {
+          "minutes": {
+            "cache": 1632.0,
+            "manual": 2650.0
+          },
+          "goals90": {
+            "cache": 0.0550122249388753,
+            "manual": 0.03
+          },
+          "assists90": {
+            "cache": 0.0550122249388753,
+            "manual": 0.03
+          },
+          "rating": {
+            "cache": 7.09,
+            "manual": 6.67
+          },
+          "seasons_used": {
+            "cache": [
+              "2019-2020"
+            ],
+            "manual": [
+              "2015-2016"
+            ]
+          },
+          "team": {
+            "cache": "Inter",
+            "manual": "Atl\u00e9tico Madrid"
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "raw": "Bruno G",
+      "cached_as": "Bruno Guimar\u00e3es",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Newcastle United",
+      "league": null,
+      "minutes": 2868.5,
+      "games": 33,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.23352520878556243,
+      "assists90": 0.17391660492149363,
+      "rating": 7.335,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Nico O'Reilly",
+      "cached_as": "Nico O'Reilly",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Manchester City",
+      "league": "Premier League",
+      "minutes": 2648.0,
+      "games": 34,
+      "seasons_used": [
+        "2025-2026"
+      ],
+      "goals90": 0.16993957703927492,
+      "assists90": 0.10196374622356495,
+      "rating": 6.87,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Rafael Leao",
+      "cached_as": "Rafael Le\u00e3o",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "AC Milan",
+      "league": null,
+      "minutes": 2094.5,
+      "games": 31,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.3723655017811505,
+      "assists90": 0.22712612577254376,
+      "rating": 7.050000000000001,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Marco Carnesecchi",
+      "cached_as": "Marco Carnesecchi",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Atalanta",
+      "league": null,
+      "minutes": 3195.0,
+      "games": 35,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.0,
+      "assists90": 0.0,
+      "rating": 7.26,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Jeremy Jacquet",
+      "cached_as": "J\u00e9r\u00e9my Jacquet",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Stade Rennais",
+      "league": "Ligue 1",
+      "minutes": 1673.0,
+      "games": 19,
+      "seasons_used": [
+        "2025-2026"
+      ],
+      "goals90": 0.0,
+      "assists90": 0.0,
+      "rating": 6.99,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Dembele",
+      "cached_as": "Ousmane Demb\u00e9l\u00e9",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Paris Saint-Germain",
+      "league": null,
+      "minutes": 1399.0,
+      "games": 25,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.9680836522689994,
+      "assists90": 0.4521401234085761,
+      "rating": 7.585,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Modric",
+      "cached_as": "Luka Modri\u0107",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "AC Milan",
+      "league": null,
+      "minutes": 2325.5,
+      "games": 34,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.08108390815952952,
+      "assists90": 0.19539635404257297,
+      "rating": 7.455,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Raya",
+      "cached_as": "David Raya",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Arsenal",
+      "league": null,
+      "minutes": 3375.0,
+      "games": 37,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.0,
+      "assists90": 0.0,
+      "rating": 6.970000000000001,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Lautaro Martinez",
+      "cached_as": "Lautaro Mart\u00ednez",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Inter",
+      "league": null,
+      "minutes": 2377.5,
+      "games": 30,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.5607856531234666,
+      "assists90": 0.1763534380742551,
+      "rating": 7.145,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Marcus Thuram",
+      "cached_as": "Marcus Thuram",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Inter",
+      "league": null,
+      "minutes": 2105.5,
+      "games": 30,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.5799538406314362,
+      "assists90": 0.219468553077132,
+      "rating": 7.17,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Giovanni Lo Celso",
+      "cached_as": "Giovani Lo Celso",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Real Betis",
+      "league": "LaLiga",
+      "minutes": 1455.0,
+      "games": 25,
+      "seasons_used": [
+        "2024-2025"
+      ],
+      "goals90": 0.4948453608247423,
+      "assists90": 0.18556701030927836,
+      "rating": 7.41,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Laporte",
+      "cached_as": "Aymeric Laporte",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Athletic Club",
+      "league": "LaLiga",
+      "minutes": 2060.0,
+      "games": 25,
+      "seasons_used": [
+        "2025-2026"
+      ],
+      "goals90": 0.0,
+      "assists90": 0.043689320388349516,
+      "rating": 6.88,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Musiala",
+      "cached_as": "Jamal Musiala",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "FC Bayern M\u00fcnchen",
+      "league": "Bundesliga",
+      "minutes": 1804.0,
+      "games": 25,
+      "seasons_used": [
+        "2024-2025"
+      ],
+      "goals90": 0.5986696230598669,
+      "assists90": 0.09977827050997783,
+      "rating": 7.58,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Caicedo",
+      "cached_as": "Mois\u00e9s Caicedo",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Chelsea",
+      "league": null,
+      "minutes": 3079.0,
+      "games": 35,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.06158869154418052,
+      "assists90": 0.042877597221123345,
+      "rating": 7.195,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Eric Garcia",
+      "cached_as": "Eric Garc\u00eda",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "FC Barcelona",
+      "league": null,
+      "minutes": 2152.5,
+      "games": 31,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.07362637362637363,
+      "assists90": 0.11868131868131868,
+      "rating": 7.050000000000001,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Karim Adeyemi",
+      "cached_as": "Karim Adeyemi",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Borussia Dortmund",
+      "league": null,
+      "minutes": 1330.5,
+      "games": 26,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.47710158291071153,
+      "assists90": 0.33487013984939296,
+      "rating": 6.970000000000001,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Alphonso Davies",
+      "cached_as": "Alphonso Davies",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "FC Bayern M\u00fcnchen",
+      "league": "Bundesliga",
+      "minutes": 1561.0,
+      "games": 19,
+      "seasons_used": [
+        "2024-2025"
+      ],
+      "goals90": 0.057655349135169766,
+      "assists90": 0.11531069827033953,
+      "rating": 7.24,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Sandro Tonali",
+      "cached_as": "Sandro Tonali",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Newcastle United",
+      "league": null,
+      "minutes": 2587.0,
+      "games": 35,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.06841505131128849,
+      "assists90": 0.06959879580900641,
+      "rating": 6.99,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Reece James",
+      "cached_as": "Reece James",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Chelsea",
+      "league": "Premier League",
+      "minutes": 1961.0,
+      "games": 29,
+      "seasons_used": [
+        "2025-2026"
+      ],
+      "goals90": 0.09178990311065782,
+      "assists90": 0.18357980622131564,
+      "rating": 7.18,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Dean Huijsen",
+      "cached_as": "Dean Huijsen",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Real Madrid",
+      "league": null,
+      "minutes": 2229.5,
+      "games": 30,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.09992168013144118,
+      "assists90": 0.08134199392169716,
+      "rating": 7.255000000000001,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Ruiz",
+      "cached_as": "Fabi\u00e1n Ruiz",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Paris Saint-Germain",
+      "league": null,
+      "minutes": 1529.0,
+      "games": 25,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.13317087886581253,
+      "assists90": 0.2760738731615393,
+      "rating": 7.18,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Khvicha",
+      "cached_as": "Khvicha Kvaratskhelia",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Paris Saint-Germain",
+      "league": null,
+      "minutes": 1335.0,
+      "games": 22,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.4323046762493886,
+      "assists90": 0.23510768774558732,
+      "rating": 7.225,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Rodri",
+      "cached_as": "Rodri",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Manchester City",
+      "league": "Premier League",
+      "minutes": 1513.0,
+      "games": 21,
+      "seasons_used": [
+        "2025-2026"
+      ],
+      "goals90": 0.059484467944481166,
+      "assists90": 0.0,
+      "rating": 7.43,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Julian Alvarez",
+      "cached_as": "Juli\u00e1n Alvarez",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Atl\u00e9tico Madrid",
+      "league": null,
+      "minutes": 2210.0,
+      "games": 33,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.4930869975921003,
+      "assists90": 0.166122529773016,
+      "rating": 7.1,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Emiliano Martinez",
+      "cached_as": "Emiliano Mart\u00ednez",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Aston Villa",
+      "league": null,
+      "minutes": 3015.5,
+      "games": 34,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.0,
+      "assists90": 0.015873015873015872,
+      "rating": 7.015000000000001,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Ruben Dias",
+      "cached_as": "R\u00faben Dias",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Manchester City",
+      "league": null,
+      "minutes": 2211.0,
+      "games": 26,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.041879944160074456,
+      "assists90": 0.0,
+      "rating": 7.165,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Gvardiol",
+      "cached_as": "Jo\u0161ko Gvardiol",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Manchester City",
+      "league": null,
+      "minutes": 2326.5,
+      "games": 27,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.13412066465039535,
+      "assists90": 0.06550218340611354,
+      "rating": 7.18,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Angel Di Maria",
+      "cached_as": "\u00c1ngel Di Mar\u00eda",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "historical_best",
+      "team": "PSG",
+      "league": "Ligue 1",
+      "minutes": 2122.0,
+      "games": 29,
+      "seasons_used": [
+        "2015-2016"
+      ],
+      "goals90": 0.42,
+      "assists90": 0.76,
+      "rating": 7.16,
+      "flags": [
+        "fbref_missing_pass_dribble_stats",
+        "historical_best_not_current",
+        "old_season_2015-2016"
+      ],
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "13/14",
+        "diffs": {
+          "minutes": {
+            "cache": 2122.0,
+            "manual": 2357.0
+          },
+          "goals90": {
+            "cache": 0.42,
+            "manual": 0.15
+          },
+          "assists90": {
+            "cache": 0.76,
+            "manual": 0.65
+          },
+          "rating": {
+            "cache": 7.16,
+            "manual": 6.91
+          },
+          "seasons_used": {
+            "cache": [
+              "2015-2016"
+            ],
+            "manual": [
+              "2013-2014"
+            ]
+          },
+          "team": {
+            "cache": "PSG",
+            "manual": "Real Madrid"
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "raw": "Bellingham",
+      "cached_as": "Jude Bellingham",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Real Madrid",
+      "league": null,
+      "minutes": 2205.5,
+      "games": 29,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.3032348057874109,
+      "assists90": 0.23824314505046854,
+      "rating": 7.355,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Timber",
+      "cached_as": "Jurri\u00ebn Timber",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Arsenal",
+      "league": null,
+      "minutes": 2439.5,
+      "games": 30,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.07352474115479896,
+      "assists90": 0.14731415020432362,
+      "rating": 6.9350000000000005,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Calafiori",
+      "cached_as": "Riccardo Calafiori",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Arsenal",
+      "league": "Premier League",
+      "minutes": 1707.0,
+      "games": 26,
+      "seasons_used": [
+        "2025-2026"
+      ],
+      "goals90": 0.05272407732864675,
+      "assists90": 0.1054481546572935,
+      "rating": 6.87,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Cherki",
+      "cached_as": "Rayan Cherki",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Manchester City",
+      "league": null,
+      "minutes": 1923.5,
+      "games": 31,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.2756875899043247,
+      "assists90": 0.5421139143793161,
+      "rating": 7.404999999999999,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Anthony Gordon",
+      "cached_as": "Anthony Gordon",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Newcastle United",
+      "league": null,
+      "minutes": 2130.5,
+      "games": 30,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.2590712195332858,
+      "assists90": 0.14159438905337568,
+      "rating": 7.05,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "John Stones",
+      "cached_as": "John Stones",
+      "tier": "D",
+      "data_source": "fbref",
+      "stat_profile": "historical_best",
+      "team": "Manchester City",
+      "league": "Premier League",
+      "minutes": 548.0,
+      "games": 11,
+      "seasons_used": [
+        "2024-2025"
+      ],
+      "goals90": 0.33,
+      "assists90": 0.0,
+      "rating": 6.79,
+      "flags": [
+        "low_minutes_548",
+        "fbref_missing_pass_dribble_stats",
+        "historical_best_not_current"
+      ],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Benjamin Sesko",
+      "cached_as": "Benjamin \u0160e\u0161ko",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Manchester United",
+      "league": null,
+      "minutes": 2021.0,
+      "games": 31,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.5457934236153726,
+      "assists90": 0.12100029348650534,
+      "rating": 6.84,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Trent",
+      "cached_as": "Trent Alexander-Arnold",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Liverpool FC",
+      "league": "Premier League",
+      "minutes": 2377.0,
+      "games": 33,
+      "seasons_used": [
+        "2024-2025"
+      ],
+      "goals90": 0.11358855700462768,
+      "assists90": 0.22717711400925536,
+      "rating": 7.25,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Alisson",
+      "cached_as": "Alisson",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Liverpool FC",
+      "league": null,
+      "minutes": 2424.5,
+      "games": 27,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.0,
+      "assists90": 0.0,
+      "rating": 6.949999999999999,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Hakimi",
+      "cached_as": "Achraf Hakimi",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Paris Saint-Germain",
+      "league": null,
+      "minutes": 1720.5,
+      "games": 21,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.1525849119982761,
+      "assists90": 0.19612627629435736,
+      "rating": 7.265,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "El Kaabi",
+      "cached_as": "Ayoub El Kaabi",
+      "tier": "B",
+      "data_source": "fbref",
+      "stat_profile": "seeded_fbref",
+      "team": "Olympiacos",
+      "league": "Super League Greece",
+      "minutes": 1964,
+      "games": 31,
+      "seasons_used": [
+        "2023-2024"
+      ],
+      "goals90": 0.78,
+      "assists90": 0.09,
+      "rating": 7.2,
+      "flags": [
+        "non_top5_league_Super_League_Greece",
+        "old_season_2023-2024"
+      ],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Mikel Merino",
+      "cached_as": "Mikel Merino",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Arsenal",
+      "league": "Premier League",
+      "minutes": 1597.0,
+      "games": 28,
+      "seasons_used": [
+        "2024-2025"
+      ],
+      "goals90": 0.3944896681277395,
+      "assists90": 0.11271133375078271,
+      "rating": 7.03,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Gyokeres",
+      "cached_as": "Viktor Gy\u00f6keres",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Arsenal",
+      "league": "Premier League",
+      "minutes": 2254.0,
+      "games": 36,
+      "seasons_used": [
+        "2025-2026"
+      ],
+      "goals90": 0.5590062111801242,
+      "assists90": 0.03992901508429459,
+      "rating": 6.61,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Alexis Sanchez",
+      "cached_as": "Alexis S\u00e1nchez",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Sevilla",
+      "league": "LaLiga",
+      "minutes": 1305.0,
+      "games": 28,
+      "seasons_used": [
+        "2025-2026"
+      ],
+      "goals90": 0.27586206896551724,
+      "assists90": 0.13793103448275862,
+      "rating": 6.61,
+      "flags": [],
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "16/17",
+        "diffs": {
+          "minutes": {
+            "cache": 1305.0,
+            "manual": 3233.0
+          },
+          "goals90": {
+            "cache": 0.27586206896551724,
+            "manual": 0.67
+          },
+          "assists90": {
+            "cache": 0.13793103448275862,
+            "manual": 0.28
+          },
+          "rating": {
+            "cache": 6.61,
+            "manual": 7.22
+          },
+          "seasons_used": {
+            "cache": [
+              "2025-2026"
+            ],
+            "manual": [
+              "2016-2017"
+            ]
+          },
+          "team": {
+            "cache": "Sevilla",
+            "manual": "Arsenal"
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "raw": "Tielemans",
+      "cached_as": "Youri Tielemans",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Aston Villa",
+      "league": null,
+      "minutes": 2447.0,
+      "games": 30,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.04452506596306069,
+      "assists90": 0.20056206762666184,
+      "rating": 7.29,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Eze",
+      "cached_as": "Eberechi Eze",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Arsenal",
+      "league": null,
+      "minutes": 2250.0,
+      "games": 33,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.304251012145749,
+      "assists90": 0.18582995951417006,
+      "rating": 7.125,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Jonathan Tah",
+      "cached_as": "Jonathan Tah",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "FC Bayern M\u00fcnchen",
+      "league": null,
+      "minutes": 2497.0,
+      "games": 30,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.0899209486166008,
+      "assists90": 0.022233201581027668,
+      "rating": 7.175000000000001,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Eder Militao",
+      "cached_as": "\u00c9der Milit\u00e3o",
+      "tier": "D",
+      "data_source": "fbref",
+      "stat_profile": "historical_best",
+      "team": "Real Madrid",
+      "league": "LaLiga",
+      "minutes": 496.0,
+      "games": 10,
+      "seasons_used": [
+        "2023-2024"
+      ],
+      "goals90": 0.0,
+      "assists90": 0.0,
+      "rating": 6.54,
+      "flags": [
+        "low_minutes_496",
+        "fbref_missing_pass_dribble_stats",
+        "historical_best_not_current",
+        "old_season_2023-2024"
+      ],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Antonee Robinson",
+      "cached_as": "Antonee Robinson",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Fulham",
+      "league": null,
+      "minutes": 2329.5,
+      "games": 29,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.030160857908847184,
+      "assists90": 0.1420903062835491,
+      "rating": 6.994999999999999,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Nick Pope",
+      "cached_as": "Nick Pope",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Newcastle United",
+      "league": null,
+      "minutes": 2468.5,
+      "games": 27,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.0,
+      "assists90": 0.0,
+      "rating": 6.995,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "KDB",
+      "cached_as": "Kevin De Bruyne",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Manchester City",
+      "league": "Premier League",
+      "minutes": 1715.0,
+      "games": 28,
+      "seasons_used": [
+        "2024-2025"
+      ],
+      "goals90": 0.2099125364431487,
+      "assists90": 0.3673469387755102,
+      "rating": 7.4,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Marquinhos",
+      "cached_as": "Marquinhos",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Paris Saint-Germain",
+      "league": null,
+      "minutes": 1387.0,
+      "games": 18,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.05217391304347826,
+      "assists90": 0.0,
+      "rating": 7.279999999999999,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Saliba",
+      "cached_as": "William Saliba",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Arsenal",
+      "league": null,
+      "minutes": 2828.0,
+      "games": 33,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.046803940788824244,
+      "assists90": 0.0,
+      "rating": 7.029999999999999,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Luis Suarez",
+      "cached_as": "Luis Su\u00e1rez",
+      "tier": "C",
+      "data_source": "manual_profiles",
+      "stat_profile": "single_season",
+      "team": "Barcelona",
+      "league": "LaLiga",
+      "minutes": 3150.0,
+      "games": 35,
+      "seasons_used": [
+        "2015-2016"
+      ],
+      "goals90": 1.14,
+      "assists90": 0.49,
+      "rating": 7.62,
+      "flags": [
+        "manual_profile_in_cache",
+        "old_season_2015-2016"
+      ],
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "15/16",
+        "diffs": {},
+        "aligned": true
+      }
+    },
+    {
+      "raw": "Dumfries",
+      "cached_as": "Denzel Dumfries",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Inter",
+      "league": "Serie A",
+      "minutes": 1951.0,
+      "games": 29,
+      "seasons_used": [
+        "2024-2025"
+      ],
+      "goals90": 0.3229113275243465,
+      "assists90": 0.09226037929267042,
+      "rating": 7.03,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Kenan Yildiz",
+      "cached_as": "Kenan Y\u0131ld\u0131z",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Juventus",
+      "league": null,
+      "minutes": 2623.0,
+      "games": 35,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.28937632135306557,
+      "assists90": 0.16988825128360013,
+      "rating": 7.32,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Tijjiani Reijnders",
+      "cached_as": "Tijjani Reijnders",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Manchester City",
+      "league": null,
+      "minutes": 2386.0,
+      "games": 32,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.28087328287075974,
+      "assists90": 0.1123493131483039,
+      "rating": 7.04,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Pavlovic",
+      "cached_as": "Aleksandar Pavlovi\u0107",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "FC Bayern M\u00fcnchen",
+      "league": null,
+      "minutes": 1458.0,
+      "games": 22,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.12337234683125094,
+      "assists90": 0.030821917808219176,
+      "rating": 7.16,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Semenyo",
+      "cached_as": "Antoine Semenyo",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Manchester City",
+      "league": null,
+      "minutes": 3204.5,
+      "games": 37,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.39331616157681526,
+      "assists90": 0.12636530071673419,
+      "rating": 7.105,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Courtois",
+      "cached_as": "Thibaut Courtois",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Real Madrid",
+      "league": null,
+      "minutes": 2790.0,
+      "games": 31,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.0,
+      "assists90": 0.0,
+      "rating": 7.03,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Calvert-Lewin",
+      "cached_as": "Dominic Calvert-Lewin",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Leeds United",
+      "league": null,
+      "minutes": 2177.5,
+      "games": 30,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.31398077850694966,
+      "assists90": 0.0441320129872762,
+      "rating": 6.6850000000000005,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Kingsley Coman",
+      "cached_as": "Kingsley Coman",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "FC Bayern M\u00fcnchen",
+      "league": "Bundesliga",
+      "minutes": 1284.0,
+      "games": 28,
+      "seasons_used": [
+        "2024-2025"
+      ],
+      "goals90": 0.35046728971962615,
+      "assists90": 0.2803738317757009,
+      "rating": 7.12,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Alejandro Balde",
+      "cached_as": "Alejandro Balde",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "FC Barcelona",
+      "league": null,
+      "minutes": 2083.0,
+      "games": 30,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.0,
+      "assists90": 0.12655964507423156,
+      "rating": 6.8149999999999995,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Marcus Rashford",
+      "cached_as": "Marcus Rashford",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "FC Barcelona",
+      "league": null,
+      "minutes": 1594.0,
+      "games": 28,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.3936374304750558,
+      "assists90": 0.2734797033124853,
+      "rating": 6.9,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Vinicius",
+      "cached_as": "Vin\u00edcius J\u00fanior",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Real Madrid",
+      "league": null,
+      "minutes": 2541.0,
+      "games": 33,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.4741849349712399,
+      "assists90": 0.23914978376025814,
+      "rating": 7.4350000000000005,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Bastoni",
+      "cached_as": "Alessandro Bastoni",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Inter",
+      "league": null,
+      "minutes": 2334.5,
+      "games": 30,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.03860393416357683,
+      "assists90": 0.17301077797662137,
+      "rating": 7.24,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Gabriel Magalhaes",
+      "cached_as": "Gabriel Magalh\u00e3es",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Arsenal",
+      "league": null,
+      "minutes": 2558.0,
+      "games": 30,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.10615551677152955,
+      "assists90": 0.08445823659741644,
+      "rating": 7.255,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Roberto Firmino",
+      "cached_as": "Roberto Firmino",
+      "tier": "C",
+      "data_source": "manual_profiles",
+      "stat_profile": "single_season",
+      "team": "Liverpool",
+      "league": "Premier League",
+      "minutes": 2814.0,
+      "games": 37,
+      "seasons_used": [
+        "2017-2018"
+      ],
+      "goals90": 0.49,
+      "assists90": 0.23,
+      "rating": 7.11,
+      "flags": [
+        "manual_profile_in_cache",
+        "old_season_2017-2018",
+        "legend_or_season_pick_profile"
+      ],
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "17/18",
+        "diffs": {},
+        "aligned": true
+      }
+    },
+    {
+      "raw": "Tchouameni",
+      "cached_as": "Aur\u00e9lien Tchouam\u00e9ni",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Real Madrid",
+      "league": null,
+      "minutes": 2657.0,
+      "games": 32,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.017162471395881007,
+      "assists90": 0.0,
+      "rating": 7.165,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Salah",
+      "cached_as": "Mohamed Salah",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Liverpool FC",
+      "league": null,
+      "minutes": 2762.5,
+      "games": 32,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.5330857112606971,
+      "assists90": 0.3865059067004366,
+      "rating": 7.345000000000001,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Nathaniel Brown",
+      "cached_as": "Nathaniel Brown",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Eintracht Frankfurt",
+      "league": null,
+      "minutes": 2305.5,
+      "games": 29,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.1368445142565874,
+      "assists90": 0.205968938219721,
+      "rating": 7.005,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Daniel Munoz",
+      "cached_as": "Daniel Mu\u00f1oz",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Crystal Palace",
+      "league": null,
+      "minutes": 2818.0,
+      "games": 33,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.13058220991159752,
+      "assists90": 0.12577457886889765,
+      "rating": 7.01,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Morgan Gibbs-White",
+      "cached_as": "Morgan Gibbs-White",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Nottingham Forest",
+      "league": null,
+      "minutes": 2966.0,
+      "games": 35,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.32866476308107406,
+      "assists90": 0.18544691343395142,
+      "rating": 7.075,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Mateusz Fernandes",
+      "cached_as": "Mateus Fernandes",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "West Ham United",
+      "league": null,
+      "minutes": 2971.5,
+      "games": 36,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.07547533401849948,
+      "assists90": 0.1211887632750942,
+      "rating": 7.07,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Matz Sels",
+      "cached_as": "Matz Sels",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Nottingham Forest",
+      "league": null,
+      "minutes": 3043.5,
+      "games": 34,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.0,
+      "assists90": 0.0,
+      "rating": 6.955,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Micky Van de Ven",
+      "cached_as": "Micky van de Ven",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Tottenham Hotspur",
+      "league": "Premier League",
+      "minutes": 3043.0,
+      "games": 35,
+      "seasons_used": [
+        "2025-2026"
+      ],
+      "goals90": 0.11830430496220835,
+      "assists90": 0.02957607624055209,
+      "rating": 6.73,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Alexis Mac Allister",
+      "cached_as": "Alexis Mac Allister",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Liverpool FC",
+      "league": null,
+      "minutes": 2641.0,
+      "games": 36,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.11995095877741092,
+      "assists90": 0.15359581859049504,
+      "rating": 6.975,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Joao Pedro",
+      "cached_as": "Jo\u00e3o Pedro",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Chelsea",
+      "league": null,
+      "minutes": 2313.5,
+      "games": 31,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.4828455618018192,
+      "assists90": 0.22239245301228075,
+      "rating": 7.125,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Messi",
+      "cached_as": "Lionel Messi",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "seeded_sofascore",
+      "team": "Inter Miami CF",
+      "league": "MLS",
+      "minutes": 2358,
+      "games": 27,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.72,
+      "assists90": 0.48,
+      "rating": 7.85,
+      "flags": [
+        "legend_or_season_pick_profile"
+      ],
+      "manual_profile_match": {
+        "profile_type": "prime",
+        "season_suffix": "20/21",
+        "diffs": {
+          "minutes": {
+            "cache": 2358,
+            "manual": 3017.0
+          },
+          "goals90": {
+            "cache": 0.72,
+            "manual": 0.89
+          },
+          "assists90": {
+            "cache": 0.48,
+            "manual": 0.27
+          },
+          "rating": {
+            "cache": 7.85,
+            "manual": 7.32
+          },
+          "seasons_used": {
+            "cache": [
+              "2024-2025",
+              "2025-2026"
+            ],
+            "manual": [
+              "2020-2021"
+            ]
+          },
+          "team": {
+            "cache": "Inter Miami CF",
+            "manual": "Barcelona"
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "raw": "Bernardo",
+      "cached_as": "Bernardo",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "TSG Hoffenheim",
+      "league": null,
+      "minutes": 2004.5,
+      "games": 24,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.0,
+      "assists90": 0.0,
+      "rating": 6.955,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "VVD",
+      "cached_as": "Virgil van Dijk",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Liverpool FC",
+      "league": null,
+      "minutes": 3375.0,
+      "games": 37,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.11948790896159317,
+      "assists90": 0.013513513513513514,
+      "rating": 7.27,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Neymar",
+      "cached_as": "Neymar",
+      "tier": "C",
+      "data_source": "manual_profiles",
+      "stat_profile": "single_season",
+      "team": "Barcelona",
+      "league": "LaLiga",
+      "minutes": 2562.0,
+      "games": 33,
+      "seasons_used": [
+        "2014-2015"
+      ],
+      "goals90": 0.77,
+      "assists90": 0.25,
+      "rating": 7.19,
+      "flags": [
+        "manual_profile_in_cache",
+        "old_season_2014-2015",
+        "legend_or_season_pick_profile"
+      ],
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "14/15",
+        "diffs": {
+          "minutes": {
+            "cache": 2562.0,
+            "manual": 2573.0
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "raw": "Marcos Llorente",
+      "cached_as": "Marcos Llorente",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Atl\u00e9tico Madrid",
+      "league": null,
+      "minutes": 2348.5,
+      "games": 31,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.035813768404297654,
+      "assists90": 0.15404511922617772,
+      "rating": 7.05,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Szoboszalai",
+      "cached_as": "Dominik Szoboszlai",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Liverpool FC",
+      "league": null,
+      "minutes": 2864.5,
+      "games": 36,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.19168684122867544,
+      "assists90": 0.2056058019462752,
+      "rating": 7.16,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Christian Romero",
+      "cached_as": "Cristian Romero",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Tottenham Hotspur",
+      "league": null,
+      "minutes": 1646.0,
+      "games": 20,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.12784398699891658,
+      "assists90": 0.02403846153846154,
+      "rating": 7.09,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Lewandowski",
+      "cached_as": "Robert Lewandowski",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "FC Barcelona",
+      "league": null,
+      "minutes": 2168.5,
+      "games": 32,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.8336238911502847,
+      "assists90": 0.08791738968262977,
+      "rating": 7.015,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Warren Zaire Emery",
+      "cached_as": "Warren Za\u00efre-Emery",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Paris Saint-Germain",
+      "league": null,
+      "minutes": 2252.5,
+      "games": 30,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.076964476008611,
+      "assists90": 0.11723918438575034,
+      "rating": 6.995,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Unai Simon",
+      "cached_as": "Unai Sim\u00f3n",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Athletic Club",
+      "league": null,
+      "minutes": 2610.0,
+      "games": 29,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.0,
+      "assists90": 0.0,
+      "rating": 6.975,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Alex Grimaldo",
+      "cached_as": "Alejandro Grimaldo",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Bayer 04 Leverkusen",
+      "league": null,
+      "minutes": 2583.5,
+      "games": 30,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.17668295824331592,
+      "assists90": 0.2618134917279924,
+      "rating": 7.305,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Granit Xhaka",
+      "cached_as": "Granit Xhaka",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Sunderland",
+      "league": null,
+      "minutes": 2897.0,
+      "games": 33,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.04663230215572745,
+      "assists90": 0.20196607166836678,
+      "rating": 7.37,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Martin Zubimendi",
+      "cached_as": "Mart\u00edn Zubimendi",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Arsenal",
+      "league": null,
+      "minutes": 2981.5,
+      "games": 37,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.10535988341495892,
+      "assists90": 0.03018743920831251,
+      "rating": 7.029999999999999,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Rudiger",
+      "cached_as": "Antonio R\u00fcdiger",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Real Madrid",
+      "league": null,
+      "minutes": 1895.0,
+      "games": 23,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.030160857908847184,
+      "assists90": 0.0,
+      "rating": 6.965,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Pedri",
+      "cached_as": "Pedri",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "FC Barcelona",
+      "league": null,
+      "minutes": 2499.5,
+      "games": 33,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.10495542422314869,
+      "assists90": 0.2700172513278205,
+      "rating": 7.574999999999999,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Raphinha",
+      "cached_as": "Raphinha",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "FC Barcelona",
+      "league": "LaLiga",
+      "minutes": 2844.0,
+      "games": 36,
+      "seasons_used": [
+        "2024-2025"
+      ],
+      "goals90": 0.569620253164557,
+      "assists90": 0.2848101265822785,
+      "rating": 7.8,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Dani Alves",
+      "cached_as": "Dani Alves",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "historical_best",
+      "team": "Juventus",
+      "league": "Serie A",
+      "minutes": 1360.0,
+      "games": 19,
+      "seasons_used": [
+        "2016-2017"
+      ],
+      "goals90": 0.133630289532294,
+      "assists90": 0.133630289532294,
+      "rating": 7.2578947368421,
+      "flags": [
+        "historical_best_not_current",
+        "old_season_2016-2017",
+        "legend_or_season_pick_profile"
+      ],
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "17/18",
+        "diffs": {
+          "minutes": {
+            "cache": 1360.0,
+            "manual": 2064.0
+          },
+          "goals90": {
+            "cache": 0.133630289532294,
+            "manual": 0.04
+          },
+          "assists90": {
+            "cache": 0.133630289532294,
+            "manual": 0.31
+          },
+          "rating": {
+            "cache": 7.2578947368421,
+            "manual": 6.86
+          },
+          "seasons_used": {
+            "cache": [
+              "2016-2017"
+            ],
+            "manual": [
+              "2017-2018"
+            ]
+          },
+          "team": {
+            "cache": "Juventus",
+            "manual": "PSG"
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "raw": "Kimmich",
+      "cached_as": "Joshua Kimmich",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "FC Bayern M\u00fcnchen",
+      "league": null,
+      "minutes": 2563.5,
+      "games": 31,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.08689201930009427,
+      "assists90": 0.2527314070212412,
+      "rating": 7.8100000000000005,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Federico DiMarco",
+      "cached_as": "Federico Dimarco",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Inter",
+      "league": null,
+      "minutes": 2466.5,
+      "games": 34,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.1972477840515422,
+      "assists90": 0.4242331783032166,
+      "rating": 7.335,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Mbuemo",
+      "cached_as": "Bryan Mbeumo",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Manchester United",
+      "league": null,
+      "minutes": 3018.0,
+      "games": 35,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.4524024058413211,
+      "assists90": 0.14374717550497362,
+      "rating": 7.154999999999999,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Endrick",
+      "cached_as": "Endrick",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Olympique Lyonnais",
+      "league": null,
+      "minutes": 813.0,
+      "games": 19,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.29551052486590723,
+      "assists90": 0.25777414075286414,
+      "rating": 6.875,
+      "flags": [
+        "low_minutes_813"
+      ],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Jamie Vardy",
+      "cached_as": "Jamie Vardy",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Cremonese",
+      "league": null,
+      "minutes": 2473.0,
+      "games": 32,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.2921575258706741,
+      "assists90": 0.10611736687433643,
+      "rating": 6.785,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Yan Sommer",
+      "cached_as": "Yann Sommer",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Inter",
+      "league": null,
+      "minutes": 2965.5,
+      "games": 33,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.0,
+      "assists90": 0.0,
+      "rating": 7.005,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Sean Lammens",
+      "cached_as": "Senne Lammens",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Manchester United",
+      "league": "Premier League",
+      "minutes": 2880.0,
+      "games": 32,
+      "seasons_used": [
+        "2025-2026"
+      ],
+      "goals90": 0.0,
+      "assists90": 0.0,
+      "rating": 7.01,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Vitinha",
+      "cached_as": "Vitinha (Paris Saint-Germain)",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Paris Saint-Germain",
+      "league": null,
+      "minutes": 2078.0,
+      "games": 29,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.1317815179201318,
+      "assists90": 0.1706278735981706,
+      "rating": 7.525,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Nuno",
+      "cached_as": "Nuno Mendes",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Paris Saint-Germain",
+      "league": null,
+      "minutes": 1467.0,
+      "games": 22,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.17062286000076943,
+      "assists90": 0.26007001885122916,
+      "rating": 7.265000000000001,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Kante",
+      "cached_as": "N'Golo Kant\u00e9",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "seeded_sofascore",
+      "team": "Al-Ittihad",
+      "league": "Saudi Pro League",
+      "minutes": 2150,
+      "games": 28,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.08,
+      "assists90": 0.12,
+      "rating": 7.05,
+      "flags": [],
+      "manual_profile_match": {
+        "profile_type": "prime",
+        "season_suffix": "16/17",
+        "diffs": {
+          "minutes": {
+            "cache": 2150,
+            "manual": 3141.0
+          },
+          "goals90": {
+            "cache": 0.08,
+            "manual": 0.03
+          },
+          "assists90": {
+            "cache": 0.12,
+            "manual": 0.03
+          },
+          "rating": {
+            "cache": 7.05,
+            "manual": 6.73
+          },
+          "seasons_used": {
+            "cache": [
+              "2024-2025",
+              "2025-2026"
+            ],
+            "manual": [
+              "2016-2017"
+            ]
+          },
+          "team": {
+            "cache": "Al-Ittihad",
+            "manual": "Chelsea"
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "raw": "Guirassy",
+      "cached_as": "Serhou Guirassy",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Borussia Dortmund",
+      "league": null,
+      "minutes": 2474.5,
+      "games": 31,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.6891309986265275,
+      "assists90": 0.05376732314330683,
+      "rating": 7.045,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Desire Doue",
+      "cached_as": "D\u00e9sir\u00e9 Dou\u00e9",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Paris Saint-Germain",
+      "league": null,
+      "minutes": 1545.0,
+      "games": 27,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.3880102275163059,
+      "assists90": 0.2884527053924121,
+      "rating": 7.225,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Nico Williams",
+      "cached_as": "Nico Williams",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Athletic Club",
+      "league": null,
+      "minutes": 1842.5,
+      "games": 27,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.27266003407082245,
+      "assists90": 0.19263632334171754,
+      "rating": 6.955,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Edinson Cavani",
+      "cached_as": "Edinson Cavani",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "historical_best",
+      "team": "PSG",
+      "league": "Ligue 1",
+      "minutes": 2581.0,
+      "games": 32,
+      "seasons_used": [
+        "2017-2018"
+      ],
+      "goals90": 0.98,
+      "assists90": 0.21,
+      "rating": 7.35,
+      "flags": [
+        "fbref_missing_pass_dribble_stats",
+        "historical_best_not_current",
+        "old_season_2017-2018",
+        "legend_or_season_pick_profile"
+      ],
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "16/17",
+        "diffs": {
+          "minutes": {
+            "cache": 2581.0,
+            "manual": 2983.0
+          },
+          "goals90": {
+            "cache": 0.98,
+            "manual": 1.06
+          },
+          "assists90": {
+            "cache": 0.21,
+            "manual": 0.12
+          },
+          "rating": {
+            "cache": 7.35,
+            "manual": 7.39
+          },
+          "seasons_used": {
+            "cache": [
+              "2017-2018"
+            ],
+            "manual": [
+              "2016-2017"
+            ]
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "raw": "Schlotterbeck",
+      "cached_as": "Nico Schlotterbeck",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Borussia Dortmund",
+      "league": null,
+      "minutes": 2252.0,
+      "games": 25,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.08928571428571429,
+      "assists90": 0.10858294930875576,
+      "rating": 7.375,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Konate",
+      "cached_as": "Ibrahima Konat\u00e9",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Liverpool FC",
+      "league": null,
+      "minutes": 2832.5,
+      "games": 33,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.03205998868138087,
+      "assists90": 0.03508771929824561,
+      "rating": 7.07,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Joan Garcia",
+      "cached_as": "Joan Garc\u00eda",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "FC Barcelona",
+      "league": null,
+      "minutes": 3060.0,
+      "games": 34,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.0,
+      "assists90": 0.0,
+      "rating": 7.365,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Guela Doue",
+      "cached_as": "Gu\u00e9la Dou\u00e9",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "RC Strasbourg",
+      "league": null,
+      "minutes": 2389.5,
+      "games": 28,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.06019427075116168,
+      "assists90": 0.1640143291901566,
+      "rating": 6.945,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Frenkie de Jong",
+      "cached_as": "Frenkie de Jong",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "FC Barcelona",
+      "league": "LaLiga",
+      "minutes": 1637.0,
+      "games": 25,
+      "seasons_used": [
+        "2025-2026"
+      ],
+      "goals90": 0.05497861942577886,
+      "assists90": 0.2748930971288943,
+      "rating": 7.26,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Ademola Lookman",
+      "cached_as": "Ademola Lookman",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Atalanta",
+      "league": null,
+      "minutes": 1530.0,
+      "games": 21,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.41120008693670645,
+      "assists90": 0.09942554131683606,
+      "rating": 7.035,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Fermin Lopez",
+      "cached_as": "Ferm\u00edn L\u00f3pez",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "FC Barcelona",
+      "league": "LaLiga",
+      "minutes": 1797.0,
+      "games": 30,
+      "seasons_used": [
+        "2025-2026"
+      ],
+      "goals90": 0.3005008347245409,
+      "assists90": 0.4507512520868113,
+      "rating": 7.06,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Porro",
+      "cached_as": "Pedro Porro",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Tottenham Hotspur",
+      "league": null,
+      "minutes": 2710.0,
+      "games": 33,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.050407859160596896,
+      "assists90": 0.1351406611129558,
+      "rating": 7.045,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "De Ligt",
+      "cached_as": "Matthijs de Ligt",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Manchester United",
+      "league": "Premier League",
+      "minutes": 2128.0,
+      "games": 29,
+      "seasons_used": [
+        "2024-2025"
+      ],
+      "goals90": 0.08458646616541353,
+      "assists90": 0.0,
+      "rating": 6.91,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Alaba",
+      "cached_as": "Alaba",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "historical_best",
+      "team": "Bayern Munich",
+      "league": "Bundesliga",
+      "minutes": 2506.0,
+      "games": 32,
+      "seasons_used": [
+        "2016-2017"
+      ],
+      "goals90": 0.14,
+      "assists90": 0.14,
+      "rating": 6.75,
+      "flags": [
+        "fbref_missing_pass_dribble_stats",
+        "historical_best_not_current",
+        "old_season_2016-2017"
+      ],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Brahim Diaz",
+      "cached_as": "Brahim Diaz",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "historical_best",
+      "team": "Real Madrid",
+      "league": "LaLiga",
+      "minutes": 1545.0,
+      "games": 31,
+      "seasons_used": [
+        "2023-2024"
+      ],
+      "goals90": 0.47,
+      "assists90": 0.35,
+      "rating": 7.09,
+      "flags": [
+        "fbref_missing_pass_dribble_stats",
+        "historical_best_not_current",
+        "old_season_2023-2024"
+      ],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Diogo Dalot",
+      "cached_as": "Diogo Dalot",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Manchester United",
+      "league": null,
+      "minutes": 2714.5,
+      "games": 33,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.017201834862385322,
+      "assists90": 0.09959697277059001,
+      "rating": 6.915,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Bradley Barcola",
+      "cached_as": "Bradley Barcola",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Paris Saint-Germain",
+      "league": null,
+      "minutes": 1971.0,
+      "games": 31,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.5702659019812304,
+      "assists90": 0.23100625651720544,
+      "rating": 7.23,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Radamel Falcao",
+      "cached_as": "Radamel Falcao",
+      "tier": "C",
+      "data_source": "manual_profiles",
+      "stat_profile": "single_season",
+      "team": "Monaco",
+      "league": "Ligue 1",
+      "minutes": 1969.0,
+      "games": 29,
+      "seasons_used": [
+        "2016-2017"
+      ],
+      "goals90": 0.98,
+      "assists90": 0.19,
+      "rating": 7.37,
+      "flags": [
+        "manual_profile_in_cache",
+        "old_season_2016-2017",
+        "legend_or_season_pick_profile"
+      ],
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "16/17",
+        "diffs": {},
+        "aligned": true
+      }
+    },
+    {
+      "raw": "Saka",
+      "cached_as": "Bukayo Saka",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Arsenal",
+      "league": null,
+      "minutes": 1980.0,
+      "games": 28,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.2971926302496519,
+      "assists90": 0.36048958974192924,
+      "rating": 7.42,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Mctominay",
+      "cached_as": "Scott McTominay",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "SSC Napoli",
+      "league": null,
+      "minutes": 2867.0,
+      "games": 33,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.3447280950713112,
+      "assists90": 0.10953879574342668,
+      "rating": 7.154999999999999,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Florian Wirtz",
+      "cached_as": "Florian Wirtz",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Liverpool FC",
+      "league": null,
+      "minutes": 2371.5,
+      "games": 32,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.2853039080754089,
+      "assists90": 0.28583202637390775,
+      "rating": 7.265,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Gundogan",
+      "cached_as": "\u0130lkay G\u00fcndo\u011fan",
+      "tier": "B",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Manchester City",
+      "league": "Premier League",
+      "minutes": 2242.0,
+      "games": 33,
+      "seasons_used": [
+        "2024-2025"
+      ],
+      "goals90": 0.04014272970561998,
+      "assists90": 0.2408563782337199,
+      "rating": 7.08,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Donnarumma",
+      "cached_as": "Gianluigi Donnarumma",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Manchester City",
+      "league": null,
+      "minutes": 2576.0,
+      "games": 29,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.0,
+      "assists90": 0.0,
+      "rating": 6.97,
+      "flags": [],
+      "manual_profile_match": null
+    },
+    {
+      "raw": "Riyad Mahrez",
+      "cached_as": "Riyad Mahrez",
+      "tier": "D",
+      "data_source": "fbref",
+      "stat_profile": "historical_best",
+      "team": "Manchester City",
+      "league": "Premier League",
+      "minutes": 1920.0,
+      "games": 30,
+      "seasons_used": [
+        "2022-2023"
+      ],
+      "goals90": 0.23,
+      "assists90": 0.47,
+      "rating": 6.93,
+      "flags": [
+        "fbref_missing_pass_dribble_stats",
+        "historical_best_not_current",
+        "old_season_2022-2023",
+        "legend_or_season_pick_profile"
+      ],
+      "manual_profile_match": {
+        "profile_type": "season pick",
+        "season_suffix": "22/23",
+        "diffs": {
+          "minutes": {
+            "cache": 1920.0,
+            "manual": 1941.0
+          }
+        },
+        "aligned": false
+      }
+    },
+    {
+      "raw": "Kobbie Mainoo",
+      "cached_as": "Kobbie Mainoo",
+      "tier": "A",
+      "data_source": "sofascore_default",
+      "stat_profile": "blended_cache",
+      "team": "Manchester United",
+      "league": null,
+      "minutes": 1663.0,
+      "games": 26,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "goals90": 0.02694610778443114,
+      "assists90": 0.05389221556886228,
+      "rating": 6.8100000000000005,
+      "flags": [],
+      "manual_profile_match": null
+    }
+  ],
+  "trust_assessment": {
+    "tier_a_trust": "high \u2014 recent Sofascore 2-season blend",
+    "tier_b_trust": "moderate \u2014 single FBref season; passing/dribbling often zeroed",
+    "tier_c_trust": "intentional \u2014 manual/legend season picks; accurate to chosen season not current form",
+    "tier_d_trust": "low \u2014 sparse minutes or incomplete FBref fields"
+  },
+  "executive_summary": {
+    "verdict": "Stats are ACCURATE to their underlying source seasons, but only ~73% reflect current two-season Sofascore form. The rest are intentional or fallback historical/FBref profiles.",
+    "resolution_vs_accuracy": {
+      "all_191_resolved": true,
+      "all_191_have_nonzero_stats": true,
+      "accurate_to_source": true,
+      "accurate_to_current_2025_form": false,
+      "pct_current_blend": 73.3
+    },
+    "tier_counts_user_centric": {
+      "A_sofascore_2_season_blend": 140,
+      "B_single_season_fbref_or_historical": 43,
+      "C_manual_seed_profiles": 5,
+      "D_low_minutes_partial": 3
+    },
+    "tier_percentages_user_centric": {
+      "A": 73.3,
+      "B": 22.5,
+      "C": 2.6,
+      "D": 1.6
+    },
+    "fbref_live_verification": {
+      "John Stones_24_25": {
+        "cache_minutes": 548,
+        "fbref_minutes": 548,
+        "cache_games": 11,
+        "fbref_games": 11,
+        "match": true,
+        "note": "Injury-short 24/25 season confirmed by live FBref fetch. Per-90 rates are mathematically correct but noisy at this sample size."
+      },
+      "Riyad Mahrez_22_23": {
+        "cache_minutes": 1920,
+        "fbref_minutes": 1920,
+        "cache_goals90": 0.23,
+        "fbref_goals90": 0.23,
+        "cache_assists90": 0.47,
+        "fbref_assists90": 0.47,
+        "match": true,
+        "note": "Intentional 22/23 Man City season pick (manual_profiles). Reasonable for sim given he left Europe; not current form."
+      }
+    },
+    "notable_misrepresentations": [
+      "14 retired/semi-retired players use historical_best peak seasons (Higuain 15/16, Marcelo 17/18, etc.) \u2014 accurate to chosen peak, not 2025.",
+      "11 players have FBref-sourced profiles with zero passes/dribbles/key_passes \u2014 sim under-models buildup (Stones, Mahrez, Ramos, Cavani, etc.).",
+      "John Stones: correct 24/25 injury minutes but low-sample; goals90 0.33 is real but volatile.",
+      "\u00c9der Milit\u00e3o: 496 min in 23/24 after injury \u2014 accurate but low-sample.",
+      "Endrick: 813 min blended \u2014 young player, thin sample on otherwise Tier A profile.",
+      "Ayoub El Kaabi: FBref 23/24 Greece (1964 min) \u2014 correct for that league/season, not current Saudi move.",
+      "Ronaldo/Messi cache = current Saudi/MLS Sofascore blend; prime seasons only apply when team uses prime slot.",
+      "5 manual_profiles in cache (Fernandinho, Su\u00e1rez, Firmino, Neymar, Falc\u00e3o) override default with curated season picks."
+    ],
+    "tournament_trust": {
+      "overall": "Moderately trustworthy for a fantasy tournament with historical/legend picks.",
+      "active_top5_squads": "High \u2014 ~74% of players use recent two-season Sofascore blends.",
+      "legend_retired_picks": "Fair if tournament expects peak/historical seasons; misleading if users expect 2025 form.",
+      "fixed_players_stones_mahrez_elkaabi": "Stones and Mahrez verified against FBref. El Kaabi FBref Greece 23/24 is plausible; non-top-5 caveat applies.",
+      "sim_bias_risks": "FBref profiles missing passing/dribbling; low-minute players have per-90 variance."
+    }
+  }
+}

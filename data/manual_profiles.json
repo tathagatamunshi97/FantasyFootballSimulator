@@ -1,0 +1,1268 @@
+{
+  "profiles": [
+    {
+      "player_name": "Edinson Cavani",
+      "profile_type": "season pick",
+      "season_suffix": "16/17",
+      "stats": {
+        "team": "PSG",
+        "league": "Ligue 1",
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ],
+        "player_id": 21521,
+        "minutes": 2983.0,
+        "games": 36,
+        "starts": 35,
+        "goals90": 1.06,
+        "assists90": 0.12,
+        "xg90": 0.928839150949828,
+        "xa90": 0.06638958121041423,
+        "shots90": 4.31,
+        "shots_on_target90": 2.06,
+        "key_passes90": 0.0,
+        "tackles90": 0.5463743676222597,
+        "interceptions90": 0.45531197301854975,
+        "clearances90": 0.0,
+        "dribbles90": 0.0,
+        "passes_completed90": 0.0,
+        "rating": 7.39,
+        "data_source": "fbref+understat",
+        "seasons_used": [
+          "2016-2017"
+        ],
+        "teams_by_season": {
+          "2016-2017": "Paris Saint-Germain"
+        },
+        "season_profile": "2016-2017",
+        "understat_matched": true,
+        "npxg90": 0.928839150949828,
+        "xg_chain90": 0.9326933957249216,
+        "xg_buildup90": 0.08391361408862259,
+        "understat_xg90": 1.1123015819616338,
+        "understat_xa90": 0.06638958121041423,
+        "understat_key_passes90": 0.7542742205833054,
+        "understat_shots90": 4.314448541736507,
+        "auto_populate_source": "understat_stub",
+        "fbref_matched": true,
+        "pass_pct": 0.0,
+        "yellow_cards90": 0.15177065767284992,
+        "red_cards90": 0.0
+      }
+    },
+    {
+      "player_name": "Dani Alves",
+      "profile_type": "season pick",
+      "season_suffix": "17/18",
+      "stats": {
+        "team": "PSG",
+        "league": "Ligue 1",
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ],
+        "player_id": 4419,
+        "minutes": 2064.0,
+        "games": 25,
+        "starts": 23,
+        "goals90": 0.04,
+        "assists90": 0.31,
+        "xg90": 0.059673498238458536,
+        "xa90": 0.21636824424075352,
+        "shots90": 1.18,
+        "shots_on_target90": 0.22,
+        "key_passes90": 0.0,
+        "tackles90": 2.443044110518662,
+        "interceptions90": 1.0906446921958313,
+        "clearances90": 0.0,
+        "dribbles90": 0.0,
+        "passes_completed90": 0.0,
+        "rating": 6.86,
+        "data_source": "fbref+understat",
+        "seasons_used": [
+          "2017-2018"
+        ],
+        "teams_by_season": {
+          "2017-2018": "Paris Saint-Germain"
+        },
+        "season_profile": "2017-2018",
+        "understat_matched": true,
+        "npxg90": 0.059673498238458536,
+        "xg_chain90": 0.952030205232806,
+        "xg_buildup90": 0.8038714119547241,
+        "understat_xg90": 0.059673498238458536,
+        "understat_xa90": 0.21636824424075352,
+        "understat_key_passes90": 2.005813953488372,
+        "understat_shots90": 1.177325581395349,
+        "auto_populate_source": "understat_stub",
+        "fbref_matched": true,
+        "pass_pct": 0.0,
+        "yellow_cards90": 0.3053805138148328,
+        "red_cards90": 0.043625787687833255
+      }
+    },
+    {
+      "player_name": "Marcelo",
+      "profile_type": "season pick",
+      "season_suffix": "16/17",
+      "stats": {
+        "team": "Real Madrid",
+        "league": "LaLiga",
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ],
+        "player_id": 17787,
+        "minutes": 2274.0,
+        "games": 30,
+        "starts": 26,
+        "goals90": 0.08,
+        "assists90": 0.39,
+        "xg90": 0.07988807847256475,
+        "xa90": 0.3008613927845197,
+        "shots90": 0.99,
+        "shots_on_target90": 0.16,
+        "key_passes90": 0.0,
+        "tackles90": 1.4611671785870997,
+        "interceptions90": 1.7376042123738482,
+        "clearances90": 0.0,
+        "dribbles90": 0.0,
+        "passes_completed90": 0.0,
+        "rating": 6.85,
+        "data_source": "fbref+understat",
+        "seasons_used": [
+          "2016-2017"
+        ],
+        "teams_by_season": {
+          "2016-2017": "Real Madrid"
+        },
+        "season_profile": "2016-2017",
+        "understat_matched": true,
+        "npxg90": 0.07988807847256475,
+        "xg_chain90": 0.7315366314650368,
+        "xg_buildup90": 0.4932624750861549,
+        "understat_xg90": 0.07988807847256475,
+        "understat_xa90": 0.3008613927845197,
+        "understat_key_passes90": 1.7414248021108178,
+        "understat_shots90": 0.9894459102902374,
+        "auto_populate_source": "understat_stub",
+        "fbref_matched": true,
+        "pass_pct": 0.0,
+        "yellow_cards90": 0.07898200965335674,
+        "red_cards90": 0.0
+      }
+    },
+    {
+      "player_name": "Giovanni Lo Celso",
+      "profile_type": "season pick",
+      "season_suffix": "18/19",
+      "stats": {
+        "team": "Real Betis",
+        "league": "LaLiga",
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ],
+        "player_id": 892219,
+        "minutes": 2401.0,
+        "games": 32,
+        "starts": 27,
+        "goals90": 0.34,
+        "assists90": 0.15,
+        "xg90": 0.19433919667750782,
+        "xa90": 0.15888720912946508,
+        "shots90": 2.4,
+        "shots_on_target90": 1.09,
+        "key_passes90": 0.0,
+        "tackles90": 1.1639549436795995,
+        "interceptions90": 0.6382978723404256,
+        "clearances90": 0.0,
+        "dribbles90": 0.0,
+        "passes_completed90": 0.0,
+        "rating": 6.92,
+        "data_source": "fbref+understat",
+        "seasons_used": [
+          "2018-2019"
+        ],
+        "teams_by_season": {
+          "2018-2019": "Real Betis"
+        },
+        "season_profile": "2018-2019",
+        "understat_matched": true,
+        "npxg90": 0.19433919667750782,
+        "xg_chain90": 0.5104401468127494,
+        "xg_buildup90": 0.24512447901256304,
+        "understat_xg90": 0.3057845614878449,
+        "understat_xa90": 0.15888720912946508,
+        "understat_key_passes90": 1.0120783007080383,
+        "understat_shots90": 2.399000416493128,
+        "auto_populate_source": "understat_stub",
+        "fbref_matched": true,
+        "pass_pct": 0.0,
+        "yellow_cards90": 0.18773466833541927,
+        "red_cards90": 0.0
+      }
+    },
+    {
+      "player_name": "Gonzalo Higuaín",
+      "profile_type": "season pick",
+      "season_suffix": "15/16",
+      "stats": {
+        "team": "Napoli",
+        "league": "Serie A",
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ],
+        "player_id": 19438,
+        "minutes": 2989.0,
+        "games": 35,
+        "starts": 35,
+        "goals90": 1.08,
+        "assists90": 0.15,
+        "xg90": 0.7531087685783957,
+        "xa90": 0.08142748921137465,
+        "shots90": 5.480093676814988,
+        "shots_on_target90": 0.0,
+        "key_passes90": 1.5356306457009032,
+        "tackles90": 0.0,
+        "interceptions90": 0.0,
+        "clearances90": 0.0,
+        "dribbles90": 0.0,
+        "passes_completed90": 0.0,
+        "rating": 7.45,
+        "data_source": "seed_seasons",
+        "seasons_used": [
+          "2015-2016"
+        ],
+        "teams_by_season": {
+          "2015-2016": "Napoli"
+        },
+        "season_profile": "2015-2016",
+        "understat_matched": true,
+        "npxg90": 0.7531087685783957,
+        "xg_chain90": 0.9049401905508534,
+        "xg_buildup90": 0.15990887280003946,
+        "understat_xg90": 0.8218779542267463,
+        "understat_xa90": 0.08142748921137465,
+        "understat_key_passes90": 1.5356306457009032,
+        "understat_shots90": 5.480093676814988,
+        "auto_populate_source": "seed_seasons",
+        "fbref_matched": false,
+        "stat_profile": "seeded_season"
+      }
+    },
+    {
+      "player_name": "Diego Godín",
+      "profile_type": "season pick",
+      "season_suffix": "15/16",
+      "stats": {
+        "team": "Atlético Madrid",
+        "league": "LaLiga",
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ],
+        "minutes": 2650.0,
+        "games": 31,
+        "starts": 31,
+        "goals90": 0.03,
+        "assists90": 0.03,
+        "shots90": 0.88,
+        "shots_on_target90": 0.2,
+        "tackles90": 1.6993957703927491,
+        "interceptions90": 3.4327794561933533,
+        "clearances90": 0.0,
+        "dribbles90": 0.0,
+        "key_passes90": 0.0,
+        "passes_completed90": 0.0,
+        "pass_pct": 0.0,
+        "yellow_cards90": 0.23791540785498488,
+        "red_cards90": 0.033987915407854986,
+        "rating": 6.67,
+        "fbref_matched": true,
+        "player_id": 14933,
+        "seasons_used": [
+          "2015-2016"
+        ],
+        "teams_by_season": {
+          "2015-2016": "Atletico Madrid"
+        },
+        "season_profile": "2015-2016",
+        "data_source": "fbref+understat",
+        "understat_matched": true,
+        "npxg90": 0.08543346929451767,
+        "xg_chain90": 0.20952618443319257,
+        "xg_buildup90": 0.19189142825890262,
+        "understat_xg90": 0.08543346929451767,
+        "understat_xa90": 0.04426335163836209,
+        "understat_key_passes90": 0.23773584905660378,
+        "understat_shots90": 0.8490566037735849,
+        "xg90": 0.08543346929451767
+      }
+    },
+    {
+      "player_name": "Luis Suárez",
+      "profile_type": "season pick",
+      "season_suffix": "15/16",
+      "stats": {
+        "team": "Barcelona",
+        "league": "LaLiga",
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ],
+        "minutes": 3150.0,
+        "games": 35,
+        "starts": 35,
+        "goals90": 1.14,
+        "assists90": 0.49,
+        "shots90": 3.91,
+        "shots_on_target90": 2.0,
+        "tackles90": 0.6,
+        "interceptions90": 0.2571428571428571,
+        "clearances90": 0.0,
+        "dribbles90": 0.0,
+        "key_passes90": 0.0,
+        "passes_completed90": 0.0,
+        "pass_pct": 0.0,
+        "yellow_cards90": 0.2,
+        "red_cards90": 0.0,
+        "rating": 7.62,
+        "fbref_matched": true,
+        "player_id": 16943,
+        "seasons_used": [
+          "2015-2016"
+        ],
+        "teams_by_season": {
+          "2015-2016": "Barcelona"
+        },
+        "season_profile": "2015-2016",
+        "data_source": "fbref+understat",
+        "understat_matched": true,
+        "npxg90": 0.9176490240863391,
+        "xg_chain90": 1.282054833003453,
+        "xg_buildup90": 0.26041193535285334,
+        "understat_xg90": 1.023820740197386,
+        "understat_xa90": 0.37931313323123117,
+        "understat_key_passes90": 1.6,
+        "understat_shots90": 3.914285714285714,
+        "xg90": 0.9176490240863391
+      }
+    },
+    {
+      "player_name": "Arturo Vidal",
+      "profile_type": "season pick",
+      "season_suffix": "15/16",
+      "stats": {
+        "team": "Bayern Munich",
+        "league": "Bundesliga",
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ],
+        "player_id": 91047,
+        "minutes": 2045.0,
+        "games": 30,
+        "starts": 24,
+        "goals90": 0.18,
+        "assists90": 0.22,
+        "xg90": 0.16841742737915522,
+        "xa90": 0.20120601918010955,
+        "shots90": 0.0,
+        "shots_on_target90": 0.84,
+        "key_passes90": 0.0,
+        "tackles90": 0.0,
+        "interceptions90": 0.0,
+        "clearances90": 0.0,
+        "dribbles90": 0.0,
+        "passes_completed90": 0.0,
+        "rating": 6.73,
+        "data_source": "fbref+understat",
+        "seasons_used": [
+          "2015-2016"
+        ],
+        "teams_by_season": {
+          "2015-2016": "Bayern Munich"
+        },
+        "season_profile": "2015-2016",
+        "understat_matched": true,
+        "npxg90": 0.16841742737915522,
+        "xg_chain90": 0.9524194777266903,
+        "xg_buildup90": 0.6901006066675291,
+        "understat_xg90": 0.16841742737915522,
+        "understat_xa90": 0.20120601918010955,
+        "understat_key_passes90": 2.1124694376528117,
+        "understat_shots90": 2.2885085574572126,
+        "auto_populate_source": "understat_stub",
+        "fbref_matched": true,
+        "pass_pct": 0.0,
+        "yellow_cards90": 0.13222331047992164,
+        "red_cards90": 0.0
+      }
+    },
+    {
+      "player_name": "Fernandinho",
+      "profile_type": "season pick",
+      "season_suffix": "17/18",
+      "stats": {
+        "team": "Manchester City",
+        "league": "Premier League",
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ],
+        "player_id": 13630,
+        "minutes": 2890.0,
+        "games": 34,
+        "starts": 33,
+        "goals90": 0.16,
+        "assists90": 0.09,
+        "xg90": 0.07680647696165374,
+        "xa90": 0.08853827197762097,
+        "shots90": 1.5,
+        "shots_on_target90": 0.62,
+        "key_passes90": 0.0,
+        "tackles90": 1.187087816730302,
+        "interceptions90": 1.4994793474488024,
+        "clearances90": 0.0,
+        "dribbles90": 0.0,
+        "passes_completed90": 0.0,
+        "rating": 6.76,
+        "data_source": "fbref+understat",
+        "seasons_used": [
+          "2017-2018"
+        ],
+        "teams_by_season": {
+          "2017-2018": "Manchester City"
+        },
+        "season_profile": "2017-2018",
+        "understat_matched": true,
+        "npxg90": 0.07680647696165374,
+        "xg_chain90": 0.7906943617910662,
+        "xg_buildup90": 0.6925229977390964,
+        "understat_xg90": 0.07680647696165374,
+        "understat_xa90": 0.08853827197762097,
+        "understat_key_passes90": 0.6539792387543253,
+        "understat_shots90": 1.4636678200692042,
+        "auto_populate_source": "understat_stub",
+        "fbref_matched": true,
+        "pass_pct": 0.0,
+        "yellow_cards90": 0.21867407150295037,
+        "red_cards90": 0.0
+      }
+    },
+    {
+      "player_name": "Roberto Firmino",
+      "profile_type": "season pick",
+      "season_suffix": "17/18",
+      "stats": {
+        "team": "Liverpool",
+        "league": "Premier League",
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ],
+        "player_id": 143697,
+        "minutes": 2814.0,
+        "games": 37,
+        "starts": 32,
+        "goals90": 0.49,
+        "assists90": 0.23,
+        "xg90": 0.3199104980420647,
+        "xa90": 0.24557861788416785,
+        "shots90": 2.74,
+        "shots_on_target90": 1.24,
+        "key_passes90": 0.0,
+        "tackles90": 1.6938110749185669,
+        "interceptions90": 0.5211726384364821,
+        "clearances90": 0.0,
+        "dribbles90": 0.0,
+        "passes_completed90": 0.0,
+        "rating": 7.11,
+        "data_source": "fbref+understat",
+        "seasons_used": [
+          "2017-2018"
+        ],
+        "teams_by_season": {
+          "2017-2018": "Liverpool"
+        },
+        "season_profile": "2017-2018",
+        "understat_matched": true,
+        "npxg90": 0.3199104980420647,
+        "xg_chain90": 0.8903240101106131,
+        "xg_buildup90": 0.4037977384923618,
+        "understat_xg90": 0.344254909051475,
+        "understat_xa90": 0.24557861788416785,
+        "understat_key_passes90": 1.791044776119403,
+        "understat_shots90": 2.6865671641791047,
+        "auto_populate_source": "understat_stub",
+        "fbref_matched": true,
+        "pass_pct": 0.0,
+        "yellow_cards90": 0.03257328990228013,
+        "red_cards90": 0.0
+      }
+    },
+    {
+      "player_name": "Neymar",
+      "profile_type": "season pick",
+      "season_suffix": "14/15",
+      "stats": {
+        "team": "Barcelona",
+        "league": "LaLiga",
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ],
+        "player_id": 124712,
+        "minutes": 2573.0,
+        "games": 33,
+        "starts": 29,
+        "goals90": 0.77,
+        "assists90": 0.25,
+        "xg90": 0.7687719280368569,
+        "xa90": 0.2889772521145859,
+        "shots90": 0.0,
+        "shots_on_target90": 1.65,
+        "key_passes90": 0.0,
+        "tackles90": 0.0,
+        "interceptions90": 0.0,
+        "clearances90": 0.0,
+        "dribbles90": 0.0,
+        "passes_completed90": 0.0,
+        "rating": 7.19,
+        "data_source": "fbref+understat",
+        "seasons_used": [
+          "2014-2015"
+        ],
+        "teams_by_season": {
+          "2014-2015": "Barcelona"
+        },
+        "season_profile": "2014-2015",
+        "understat_matched": true,
+        "npxg90": 0.7687719280368569,
+        "xg_chain90": 1.2902990121248163,
+        "xg_buildup90": 0.4084943013111534,
+        "understat_xg90": 0.7947708375019366,
+        "understat_xa90": 0.2889772521145859,
+        "understat_key_passes90": 1.8188884570540225,
+        "understat_shots90": 3.322969296541003,
+        "auto_populate_source": "understat_stub",
+        "fbref_matched": true,
+        "pass_pct": 0.0,
+        "yellow_cards90": 0.2107728337236534,
+        "red_cards90": 0.0
+      }
+    },
+    {
+      "player_name": "Alexis Sánchez",
+      "profile_type": "season pick",
+      "season_suffix": "16/17",
+      "stats": {
+        "team": "Arsenal",
+        "league": "Premier League",
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ],
+        "minutes": 3233.0,
+        "games": 38,
+        "starts": 36,
+        "goals90": 0.67,
+        "assists90": 0.28,
+        "shots90": 3.61,
+        "shots_on_target90": 1.37,
+        "tackles90": 1.1190550202051601,
+        "interceptions90": 0.755362138638483,
+        "clearances90": 0.0,
+        "dribbles90": 0.0,
+        "key_passes90": 0.0,
+        "passes_completed90": 0.0,
+        "pass_pct": 0.0,
+        "yellow_cards90": 0.167858253030774,
+        "red_cards90": 0.0,
+        "rating": 7.22,
+        "fbref_matched": true,
+        "player_id": 34120,
+        "seasons_used": [
+          "2016-2017"
+        ],
+        "teams_by_season": {
+          "2016-2017": "Arsenal"
+        },
+        "season_profile": "2016-2017",
+        "data_source": "fbref+understat",
+        "understat_matched": true,
+        "npxg90": 0.42984378287621117,
+        "xg_chain90": 0.7555545593055637,
+        "xg_buildup90": 0.25295555392816604,
+        "understat_xg90": 0.49341201042468946,
+        "understat_xa90": 0.2502104310169609,
+        "understat_key_passes90": 2.1713578719455615,
+        "understat_shots90": 3.591091865140736,
+        "xg90": 0.42984378287621117
+      }
+    },
+    {
+      "player_name": "Radamel Falcao",
+      "profile_type": "season pick",
+      "season_suffix": "16/17",
+      "stats": {
+        "team": "Monaco",
+        "league": "Ligue 1",
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ],
+        "player_id": 25682,
+        "minutes": 1969.0,
+        "games": 29,
+        "starts": 22,
+        "goals90": 0.98,
+        "assists90": 0.19,
+        "xg90": 0.5404096682319004,
+        "xa90": 0.13253703615034576,
+        "shots90": 3.74,
+        "shots_on_target90": 1.77,
+        "key_passes90": 0.0,
+        "tackles90": 0.5604566683964712,
+        "interceptions90": 0.467047223663726,
+        "clearances90": 0.0,
+        "dribbles90": 0.0,
+        "passes_completed90": 0.0,
+        "rating": 7.37,
+        "data_source": "fbref+understat",
+        "seasons_used": [
+          "2016-2017"
+        ],
+        "teams_by_season": {
+          "2016-2017": "Monaco"
+        },
+        "season_profile": "2016-2017",
+        "understat_matched": true,
+        "npxg90": 0.5404096682319004,
+        "xg_chain90": 0.7078914156816465,
+        "xg_buildup90": 0.16338259239012726,
+        "understat_xg90": 0.6793803171292061,
+        "understat_xa90": 0.13253703615034576,
+        "understat_key_passes90": 1.0512950736414424,
+        "understat_shots90": 3.6566785170137126,
+        "auto_populate_source": "understat_stub",
+        "fbref_matched": true,
+        "pass_pct": 0.0,
+        "yellow_cards90": 0.0934094447327452,
+        "red_cards90": 0.0
+      }
+    },
+    {
+      "player_name": "Cristiano Ronaldo",
+      "profile_type": "prime",
+      "season_suffix": "14/15",
+      "stats": {
+        "team": "Real Madrid",
+        "league": "LaLiga",
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ],
+        "player_id": 750,
+        "minutes": 3103.0,
+        "games": 35,
+        "starts": 35,
+        "goals90": 1.39,
+        "assists90": 0.46,
+        "xg90": 0.8814280693393166,
+        "xa90": 0.39447523236918214,
+        "shots90": 0.0,
+        "shots_on_target90": 3.08,
+        "key_passes90": 0.0,
+        "tackles90": 0.0,
+        "interceptions90": 0.0,
+        "clearances90": 0.0,
+        "dribbles90": 0.0,
+        "passes_completed90": 0.0,
+        "rating": 7.75,
+        "data_source": "fbref+understat",
+        "seasons_used": [
+          "2014-2015"
+        ],
+        "teams_by_season": {
+          "2014-2015": "Real Madrid"
+        },
+        "season_profile": "2014-2015",
+        "understat_matched": true,
+        "npxg90": 0.8814280693393166,
+        "xg_chain90": 1.264816149904162,
+        "xg_buildup90": 0.21811833373465117,
+        "understat_xg90": 1.1401183172115588,
+        "understat_xa90": 0.39447523236918214,
+        "understat_key_passes90": 2.20431840154689,
+        "understat_shots90": 6.525942636158557,
+        "auto_populate_source": "understat_stub",
+        "fbref_matched": true,
+        "pass_pct": 0.0,
+        "yellow_cards90": 0.14516129032258066,
+        "red_cards90": 0.02903225806451613
+      }
+    },
+    {
+      "player_name": "N'Golo Kanté",
+      "profile_type": "prime",
+      "season_suffix": "16/17",
+      "stats": {
+        "team": "Chelsea",
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ],
+        "minutes": 3141.0,
+        "games": 35,
+        "starts": 35,
+        "seasons_used": [
+          "2016-2017"
+        ],
+        "teams_by_season": {
+          "2016-2017": "Chelsea"
+        },
+        "goals90": 0.03,
+        "assists90": 0.03,
+        "xg90": 0.08,
+        "xa90": 0.11,
+        "shots90": 0.77,
+        "shots_on_target90": 0.2,
+        "key_passes90": 0.0,
+        "tackles90": 2.4091778202676863,
+        "interceptions90": 2.3804971319311665,
+        "clearances90": 0.0,
+        "dribbles90": 0.0,
+        "dribble_pct": 68.0,
+        "passes_completed90": 0.0,
+        "pass_pct": 0.0,
+        "long_balls90": 3.1,
+        "long_ball_pct": 62.0,
+        "big_chances_created90": 0.25,
+        "big_chances_missed90": 0.04,
+        "possession_lost90": 8.8,
+        "penalty_goals90": 0.0,
+        "saves90": 0.0,
+        "goals_prevented90": 0.0,
+        "goals_conceded90": 0.0,
+        "clean_sheet_pct": 18.0,
+        "yellow_cards90": 0.25812619502868067,
+        "red_cards90": 0.0,
+        "rating": 6.73,
+        "player_id": 234148,
+        "league": "Premier League",
+        "stat_profile": "seeded_season",
+        "season_profile": "2016-2017",
+        "understat_matched": true,
+        "npxg90": 0.06212459271373414,
+        "xg_chain90": 0.40256089042541293,
+        "xg_buildup90": 0.3408734985016137,
+        "understat_xg90": 0.06212459271373414,
+        "understat_xa90": 0.05373153710113385,
+        "understat_key_passes90": 0.6303724928366762,
+        "understat_shots90": 0.7736389684813754,
+        "data_source": "seed_seasons",
+        "auto_populate_source": "seed_seasons",
+        "fbref_matched": true
+      }
+    },
+    {
+      "player_name": "Lionel Messi",
+      "profile_type": "prime",
+      "season_suffix": "20/21",
+      "stats": {
+        "team": "Barcelona",
+        "league": "LaLiga",
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ],
+        "player_id": 12994,
+        "minutes": 3017.0,
+        "games": 35,
+        "starts": 33,
+        "goals90": 0.89,
+        "assists90": 0.27,
+        "xg90": 0.6849323939390043,
+        "xa90": 0.34075453088433294,
+        "shots90": 5.81,
+        "shots_on_target90": 2.71,
+        "key_passes90": 0.0,
+        "tackles90": 0.32748924909030763,
+        "interceptions90": 0.14885874958650347,
+        "clearances90": 0.0,
+        "dribbles90": 0.0,
+        "passes_completed90": 0.0,
+        "rating": 7.32,
+        "data_source": "fbref+understat",
+        "seasons_used": [
+          "2020-2021"
+        ],
+        "teams_by_season": {
+          "2020-2021": "Barcelona"
+        },
+        "season_profile": "2020-2021",
+        "understat_matched": true,
+        "npxg90": 0.6849323939390043,
+        "xg_chain90": 1.130797983025888,
+        "xg_buildup90": 0.6066830570349284,
+        "understat_xg90": 0.7957960831425543,
+        "understat_xa90": 0.34075453088433294,
+        "understat_key_passes90": 2.296983758700696,
+        "understat_shots90": 5.81703679151475,
+        "auto_populate_source": "understat_stub",
+        "fbref_matched": true,
+        "pass_pct": 0.0,
+        "yellow_cards90": 0.11908699966920278,
+        "red_cards90": 0.0
+      }
+    },
+    {
+      "player_name": "Ángel Di María",
+      "profile_type": "season pick",
+      "season_suffix": "13/14",
+      "stats": {
+        "team": "Real Madrid",
+        "league": "LaLiga",
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ],
+        "minutes": 2357.0,
+        "games": 34,
+        "starts": 27,
+        "goals90": 0.15,
+        "assists90": 0.65,
+        "shots90": 0.0,
+        "shots_on_target90": 1.37,
+        "tackles90": 0.0,
+        "interceptions90": 0.0,
+        "clearances90": 0.0,
+        "dribbles90": 0.0,
+        "key_passes90": 0.0,
+        "passes_completed90": 0.0,
+        "pass_pct": 0.0,
+        "yellow_cards90": 0.22910479422995333,
+        "red_cards90": 0.0,
+        "rating": 6.91,
+        "fbref_matched": true,
+        "player_id": 30027,
+        "seasons_used": [
+          "2013-2014"
+        ],
+        "teams_by_season": {
+          "2013-2014": "Real Madrid"
+        },
+        "season_profile": "2013-2014",
+        "data_source": "fbref",
+        "understat_matched": false
+      }
+    },
+    {
+      "player_name": "Riyad Mahrez",
+      "profile_type": "season pick",
+      "season_suffix": "22/23",
+      "stats": {
+        "team": "Manchester City",
+        "league": "Premier League",
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ],
+        "minutes": 1941.0,
+        "games": 30,
+        "starts": 22,
+        "goals90": 0.23,
+        "assists90": 0.47,
+        "shots90": 2.02,
+        "shots_on_target90": 0.61,
+        "tackles90": 0.609375,
+        "interceptions90": 0.421875,
+        "clearances90": 0.0,
+        "dribbles90": 0.0,
+        "key_passes90": 0.0,
+        "passes_completed90": 0.0,
+        "pass_pct": 0.0,
+        "yellow_cards90": 0.09375,
+        "red_cards90": 0.0,
+        "rating": 6.93,
+        "fbref_matched": true,
+        "player_id": 158213,
+        "seasons_used": [
+          "2022-2023"
+        ],
+        "teams_by_season": {
+          "2022-2023": "Manchester City"
+        },
+        "season_profile": "2022-2023",
+        "data_source": "fbref",
+        "understat_matched": true,
+        "npxg90": 0.23663279033299114,
+        "xg_chain90": 0.8500894510303804,
+        "xg_buildup90": 0.5399115733698678,
+        "understat_xg90": 0.2719267032942641,
+        "understat_xa90": 0.2855097144911241,
+        "understat_key_passes90": 2.364760432766615,
+        "understat_shots90": 1.9938176197836166,
+        "xg90": 0.23663279033299114,
+        "auto_populate_source": "fbref"
+      }
+    }
+  ],
+  "auto_populate_report": {
+    "season_pick_ok": [
+      {
+        "player": "Edinson Cavani",
+        "season": "16/17",
+        "team": "Paris Saint-Germain",
+        "source": "understat_stub",
+        "understat": true
+      },
+      {
+        "player": "Dani Alves",
+        "season": "17/18",
+        "team": "Paris Saint-Germain",
+        "source": "understat_stub",
+        "understat": true
+      },
+      {
+        "player": "Marcelo",
+        "season": "16/17",
+        "team": "Real Madrid",
+        "source": "understat_stub",
+        "understat": true
+      },
+      {
+        "player": "Giovanni Lo Celso",
+        "season": "18/19",
+        "team": "Real Betis",
+        "source": "understat_stub",
+        "understat": true
+      },
+      {
+        "player": "Gonzalo Higuaín",
+        "season": "15/16",
+        "team": "Napoli",
+        "source": "understat_stub",
+        "understat": true
+      },
+      {
+        "player": "Diego Godín",
+        "season": "15/16",
+        "team": "Atletico Madrid",
+        "source": "understat_stub",
+        "understat": true
+      },
+      {
+        "player": "Luis Suárez",
+        "season": "15/16",
+        "team": "Barcelona",
+        "source": "understat_stub",
+        "understat": true
+      },
+      {
+        "player": "Arturo Vidal",
+        "season": "15/16",
+        "team": "Bayern Munich",
+        "source": "understat_stub",
+        "understat": true
+      },
+      {
+        "player": "Fernandinho",
+        "season": "17/18",
+        "team": "Manchester City",
+        "source": "understat_stub",
+        "understat": true
+      },
+      {
+        "player": "Roberto Firmino",
+        "season": "17/18",
+        "team": "Liverpool",
+        "source": "understat_stub",
+        "understat": true
+      },
+      {
+        "player": "Neymar",
+        "season": "14/15",
+        "team": "Barcelona",
+        "source": "understat_stub",
+        "understat": true
+      },
+      {
+        "player": "Alexis Sánchez",
+        "season": "16/17",
+        "team": "Arsenal",
+        "source": "understat_stub",
+        "understat": true
+      },
+      {
+        "player": "Radamel Falcao",
+        "season": "16/17",
+        "team": "Monaco",
+        "source": "understat_stub",
+        "understat": true
+      }
+    ],
+    "season_pick_failed": [
+      {
+        "player": "Angel Di Maria",
+        "season": "13/14",
+        "error": "no stats (sofascore blocked, no seed, understat miss)"
+      }
+    ],
+    "prime_ok": [
+      {
+        "player": "Cristiano Ronaldo",
+        "season": "14/15",
+        "team": "Real Madrid",
+        "source": "understat_stub",
+        "understat": true
+      },
+      {
+        "player": "N'Golo Kanté",
+        "season": "16/17",
+        "team": "Chelsea",
+        "source": "seed_seasons",
+        "understat": true
+      },
+      {
+        "player": "Lionel Messi",
+        "season": "20/21",
+        "team": "Barcelona",
+        "source": "understat_stub",
+        "understat": true
+      }
+    ],
+    "prime_failed": [],
+    "notes": [
+      "Sofascore API is often 403 rate-limited; seed_seasons.json and Understat stubs used as fallback.",
+      "understat_stub rows have xG-chain stats but lack tackles/passes from Sofascore."
+    ]
+  },
+  "fbref_enrich_report": {
+    "ok": [
+      {
+        "player": "Edinson Cavani",
+        "season": "16/17",
+        "type": "season pick",
+        "fbref": true,
+        "understat": true,
+        "fields": [
+          "goals90",
+          "tackles90",
+          "assists90",
+          "interceptions90"
+        ],
+        "goals90": 1.06,
+        "tackles90": 0.5463743676222597
+      },
+      {
+        "player": "Dani Alves",
+        "season": "17/18",
+        "type": "season pick",
+        "fbref": true,
+        "understat": true,
+        "fields": [
+          "goals90",
+          "tackles90",
+          "assists90",
+          "interceptions90"
+        ],
+        "goals90": 0.04,
+        "tackles90": 2.443044110518662
+      },
+      {
+        "player": "Marcelo",
+        "season": "16/17",
+        "type": "season pick",
+        "fbref": true,
+        "understat": true,
+        "fields": [
+          "goals90",
+          "tackles90",
+          "assists90",
+          "interceptions90"
+        ],
+        "goals90": 0.08,
+        "tackles90": 1.4611671785870997
+      },
+      {
+        "player": "Giovanni Lo Celso",
+        "season": "18/19",
+        "type": "season pick",
+        "fbref": true,
+        "understat": true,
+        "fields": [
+          "goals90",
+          "tackles90",
+          "assists90",
+          "interceptions90"
+        ],
+        "goals90": 0.34,
+        "tackles90": 1.1639549436795995
+      },
+      {
+        "player": "Arturo Vidal",
+        "season": "15/16",
+        "type": "season pick",
+        "fbref": true,
+        "understat": true,
+        "fields": [
+          "goals90",
+          "assists90"
+        ],
+        "goals90": 0.18,
+        "tackles90": 0.0
+      },
+      {
+        "player": "Fernandinho",
+        "season": "17/18",
+        "type": "season pick",
+        "fbref": true,
+        "understat": true,
+        "fields": [
+          "goals90",
+          "tackles90",
+          "assists90",
+          "interceptions90"
+        ],
+        "goals90": 0.16,
+        "tackles90": 1.187087816730302
+      },
+      {
+        "player": "Roberto Firmino",
+        "season": "17/18",
+        "type": "season pick",
+        "fbref": true,
+        "understat": true,
+        "fields": [
+          "goals90",
+          "tackles90",
+          "assists90",
+          "interceptions90"
+        ],
+        "goals90": 0.49,
+        "tackles90": 1.6938110749185669
+      },
+      {
+        "player": "Neymar",
+        "season": "14/15",
+        "type": "season pick",
+        "fbref": true,
+        "understat": true,
+        "fields": [
+          "goals90",
+          "assists90"
+        ],
+        "goals90": 0.77,
+        "tackles90": 0.0
+      },
+      {
+        "player": "Radamel Falcao",
+        "season": "16/17",
+        "type": "season pick",
+        "fbref": true,
+        "understat": true,
+        "fields": [
+          "goals90",
+          "tackles90",
+          "assists90",
+          "interceptions90"
+        ],
+        "goals90": 0.98,
+        "tackles90": 0.5604566683964712
+      },
+      {
+        "player": "Cristiano Ronaldo",
+        "season": "14/15",
+        "type": "prime",
+        "fbref": true,
+        "understat": true,
+        "fields": [
+          "goals90",
+          "assists90"
+        ],
+        "goals90": 1.39,
+        "tackles90": 0.0
+      },
+      {
+        "player": "N'Golo Kanté",
+        "season": "16/17",
+        "type": "prime",
+        "fbref": true,
+        "understat": true,
+        "fields": [],
+        "goals90": 0.03,
+        "tackles90": 2.4091778202676863
+      },
+      {
+        "player": "Lionel Messi",
+        "season": "20/21",
+        "type": "prime",
+        "fbref": false,
+        "understat": true,
+        "fields": [],
+        "goals90": 0.0,
+        "tackles90": 0.0
+      }
+    ],
+    "failed": [
+      {
+        "player": "Gonzalo Higuain",
+        "season": "15/16",
+        "error": "fbref miss"
+      }
+    ],
+    "added": [
+      {
+        "player": "Diego Godín",
+        "season": "15/16",
+        "type": "season pick",
+        "fbref": true,
+        "fields": []
+      },
+      {
+        "player": "Luis Suárez",
+        "season": "15/16",
+        "type": "season pick",
+        "fbref": true,
+        "fields": []
+      },
+      {
+        "player": "Ángel Di María",
+        "season": "13/14",
+        "type": "season pick",
+        "fbref": true,
+        "fields": []
+      },
+      {
+        "player": "Alexis Sánchez",
+        "season": "16/17",
+        "type": "season pick",
+        "fbref": true,
+        "fields": []
+      }
+    ]
+  }
+}
