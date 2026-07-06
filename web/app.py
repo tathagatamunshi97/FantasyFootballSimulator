@@ -10,7 +10,7 @@ from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from web import auth, experiments, state as sim_state, tournament
+from web import auth, experiments, matchday_session, state as sim_state, team_lineups, tournament
 
 STATIC = Path(__file__).resolve().parent / "static"
 
@@ -61,6 +61,13 @@ class LineupRandomRequest(BaseModel):
     formation: str = "4-3-3"
     count: int = Field(default=11, ge=1, le=11)
     seed: int | None = None
+
+
+class LineupSaveRequest(BaseModel):
+    formation: str = "4-3-3"
+    lineup: list[dict[str, Any]] = Field(default_factory=list)
+    prime_player: str = ""
+    peak_season: dict[str, str] | None = None
 
 
 class TournamentCreateRequest(BaseModel):
@@ -313,7 +320,11 @@ def assign_lineup(
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
 ) -> dict:
     """Assign formation slots to an unordered player list using position + stats fit."""
-    _require_sim_builder(x_session_token, x_admin_token)
+    user = auth.get_user(x_session_token)
+    if not user and not _is_admin(x_admin_token):
+        raise HTTPException(status_code=401, detail="Login required")
+    if not (auth.is_team_user(user) or _is_admin_session(user) or _is_admin(x_admin_token)):
+        raise HTTPException(status_code=403, detail="Login required for lineup assignment.")
     from formation_fit import FORMATION_SLOTS, team_formation_fit
     from lineup_builder import assign_lineup_slots, lineup_from_assignments
 
@@ -379,17 +390,133 @@ def ensure_players(
     return {"players": mapping}
 
 
-@app.get("/api/matchday")
-def matchday_experiments(
+@app.get("/api/matchday/active")
+def matchday_active(
     x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
 ) -> dict:
-    """Live and recent admin matchday broadcasts. All logged-in users may watch."""
+    """Poll for active tournament fixture broadcast. Clients redirect when redirect=true."""
     user = auth.get_user(x_session_token)
     if not user and not _is_admin(x_admin_token):
         raise HTTPException(status_code=401, detail="Login required")
-    watch_only = not (_is_admin_session(user) or _is_admin(x_admin_token))
-    return {"experiments": experiments.list_matchday_experiments(watch_only=watch_only)}
+    return matchday_session.active_status()
+
+
+@app.get("/api/matchday")
+def matchday_session_api(
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Current matchday session state (setup → running → result)."""
+    user = auth.get_user(x_session_token)
+    if not user and not _is_admin(x_admin_token):
+        raise HTTPException(status_code=401, detail="Login required")
+    return matchday_session.active_status()
+
+
+@app.post("/api/matchday/run")
+def matchday_run_simulation(
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Admin triggers Monte Carlo run for the active matchday session."""
+    _check_admin(x_admin_token)
+    try:
+        return tournament.execute_matchday_simulation()
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Matchday run failed: {exc}") from exc
+
+
+@app.post("/api/matchday/dismiss")
+def matchday_dismiss(
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Admin clears the result-phase matchday session."""
+    _check_admin(x_admin_token)
+    matchday_session.clear_session()
+    return {"ok": True}
+
+
+@app.get("/api/my-lineup")
+def get_my_lineup(
+    team: str | None = None,
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Get saved lineup config + sheet roster for squad hub."""
+    user = _session_user(x_session_token)
+    is_admin = _is_admin(x_admin_token)
+    if not (auth.is_team_user(user) or _is_admin_session(user) or is_admin):
+        raise HTTPException(status_code=403, detail="Lineup access requires team or admin login.")
+
+    team_name = _resolve_squad_team_name(user, team=team, is_admin_token=is_admin)
+    if auth.is_team_user(user) and team_name.lower() != user.lower():
+        raise HTTPException(status_code=403, detail="You can only edit your own lineup.")
+
+    sheet_payload = _load_sheet_team_payload(team_name)
+    saved = team_lineups.get_team_lineup(team_name)
+    meta = sheet_payload.get("sheet_meta") or {}
+    roster = meta.get("full_roster") or meta.get("roster_players") or []
+
+    if saved:
+        lineup_config = saved
+    else:
+        lineup_config = {
+            "team_name": team_name,
+            "formation": sheet_payload.get("formation") or "4-3-3",
+            "lineup": sheet_payload.get("lineup") or [],
+            "prime_player": sheet_payload.get("prime_player") or "",
+            "peak_season": sheet_payload.get("peak_season") or {"player": "", "season": ""},
+            "updated_at": None,
+        }
+
+    return {
+        "team_name": team_name,
+        "roster": roster,
+        "saved": bool(saved),
+        "lineup": lineup_config,
+        "sheet_meta": {
+            "player_count": meta.get("player_count"),
+            "ready": meta.get("ready"),
+            "squad_size": meta.get("squad_size"),
+        },
+    }
+
+
+@app.put("/api/my-lineup")
+def put_my_lineup(
+    body: LineupSaveRequest,
+    team: str | None = None,
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Save team's lineup configuration from squad hub."""
+    user = _session_user(x_session_token)
+    is_admin = _is_admin(x_admin_token)
+    if not (auth.is_team_user(user) or _is_admin_session(user) or is_admin):
+        raise HTTPException(status_code=403, detail="Lineup save requires team or admin login.")
+
+    team_name = _resolve_squad_team_name(user, team=team, is_admin_token=is_admin)
+    if auth.is_team_user(user) and team_name.lower() != user.lower():
+        raise HTTPException(status_code=403, detail="You can only save your own lineup.")
+
+    peak = body.peak_season or {"player": "", "season": ""}
+    try:
+        saved = team_lineups.save_team_lineup(
+            team_name,
+            {
+                "formation": body.formation,
+                "lineup": body.lineup,
+                "prime_player": body.prime_player,
+                "peak_season": peak,
+            },
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"ok": True, "lineup": saved}
 
 
 def _can_view_experiment(
@@ -447,6 +574,22 @@ def create_experiment(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return {"experiment": summary}
+
+
+@app.delete("/api/experiments/{exp_id}")
+def delete_experiment_api(
+    exp_id: str,
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    _require_admin_session_or_token(x_session_token, x_admin_token)
+    try:
+        result = experiments.delete_experiment(exp_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return {"ok": True, **result}
 
 
 @app.get("/api/experiments/{exp_id}")
@@ -739,6 +882,20 @@ def list_tournaments_api() -> dict:
     return {"tournaments": tournament.list_tournaments()}
 
 
+@app.delete("/api/tournament/{tournament_id}")
+def delete_tournament_api(
+    tournament_id: str,
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    _require_admin_session_or_token(x_session_token, x_admin_token)
+    try:
+        result = tournament.delete_tournament(tournament_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return {"ok": True, **result}
+
+
 @app.get("/api/tournament/{tournament_id}")
 def get_tournament_api(tournament_id: str) -> dict:
     t = tournament.load_tournament(tournament_id)
@@ -821,6 +978,8 @@ def run_group_match_api(
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Match run failed: {exc}") from exc
 
 
 @app.post("/api/tournament/{tournament_id}/knockout/generate")
@@ -851,6 +1010,8 @@ def run_knockout_match_api(
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Match run failed: {exc}") from exc
 
 
 @app.patch("/api/tournament/{tournament_id}/status")

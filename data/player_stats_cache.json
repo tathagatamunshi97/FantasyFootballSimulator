@@ -2540,10 +2540,10 @@
     },
     "Antonee Robinson": {
       "team": "Fulham",
-      "primary_position": "CB",
+      "primary_position": "LB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "LB"
       ],
       "minutes": 2329.5,
       "games": 29,
@@ -3235,10 +3235,10 @@
     },
     "Marc Cucurella": {
       "team": "Chelsea",
-      "primary_position": "CB",
+      "primary_position": "LB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "LB"
       ],
       "minutes": 2850.0,
       "games": 35,
@@ -3829,10 +3829,10 @@
     },
     "Diogo Dalot": {
       "team": "Manchester United",
-      "primary_position": "CB",
+      "primary_position": "LB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "LB"
       ],
       "minutes": 2714.5,
       "games": 33,
@@ -4045,10 +4045,10 @@
     },
     "Pedro Porro": {
       "team": "Tottenham Hotspur",
-      "primary_position": "CB",
+      "primary_position": "LB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "LB"
       ],
       "minutes": 2710.0,
       "games": 33,
@@ -4582,10 +4582,10 @@
     },
     "Jurri\u00ebn Timber": {
       "team": "Arsenal",
-      "primary_position": "CB",
+      "primary_position": "LB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "LB"
       ],
       "minutes": 2439.5,
       "games": 30,
@@ -4636,10 +4636,11 @@
     },
     "Trent Alexander-Arnold": {
       "team": "Liverpool FC",
-      "primary_position": "CB",
+      "primary_position": "LB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "LB",
+        "RB"
       ],
       "minutes": 2377.0,
       "games": 33,
@@ -5824,10 +5825,10 @@
     },
     "Djed Spence": {
       "team": "Tottenham Hotspur",
-      "primary_position": "CB",
+      "primary_position": "LB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "LB"
       ],
       "minutes": 1942.0,
       "games": 27,
@@ -6256,10 +6257,10 @@
     },
     "Matheus Nunes": {
       "team": "Manchester City",
-      "primary_position": "CB",
+      "primary_position": "LB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "LB"
       ],
       "minutes": 2273.5,
       "games": 30,
@@ -7771,7 +7772,8 @@
       "primary_position": "CM",
       "fpl_position": "MID",
       "positions": [
-        "CM"
+        "CM",
+        "ST"
       ],
       "minutes": 2580.0,
       "games": 31,
@@ -12138,7 +12140,8 @@
       "primary_position": "CM",
       "fpl_position": "MID",
       "positions": [
-        "CM"
+        "CM",
+        "ST"
       ],
       "minutes": 1715.0,
       "games": 28,
@@ -12675,9 +12678,10 @@
     },
     "Mikel Merino": {
       "team": "Arsenal",
-      "primary_position": "CM",
-      "fpl_position": "MID",
+      "primary_position": "ST",
+      "fpl_position": "FWD",
       "positions": [
+        "ST",
         "CM"
       ],
       "minutes": 1597.0,
@@ -18548,10 +18552,10 @@
     },
     "Nordi Mukiele": {
       "team": "Sunderland",
-      "primary_position": "CB",
+      "primary_position": "LB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "LB"
       ],
       "minutes": 2787.0,
       "games": 32,
@@ -18656,10 +18660,11 @@
     },
     "Nico O'Reilly": {
       "team": "Manchester City",
-      "primary_position": "CB",
+      "primary_position": "RB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "RB",
+        "CM"
       ],
       "minutes": 2648.0,
       "games": 34,
@@ -19139,10 +19144,11 @@
     },
     "Reece James": {
       "team": "Chelsea",
-      "primary_position": "CB",
+      "primary_position": "RB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "RB",
+        "CM"
       ],
       "minutes": 1961.0,
       "games": 29,
@@ -21937,10 +21943,12 @@
     },
     "Rodri": {
       "team": "Manchester City",
-      "primary_position": "CM",
+      "primary_position": "DM",
       "fpl_position": "MID",
       "positions": [
-        "CM"
+        "DM",
+        "CM",
+        "CB"
       ],
       "minutes": 1513.0,
       "games": 21,
@@ -22642,7 +22650,8 @@
       "primary_position": "ST",
       "fpl_position": "FWD",
       "positions": [
-        "ST"
+        "ST",
+        "CM"
       ],
       "minutes": 1690.0,
       "games": 33,
@@ -27712,10 +27721,10 @@
     },
     "Jules Kound\u00e9": {
       "team": "FC Barcelona",
-      "primary_position": "CB",
+      "primary_position": "LB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "LB"
       ],
       "minutes": 2437.5,
       "games": 31,
@@ -28144,10 +28153,10 @@
     },
     "Marcos Llorente": {
       "team": "Atl\u00e9tico Madrid",
-      "primary_position": "CB",
+      "primary_position": "LB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "LB"
       ],
       "minutes": 2348.5,
       "games": 31,
@@ -28954,10 +28963,10 @@
     },
     "Alejandro Balde": {
       "team": "FC Barcelona",
-      "primary_position": "CB",
+      "primary_position": "LB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "LB"
       ],
       "minutes": 2083.0,
       "games": 30,
@@ -32140,9 +32149,10 @@
     },
     "Raphinha": {
       "team": "FC Barcelona",
-      "primary_position": "CM",
-      "fpl_position": "MID",
+      "primary_position": "ST",
+      "fpl_position": "FWD",
       "positions": [
+        "ST",
         "CM"
       ],
       "minutes": 2844.0,
@@ -42691,10 +42701,11 @@
     },
     "\u00c1lvaro Carreras": {
       "team": "Real Madrid",
-      "primary_position": "CB",
+      "primary_position": "LB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "LB",
+        "RB"
       ],
       "minutes": 2340.0,
       "games": 28,
@@ -47641,7 +47652,8 @@
       "primary_position": "ST",
       "fpl_position": "FWD",
       "positions": [
-        "ST"
+        "ST",
+        "CM"
       ],
       "minutes": 1305.0,
       "games": 28,
@@ -50527,10 +50539,10 @@
     },
     "Gu\u00e9la Dou\u00e9": {
       "team": "RC Strasbourg",
-      "primary_position": "CB",
+      "primary_position": "LB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "LB"
       ],
       "minutes": 2389.5,
       "games": 28,
@@ -52360,10 +52372,10 @@
     },
     "Achraf Hakimi": {
       "team": "Paris Saint-Germain",
-      "primary_position": "CB",
+      "primary_position": "LB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "LB"
       ],
       "minutes": 1720.5,
       "games": 21,
@@ -53646,10 +53658,10 @@
     },
     "Nuno Mendes": {
       "team": "Paris Saint-Germain",
-      "primary_position": "CB",
+      "primary_position": "LB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "LB"
       ],
       "minutes": 1467.0,
       "games": 22,
@@ -77531,10 +77543,10 @@
     },
     "Theo Hern\u00e1ndez": {
       "team": "AC Milan",
-      "primary_position": "CB",
+      "primary_position": "LB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "LB"
       ],
       "minutes": 2696.0,
       "games": 33,
@@ -78338,10 +78350,10 @@
     },
     "Alessandro Bastoni": {
       "team": "Inter",
-      "primary_position": "CB",
+      "primary_position": "LB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "LB"
       ],
       "minutes": 2334.5,
       "games": 30,
@@ -101373,10 +101385,10 @@
     },
     "Nathaniel Brown": {
       "team": "Eintracht Frankfurt",
-      "primary_position": "CB",
+      "primary_position": "LB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "LB"
       ],
       "minutes": 2305.5,
       "games": 29,
@@ -101805,10 +101817,10 @@
     },
     "David Raum": {
       "team": "RB Leipzig",
-      "primary_position": "CB",
+      "primary_position": "LB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "LB"
       ],
       "minutes": 2172.0,
       "games": 26,
@@ -102183,10 +102195,10 @@
     },
     "Konrad Laimer": {
       "team": "FC Bayern M\u00fcnchen",
-      "primary_position": "CB",
+      "primary_position": "LB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "LB"
       ],
       "minutes": 1850.5,
       "games": 29,
@@ -102669,10 +102681,11 @@
     },
     "Alphonso Davies": {
       "team": "FC Bayern M\u00fcnchen",
-      "primary_position": "CB",
+      "primary_position": "LB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "LB",
+        "RB"
       ],
       "minutes": 1561.0,
       "games": 19,
@@ -114262,10 +114275,11 @@
     },
     "Josip Stani\u0161i\u0107": {
       "team": "FC Bayern M\u00fcnchen",
-      "primary_position": "CB",
+      "primary_position": "LB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "LB",
+        "RB"
       ],
       "minutes": 1855.0,
       "games": 26,
@@ -119754,7 +119768,8 @@
       "primary_position": "ST",
       "fpl_position": "FWD",
       "positions": [
-        "ST"
+        "ST",
+        "CM"
       ],
       "minutes": 2572,
       "games": 30,
@@ -119803,7 +119818,8 @@
       "primary_position": "ST",
       "fpl_position": "FWD",
       "positions": [
-        "ST"
+        "ST",
+        "CM"
       ],
       "minutes": 2358,
       "games": 27,
@@ -119968,7 +119984,8 @@
       "positions": [
         "RW",
         "LW",
-        "RM"
+        "CM",
+        "ST"
       ],
       "minutes": 2122.0,
       "games": 29,
@@ -120079,10 +120096,11 @@
     },
     "Marcelo": {
       "team": "Real Madrid",
-      "primary_position": "CB",
+      "primary_position": "LB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "LB",
+        "RB"
       ],
       "minutes": 2260.0,
       "games": 28,
@@ -120136,10 +120154,11 @@
     },
     "Alaba": {
       "team": "Bayern Munich",
-      "primary_position": "CB",
+      "primary_position": "LB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "LB",
+        "RB"
       ],
       "minutes": 2506.0,
       "games": 32,
@@ -120304,7 +120323,8 @@
       "primary_position": "ST",
       "fpl_position": "FWD",
       "positions": [
-        "ST"
+        "ST",
+        "CM"
       ],
       "minutes": 1545.0,
       "games": 31,
@@ -120358,10 +120378,11 @@
     },
     "Carvajal": {
       "team": "Real Madrid",
-      "primary_position": "CB",
+      "primary_position": "LB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "LB",
+        "RB"
       ],
       "minutes": 1632.0,
       "games": 22,
@@ -120415,10 +120436,11 @@
     },
     "Dani Alves": {
       "team": "Juventus",
-      "primary_position": "CB",
+      "primary_position": "LB",
       "fpl_position": "DEF",
       "positions": [
-        "CB"
+        "LB",
+        "RB"
       ],
       "minutes": 1360.0,
       "games": 19,
@@ -120574,7 +120596,8 @@
       "primary_position": "ST",
       "fpl_position": "FWD",
       "positions": [
-        "ST"
+        "ST",
+        "CM"
       ],
       "player_id": 124712,
       "minutes": 2562.0,
@@ -120900,7 +120923,8 @@
       "primary_position": "ST",
       "fpl_position": "FWD",
       "positions": [
-        "ST"
+        "ST",
+        "CM"
       ],
       "minutes": 1920.0,
       "games": 30,
@@ -121075,6 +121099,7 @@
       "Bundesliga 24/25: 322 players",
       "Bundesliga 25/26: 320 players"
     ],
-    "seed_merged_at": "2026-07-06T15:26:20Z"
+    "seed_merged_at": "2026-07-06T15:26:20Z",
+    "position_enriched_at": "2026-07-06T16:29:16Z"
   }
 }

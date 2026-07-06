@@ -346,56 +346,131 @@ function renderReport(report, matchup) {
 }
 
 function renderMatchdayList(items) {
-  if (!items.length) {
-    return `<div class="empty"><p>Admin hasn't started a match yet.</p><p class="muted">When the admin runs a tournament fixture or test simulation, it will appear here with a Live badge while running.</p></div>`;
-  }
-  const rows = items
-    .map((e) => {
-      const xg =
-        e.expected_xg_home != null
-          ? `xG ${e.expected_xg_home}–${e.expected_xg_away}`
-          : "—";
-      let outcome = esc(e.message || e.status);
-      if (e.status === "ready") {
-        outcome = `${pct(e.home_win_pct)} win · ${pct(e.draw_pct)} draw · ${pct(e.away_win_pct)} win`;
-      }
-      const topScores = (e.top_scorelines || [])
-        .map((r) => `${esc(r.score)} (${num(r.pct, 1)}%)`)
-        .join(", ");
-      const scoresCell = e.status === "ready" && topScores ? topScores : "—";
-      const running = e.running || e.status === "running" || e.status === "queued";
-      const statusBadge = running
-        ? `<span class="badge live">Live</span>`
-        : `<span class="badge ${esc(e.status)}">${esc(e.status)}</span>`;
-      const tournamentCell = e.tournament_name
-        ? `<a href="/tournament?id=${esc(e.tournament_id)}" class="muted">${esc(e.tournament_name)}</a>${e.stage ? `<div class="muted">${esc(e.stage)}</div>` : ""}`
-        : `<span class="muted">Ad-hoc</span>`;
-      return `<tr class="${running ? "matchday-live" : ""}">
-        <td><a href="/experiment/${esc(e.id)}?from=matchday">${esc(e.team_a_name)} vs ${esc(e.team_b_name)}</a></td>
-        <td>${tournamentCell}</td>
-        <td class="muted">${esc(e.team_a_formation)} / ${esc(e.team_b_formation)}</td>
-        <td>${statusBadge}</td>
-        <td>${xg}</td>
-        <td class="muted">${outcome}</td>
-        <td class="muted">${scoresCell}</td>
-      </tr>`;
-    })
+  return renderMatchdaySession(null);
+}
+
+function phaseLabel(phase) {
+  const labels = { setup: "Setup", running: "Live", result: "Full time" };
+  return labels[phase] || phase || "—";
+}
+
+function renderMatchdayTeamCard(team, label) {
+  if (!team) return "";
+  const lineup = (team.lineup || [])
+    .map((p) => `<div class="slot-row"><span>${esc(p.slot)}</span><span>${esc(p.player)}</span></div>`)
     .join("");
+  const prime = team.prime_player ? `<p class="muted">Prime: ${esc(team.prime_player)}</p>` : "";
+  const peak = team.peak_season?.player
+    ? `<p class="muted">Peak: ${esc(team.peak_season.player)} (${esc(team.peak_season.season || "")})</p>`
+    : "";
   return `
     <div class="card">
-      <h2>Matchday broadcast</h2>
-      <p class="muted">Admin-run simulations appear here. Click a match for full results and analysis. Auto-refreshes every 5 seconds while a match is live.</p>
-      <table>
-        <thead><tr><th>Matchup</th><th>Tournament</th><th>Formations</th><th>Status</th><th>xG</th><th>Win probs</th><th>Top scores</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
+      <h3>${esc(label)} — ${esc(team.name)}</h3>
+      <p class="muted">Formation ${esc(team.formation || "—")}</p>
+      ${prime}${peak}
+      <div class="lineup-mini">${lineup}</div>
     </div>`;
 }
 
-function renderExperimentList(items) {
+function renderMatchdaySession(status, { isAdmin = false } = {}) {
+  const session = status?.session;
+  if (!status?.active || !session) {
+    return `<div class="empty">
+      <p>No live tournament fixture right now.</p>
+      <p class="muted">When the admin runs a tournament fixture, everyone is redirected here for setup → simulation → result.</p>
+      <p class="muted"><a href="/tournament">View tournament standings</a> · <a href="/squad">Configure your lineup</a></p>
+    </div>`;
+  }
+
+  const phase = session.phase;
+  const badgeClass = phase === "running" ? "live" : phase === "result" ? "ready" : "";
+  const header = `
+    <div class="card" style="margin-bottom:1rem">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap">
+        <div>
+          <h2>${esc(session.home)} vs ${esc(session.away)}</h2>
+          <p class="muted">${esc(session.tournament_name || "Tournament")} · ${esc(session.stage || "")} · ${esc(session.fixture_id || "")}</p>
+        </div>
+        <span class="badge ${badgeClass}">${esc(phaseLabel(phase))}</span>
+      </div>
+      <p class="muted" style="margin-top:0.5rem">${esc(session.message || "")}</p>
+    </div>`;
+
+  let phaseBody = "";
+  if (phase === "setup") {
+    const myTeam = getUser();
+    const involved = myTeam && (myTeam === session.home || myTeam === session.away);
+    const squadLink = involved
+      ? `<p><a href="/squad" class="btn-link">Configure your lineup on Squad hub</a> before the admin runs the simulation.</p>`
+      : `<p class="muted">Involved teams can configure lineups on <a href="/squad">Squad hub</a>.</p>`;
+    const adminRun = isAdmin || getAdminToken()
+      ? `<button type="button" id="matchdayRunBtn" class="btn-primary" style="margin-top:1rem">Run simulation</button>`
+      : `<p class="muted">Waiting for admin to start the simulation…</p>`;
+    phaseBody = `
+      <section>
+        <h3 style="margin-bottom:0.75rem">Lineups</h3>
+        <div class="grid grid-2">${renderMatchdayTeamCard(session.team_a, "Home")}${renderMatchdayTeamCard(session.team_b, "Away")}</div>
+        ${squadLink}
+        ${adminRun}
+      </section>`;
+  } else if (phase === "running") {
+    phaseBody = `
+      <div class="card">
+        <h3>Simulation running</h3>
+        <p class="muted">Monte Carlo in progress… results will appear when complete.</p>
+        <div class="grid grid-2" style="margin-top:1rem">${renderMatchdayTeamCard(session.team_a, "Home")}${renderMatchdayTeamCard(session.team_b, "Away")}</div>
+      </div>`;
+  } else if (phase === "result") {
+    const r = session.result || {};
+    const topScores = (r.top_scorelines || [])
+      .map((row) => `${esc(row.score)} (${num(row.pct, 1)}%)`)
+      .join(", ");
+    const expLink = r.experiment_id
+      ? `<p><a href="/experiment/${esc(r.experiment_id)}?from=matchday">Full match analysis</a></p>`
+      : "";
+    const dismissBtn = isAdmin || getAdminToken()
+      ? `<button type="button" id="matchdayDismissBtn" class="btn-ghost" style="margin-top:1rem">Dismiss</button>`
+      : "";
+    phaseBody = `
+      <div class="card">
+        <h3 style="font-size:2rem;margin:0">${esc(r.score || "—")}</h3>
+        <p><strong>${esc(r.winner || "Draw")}</strong> · ${pct(r.home_win_pct)} home · ${pct(r.draw_pct)} draw · ${pct(r.away_win_pct)} away</p>
+        ${topScores ? `<p class="muted">Top scorelines: ${topScores}</p>` : ""}
+        <p class="muted"><a href="/tournament?id=${esc(session.tournament_id)}">Updated on tournament table</a></p>
+        ${expLink}
+        ${dismissBtn}
+      </div>`;
+  }
+
+  return header + phaseBody;
+}
+
+let _matchdayPollStarted = false;
+
+function startMatchdayBroadcastPoll() {
+  if (_matchdayPollStarted) return;
+  if (!getToken()) return;
+  _matchdayPollStarted = true;
+  setInterval(async () => {
+    if (window.location.pathname === "/matchday") return;
+    try {
+      const data = await api("/api/matchday/active");
+      if (data.active && data.redirect) {
+        window.location.href = "/matchday";
+      }
+    } catch (_) {}
+  }, 3000);
+}
+
+if (typeof document !== "undefined" && getToken()) {
+  startMatchdayBroadcastPoll();
+}
+
+function renderExperimentList(items, { showDelete = false } = {}) {
   if (!items.length) {
     return `<div class="empty"><p>No experiments yet.</p><p><a href="/lab">Create your first matchup</a></p></div>`;
   }
+  const deleteHeader = showDelete ? "<th>Actions</th>" : "";
   const rows = items
     .map((e) => {
       const xg =
@@ -406,12 +481,16 @@ function renderExperimentList(items) {
         e.status === "ready"
           ? `${pct(e.home_win_pct)} / ${pct(e.away_win_pct)}`
           : esc(e.message || e.status);
+      const deleteCell = showDelete
+        ? `<td><button type="button" class="btn-ghost delete-exp" data-id="${esc(e.id)}" data-label="${esc(e.team_a_name)} vs ${esc(e.team_b_name)}">Delete</button></td>`
+        : "";
       return `<tr>
         <td><a href="/experiment/${esc(e.id)}">${esc(e.team_a_name)} vs ${esc(e.team_b_name)}</a></td>
         <td class="muted">${esc(e.team_a_formation)} / ${esc(e.team_b_formation)}</td>
         <td><span class="badge ${esc(e.status)}">${esc(e.status)}</span></td>
         <td>${xg}</td>
         <td class="muted">${outcome}</td>
+        ${deleteCell}
       </tr>`;
     })
     .join("");
@@ -419,7 +498,7 @@ function renderExperimentList(items) {
     <div class="card">
       <h2>Your experiments</h2>
       <table>
-        <thead><tr><th>Matchup</th><th>Formations</th><th>Status</th><th>xG</th><th>Result</th></tr></thead>
+        <thead><tr><th>Matchup</th><th>Formations</th><th>Status</th><th>xG</th><th>Result</th>${deleteHeader}</tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>`;

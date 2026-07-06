@@ -16,7 +16,11 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
 async function refresh() {
   try {
     const data = await api("/api/experiments");
-    document.getElementById("app").innerHTML = renderExperimentList(data.experiments || []);
+    const app = document.getElementById("app");
+    app.innerHTML = renderExperimentList(data.experiments || [], { showDelete: true });
+    app.querySelectorAll(".delete-exp").forEach((btn) => {
+      btn.addEventListener("click", () => deleteExperiment(btn.dataset.id, btn.dataset.label));
+    });
   } catch (e) {
     if (e.message.includes("401") || e.message.includes("Login")) {
       clearSession();
@@ -24,6 +28,16 @@ async function refresh() {
       return;
     }
     document.getElementById("app").innerHTML = `<div class="empty">Failed to load: ${esc(e.message)}</div>`;
+  }
+}
+
+async function deleteExperiment(expId, label) {
+  if (!confirm(`Delete experiment "${label}"? This cannot be undone.`)) return;
+  try {
+    await api(`/api/experiments/${expId}`, { method: "DELETE" });
+    await refresh();
+  } catch (e) {
+    alert(`Delete failed: ${e.message}`);
   }
 }
 

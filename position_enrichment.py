@@ -99,7 +99,15 @@ def parse_fbref_positions(pos_raw: str) -> list[str]:
 
     token_set = set(tokens)
     if "MF" in token_set and "DF" in token_set:
-        positions = ["DM" if p == "CM" else p for p in positions]
+        df_idx = tokens.index("DF") if "DF" in tokens else -1
+        mf_idx = tokens.index("MF") if "MF" in tokens else -1
+        if df_idx >= 0 and mf_idx >= 0 and df_idx < mf_idx:
+            # Fullback who sometimes pushes into midfield (e.g. Reece James "DF,MF").
+            positions = ["RB" if p == "CB" else p for p in positions]
+            positions = ["CM" if p == "DM" else p for p in positions]
+        else:
+            # Holding midfielder who can drop into defence (e.g. Rodri "MF,DF").
+            positions = ["DM" if p == "CM" else p for p in positions]
 
     return list(dict.fromkeys(positions))
 
@@ -141,13 +149,17 @@ def refine_defensive_line_positions(stats: dict[str, Any], positions: list[str])
 
     centre_back_profile = clearances >= 3.5 and key_passes < 1.2
     fullback_profile = key_passes >= 0.75 or assists >= 0.12 or dribbles >= 0.9
+    midfield_anchors = pos_set & {"DM", "CM", "AM"}
 
     out = list(positions)
     if centre_back_profile and "CB" not in out:
         out.insert(0, "CB")
-    if fullback_profile:
-        if "CB" in out and not centre_back_profile:
-            out = [p for p in out if p != "CB"]
+    if fullback_profile and "CB" in out and not midfield_anchors:
+        out = [p for p in out if p != "CB"]
+        if "LB" not in out and "RB" not in out and "WB" not in out:
+            out.extend(["LB", "RB"])
+    elif fullback_profile and pos_set == {"CB"}:
+        out = [p for p in out if p != "CB"]
         if "LB" not in out and "RB" not in out and "WB" not in out:
             out.extend(["LB", "RB"])
     return list(dict.fromkeys(out))
@@ -281,10 +293,27 @@ def enrich_entry_positions(
     )
     fallback = entry.get("primary_position") or SOFASCORE_POSITION_TO_PRIMARY.get(sofascore_bucket or "", "CM")
     primary, fpl, positions = derive_position_profile(weights, fallback_primary=str(fallback))
+    if known_override and known_override.get("primary_position"):
+        primary = _norm_pos(str(known_override["primary_position"]))
+        if known_override.get("fpl_position"):
+            fpl = known_override["fpl_position"]  # type: ignore[assignment]
+        else:
+            fpl = infer_fpl_from_primary(primary, positions)
+        override_positions = normalize_positions(known_override.get("positions"))
+        positions = list(dict.fromkeys([primary, *override_positions, *positions]))
     positions = refine_defensive_line_positions(entry, positions)
+    if known_override and known_override.get("positions"):
+        override_only = normalize_positions(known_override.get("positions"))
+        positions = list(dict.fromkeys([primary, *override_only, *[p for p in positions if p in override_only or weights.get(p, 0) >= 4.0]]))
     if primary == "CB" and "LB" in positions and "RB" in positions:
         if float(entry.get("key_passes90") or 0) >= 0.75:
             primary = "LB" if weights.get("LB", 0) >= weights.get("RB", 0) else "RB"
+    ranked = sorted(
+        positions,
+        key=lambda p: (-weights.get(p, 0), -PRIMARY_PRIORITY.get(p, 50)),
+    )
+    trimmed = [p for p in ranked if p == primary or weights.get(p, 0) >= 3.5][:6]
+    positions = list(dict.fromkeys([primary, *trimmed]))
     return {
         "primary_position": primary,
         "fpl_position": fpl,

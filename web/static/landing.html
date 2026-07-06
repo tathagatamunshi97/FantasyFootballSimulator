@@ -18,32 +18,33 @@
     <div class="grid" style="gap: 1rem;">
       <a href="/admin" class="card landing-card">
         <h2>Admin</h2>
-        <p class="muted">Run simulations, manage tournaments. Requires <code>SIM_ADMIN_TOKEN</code> (no user login).</p>
+        <p class="muted">Master control panel — tournaments, team passwords, fixture runs. Requires <code>SIM_ADMIN_TOKEN</code>.</p>
       </a>
       <a href="/tournament" class="card landing-card">
         <h2>Tournament</h2>
-        <p class="muted">Live standings, fixtures, and knockout bracket.</p>
-      </a>
-      <a href="/squad" class="card landing-card">
-        <h2>Squad hub</h2>
-        <p class="muted">Squad evaluation and opponent scouting for Google Sheet teams (login required).</p>
+        <p class="muted">Live active tournament — standings, fixtures, results, and knockout bracket.</p>
       </a>
       <a href="/matchday" class="card landing-card">
         <h2>Matchday</h2>
-        <p class="muted">Admin simulation history — win probs, scorelines, and full reports (admin login only).</p>
+        <p class="muted">Live tournament fixture broadcast only — setup, simulation, and result (login required).</p>
+      </a>
+      <a href="/squad" class="card landing-card">
+        <h2>Squad hub</h2>
+        <p class="muted">Build your starting XI, set formation and season picks, run squad reports (team login).</p>
       </a>
       <a href="/lab" class="card landing-card">
         <h2>Team lab</h2>
-        <p class="muted">Build custom matchups and run experiments (admin login only).</p>
+        <p class="muted">Ad-hoc custom matchups and experiments (admin login only).</p>
       </a>
       <a href="/home" class="card landing-card">
         <h2>My experiments</h2>
-        <p class="muted">View saved simulation results (admin login).</p>
+        <p class="muted">Saved simulation archive and experiment history (admin login only).</p>
       </a>
     </div>
     <p style="text-align: center; margin-top: 1.5rem;">
       <a href="/login" class="btn-link">Log in</a>
       <a href="/squad" class="btn-link">Squad hub</a>
+      <a href="/matchday" class="btn-link">Matchday</a>
     </p>
   </main>
 

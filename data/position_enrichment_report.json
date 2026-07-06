@@ -1,0 +1,7274 @@
+{
+  "generated_at": "2026-07-06T16:29:16.692381+00:00",
+  "dry_run": false,
+  "use_fbref": true,
+  "sheet_players": 210,
+  "updated_count": 45,
+  "unchanged_count": 165,
+  "missing_cache_count": 0,
+  "weak_after_count": 106,
+  "weak_after": [
+    {
+      "raw": "Rice",
+      "cached_as": "Declan Rice",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Cubarsi",
+      "cached_as": "Pau Cubarsí",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Upamecano",
+      "cached_as": "Dayot Upamecano",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Enzo F",
+      "cached_as": "Enzo Fernández",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Joao Palhinha",
+      "cached_as": "João Palhinha",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Luis Diaz",
+      "cached_as": "Luis Díaz",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Tapsoba",
+      "cached_as": "Edmond Tapsoba",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Manuel Locatelli",
+      "cached_as": "Manuel Locatelli",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Bruno",
+      "cached_as": "Bruno Fernandes",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Sergio Ramos",
+      "cached_as": "Sergio Ramos",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Fernandinho",
+      "cached_as": "Fernandinho",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Doku",
+      "cached_as": "Jérémy Doku",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Barella",
+      "cached_as": "Nicolò Barella",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Malick Thiaw",
+      "cached_as": "Malick Thiaw",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Adam Wharton",
+      "cached_as": "Adam Wharton",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Maxence Lacroix",
+      "cached_as": "Maxence Lacroix",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Manu Kone",
+      "cached_as": "Manu Koné",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Yamal",
+      "cached_as": "Lamine Yamal",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Arturo Vidal",
+      "cached_as": "Arturo Vidal",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Gravenberch",
+      "cached_as": "Ryan Gravenberch",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Van Hecke",
+      "cached_as": "Jan Paul van Hecke",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Marc Guehi",
+      "cached_as": "Marc Guéhi",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Arda Guler",
+      "cached_as": "Arda Güler",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Abdessamad Ezzalzouli",
+      "cached_as": "Abdessamad Ezzalzouli",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Felix Nmecha",
+      "cached_as": "Felix Nmecha",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Fede Valverde",
+      "cached_as": "Federico Valverde",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Dani Olmo",
+      "cached_as": "Dani Olmo",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Nico Paz",
+      "cached_as": "Nico Paz",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Eliott Anderson",
+      "cached_as": "Elliot Anderson",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Morgan Rogers",
+      "cached_as": "Morgan Rogers",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Kim Min Jae",
+      "cached_as": "Kim Min-jae",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Hakan Calhanoglu",
+      "cached_as": "Hakan Çalhanoğlu",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Rrahmani",
+      "cached_as": "Amir Rrahmani",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Olise",
+      "cached_as": "Michael Olise",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Willian Pacho",
+      "cached_as": "Willian Pacho",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Casemiro",
+      "cached_as": "Casemiro",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Pape Matar Sarr",
+      "cached_as": "Pape Matar Sarr",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Joao Neves",
+      "cached_as": "João Neves",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Diego Godin",
+      "cached_as": "Diego Godín",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Bruno G",
+      "cached_as": "Bruno Guimarães",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Jeremy Jacquet",
+      "cached_as": "Jérémy Jacquet",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Modric",
+      "cached_as": "Luka Modrić",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Giovanni Lo Celso",
+      "cached_as": "Giovani Lo Celso",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Laporte",
+      "cached_as": "Aymeric Laporte",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Musiala",
+      "cached_as": "Jamal Musiala",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Caicedo",
+      "cached_as": "Moisés Caicedo",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Eric Garcia",
+      "cached_as": "Eric García",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Sandro Tonali",
+      "cached_as": "Sandro Tonali",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Dean Huijsen",
+      "cached_as": "Dean Huijsen",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Ruiz",
+      "cached_as": "Fabián Ruiz",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Ruben Dias",
+      "cached_as": "Rúben Dias",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Gvardiol",
+      "cached_as": "Joško Gvardiol",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Bellingham",
+      "cached_as": "Jude Bellingham",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Calafiori",
+      "cached_as": "Riccardo Calafiori",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Cherki",
+      "cached_as": "Rayan Cherki",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "John Stones",
+      "cached_as": "John Stones",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Tielemans",
+      "cached_as": "Youri Tielemans",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Eze",
+      "cached_as": "Eberechi Eze",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Jonathan Tah",
+      "cached_as": "Jonathan Tah",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Eder Militao",
+      "cached_as": "Éder Militão",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Takefusa Kubo",
+      "cached_as": "Takefusa Kubo",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Marquinhos",
+      "cached_as": "Marquinhos",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Saliba",
+      "cached_as": "William Saliba",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Dumfries",
+      "cached_as": "Denzel Dumfries",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Tijjiani Reijnders",
+      "cached_as": "Tijjani Reijnders",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Pavlovic",
+      "cached_as": "Aleksandar Pavlović",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Semenyo",
+      "cached_as": "Antoine Semenyo",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Kingsley Coman",
+      "cached_as": "Kingsley Coman",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Ayoub Bouaddi",
+      "cached_as": "Ayyoub Bouaddi",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Gabriel Magalhaes",
+      "cached_as": "Gabriel Magalhães",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Tchouameni",
+      "cached_as": "Aurélien Tchouaméni",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Salah",
+      "cached_as": "Mohamed Salah",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Daniel Munoz",
+      "cached_as": "Daniel Muñoz",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Morgan Gibbs-White",
+      "cached_as": "Morgan Gibbs-White",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Mateusz Fernandes",
+      "cached_as": "Mateus Fernandes",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Micky Van de Ven",
+      "cached_as": "Micky van de Ven",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Alexis Mac Allister",
+      "cached_as": "Alexis Mac Allister",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Bernardo",
+      "cached_as": "Bernardo",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "VVD",
+      "cached_as": "Virgil van Dijk",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Szoboszalai",
+      "cached_as": "Dominik Szoboszlai",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Christian Romero",
+      "cached_as": "Cristian Romero",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Warren Zaire Emery",
+      "cached_as": "Warren Zaïre-Emery",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Alex Grimaldo",
+      "cached_as": "Alejandro Grimaldo",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Granit Xhaka",
+      "cached_as": "Granit Xhaka",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Martin Zubimendi",
+      "cached_as": "Martín Zubimendi",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Piero Hincapie",
+      "cached_as": "Piero Hincapié",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Rudiger",
+      "cached_as": "Antonio Rüdiger",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Pedri",
+      "cached_as": "Pedri",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Kimmich",
+      "cached_as": "Joshua Kimmich",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Federico DiMarco",
+      "cached_as": "Federico Dimarco",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Harry Maguire",
+      "cached_as": "Harry Maguire",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Lennart Karl",
+      "cached_as": "Lennart Karl",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Francesco Acerbi",
+      "cached_as": "Francesco Acerbi",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Vitinha",
+      "cached_as": "Vitinha (Paris Saint-Germain)",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Kante",
+      "cached_as": "N'Golo Kanté",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Nico Williams",
+      "cached_as": "Nico Williams",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Schlotterbeck",
+      "cached_as": "Nico Schlotterbeck",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Konate",
+      "cached_as": "Ibrahima Konaté",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Frenkie de Jong",
+      "cached_as": "Frenkie de Jong",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Fermin Lopez",
+      "cached_as": "Fermín López",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Cristhian Mosquera",
+      "cached_as": "Cristhian Mosquera",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "De Ligt",
+      "cached_as": "Matthijs de Ligt",
+      "primary_position": "CB",
+      "fpl_position": "DEF",
+      "positions": [
+        "CB"
+      ]
+    },
+    {
+      "raw": "Mctominay",
+      "cached_as": "Scott McTominay",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Florian Wirtz",
+      "cached_as": "Florian Wirtz",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Gundogan",
+      "cached_as": "İlkay Gündoğan",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    },
+    {
+      "raw": "Kobbie Mainoo",
+      "cached_as": "Kobbie Mainoo",
+      "primary_position": "CM",
+      "fpl_position": "MID",
+      "positions": [
+        "CM"
+      ]
+    }
+  ],
+  "sample_updates": [
+    {
+      "raw": "Cucurella",
+      "cached_as": "Marc Cucurella",
+      "player_id": null,
+      "changed": true,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Gonzalo Higuain",
+      "cached_as": "Gonzalo Higuaín",
+      "player_id": 19438,
+      "changed": true,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST",
+          "RW",
+          "LW"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 1,
+        "seed_player": false,
+        "seed_seasons": 1,
+        "known_override": false,
+        "sofascore_bucket": "F"
+      }
+    },
+    {
+      "raw": "Cole Palmer",
+      "cached_as": "Cole Palmer",
+      "player_id": 982780,
+      "changed": true,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM",
+          "ST",
+          "AM",
+          "DM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM",
+          "ST"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": "M"
+      }
+    },
+    {
+      "raw": "Sergio Ramos",
+      "cached_as": "Sergio Ramos",
+      "player_id": 146219,
+      "changed": true,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB",
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 2,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": "D"
+      }
+    },
+    {
+      "raw": "Fernandinho",
+      "cached_as": "Fernandinho",
+      "player_id": 13630,
+      "changed": true,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM",
+          "AM",
+          "DM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 1,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": "M"
+      }
+    },
+    {
+      "raw": "Djed Spence",
+      "cached_as": "Djed Spence",
+      "player_id": null,
+      "changed": true,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "CR7",
+      "cached_as": "Cristiano Ronaldo",
+      "player_id": 750,
+      "changed": true,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST",
+          "CM",
+          "RW",
+          "LW"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST",
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 1,
+        "seed_player": true,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": "F"
+      }
+    },
+    {
+      "raw": "Arturo Vidal",
+      "cached_as": "Arturo Vidal",
+      "player_id": 91047,
+      "changed": true,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM",
+          "AM",
+          "DM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 1,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": "M"
+      }
+    },
+    {
+      "raw": "Laimer",
+      "cached_as": "Konrad Laimer",
+      "player_id": null,
+      "changed": true,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Nunes",
+      "cached_as": "Matheus Nunes",
+      "player_id": null,
+      "changed": true,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    }
+  ],
+  "updates": [
+    {
+      "raw": "Rice",
+      "cached_as": "Declan Rice",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Cubarsi",
+      "cached_as": "Pau Cubarsí",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Cucurella",
+      "cached_as": "Marc Cucurella",
+      "player_id": null,
+      "changed": true,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Upamecano",
+      "cached_as": "Dayot Upamecano",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Enzo F",
+      "cached_as": "Enzo Fernández",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Joao Palhinha",
+      "cached_as": "João Palhinha",
+      "player_id": 364612,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Gonzalo Higuain",
+      "cached_as": "Gonzalo Higuaín",
+      "player_id": 19438,
+      "changed": true,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST",
+          "RW",
+          "LW"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 1,
+        "seed_player": false,
+        "seed_seasons": 1,
+        "known_override": false,
+        "sofascore_bucket": "F"
+      }
+    },
+    {
+      "raw": "Maignan",
+      "cached_as": "Mike Maignan",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "after": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Luis Diaz",
+      "cached_as": "Luis Díaz",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Stanisic",
+      "cached_as": "Josip Stanišić",
+      "player_id": 927407,
+      "changed": false,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Cole Palmer",
+      "cached_as": "Cole Palmer",
+      "player_id": 982780,
+      "changed": true,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM",
+          "ST",
+          "AM",
+          "DM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM",
+          "ST"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": "M"
+      }
+    },
+    {
+      "raw": "Tapsoba",
+      "cached_as": "Edmond Tapsoba",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Manuel Locatelli",
+      "cached_as": "Manuel Locatelli",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Matheus Cunha",
+      "cached_as": "Matheus Cunha",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Antoine Griezmann",
+      "cached_as": "Antoine Griezmann",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Haaland",
+      "cached_as": "Erling Haaland",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Bruno",
+      "cached_as": "Bruno Fernandes",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Sergio Ramos",
+      "cached_as": "Sergio Ramos",
+      "player_id": 146219,
+      "changed": true,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB",
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 2,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": "D"
+      }
+    },
+    {
+      "raw": "Bounou",
+      "cached_as": "Yassine Bounou",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "after": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Fernandinho",
+      "cached_as": "Fernandinho",
+      "player_id": 13630,
+      "changed": true,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM",
+          "AM",
+          "DM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 1,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": "M"
+      }
+    },
+    {
+      "raw": "Doku",
+      "cached_as": "Jérémy Doku",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Barella",
+      "cached_as": "Nicolò Barella",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Mason Greenwood",
+      "cached_as": "Mason Greenwood",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Djed Spence",
+      "cached_as": "Djed Spence",
+      "player_id": null,
+      "changed": true,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Leandro Trossard",
+      "cached_as": "Leandro Trossard",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Malick Thiaw",
+      "cached_as": "Malick Thiaw",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Jordan Pickford",
+      "cached_as": "Jordan Pickford",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "after": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Adam Wharton",
+      "cached_as": "Adam Wharton",
+      "player_id": 1109771,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Maxence Lacroix",
+      "cached_as": "Maxence Lacroix",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Manu Kone",
+      "cached_as": "Manu Koné",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Yamal",
+      "cached_as": "Lamine Yamal",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "CR7",
+      "cached_as": "Cristiano Ronaldo",
+      "player_id": 750,
+      "changed": true,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST",
+          "CM",
+          "RW",
+          "LW"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST",
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 1,
+        "seed_player": true,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": "F"
+      }
+    },
+    {
+      "raw": "Carvajal",
+      "cached_as": "Carvajal",
+      "player_id": 138572,
+      "changed": false,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Arturo Vidal",
+      "cached_as": "Arturo Vidal",
+      "player_id": 91047,
+      "changed": true,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM",
+          "AM",
+          "DM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 1,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": "M"
+      }
+    },
+    {
+      "raw": "Gravenberch",
+      "cached_as": "Ryan Gravenberch",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Van Hecke",
+      "cached_as": "Jan Paul van Hecke",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Marc Guehi",
+      "cached_as": "Marc Guéhi",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Laimer",
+      "cached_as": "Konrad Laimer",
+      "player_id": null,
+      "changed": true,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Arda Guler",
+      "cached_as": "Arda Güler",
+      "player_id": 1091116,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Abdessamad Ezzalzouli",
+      "cached_as": "Abdessamad Ezzalzouli",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Yan Diomande",
+      "cached_as": "Yan Diomande",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Matvei Safonov",
+      "cached_as": "Matvey Safonov",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "after": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Gregor Kobel",
+      "cached_as": "Gregor Kobel",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "after": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Alvaro Carreras",
+      "cached_as": "Álvaro Carreras",
+      "player_id": 1085081,
+      "changed": false,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Felix Nmecha",
+      "cached_as": "Felix Nmecha",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Mbappe",
+      "cached_as": "Kylian Mbappé",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Neuer",
+      "cached_as": "Manuel Neuer",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "after": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Fede Valverde",
+      "cached_as": "Federico Valverde",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Dani Olmo",
+      "cached_as": "Dani Olmo",
+      "player_id": 789071,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Nico Paz",
+      "cached_as": "Nico Paz",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Marcelo",
+      "cached_as": "Marcelo",
+      "player_id": 17787,
+      "changed": false,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "fbref_seasons": 2,
+      "sources": {
+        "manual_profiles": 1,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": "D"
+      }
+    },
+    {
+      "raw": "Nunes",
+      "cached_as": "Matheus Nunes",
+      "player_id": null,
+      "changed": true,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Eliott Anderson",
+      "cached_as": "Elliot Anderson",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Pulisic",
+      "cached_as": "Christian Pulišić",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Morgan Rogers",
+      "cached_as": "Morgan Rogers",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Kim Min Jae",
+      "cached_as": "Kim Min-jae",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Hugo Ekitike",
+      "cached_as": "Hugo Ekitiké",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Hakan Calhanoglu",
+      "cached_as": "Hakan Çalhanoğlu",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Rrahmani",
+      "cached_as": "Amir Rrahmani",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Nordi Mukiele",
+      "cached_as": "Nordi Mukiele",
+      "player_id": 780014,
+      "changed": true,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Olise",
+      "cached_as": "Michael Olise",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Kane",
+      "cached_as": "Harry Kane",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Kounde",
+      "cached_as": "Jules Koundé",
+      "player_id": null,
+      "changed": true,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Willian Pacho",
+      "cached_as": "Willian Pacho",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Casemiro",
+      "cached_as": "Casemiro",
+      "player_id": 122951,
+      "changed": true,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM",
+          "AM",
+          "DM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 2,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": "M"
+      }
+    },
+    {
+      "raw": "Pape Matar Sarr",
+      "cached_as": "Pape Matar Sarr",
+      "player_id": 1002711,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Joao Neves",
+      "cached_as": "João Neves",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Diego Godin",
+      "cached_as": "Diego Godín",
+      "player_id": 14933,
+      "changed": true,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB",
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 1,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": "D"
+      }
+    },
+    {
+      "raw": "Bruno G",
+      "cached_as": "Bruno Guimarães",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Nico O'Reilly",
+      "cached_as": "Nico O'Reilly",
+      "player_id": 1142703,
+      "changed": true,
+      "before": {
+        "primary_position": "DM",
+        "fpl_position": "MID",
+        "positions": [
+          "DM",
+          "RB",
+          "LB"
+        ]
+      },
+      "after": {
+        "primary_position": "RB",
+        "fpl_position": "DEF",
+        "positions": [
+          "RB",
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Rafael Leao",
+      "cached_as": "Rafael Leão",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Marco Carnesecchi",
+      "cached_as": "Marco Carnesecchi",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "after": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Jeremy Jacquet",
+      "cached_as": "Jérémy Jacquet",
+      "player_id": 1445625,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Eli Junior Kroupi",
+      "cached_as": "Eli Junior Kroupi",
+      "player_id": 1426228,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST",
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST",
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Diogo Costa",
+      "cached_as": "Diogo Costa",
+      "player_id": 843115,
+      "changed": false,
+      "before": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "after": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": true,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Dembele",
+      "cached_as": "Ousmane Dembélé",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Modric",
+      "cached_as": "Luka Modrić",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Raya",
+      "cached_as": "David Raya",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "after": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Lautaro Martinez",
+      "cached_as": "Lautaro Martínez",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Marcus Thuram",
+      "cached_as": "Marcus Thuram",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Giovanni Lo Celso",
+      "cached_as": "Giovani Lo Celso",
+      "player_id": 798835,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Laporte",
+      "cached_as": "Aymeric Laporte",
+      "player_id": 149734,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Musiala",
+      "cached_as": "Jamal Musiala",
+      "player_id": 1010231,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Caicedo",
+      "cached_as": "Moisés Caicedo",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Eric Garcia",
+      "cached_as": "Eric García",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Karim Adeyemi",
+      "cached_as": "Karim Adeyemi",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Alphonso Davies",
+      "cached_as": "Alphonso Davies",
+      "player_id": 843665,
+      "changed": false,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Sandro Tonali",
+      "cached_as": "Sandro Tonali",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Reece James",
+      "cached_as": "Reece James",
+      "player_id": 885908,
+      "changed": true,
+      "before": {
+        "primary_position": "DM",
+        "fpl_position": "MID",
+        "positions": [
+          "DM",
+          "RB",
+          "LB"
+        ]
+      },
+      "after": {
+        "primary_position": "RB",
+        "fpl_position": "DEF",
+        "positions": [
+          "RB",
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Dean Huijsen",
+      "cached_as": "Dean Huijsen",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Ruiz",
+      "cached_as": "Fabián Ruiz",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Khvicha",
+      "cached_as": "Khvicha Kvaratskhelia",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Rodri",
+      "cached_as": "Rodri",
+      "player_id": 827606,
+      "changed": true,
+      "before": {
+        "primary_position": "DM",
+        "fpl_position": "MID",
+        "positions": [
+          "DM",
+          "CM",
+          "CB",
+          "AM",
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "DM",
+        "fpl_position": "MID",
+        "positions": [
+          "DM",
+          "CM",
+          "CB"
+        ]
+      },
+      "fbref_seasons": 2,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": true,
+        "sofascore_bucket": "M"
+      }
+    },
+    {
+      "raw": "Julian Alvarez",
+      "cached_as": "Julián Alvarez",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Emiliano Martinez",
+      "cached_as": "Emiliano Martínez",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "after": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Ruben Dias",
+      "cached_as": "Rúben Dias",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Gvardiol",
+      "cached_as": "Joško Gvardiol",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Angel Di Maria",
+      "cached_as": "Ángel Di María",
+      "player_id": 30027,
+      "changed": true,
+      "before": {
+        "primary_position": "RW",
+        "fpl_position": "FWD",
+        "positions": [
+          "RW",
+          "LW",
+          "CM",
+          "ST",
+          "AM",
+          "DM"
+        ]
+      },
+      "after": {
+        "primary_position": "RW",
+        "fpl_position": "FWD",
+        "positions": [
+          "RW",
+          "LW",
+          "CM",
+          "ST"
+        ]
+      },
+      "fbref_seasons": 2,
+      "sources": {
+        "manual_profiles": 1,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": true,
+        "sofascore_bucket": "M"
+      }
+    },
+    {
+      "raw": "Bellingham",
+      "cached_as": "Jude Bellingham",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Timber",
+      "cached_as": "Jurriën Timber",
+      "player_id": null,
+      "changed": true,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Calafiori",
+      "cached_as": "Riccardo Calafiori",
+      "player_id": 957602,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Cherki",
+      "cached_as": "Rayan Cherki",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Anthony Gordon",
+      "cached_as": "Anthony Gordon",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "John Stones",
+      "cached_as": "John Stones",
+      "player_id": 152077,
+      "changed": true,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB",
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": "D"
+      }
+    },
+    {
+      "raw": "Benjamin Sesko",
+      "cached_as": "Benjamin Šeško",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Trent",
+      "cached_as": "Trent Alexander-Arnold",
+      "player_id": 795064,
+      "changed": false,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Alisson",
+      "cached_as": "Alisson",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "after": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Hakimi",
+      "cached_as": "Achraf Hakimi",
+      "player_id": null,
+      "changed": true,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "El Kaabi",
+      "cached_as": "Ayoub El Kaabi",
+      "player_id": 919793,
+      "changed": true,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST",
+          "RW",
+          "LW"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": true,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": "F"
+      }
+    },
+    {
+      "raw": "Mikel Merino",
+      "cached_as": "Mikel Merino",
+      "player_id": 592010,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST",
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST",
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Gyokeres",
+      "cached_as": "Viktor Gyökeres",
+      "player_id": 804508,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Alexis Sanchez",
+      "cached_as": "Alexis Sánchez",
+      "player_id": 34120,
+      "changed": true,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST",
+          "CM",
+          "RW",
+          "LW"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST",
+          "CM"
+        ]
+      },
+      "fbref_seasons": 2,
+      "sources": {
+        "manual_profiles": 1,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": "F"
+      }
+    },
+    {
+      "raw": "Tielemans",
+      "cached_as": "Youri Tielemans",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Eze",
+      "cached_as": "Eberechi Eze",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Jonathan Tah",
+      "cached_as": "Jonathan Tah",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Eder Militao",
+      "cached_as": "Éder Militão",
+      "player_id": 822519,
+      "changed": true,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB",
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": "D"
+      }
+    },
+    {
+      "raw": "Antonee Robinson",
+      "cached_as": "Antonee Robinson",
+      "player_id": null,
+      "changed": true,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Nick Pope",
+      "cached_as": "Nick Pope",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "after": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Takefusa Kubo",
+      "cached_as": "Takefusa Kubo",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "David Raum",
+      "cached_as": "David Raum",
+      "player_id": null,
+      "changed": true,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "KDB",
+      "cached_as": "Kevin De Bruyne",
+      "player_id": 70996,
+      "changed": true,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM",
+          "ST",
+          "AM",
+          "DM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM",
+          "ST"
+        ]
+      },
+      "fbref_seasons": 2,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": "M"
+      }
+    },
+    {
+      "raw": "Marquinhos",
+      "cached_as": "Marquinhos",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Saliba",
+      "cached_as": "William Saliba",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Luis Suarez",
+      "cached_as": "Luis Suárez",
+      "player_id": 16943,
+      "changed": true,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST",
+          "RW",
+          "LW"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 1,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": "F"
+      }
+    },
+    {
+      "raw": "Dumfries",
+      "cached_as": "Denzel Dumfries",
+      "player_id": 759520,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Kenan Yildiz",
+      "cached_as": "Kenan Yıldız",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Tijjiani Reijnders",
+      "cached_as": "Tijjani Reijnders",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Pavlovic",
+      "cached_as": "Aleksandar Pavlović",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Semenyo",
+      "cached_as": "Antoine Semenyo",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Courtois",
+      "cached_as": "Thibaut Courtois",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "after": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Calvert-Lewin",
+      "cached_as": "Dominic Calvert-Lewin",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Kingsley Coman",
+      "cached_as": "Kingsley Coman",
+      "player_id": 280441,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Alejandro Balde",
+      "cached_as": "Alejandro Balde",
+      "player_id": null,
+      "changed": true,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Marcus Rashford",
+      "cached_as": "Marcus Rashford",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Ayoub Bouaddi",
+      "cached_as": "Ayyoub Bouaddi",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Vinicius",
+      "cached_as": "Vinícius Júnior",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Bastoni",
+      "cached_as": "Alessandro Bastoni",
+      "player_id": null,
+      "changed": true,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Gabriel Magalhaes",
+      "cached_as": "Gabriel Magalhães",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Roberto Firmino",
+      "cached_as": "Roberto Firmino",
+      "player_id": 143697,
+      "changed": true,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST",
+          "RW",
+          "LW"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 1,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": "F"
+      }
+    },
+    {
+      "raw": "Tchouameni",
+      "cached_as": "Aurélien Tchouaméni",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Salah",
+      "cached_as": "Mohamed Salah",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Nathaniel Brown",
+      "cached_as": "Nathaniel Brown",
+      "player_id": null,
+      "changed": true,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Daniel Munoz",
+      "cached_as": "Daniel Muñoz",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Morgan Gibbs-White",
+      "cached_as": "Morgan Gibbs-White",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Mateusz Fernandes",
+      "cached_as": "Mateus Fernandes",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Matz Sels",
+      "cached_as": "Matz Sels",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "after": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Micky Van de Ven",
+      "cached_as": "Micky van de Ven",
+      "player_id": 998247,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Alexis Mac Allister",
+      "cached_as": "Alexis Mac Allister",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Joao Pedro",
+      "cached_as": "João Pedro",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Caiomhin Kelleher",
+      "cached_as": "Caoimhin Kelleher",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "after": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Messi",
+      "cached_as": "Lionel Messi",
+      "player_id": 12994,
+      "changed": true,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST",
+          "CM",
+          "RW",
+          "LW"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST",
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 1,
+        "seed_player": true,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": "F"
+      }
+    },
+    {
+      "raw": "Bernardo",
+      "cached_as": "Bernardo",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "VVD",
+      "cached_as": "Virgil van Dijk",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Neymar",
+      "cached_as": "Neymar",
+      "player_id": 124712,
+      "changed": true,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST",
+          "CM",
+          "RW",
+          "LW"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST",
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 1,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": "F"
+      }
+    },
+    {
+      "raw": "Marcos Llorente",
+      "cached_as": "Marcos Llorente",
+      "player_id": null,
+      "changed": true,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Szoboszalai",
+      "cached_as": "Dominik Szoboszlai",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Christian Romero",
+      "cached_as": "Cristian Romero",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Lewandowski",
+      "cached_as": "Robert Lewandowski",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Warren Zaire Emery",
+      "cached_as": "Warren Zaïre-Emery",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Unai Simon",
+      "cached_as": "Unai Simón",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "after": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Alex Grimaldo",
+      "cached_as": "Alejandro Grimaldo",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Granit Xhaka",
+      "cached_as": "Granit Xhaka",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Martin Zubimendi",
+      "cached_as": "Martín Zubimendi",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Piero Hincapie",
+      "cached_as": "Piero Hincapié",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Alexander Sorloth",
+      "cached_as": "Alexander Sørloth",
+      "player_id": 309078,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Rudiger",
+      "cached_as": "Antonio Rüdiger",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Pedri",
+      "cached_as": "Pedri",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Raphinha",
+      "cached_as": "Raphinha",
+      "player_id": 831005,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST",
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST",
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Dani Alves",
+      "cached_as": "Dani Alves",
+      "player_id": 4419,
+      "changed": false,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 1,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": "D"
+      }
+    },
+    {
+      "raw": "Kimmich",
+      "cached_as": "Joshua Kimmich",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Federico DiMarco",
+      "cached_as": "Federico Dimarco",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Mbuemo",
+      "cached_as": "Bryan Mbeumo",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Endrick",
+      "cached_as": "Endrick",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Jamie Vardy",
+      "cached_as": "Jamie Vardy",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Yan Sommer",
+      "cached_as": "Yann Sommer",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "after": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Senne Lammens",
+      "cached_as": "Senne Lammens",
+      "player_id": 964753,
+      "changed": false,
+      "before": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "after": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Ismael Saibari",
+      "cached_as": "Ismael Saibari",
+      "player_id": 1063767,
+      "changed": false,
+      "before": {
+        "primary_position": "AM",
+        "fpl_position": "MID",
+        "positions": [
+          "AM",
+          "DM"
+        ]
+      },
+      "after": {
+        "primary_position": "AM",
+        "fpl_position": "MID",
+        "positions": [
+          "AM",
+          "DM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": true,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Harry Maguire",
+      "cached_as": "Harry Maguire",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Lennart Karl",
+      "cached_as": "Lennart Karl",
+      "player_id": 1861975,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Francesco Acerbi",
+      "cached_as": "Francesco Acerbi",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Vitinha",
+      "cached_as": "Vitinha (Paris Saint-Germain)",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Nuno",
+      "cached_as": "Nuno Mendes",
+      "player_id": null,
+      "changed": true,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Kante",
+      "cached_as": "N'Golo Kanté",
+      "player_id": 234148,
+      "changed": true,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM",
+          "AM",
+          "DM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 1,
+        "seed_player": true,
+        "seed_seasons": 1,
+        "known_override": false,
+        "sofascore_bucket": "M"
+      }
+    },
+    {
+      "raw": "Guirassy",
+      "cached_as": "Serhou Guirassy",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Desire Doue",
+      "cached_as": "Désiré Doué",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Nico Williams",
+      "cached_as": "Nico Williams",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Edinson Cavani",
+      "cached_as": "Edinson Cavani",
+      "player_id": 21521,
+      "changed": true,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST",
+          "RW",
+          "LW"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 2,
+      "sources": {
+        "manual_profiles": 1,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": "F"
+      }
+    },
+    {
+      "raw": "Schlotterbeck",
+      "cached_as": "Nico Schlotterbeck",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Konate",
+      "cached_as": "Ibrahima Konaté",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Joan Garcia",
+      "cached_as": "Joan García",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "after": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Guela Doue",
+      "cached_as": "Guéla Doué",
+      "player_id": null,
+      "changed": true,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Frenkie de Jong",
+      "cached_as": "Frenkie de Jong",
+      "player_id": 795222,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Ademola Lookman",
+      "cached_as": "Ademola Lookman",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Fermin Lopez",
+      "cached_as": "Fermín López",
+      "player_id": 1153270,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Cristhian Mosquera",
+      "cached_as": "Cristhian Mosquera",
+      "player_id": 1144630,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Porro",
+      "cached_as": "Pedro Porro",
+      "player_id": null,
+      "changed": true,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "De Ligt",
+      "cached_as": "Matthijs de Ligt",
+      "player_id": 803031,
+      "changed": false,
+      "before": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "after": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": [
+          "CB"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Alaba",
+      "cached_as": "Alaba",
+      "player_id": 66492,
+      "changed": false,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Brahim Diaz",
+      "cached_as": "Brahim Diaz",
+      "player_id": 835485,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST",
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST",
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Diogo Dalot",
+      "cached_as": "Diogo Dalot",
+      "player_id": null,
+      "changed": true,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Bradley Barcola",
+      "cached_as": "Bradley Barcola",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Radamel Falcao",
+      "cached_as": "Radamel Falcao",
+      "player_id": 25682,
+      "changed": true,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST",
+          "RW",
+          "LW"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 1,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": "F"
+      }
+    },
+    {
+      "raw": "Saka",
+      "cached_as": "Bukayo Saka",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Mctominay",
+      "cached_as": "Scott McTominay",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Florian Wirtz",
+      "cached_as": "Florian Wirtz",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Gundogan",
+      "cached_as": "İlkay Gündoğan",
+      "player_id": 45853,
+      "changed": true,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM",
+          "AM",
+          "DM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": "M"
+      }
+    },
+    {
+      "raw": "Donnarumma",
+      "cached_as": "Gianluigi Donnarumma",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "after": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": [
+          "GK"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Riyad Mahrez",
+      "cached_as": "Riyad Mahrez",
+      "player_id": 158213,
+      "changed": true,
+      "before": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST",
+          "CM",
+          "RW",
+          "LW"
+        ]
+      },
+      "after": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": [
+          "ST",
+          "CM"
+        ]
+      },
+      "fbref_seasons": 1,
+      "sources": {
+        "manual_profiles": 1,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": "F"
+      }
+    },
+    {
+      "raw": "Kobbie Mainoo",
+      "cached_as": "Kobbie Mainoo",
+      "player_id": null,
+      "changed": false,
+      "before": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "after": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": [
+          "CM"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    },
+    {
+      "raw": "Theo Hernandez",
+      "cached_as": "Theo Hernández",
+      "player_id": 788027,
+      "changed": true,
+      "before": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB",
+          "RB"
+        ]
+      },
+      "after": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": [
+          "LB"
+        ]
+      },
+      "fbref_seasons": 0,
+      "sources": {
+        "manual_profiles": 0,
+        "seed_player": false,
+        "seed_seasons": 0,
+        "known_override": false,
+        "sofascore_bucket": null
+      }
+    }
+  ]
+}

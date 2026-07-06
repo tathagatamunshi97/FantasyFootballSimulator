@@ -36,7 +36,7 @@ function renderDraw(t) {
     .join("");
 }
 
-function renderFixtures(t) {
+function renderFixtures(t, { showRun = false, tournamentId = null } = {}) {
   const groups = t.groups || {};
   const keys = Object.keys(groups).sort();
   if (!keys.length) return `<div class="card"><p class="muted">No fixtures yet.</p></div>`;
@@ -46,12 +46,45 @@ function renderFixtures(t) {
         .map((fx) => {
           const status = fx.played
             ? `<strong>${esc(fx.score)}</strong>${fx.winner ? ` · ${esc(fx.winner)}` : ""}`
-            : `<span class="muted">Scheduled</span>`;
+            : showRun
+              ? `<button type="button" class="btn-ghost btn-sm run-fixture-btn" data-match-id="${esc(fx.id)}">Run</button>`
+              : `<span class="muted">Scheduled</span>`;
           return `<tr><td>R${fx.round}</td><td>${esc(fx.home)}</td><td>${esc(fx.away)}</td><td>${status}</td></tr>`;
         })
         .join("");
       return `<div class="card"><h3>Group ${esc(k)} fixtures</h3>
         <table><thead><tr><th>Rd</th><th>Home</th><th>Away</th><th>Result</th></tr></thead><tbody>${rows || "<tr><td colspan='4' class='muted'>—</td></tr>"}</tbody></table></div>`;
+    })
+    .join("");
+}
+
+function renderKnockout(t, { showRun = false } = {}) {
+  const ko = t.knockout || {};
+  const rounds = ko.rounds || [];
+  if (!rounds.length) {
+    return `<div class="card"><p class="muted">Knockout bracket not generated.</p><p class="muted">Format: ${esc(ko.format || "single_elim")}</p></div>`;
+  }
+  return rounds
+    .map((rnd) => {
+      const rows = (rnd.ties || [])
+        .map((tie) => {
+          const teams =
+            tie.home && tie.away
+              ? `${esc(tie.home)} vs ${esc(tie.away)}`
+              : `<span class="muted">TBD</span>`;
+          let res;
+          if (tie.played) {
+            res = `<strong>${esc(tie.score)}</strong> · ${esc(tie.winner)}`;
+          } else if (showRun && tie.home && tie.away) {
+            res = `<button type="button" class="btn-ghost btn-sm run-ko-btn" data-match-id="${esc(tie.id)}">Run</button>`;
+          } else {
+            res = `<span class="muted">—</span>`;
+          }
+          return `<tr><td class="muted">${esc(tie.id)}</td><td>${teams}</td><td>${res}</td></tr>`;
+        })
+        .join("");
+      return `<div class="card"><h3>${esc(rnd.name)}</h3>
+        <table><thead><tr><th>ID</th><th>Match</th><th>Result</th></tr></thead><tbody>${rows}</tbody></table></div>`;
     })
     .join("");
 }
@@ -82,30 +115,46 @@ function renderTables(t) {
     .join("");
 }
 
-function renderKnockout(t) {
-  const ko = t.knockout || {};
-  const rounds = ko.rounds || [];
-  if (!rounds.length) {
-    return `<div class="card"><p class="muted">Knockout bracket not generated.</p><p class="muted">Format: ${esc(ko.format || "single_elim")}</p></div>`;
+function renderTournament(t, activeTab) {
+  const settings = t.settings || {};
+  const showRun = Boolean(getAdminToken());
+  const meta = `<div class="card" style="margin-bottom:1rem">
+    <p><strong>${esc(t.name)}</strong> · ${(t.team_names || []).length} teams ·
+    ${settings.group_count || "?"} groups × ${settings.teams_per_group || "?"} ·
+    top ${settings.advance_per_group || "?"} advance</p>
+    ${showRun ? `<p class="muted">Admin token detected — Run buttons start matchday broadcast.</p>` : ""}
+  </div>`;
+
+  let body = "";
+  if (activeTab === "draw") body = renderDraw(t);
+  else if (activeTab === "fixtures") body = renderFixtures(t, { showRun, tournamentId: t.id });
+  else if (activeTab === "table") body = renderTables(t);
+  else if (activeTab === "knockout") body = renderKnockout(t, { showRun });
+  else body = renderResults(t);
+
+  return meta + tabBar(activeTab) + `<div class="tab-panel">${body}</div>`;
+}
+
+async function runFixture(matchId, isKnockout = false) {
+  if (!tournamentId || !getAdminToken()) return;
+  const path = isKnockout
+    ? `/api/tournament/${tournamentId}/knockout/matches/${matchId}/run`
+    : `/api/tournament/${tournamentId}/matches/${matchId}/run`;
+  try {
+    await api(path, { method: "POST" });
+    window.location.href = "/matchday";
+  } catch (e) {
+    alert(e.message);
   }
-  return rounds
-    .map((rnd) => {
-      const rows = (rnd.ties || [])
-        .map((tie) => {
-          const teams =
-            tie.home && tie.away
-              ? `${esc(tie.home)} vs ${esc(tie.away)}`
-              : `<span class="muted">TBD</span>`;
-          const res = tie.played
-            ? `<strong>${esc(tie.score)}</strong> · ${esc(tie.winner)}`
-            : `<span class="muted">—</span>`;
-          return `<tr><td class="muted">${esc(tie.id)}</td><td>${teams}</td><td>${res}</td></tr>`;
-        })
-        .join("");
-      return `<div class="card"><h3>${esc(rnd.name)}</h3>
-        <table><thead><tr><th>ID</th><th>Match</th><th>Result</th></tr></thead><tbody>${rows}</tbody></table></div>`;
-    })
-    .join("");
+}
+
+function wireRunButtons() {
+  document.querySelectorAll(".run-fixture-btn").forEach((btn) => {
+    btn.addEventListener("click", () => runFixture(btn.dataset.matchId, false));
+  });
+  document.querySelectorAll(".run-ko-btn").forEach((btn) => {
+    btn.addEventListener("click", () => runFixture(btn.dataset.matchId, true));
+  });
 }
 
 function renderResults(t) {
@@ -130,24 +179,6 @@ function renderResults(t) {
     <table><thead><tr><th>ID</th><th>Stage</th><th>Match</th><th>Score</th><th>Winner</th><th>xG</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
-function renderTournament(t, activeTab) {
-  const settings = t.settings || {};
-  const meta = `<div class="card" style="margin-bottom:1rem">
-    <p><strong>${esc(t.name)}</strong> · ${(t.team_names || []).length} teams ·
-    ${settings.group_count || "?"} groups × ${settings.teams_per_group || "?"} ·
-    top ${settings.advance_per_group || "?"} advance</p>
-  </div>`;
-
-  let body = "";
-  if (activeTab === "draw") body = renderDraw(t);
-  else if (activeTab === "fixtures") body = renderFixtures(t);
-  else if (activeTab === "table") body = renderTables(t);
-  else if (activeTab === "knockout") body = renderKnockout(t);
-  else body = renderResults(t);
-
-  return meta + tabBar(activeTab) + `<div class="tab-panel">${body}</div>`;
-}
-
 let activeTab = "draw";
 
 async function loadTournament() {
@@ -168,6 +199,7 @@ async function loadTournament() {
   badge.textContent = t.status || "—";
   badge.className = `badge ${esc(t.status || "")}`;
   document.getElementById("app").innerHTML = renderTournament(t, activeTab);
+  wireRunButtons();
   document.querySelectorAll(".tab-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       activeTab = btn.dataset.tab;
@@ -185,6 +217,7 @@ function bindTabs(t) {
       bindTabs(t);
     });
   });
+  wireRunButtons();
 }
 
 async function init() {

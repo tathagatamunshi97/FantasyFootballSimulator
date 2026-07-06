@@ -64,7 +64,8 @@ def _default_experiment(
 
 
 def is_matchday_experiment(exp: dict[str, Any]) -> bool:
-    return bool(exp.get("matchday") or exp.get("user") == "admin")
+    """Only tournament fixture broadcasts appear on matchday (not ad-hoc lab sims)."""
+    return bool(exp.get("tournament_id") and exp.get("match_id"))
 
 
 def _parse_ts(value: str | None) -> datetime | None:
@@ -285,22 +286,8 @@ def _summary(exp: dict[str, Any]) -> dict[str, Any]:
 
 
 def list_matchday_experiments(*, limit: int = 20, watch_only: bool = False) -> list[dict[str, Any]]:
-    """Recent admin/matchday experiments. Teams use watch_only=True."""
-    if not EXPERIMENTS_DIR.exists():
-        return []
-    rows: list[dict[str, Any]] = []
-    for path in EXPERIMENTS_DIR.glob("*.json"):
-        try:
-            exp = json.loads(path.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, OSError):
-            continue
-        if not is_matchday_experiment(exp):
-            continue
-        if watch_only and not can_team_view_experiment(exp):
-            continue
-        rows.append(_summary(exp))
-    rows.sort(key=lambda r: r.get("created_at") or "", reverse=True)
-    return rows[:limit]
+    """Deprecated — matchday uses active session API. Returns empty list."""
+    return []
 
 
 def start_matchday_run(
@@ -345,6 +332,19 @@ def is_experiment_running(exp_id: str) -> bool:
         return exp_id in _running_ids
 
 
+def delete_experiment(exp_id: str) -> dict[str, Any]:
+    from web import matchday_session
+
+    exp = load_experiment(exp_id)
+    if not exp:
+        raise KeyError("Experiment not found")
+    if is_experiment_running(exp_id):
+        raise ValueError("Cannot delete a running experiment")
+    _experiment_path(exp_id).unlink(missing_ok=True)
+    matchday_session.clear_if_references(experiment_id=exp_id)
+    return {"id": exp_id, "user": exp.get("user")}
+
+
 def create_and_run_experiment(
     user: str,
     payload: dict[str, Any],
@@ -357,7 +357,7 @@ def create_and_run_experiment(
         raise ValueError("; ".join(errors))
 
     exp_id = uuid.uuid4().hex[:12]
-    exp = _default_experiment(exp_id, user, payload, matchday=is_admin)
+    exp = _default_experiment(exp_id, user, payload, matchday=False)
 
     with _lock:
         if exp_id in _running_ids:

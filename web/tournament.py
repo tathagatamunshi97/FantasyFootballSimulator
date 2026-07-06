@@ -13,7 +13,9 @@ from report_builder import build_report
 from stats_resolver import prepare_match_player_stats
 
 from web.experiments import _apply_name_map, validate_team_payload
+from web import matchday_session
 from web.state import get_stats_store
+from web.team_lineups import apply_saved_lineup
 
 ROOT = Path(__file__).resolve().parent.parent
 TOURNAMENTS_DIR = ROOT / "data" / "tournaments"
@@ -331,8 +333,8 @@ def _load_teams_for_match(home_name: str, away_name: str) -> tuple[dict[str, Any
         if roster:
             store.ensure_players(roster)
 
-    team_a = load_team_by_name(home_name, formation="4-3-3", store=store)
-    team_b = load_team_by_name(away_name, formation="4-3-3", store=store)
+    team_a = apply_saved_lineup(load_team_by_name(home_name, formation="4-3-3", store=store))
+    team_b = apply_saved_lineup(load_team_by_name(away_name, formation="4-3-3", store=store))
     for label, payload in (("Home", team_a), ("Away", team_b)):
         errors = validate_team_payload(payload, label)
         if errors:
@@ -372,13 +374,36 @@ def _resolve_winner(
     return away_name
 
 
+def _score_from_report(report: dict[str, Any]) -> tuple[int, int, str]:
+    """Official fixture score = most common Monte Carlo scoreline."""
+    mc = report.get("monte_carlo") or {}
+    scorelines = mc.get("most_common_scorelines") or mc.get("scorelines") or []
+    if scorelines:
+        top = scorelines[0]
+        score_str = str(top.get("score") or "0-0")
+        parts = score_str.split("-")
+        if len(parts) == 2:
+            try:
+                return int(parts[0]), int(parts[1]), score_str
+            except ValueError:
+                pass
+    sample = report.get("sample_match") or {}
+    home_goals = int(sample.get("home", {}).get("goals", 0))
+    away_goals = int(sample.get("away", {}).get("goals", 0))
+    return home_goals, away_goals, f"{home_goals}-{away_goals}"
+
+
 def _run_simulation(
     home_name: str,
     away_name: str,
     match_id: str,
     n_simulations: int,
+    *,
+    team_a: dict[str, Any] | None = None,
+    team_b: dict[str, Any] | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    team_a, team_b = _load_teams_for_match(home_name, away_name)
+    if team_a is None or team_b is None:
+        team_a, team_b = _load_teams_for_match(home_name, away_name)
     store = get_stats_store()
     player_stats, season_overrides, name_map = prepare_match_player_stats(team_a, team_b, store)
     resolved = _apply_name_map({"team_a": team_a, "team_b": team_b}, name_map)
@@ -394,18 +419,20 @@ def _run_simulation(
         include_single_match=True,
         season_overrides=season_overrides,
     )
-    sample = report.get("sample_match") or {}
-    home_goals = int(sample.get("home", {}).get("goals", 0))
-    away_goals = int(sample.get("away", {}).get("goals", 0))
+    home_goals, away_goals, score_str = _score_from_report(report)
+    mc = report.get("monte_carlo") or {}
+    top_scorelines = mc.get("most_common_scorelines") or mc.get("scorelines") or []
     snapshot = {
-        "score": f"{home_goals}-{away_goals}",
+        "score": score_str,
         "home_goals": home_goals,
         "away_goals": away_goals,
-        "expected_xg": report.get("monte_carlo", {}).get("expected_xg"),
-        "home_win_pct": report.get("monte_carlo", {}).get("home_win_pct"),
-        "away_win_pct": report.get("monte_carlo", {}).get("away_win_pct"),
-        "draw_pct": report.get("monte_carlo", {}).get("draw_pct"),
+        "expected_xg": mc.get("expected_xg"),
+        "home_win_pct": mc.get("home_win_pct"),
+        "away_win_pct": mc.get("away_win_pct"),
+        "draw_pct": mc.get("draw_pct"),
         "simulations": n_simulations,
+        "mode_scoreline": top_scorelines[0] if top_scorelines else None,
+        "top_scorelines": top_scorelines[:5],
     }
     return report, snapshot
 
@@ -441,11 +468,13 @@ def _apply_group_result(
 
 
 def _finalize_experiment_from_report(exp: dict[str, Any], report: dict[str, Any]) -> None:
+    from web import experiments
+
     exp["status"] = "ready"
     exp["running"] = False
     exp["message"] = f"Completed {exp['simulations']:,} simulations."
     exp["report"] = report
-    save_experiment(exp)
+    experiments.save_experiment(exp)
 
 
 def _run_group_match_job(
@@ -502,6 +531,21 @@ def _run_group_match_job(
     )
     save_tournament(t)
     _finalize_experiment_from_report(exp, report)
+    matchday_session.set_result(
+        {
+            "score": snapshot["score"],
+            "home_goals": snapshot["home_goals"],
+            "away_goals": snapshot["away_goals"],
+            "winner": winner,
+            "home_win_pct": snapshot.get("home_win_pct"),
+            "draw_pct": snapshot.get("draw_pct"),
+            "away_win_pct": snapshot.get("away_win_pct"),
+            "mode_scoreline": snapshot.get("mode_scoreline"),
+            "top_scorelines": snapshot.get("top_scorelines"),
+            "experiment_id": exp["id"],
+        },
+        experiment_id=exp["id"],
+    )
 
 
 def _run_knockout_match_job(
@@ -568,78 +612,128 @@ def _run_knockout_match_job(
         t["status"] = "complete"
     save_tournament(t)
     _finalize_experiment_from_report(exp, report)
+    matchday_session.set_result(
+        {
+            "score": snapshot["score"],
+            "home_goals": snapshot["home_goals"],
+            "away_goals": snapshot["away_goals"],
+            "winner": winner,
+            "home_win_pct": snapshot.get("home_win_pct"),
+            "draw_pct": snapshot.get("draw_pct"),
+            "away_win_pct": snapshot.get("away_win_pct"),
+            "mode_scoreline": snapshot.get("mode_scoreline"),
+            "top_scorelines": snapshot.get("top_scorelines"),
+            "experiment_id": exp["id"],
+        },
+        experiment_id=exp["id"],
+    )
+
+
+def _preflight_match_stats(team_a: dict[str, Any], team_b: dict[str, Any]) -> None:
+    """Fail fast before starting a background run if stats cannot be loaded."""
+    store = get_stats_store()
+    try:
+        prepare_match_player_stats(team_a, team_b, store)
+    except Exception as exc:
+        raise ValueError(f"Cannot load player stats for this fixture: {exc}") from exc
+
+
+def start_matchday_session(tournament_id: str, match_id: str) -> dict[str, Any]:
+    """Create a live matchday broadcast session for a tournament fixture (setup phase)."""
+    t = load_tournament(tournament_id)
+    if not t:
+        raise KeyError("Tournament not found")
+    found = _find_fixture(t, match_id)
+    if not found:
+        raise KeyError(f"Fixture '{match_id}' not found")
+    stage_key, fx = found
+    if fx.get("played"):
+        raise ValueError(f"Match {match_id} already played")
+    if stage_key == "knockout" and (not fx.get("home") or not fx.get("away")):
+        raise ValueError(f"Match {match_id} is not ready (missing teams)")
+
+    home = fx["home"]
+    away = fx["away"]
+    team_a, team_b = _load_teams_for_match(home, away)
+    _preflight_match_stats(team_a, team_b)
+    stage = f"group_{stage_key}" if stage_key != "knockout" else "knockout"
+
+    status = matchday_session.start_session(
+        tournament_id=tournament_id,
+        tournament_name=t.get("name") or "Tournament",
+        fixture_id=match_id,
+        stage=stage,
+        home=home,
+        away=away,
+        team_a=team_a,
+        team_b=team_b,
+    )
+    return {
+        "tournament": _summary(t) | {"id": t["id"]},
+        "matchday": status,
+        "status": "setup",
+    }
+
+
+def execute_matchday_simulation() -> dict[str, Any]:
+    """Run Monte Carlo simulation for the active matchday session (admin, run phase)."""
+    from web import experiments
+
+    session = matchday_session.require_active_session()
+    if session.get("phase") not in ("setup", "running"):
+        raise ValueError(f"Cannot run simulation in phase '{session.get('phase')}'.")
+    if session.get("running"):
+        raise ValueError("Simulation already running.")
+
+    tournament_id = session["tournament_id"]
+    match_id = session["fixture_id"]
+    t = load_tournament(tournament_id)
+    if not t:
+        raise KeyError("Tournament not found")
+
+    team_a, team_b = _load_teams_for_match(session["home"], session["away"])
+    _preflight_match_stats(team_a, team_b)
+    n_sims = int(t["settings"].get("simulations_per_match", 10000))
+    payload = {"team_a": team_a, "team_b": team_b, "simulations": n_sims}
+
+    found = _find_fixture(t, match_id)
+    if not found:
+        raise KeyError(f"Fixture '{match_id}' not found")
+    stage_key, _ = found
+    stage = f"group_{stage_key}" if stage_key != "knockout" else "knockout"
+
+    if stage_key == "knockout":
+        run_fn = lambda exp: _run_knockout_match_job(tournament_id, match_id, exp)
+    else:
+        run_fn = lambda exp: _run_group_match_job(tournament_id, match_id, exp)
+
+    summary = experiments.start_matchday_run(
+        "admin",
+        payload,
+        tournament={
+            "tournament_id": tournament_id,
+            "tournament_name": t.get("name"),
+            "match_id": match_id,
+            "stage": stage,
+        },
+        run_fn=run_fn,
+    )
+    matchday_session.set_running(summary["id"])
+    return {
+        "experiment": summary,
+        "matchday": matchday_session.active_status(),
+        "status": "running",
+    }
 
 
 def run_group_match(tournament_id: str, match_id: str) -> dict[str, Any]:
-    from web import experiments
-
-    t = load_tournament(tournament_id)
-    if not t:
-        raise KeyError("Tournament not found")
-    found = _find_fixture(t, match_id)
-    if not found or found[0] == "knockout":
-        raise KeyError(f"Group fixture '{match_id}' not found")
-    gkey, fx = found
-    if fx.get("played"):
-        raise ValueError(f"Match {match_id} already played")
-
-    team_a, team_b = _load_teams_for_match(fx["home"], fx["away"])
-    n_sims = int(t["settings"].get("simulations_per_match", 10000))
-    payload = {"team_a": team_a, "team_b": team_b, "simulations": n_sims}
-
-    summary = experiments.start_matchday_run(
-        "admin",
-        payload,
-        tournament={
-            "tournament_id": tournament_id,
-            "tournament_name": t.get("name"),
-            "match_id": match_id,
-            "stage": f"group_{gkey}",
-        },
-        run_fn=lambda exp: _run_group_match_job(tournament_id, match_id, exp),
-    )
-    return {
-        "tournament": _summary(t) | {"id": t["id"]},
-        "experiment": summary,
-        "status": "running",
-    }
+    """Start a matchday broadcast session for a group fixture (does not run sim yet)."""
+    return start_matchday_session(tournament_id, match_id)
 
 
 def run_knockout_match(tournament_id: str, match_id: str) -> dict[str, Any]:
-    from web import experiments
-
-    t = load_tournament(tournament_id)
-    if not t:
-        raise KeyError("Tournament not found")
-    found = _find_fixture(t, match_id)
-    if not found or found[0] != "knockout":
-        raise KeyError(f"Knockout fixture '{match_id}' not found")
-    _, tie = found
-    if tie.get("played"):
-        raise ValueError(f"Match {match_id} already played")
-    if not tie.get("home") or not tie.get("away"):
-        raise ValueError(f"Match {match_id} is not ready (missing teams)")
-
-    team_a, team_b = _load_teams_for_match(tie["home"], tie["away"])
-    n_sims = int(t["settings"].get("simulations_per_match", 10000))
-    payload = {"team_a": team_a, "team_b": team_b, "simulations": n_sims}
-
-    summary = experiments.start_matchday_run(
-        "admin",
-        payload,
-        tournament={
-            "tournament_id": tournament_id,
-            "tournament_name": t.get("name"),
-            "match_id": match_id,
-            "stage": "knockout",
-        },
-        run_fn=lambda exp: _run_knockout_match_job(tournament_id, match_id, exp),
-    )
-    return {
-        "tournament": _summary(t) | {"id": t["id"]},
-        "experiment": summary,
-        "status": "running",
-    }
+    """Start a matchday broadcast session for a knockout fixture (does not run sim yet)."""
+    return start_matchday_session(tournament_id, match_id)
 
 
 def _qualified_teams(t: dict[str, Any]) -> list[tuple[str, str, int]]:
@@ -817,3 +911,12 @@ def update_settings(tournament_id: str, settings: dict[str, Any]) -> dict[str, A
     t["knockout"]["format"] = merged.get("knockout_format", "single_elim")
     save_tournament(t)
     return t
+
+
+def delete_tournament(tournament_id: str) -> dict[str, Any]:
+    t = load_tournament(tournament_id)
+    if not t:
+        raise KeyError("Tournament not found")
+    _tournament_path(tournament_id).unlink(missing_ok=True)
+    matchday_session.clear_if_references(tournament_id=tournament_id)
+    return {"id": tournament_id, "name": t.get("name")}

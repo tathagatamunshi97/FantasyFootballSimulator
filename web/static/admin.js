@@ -13,6 +13,16 @@ function getAdminTokenFromUI() {
   return value;
 }
 
+function formatApiError(data, statusText) {
+  const detail = data?.detail;
+  if (!detail) return statusText || "Request failed";
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) {
+    return detail.map((d) => d.msg || JSON.stringify(d)).join("; ");
+  }
+  return String(detail);
+}
+
 async function adminApi(path, options = {}) {
   const headers = { ...(options.headers || {}) };
   const token = getAdminTokenFromUI();
@@ -31,7 +41,7 @@ async function adminApi(path, options = {}) {
     if (res.status === 401) {
       throw new Error("Invalid admin token. It must match SIM_ADMIN_TOKEN on the server.");
     }
-    throw new Error(data.detail || res.statusText);
+    throw new Error(formatApiError(data, res.statusText));
   }
   return data;
 }
@@ -58,11 +68,12 @@ function renderAdminList(items) {
         <td>${e.expected_xg_home != null ? `${e.expected_xg_home}–${e.expected_xg_away}` : "—"}</td>
         <td>${e.status === "ready" ? `${pct(e.home_win_pct)} / ${pct(e.away_win_pct)}` : esc(e.message || "")}</td>
         <td class="muted">${e.created_at ? new Date(e.created_at).toLocaleString() : "—"}</td>
+        <td><button type="button" class="btn-ghost delete-exp" data-id="${esc(e.id)}" data-label="${esc(e.team_a_name)} vs ${esc(e.team_b_name)}">Delete</button></td>
       </tr>`
     )
     .join("");
   return `<table>
-    <thead><tr><th>User</th><th>Matchup</th><th>Formations</th><th>Status</th><th>xG</th><th>Win%</th><th>Created</th></tr></thead>
+    <thead><tr><th>User</th><th>Matchup</th><th>Formations</th><th>Status</th><th>xG</th><th>Win%</th><th>Created</th><th>Actions</th></tr></thead>
     <tbody>${rows}</tbody>
   </table>`;
 }
@@ -96,11 +107,27 @@ document.querySelectorAll(".tab-btn").forEach((btn) => {
 async function loadExperiments() {
   try {
     const data = await adminApi("/api/admin/experiments");
-    document.getElementById("expTable").innerHTML = renderAdminList(data.experiments || []);
+    const el = document.getElementById("expTable");
+    el.innerHTML = renderAdminList(data.experiments || []);
+    el.querySelectorAll(".delete-exp").forEach((btn) => {
+      btn.addEventListener("click", () => deleteExperiment(btn.dataset.id, btn.dataset.label));
+    });
     simLog(`Loaded ${data.experiments.length} experiment(s) from all users.`);
   } catch (e) {
     document.getElementById("expTable").innerHTML = "<p class='muted'>—</p>";
     simLog(e.message);
+  }
+}
+
+async function deleteExperiment(expId, label) {
+  if (!confirm(`Delete experiment "${label}"? This cannot be undone.`)) return;
+  try {
+    simLog(`Deleting experiment ${expId}…`);
+    await adminApi(`/api/experiments/${expId}`, { method: "DELETE" });
+    simLog(`Deleted experiment ${expId}.`);
+    await loadExperiments();
+  } catch (e) {
+    simLog(`Error: ${e.message}`);
   }
 }
 
@@ -206,6 +233,52 @@ async function loadTournamentList() {
     `<option value="">— select —</option>` +
     tournaments.map((t) => `<option value="${esc(t.id)}">${esc(t.name)} (${esc(t.status)})</option>`).join("");
   if (currentId) sel.value = currentId;
+  renderTournamentListTable();
+}
+
+function renderTournamentListTable() {
+  const el = document.getElementById("tournamentList");
+  if (!el) return;
+  if (!tournaments.length) {
+    el.innerHTML = "<p class='muted'>No tournaments yet.</p>";
+    return;
+  }
+  const rows = tournaments
+    .map(
+      (t) => `<tr>
+        <td><a href="/tournament?id=${esc(t.id)}" target="_blank">${esc(t.name)}</a></td>
+        <td><span class="badge ${esc(t.status)}">${esc(t.status)}</span></td>
+        <td class="muted">${t.team_count ?? "—"}</td>
+        <td class="muted">${t.updated_at ? new Date(t.updated_at).toLocaleString() : "—"}</td>
+        <td><button type="button" class="btn-ghost delete-tournament" data-id="${esc(t.id)}" data-name="${esc(t.name)}">Delete</button></td>
+      </tr>`
+    )
+    .join("");
+  el.innerHTML = `<table>
+    <thead><tr><th>Name</th><th>Status</th><th>Teams</th><th>Updated</th><th>Actions</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+  el.querySelectorAll(".delete-tournament").forEach((btn) => {
+    btn.addEventListener("click", () => deleteTournament(btn.dataset.id, btn.dataset.name));
+  });
+}
+
+async function deleteTournament(tournamentId, name) {
+  if (!confirm(`Delete tournament "${name}"? This cannot be undone.`)) return;
+  try {
+    tLog(`Deleting tournament ${name}…`);
+    await adminApi(`/api/tournament/${tournamentId}`, { method: "DELETE" });
+    if (currentId === tournamentId) {
+      currentId = null;
+      currentTournament = null;
+      document.getElementById("controls").innerHTML = "";
+      document.getElementById("matchControls").innerHTML = "";
+    }
+    await loadTournamentList();
+    tLog(`Deleted tournament "${name}".`);
+  } catch (err) {
+    tLog(`Error: ${err.message}`);
+  }
 }
 
 function validGroupCounts(teamCount) {
@@ -355,21 +428,53 @@ async function runAction(action) {
   }
 }
 
+function findPlayedFixture(t, matchId) {
+  for (const group of Object.values(t.groups || {})) {
+    const fx = (group.fixtures || []).find((f) => f.id === matchId);
+    if (fx?.played) return fx;
+  }
+  for (const rnd of t.knockout?.rounds || []) {
+    const tie = (rnd.ties || []).find((item) => item.id === matchId);
+    if (tie?.played) return tie;
+  }
+  return null;
+}
+
+async function waitForTournamentMatch(matchId, experimentId) {
+  const deadline = Date.now() + 180000;
+  while (Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    if (experimentId) {
+      const expData = await adminApi(`/api/experiments/${experimentId}`);
+      const exp = expData.experiment;
+      if (exp?.status === "error") {
+        throw new Error(exp.message || "Simulation failed");
+      }
+    }
+    const data = await adminApi(`/api/tournament/${currentId}`);
+    currentTournament = data.tournament;
+    const played = findPlayedFixture(currentTournament, matchId);
+    if (played) {
+      renderControls(currentTournament);
+      renderMatchControls(currentTournament);
+      return played;
+    }
+  }
+  throw new Error(
+    experimentId
+      ? `Timed out waiting for ${matchId}. Open /experiment/${experimentId} for status.`
+      : `Timed out waiting for ${matchId}. Click Refresh state.`
+  );
+}
+
 async function runGroupMatch(matchId) {
   if (!currentId) return;
   try {
-    tLog(`Starting ${matchId}… viewers can watch on /matchday`);
+    tLog(`Starting matchday session for ${matchId}…`);
     const res = await adminApi(`/api/tournament/${currentId}/matches/${matchId}/run`, { method: "POST" });
-    const exp = res.experiment;
-    if (exp?.id) {
-      tLog(`Live on matchday: /experiment/${exp.id}?from=matchday`);
-    }
+    tLog(`Matchday session started — all users redirected to /matchday. Open /matchday to run simulation.`);
+    window.open("/matchday", "_blank");
     await loadCurrent();
-    if (res.result) {
-      tLog(`Result: ${res.result.home} ${res.result.score} ${res.result.away} · winner: ${res.result.winner || "Draw"}`);
-    } else {
-      tLog("Simulation running in background — refresh tournament state in a minute.");
-    }
   } catch (err) {
     tLog(`Error: ${err.message}`);
   }
@@ -378,18 +483,11 @@ async function runGroupMatch(matchId) {
 async function runKoMatch(matchId) {
   if (!currentId) return;
   try {
-    tLog(`Starting knockout ${matchId}… viewers can watch on /matchday`);
+    tLog(`Starting matchday session for knockout ${matchId}…`);
     const res = await adminApi(`/api/tournament/${currentId}/knockout/matches/${matchId}/run`, { method: "POST" });
-    const exp = res.experiment;
-    if (exp?.id) {
-      tLog(`Live on matchday: /experiment/${exp.id}?from=matchday`);
-    }
+    tLog(`Matchday session started — all users redirected to /matchday. Open /matchday to run simulation.`);
+    window.open("/matchday", "_blank");
     await loadCurrent();
-    if (res.result) {
-      tLog(`Result: ${res.result.score} · winner: ${res.result.winner}`);
-    } else {
-      tLog("Simulation running in background — refresh tournament state in a minute.");
-    }
   } catch (err) {
     tLog(`Error: ${err.message}`);
   }

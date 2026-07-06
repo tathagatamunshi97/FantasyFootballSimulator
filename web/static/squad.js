@@ -10,9 +10,104 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
 });
 
 let opponents = [];
-let sessionInfo = null;
+let meta = null;
+let lineupData = null;
+let currentTeam = null;
 
-function renderAdminTeamPicker(selectedTeam) {
+function playerSelectOptions(players, selected) {
+  const opts = ['<option value="">— pick player —</option>'];
+  players.forEach((p) => {
+    opts.push(`<option value="${esc(p)}" ${p === selected ? "selected" : ""}>${esc(p)}</option>`);
+  });
+  return opts.join("");
+}
+
+function seasonSelectOptions(selected) {
+  return (meta?.seasons || [])
+    .map(
+      (s) =>
+        `<option value="${esc(s.suffix)}" ${s.suffix === selected ? "selected" : ""}>${esc(s.label)}</option>`
+    )
+    .join("");
+}
+
+function slotPlayerControl(slot, val, roster) {
+  const opts = ['<option value="">— pick player —</option>'];
+  roster.forEach((p) => {
+    opts.push(`<option value="${esc(p)}" data-slot="${esc(slot)}" ${p === val ? "selected" : ""}>${esc(p)}</option>`);
+  });
+  return `<select data-slot="${esc(slot)}">${opts.join("")}</select>`;
+}
+
+function lineupMapFromConfig(config) {
+  const map = {};
+  (config?.lineup || []).forEach((r) => {
+    map[r.slot] = r.player || "";
+  });
+  return map;
+}
+
+function renderLineupBuilder(data) {
+  const config = data.lineup || {};
+  const roster = data.roster || [];
+  const formation = config.formation || "4-3-3";
+  const formations = meta?.formations?.formations || ["4-3-3", "4-4-2", "3-5-2"];
+  const slots = meta?.formations?.slots?.[formation] || [];
+  const lineupMap = lineupMapFromConfig(config);
+  const prime = config.prime_player || "";
+  const peak = config.peak_season || {};
+  const peakPlayer = peak.player || "";
+  const peakSeason = peak.season || "23/24";
+
+  const formationOpts = formations
+    .map((f) => `<option value="${esc(f)}" ${f === formation ? "selected" : ""}>${esc(f)}</option>`)
+    .join("");
+
+  const slotRows = slots
+    .map((slot) => {
+      const val = lineupMap[slot] || "";
+      return `<div class="form-row slot-row"><label>${esc(slot)}</label>${slotPlayerControl(slot, val, roster)}</div>`;
+    })
+    .join("");
+
+  const savedBadge = data.saved
+    ? `<span class="badge ready">Saved lineup</span>`
+    : `<span class="badge muted">Using auto lineup — save to persist</span>`;
+
+  return `
+    <div class="card" style="margin-bottom:1rem">
+      <h2>Lineup builder — ${esc(data.team_name)}</h2>
+      <p class="muted">Select your starting XI from your ${roster.length}-player roster. Used in tournament matches and squad reports.</p>
+      <p style="margin:0.5rem 0">${savedBadge}</p>
+      <div class="form-row" style="margin-top:0.75rem">
+        <label for="lineupFormation">Formation</label>
+        <select id="lineupFormation">${formationOpts}</select>
+      </div>
+      <div class="slot-grid">${slotRows}</div>
+      <div class="season-picks" style="margin-top:1rem;padding-top:0.75rem;border-top:1px solid var(--border)">
+        <h3 style="font-size:0.9rem;margin:0 0 0.5rem">Season overrides</h3>
+        <div class="form-row">
+          <label for="lineupPrime">Prime player</label>
+          <select id="lineupPrime">${playerSelectOptions(roster, prime)}</select>
+        </div>
+        <div class="form-row">
+          <label for="lineupPeakPlayer">Peak season player</label>
+          <select id="lineupPeakPlayer">${playerSelectOptions(roster, peakPlayer)}</select>
+        </div>
+        <div class="form-row">
+          <label for="lineupPeakSeason">Season</label>
+          <select id="lineupPeakSeason">${seasonSelectOptions(peakSeason)}</select>
+        </div>
+      </div>
+      <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-top:1rem">
+        <button type="button" id="saveLineupBtn" class="btn-primary">Save lineup</button>
+        <button type="button" id="runReportBtn" class="btn-ghost">Run squad report</button>
+      </div>
+      <p id="lineupStatus" class="muted" style="margin-top:0.5rem"></p>
+    </div>`;
+}
+
+function renderAdminTeamPicker() {
   return `
     <div class="card" style="margin-bottom:1rem">
       <h2>Admin — select squad</h2>
@@ -45,15 +140,78 @@ function renderOpponentScoutPanel() {
     </div>`;
 }
 
-function renderPage(squadData) {
-  const isAdmin = isAdminUser();
-  const adminPicker = isAdmin ? renderAdminTeamPicker(squadData?.team?.name) : "";
-  const evalHtml = squadData ? renderSingleSquadEval(squadData.evaluation, squadData.team) : "";
-  return `
-    ${adminPicker}
-    <section id="mySquadSection">${evalHtml}</section>
-    ${renderOpponentScoutPanel()}
-  `;
+function collectLineupPayload() {
+  const formation = document.getElementById("lineupFormation")?.value || "4-3-3";
+  const slots = meta?.formations?.slots?.[formation] || [];
+  const lineup = slots.map((slot) => {
+    const el = document.querySelector(`[data-slot="${slot}"]`);
+    return {
+      slot,
+      player: (el?.value || "").trim(),
+      captain: false,
+      vice_captain: false,
+    };
+  });
+  return {
+    formation,
+    lineup,
+    prime_player: document.getElementById("lineupPrime")?.value || "",
+    peak_season: {
+      player: document.getElementById("lineupPeakPlayer")?.value || "",
+      season: document.getElementById("lineupPeakSeason")?.value || "",
+    },
+  };
+}
+
+async function onFormationChange() {
+  const formation = document.getElementById("lineupFormation")?.value;
+  const roster = lineupData?.roster || [];
+  const players = [...document.querySelectorAll("[data-slot]")]
+    .map((el) => el.value.trim())
+    .filter(Boolean);
+  const status = document.getElementById("lineupStatus");
+  if (status) status.textContent = "Reassigning slots…";
+  try {
+    const data = await api("/api/lineup/assign", {
+      method: "POST",
+      json: { formation, players: players.length ? players : roster.slice(0, 11) },
+    });
+    const slots = meta.formations.slots[formation] || [];
+    const lineupMap = {};
+    (data.lineup || []).forEach((r) => {
+      lineupMap[r.slot] = r.player;
+    });
+    const grid = document.querySelector(".slot-grid");
+    if (grid) {
+      grid.innerHTML = slots
+        .map((slot) => {
+          const val = lineupMap[slot] || "";
+          return `<div class="form-row slot-row"><label>${esc(slot)}</label>${slotPlayerControl(slot, val, roster)}</div>`;
+        })
+        .join("");
+    }
+    if (status) status.textContent = "";
+  } catch (e) {
+    if (status) status.textContent = `Could not reassign: ${e.message}`;
+  }
+}
+
+async function saveLineup() {
+  const status = document.getElementById("lineupStatus");
+  const q = currentTeam ? `?team=${encodeURIComponent(currentTeam)}` : "";
+  try {
+    const payload = collectLineupPayload();
+    await api(`/api/my-lineup${q}`, { method: "PUT", json: payload });
+    if (status) status.textContent = "Lineup saved.";
+    lineupData = await loadLineup(currentTeam);
+  } catch (e) {
+    if (status) status.textContent = `Save failed: ${e.message}`;
+  }
+}
+
+async function loadLineup(teamName) {
+  const q = teamName ? `?team=${encodeURIComponent(teamName)}` : "";
+  return (await api(`/api/my-lineup${q}`));
 }
 
 async function loadSquad(teamName) {
@@ -102,38 +260,63 @@ function wireScoutPanel() {
   btn.addEventListener("click", () => runScout(sel.value));
 }
 
-function wireAdminPicker(allTeams, currentTeam) {
+function wireAdminPicker(allTeams, teamName) {
   const select = document.getElementById("adminTeamSelect");
   if (!select) return;
   const names = [...new Set((allTeams || []).map((t) => t.name))].sort((a, b) =>
     a.localeCompare(b)
   );
-  if (currentTeam && !names.includes(currentTeam)) names.unshift(currentTeam);
+  if (teamName && !names.includes(teamName)) names.unshift(teamName);
   select.innerHTML = names.map((n) => `<option value="${esc(n)}">${esc(n)}</option>`).join("");
-  if (currentTeam) select.value = currentTeam;
-  select.addEventListener("change", () => refreshSquad(select.value));
+  if (teamName) select.value = teamName;
+  select.addEventListener("change", () => reloadTeam(select.value));
+}
+
+function wireLineupBuilder() {
+  document.getElementById("lineupFormation")?.addEventListener("change", onFormationChange);
+  document.getElementById("saveLineupBtn")?.addEventListener("click", saveLineup);
+  document.getElementById("runReportBtn")?.addEventListener("click", () => refreshSquad(currentTeam));
+}
+
+async function reloadTeam(teamName) {
+  currentTeam = teamName;
+  lineupData = await loadLineup(teamName);
+  document.getElementById("lineupSection").innerHTML = renderLineupBuilder(lineupData);
+  wireLineupBuilder();
+  await refreshSquad(teamName);
 }
 
 async function init() {
   try {
-    sessionInfo = await api("/api/session");
+    const sessionInfo = await api("/api/session");
     if (sessionInfo.can_simulate) {
       document.getElementById("adminLinks").hidden = false;
     }
+    meta = await api("/api/meta");
     const oppData = await loadOpponents();
-    let squad = null;
-    try {
-      squad = await loadSquad(isAdminUser() ? oppData.my_team || undefined : undefined);
-    } catch (e) {
-      if (!isAdminUser()) throw e;
-    }
-    document.getElementById("app").innerHTML = renderPage(squad);
-    if (isAdminUser()) {
+    const isAdmin = isAdminUser();
+    currentTeam = isAdmin ? oppData.my_team || null : getUser();
+
+    document.getElementById("app").innerHTML = `
+      ${isAdmin ? renderAdminTeamPicker() : ""}
+      <section id="lineupSection"></section>
+      <section id="mySquadSection"><div class="empty">Save your lineup, then run squad report.</div></section>
+      ${renderOpponentScoutPanel()}
+    `;
+
+    if (isAdmin) {
       const allTeams = [...(oppData.teams || [])];
-      if (squad?.team?.name) allTeams.push({ name: squad.team.name, player_count: 11 });
-      wireAdminPicker(allTeams, squad?.team?.name);
-      if (!squad && allTeams.length) await refreshSquad(allTeams[0].name);
+      wireAdminPicker(allTeams, currentTeam);
+      if (!currentTeam && allTeams.length) currentTeam = allTeams[0].name;
     }
+
+    if (currentTeam) {
+      await reloadTeam(currentTeam);
+    } else if (isAdmin) {
+      document.getElementById("lineupSection").innerHTML =
+        `<div class="card"><p class="muted">Select a team to configure lineup.</p></div>`;
+    }
+
     wireScoutPanel();
   } catch (e) {
     if (e.message.includes("401") || e.message.includes("Login")) {

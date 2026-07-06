@@ -13,6 +13,7 @@ from report_builder import (
     team_payload_dict,
 )
 from stats_resolver import prepare_team_player_stats
+from web.team_lineups import apply_saved_lineup
 
 
 def _apply_name_map(team: dict[str, Any], name_map: dict[str, str]) -> dict[str, Any]:
@@ -36,7 +37,8 @@ def _apply_name_map(team: dict[str, Any], name_map: dict[str, str]) -> dict[str,
 
 
 def build_squad_evaluation(team_dict: dict[str, Any], store: Any) -> dict[str, Any]:
-    """Full squad strengths/weaknesses for one team (no Monte Carlo)."""
+    """Full squad strengths/weaknesses for one team using saved lineup when available."""
+    team_dict = apply_saved_lineup(team_dict)
     player_stats, name_map = prepare_team_player_stats(team_dict, store, cache_only=True)
     resolved = _apply_name_map(team_dict, name_map)
     fantasy = FantasyTeam.from_dict(resolved)
