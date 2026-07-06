@@ -230,6 +230,28 @@ def load_team_by_name(
     return team_payload_from_roster(roster, formation=formation, store=store)
 
 
+def resolve_sheet_team_name(team_name: str) -> str | None:
+    """Return canonical sheet team name if it exists, else None."""
+    try:
+        df = fetch_teams_dataframe()
+        rosters = parse_teams_from_dataframe(df)
+    except Exception:
+        return None
+    roster = _find_roster(team_name, rosters)
+    return roster.name if roster else None
+
+
+def is_sheet_team_payload(team: dict[str, Any]) -> bool:
+    """True if team dict came from (or matches) the Google Sheet roster."""
+    meta = team.get("sheet_meta") or {}
+    if meta.get("source") == "google_sheets":
+        return True
+    name = (team.get("name") or "").strip()
+    if name and resolve_sheet_team_name(name):
+        return True
+    return False
+
+
 def load_matchup_by_names(
     team_a_name: str,
     team_b_name: str,

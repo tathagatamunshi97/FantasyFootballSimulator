@@ -9,6 +9,14 @@ function getUser() {
   return localStorage.getItem(USER_KEY);
 }
 
+function isAdminUser() {
+  return getUser() === "admin";
+}
+
+function isTeamUser() {
+  return Boolean(getToken()) && !isAdminUser();
+}
+
 function setSession(token, user) {
   localStorage.setItem(SESSION_KEY, token);
   localStorage.setItem(USER_KEY, user);
@@ -130,6 +138,82 @@ function renderTeamProfile(side, teamName) {
     </div>`;
 }
 
+function renderSquadAnalysis(squadAnalysis) {
+  if (!squadAnalysis) return "";
+
+  function renderSide(side) {
+    if (!side) return "";
+    return renderSingleSquadEval(side);
+  }
+
+  return `
+    <section class="card" style="margin-top:1rem">
+      <h2>Squad strengths &amp; weaknesses</h2>
+      <p class="muted">Per-team breakdown from player stats, formation fit, unit ratings, and bench depth.</p>
+      <div class="grid grid-2" style="margin-top:1rem">
+        ${renderSide(squadAnalysis.home)}
+        ${renderSide(squadAnalysis.away)}
+      </div>
+    </section>`;
+}
+
+function renderSingleSquadEval(evaluation, team) {
+  if (!evaluation) return "";
+  const side = evaluation;
+  const sections = (side.sections || [])
+    .map((s) => {
+      const bullets = (s.bullets || []).map((b) => `<li>${esc(b)}</li>`).join("");
+      return `<div class="squad-section"><h4>${esc(s.title)}</h4><ul class="analysis-bullets">${bullets}</ul></div>`;
+    })
+    .join("");
+  const strengths = (side.strengths || []).map((s) => `<li>${esc(s)}</li>`).join("");
+  const weaknesses = (side.weaknesses || []).map((s) => `<li>${esc(s)}</li>`).join("");
+  const lineup = team?.lineup?.length
+    ? `<div class="lineup-mini" style="margin-top:0.75rem">${renderLineup(team)}</div>`
+    : "";
+  const units = side.units ? renderUnits(side.units) : "";
+  return `
+    <div class="card squad-card">
+      <h2 style="margin-bottom:0.5rem">Squad evaluation</h2>
+      <h3>${esc(side.name)} <span class="muted">${esc(side.formation || team?.formation || "")}</span></h3>
+      <p class="muted">${esc(side.summary || "")}</p>
+      ${units}
+      ${lineup}
+      ${strengths ? `<h4 style="font-size:0.85rem;margin:0.75rem 0 0.25rem">Strengths</h4><ul class="analysis-bullets strengths">${strengths}</ul>` : ""}
+      ${weaknesses ? `<h4 style="font-size:0.85rem;margin:0.75rem 0 0.25rem">Weaknesses</h4><ul class="analysis-bullets weaknesses">${weaknesses}</ul>` : ""}
+      <div class="squad-sections" style="margin-top:0.75rem">${sections}</div>
+    </div>`;
+}
+
+function renderScoutReport(scout) {
+  if (!scout) return "";
+  const comparisons = (scout.comparisons || [])
+    .map((c) => {
+      const cls = c.verdict === "advantage" ? "scout-adv" : c.verdict === "disadvantage" ? "scout-dis" : "scout-even";
+      return `<div class="scout-row ${cls}"><span class="scout-area">${esc(c.area)}</span><span>${esc(c.summary)}</span></div>`;
+    })
+    .join("");
+  const notes = (scout.scout_notes || []).map((n) => `<li>${esc(n)}</li>`).join("");
+  const roster = scout.roster_overview || {};
+  const bench = (roster.bench || []).length
+    ? `<p class="muted" style="margin-top:0.5rem">Bench: ${esc((roster.bench || []).join(", "))}</p>`
+    : "";
+  const lineup = scout.expected_lineup?.length
+    ? `<div class="lineup-mini">${renderLineup({ lineup: scout.expected_lineup })}</div>`
+    : "";
+  return `
+    <div class="card scout-card">
+      <h3>${esc(scout.opponent)} <span class="muted">expected ${esc(scout.formation)}</span></h3>
+      <p class="muted">${esc(scout.summary || "")}</p>
+      <h4 style="font-size:0.85rem;margin:1rem 0 0.35rem">Expected lineup</h4>
+      ${lineup}
+      ${bench}
+      <h4 style="font-size:0.85rem;margin:1rem 0 0.35rem">Compared to ${esc(scout.my_team)}</h4>
+      <div class="scout-comparisons">${comparisons}</div>
+      ${notes ? `<h4 style="font-size:0.85rem;margin:1rem 0 0.35rem">Scout notes</h4><ul class="analysis-bullets">${notes}</ul>` : ""}
+    </div>`;
+}
+
 function renderAnalysis(analysis) {
   if (!analysis) return "";
   const factors = (analysis.key_factors || [])
@@ -199,6 +283,8 @@ function renderReport(report, matchup) {
 
     ${renderAnalysis(report.analysis)}
 
+    ${renderSquadAnalysis(report.squad_analysis)}
+
     <section class="card" style="margin-top:1rem">
       <h2>Outcome probabilities (${mc.simulations.toLocaleString()} runs)</h2>
       <div class="prob-bar">
@@ -237,6 +323,47 @@ function renderReport(report, matchup) {
       </div>
     </section>
   `;
+}
+
+function renderMatchdayList(items) {
+  if (!items.length) {
+    return `<div class="empty"><p>No matchday simulations yet.</p><p class="muted">When the admin runs a match simulation, it will appear here for all logged-in teams.</p></div>`;
+  }
+  const rows = items
+    .map((e) => {
+      const xg =
+        e.expected_xg_home != null
+          ? `xG ${e.expected_xg_home}–${e.expected_xg_away}`
+          : "—";
+      let outcome = esc(e.message || e.status);
+      if (e.status === "ready") {
+        outcome = `${pct(e.home_win_pct)} win · ${pct(e.draw_pct)} draw · ${pct(e.away_win_pct)} win`;
+      }
+      const topScores = (e.top_scorelines || [])
+        .map((r) => `${esc(r.score)} (${num(r.pct, 1)}%)`)
+        .join(", ");
+      const scoresCell = e.status === "ready" && topScores ? topScores : "—";
+      const running = e.running || e.status === "running" || e.status === "queued";
+      const statusCls = running ? "running" : esc(e.status);
+      return `<tr class="${running ? "matchday-live" : ""}">
+        <td><a href="/experiment/${esc(e.id)}?from=matchday">${esc(e.team_a_name)} vs ${esc(e.team_b_name)}</a></td>
+        <td class="muted">${esc(e.team_a_formation)} / ${esc(e.team_b_formation)}</td>
+        <td><span class="badge ${statusCls}">${esc(e.status)}</span></td>
+        <td>${xg}</td>
+        <td class="muted">${outcome}</td>
+        <td class="muted">${scoresCell}</td>
+      </tr>`;
+    })
+    .join("");
+  return `
+    <div class="card">
+      <h2>Admin matchday</h2>
+      <p class="muted">Simulations run by the admin. Click a match for full results, scorelines, and analysis. Refreshes every 5 seconds while running.</p>
+      <table>
+        <thead><tr><th>Matchup</th><th>Formations</th><th>Status</th><th>xG</th><th>Win probs</th><th>Top scores</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
 }
 
 function renderExperimentList(items) {

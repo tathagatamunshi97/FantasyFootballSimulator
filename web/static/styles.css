@@ -213,3 +213,14 @@ a.landing-card h2 { color: var(--text); }
 .team-list { margin: 0; padding-left: 1.2rem; }
 .check-row { display: block; margin: 0.35rem 0; font-size: 0.9rem; }
 .btn-stack { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.input-wide { width: 100%; max-width: 100%; padding: 0.5rem 0.65rem; border-radius: 8px; border: 1px solid var(--border); background: var(--panel2); color: var(--text); font: inherit; }
+.scout-comparisons { display: grid; gap: 0.5rem; margin-top: 0.5rem; }
+.scout-row { display: grid; grid-template-columns: 7rem 1fr; gap: 0.75rem; padding: 0.5rem 0.65rem; border-radius: 8px; border: 1px solid var(--border); font-size: 0.9rem; }
+.scout-row.scout-adv { border-color: rgba(61, 214, 140, 0.35); background: rgba(61, 214, 140, 0.08); }
+.scout-row.scout-dis { border-color: rgba(255, 107, 107, 0.35); background: rgba(255, 107, 107, 0.08); }
+.scout-row.scout-even { background: var(--panel2); }
+.scout-area { font-weight: 600; color: var(--muted); }
+.squad-section h4 { margin: 0 0 0.35rem; font-size: 0.85rem; color: var(--muted); }
+tr.matchday-live { background: rgba(61, 214, 140, 0.06); }
+.analysis-bullets.strengths li { color: var(--accent); }
+.analysis-bullets.weaknesses li { color: var(--warn); }

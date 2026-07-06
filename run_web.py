@@ -29,6 +29,7 @@ if __name__ == "__main__":
     print(f"Home:       http://localhost:{port}/")
     print(f"Admin:      http://localhost:{port}/admin")
     print(f"Login:      http://localhost:{port}/login")
+    print(f"Squad hub:  http://localhost:{port}/squad")
     if public:
         print(f"Public:     {public}/")
         print(f"Admin:      {public}/admin")

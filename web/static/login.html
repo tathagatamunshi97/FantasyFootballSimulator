@@ -10,22 +10,22 @@
   <header>
     <div>
       <h1>Football Match Simulator</h1>
-      <div class="sub">Log in to build teams and run your own experiments</div>
+      <div class="sub">Log in for squad evaluation &amp; scouting, or admin access for simulations</div>
     </div>
   </header>
 
   <main style="max-width: 420px; margin: 2rem auto; padding: 0 1rem;">
     <div class="card">
       <h2>Login</h2>
-      <p class="muted">Your password must match your name (not case-sensitive).</p>
+      <p class="muted">Log in with your <strong>Google Sheet team name</strong> as both username and password (case-insensitive). Site admins use <strong>admin</strong> / <strong>admin</strong>.</p>
       <form id="loginForm">
         <div class="form-row">
-          <label for="name">Your name</label>
-          <input id="name" type="text" required autocomplete="username" placeholder="e.g. Alex" />
+          <label for="name">Team name or admin</label>
+          <input id="name" type="text" required autocomplete="username" placeholder="Your sheet team name" />
         </div>
         <div class="form-row">
           <label for="password">Password</label>
-          <input id="password" type="password" required autocomplete="current-password" placeholder="Same as your name" />
+          <input id="password" type="password" required autocomplete="current-password" placeholder="Same as team name (or admin)" />
         </div>
         <button type="submit" class="btn-primary">Log in</button>
         <p id="error" class="error-msg" hidden></p>

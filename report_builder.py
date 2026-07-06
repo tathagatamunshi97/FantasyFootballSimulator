@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from bench_impact import bench_impact_for_team
-from analysis_explainer import build_matchup_analysis
+from analysis_explainer import build_matchup_analysis, build_squad_strengths_report
 from formation_fit import player_slot_fit, team_formation_fit
 from match_engine import MatchSimConfig, monte_carlo_matches, simulate_match_once
 from models import FantasyTeam, PlayerStats
@@ -312,4 +312,5 @@ def build_report(
         report["season_overrides"] = season_overrides
 
     report["analysis"] = build_matchup_analysis(report)
+    report["squad_analysis"] = build_squad_strengths_report(report)
     return report

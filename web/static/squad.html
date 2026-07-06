@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Squad — Match Simulator</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Squad hub</h1>
+      <div class="sub">Squad evaluation &amp; opponent scouting</div>
+    </div>
+    <div class="header-actions">
+      <span id="userLabel" class="muted"></span>
+      <a href="/tournament" class="btn-link">Tournament</a>
+      <a href="/matchday" class="btn-link">Matchday</a>
+      <a href="/squad" class="btn-link">My Squad</a>
+      <span id="adminLinks" hidden>
+        <a href="/lab" class="btn-link">Team lab</a>
+        <a href="/home" class="btn-link">Experiments</a>
+        <a href="/admin" class="btn-link">Admin</a>
+      </span>
+      <button type="button" id="logoutBtn" class="btn-ghost">Log out</button>
+    </div>
+  </header>
+
+  <main id="app">
+    <div class="empty">Loading squad data…</div>
+  </main>
+
+  <footer>
+    Engine v2 · Sofascore + Understat
+  </footer>
+
+  <script src="/static/common.js"></script>
+  <script src="/static/squad.js"></script>
+</body>
+</html>

@@ -457,3 +457,269 @@ def _fit_narrative(team_name: str, formation: str, profile: dict[str, Any]) -> s
         f"Chance creation index {ext['chance_creation']:.2f}, possession {ext['possession_control']:.2f}."
         f"{weak_txt}"
     )
+
+
+def _rate_label(value: float, *, high: float = 0.62, low: float = 0.48) -> str | None:
+    if value >= high:
+        return "strength"
+    if value <= low:
+        return "weakness"
+    return None
+
+
+def _analyze_single_squad(
+    team_name: str,
+    formation: str,
+    profile: dict[str, Any],
+    bench: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Per-team strengths, weaknesses, and unit breakdown for squad display."""
+    ext = profile["extended"]
+    u = ext["units"]
+    fb = profile.get("fullbacks") or {}
+    fit_players = ext.get("formation_fit_players") or []
+
+    strengths: list[str] = []
+    weaknesses: list[str] = []
+    sections: list[dict[str, Any]] = []
+
+    unit_notes: list[str] = []
+    for label, key, higher_better in (
+        ("Attack", "attack", True),
+        ("Finishing", "finishing", True),
+        ("Chance creation", "chance_creation", True),
+        ("Midfield", "midfield", True),
+        ("Defence", "defence", True),
+        ("Midfield shield", "midfield_defence", True),
+        ("Goalkeeper", "goalkeeper", True),
+        ("Transition safety", "transition_risk", False),
+    ):
+        val = float(u.get(key, 0))
+        tag = _rate_label(val if higher_better else 1.0 - val)
+        unit_notes.append(f"{label}: {val:.2f}")
+        if tag == "strength":
+            strengths.append(f"Strong {label.lower()} ({val:.2f}).")
+        elif tag == "weakness":
+            weaknesses.append(f"Thin {label.lower()} ({val:.2f}).")
+
+    attack_bullets = [
+        f"Attacking effectiveness index {ext['attacking_effectiveness']:.2f}.",
+        f"Chance creation index {ext['chance_creation']:.2f}; forwards avg xG/90 {ext.get('fwd_xg90', 0):.2f}.",
+        f"Raw xG split: finishing {ext['xg_split']['finishing']:.2f} + creation {ext['xg_split']['creation']:.2f}.",
+    ]
+    sections.append({"title": "Attack", "bullets": attack_bullets})
+
+    mid_bullets = [
+        f"Midfield rating {u['midfield']:.2f}; possession control {ext['possession_control']:.2f}.",
+        f"Pass completion avg {ext.get('avg_pass_pct', 0):.1f}%.",
+        f"Pressing intensity {ext.get('pressing_intensity', 0):.2f}.",
+    ]
+    sections.append({"title": "Midfield", "bullets": mid_bullets})
+
+    def_bullets = [
+        f"Back-line defence {u['defence']:.2f}; midfield shield {u['midfield_defence']:.2f}.",
+        f"xGA suppression {ext['xga_suppression']:.3f}; aerial defence {ext.get('aerial_defence', 0):.2f}.",
+        f"Transition risk {u['transition_risk']:.2f} (lower is safer).",
+    ]
+    if fb.get("fullbacks"):
+        fb_names = ", ".join(f"{r['player']} ({r['slot']})" for r in fb["fullbacks"][:2])
+        def_bullets.append(f"Wide defenders: {fb_names}.")
+    sections.append({"title": "Defence", "bullets": def_bullets})
+
+    weak_slots = [p for p in fit_players if p.get("fit", 1) < 0.55]
+    fit_bullets = [
+        f"Average formation fit {ext['formation_fit']:.2f} in {formation}.",
+    ]
+    if weak_slots:
+        weak_txt = ", ".join(f"{p['player']} at {p['slot']} (fit {p['fit']:.2f})" for p in weak_slots[:4])
+        fit_bullets.append(f"Misplaced or awkward slots: {weak_txt}.")
+        weaknesses.append(f"Formation weak links: {weak_txt}.")
+    else:
+        fit_bullets.append("No major formation-fit concerns in the starting XI.")
+    if ext["formation_fit"] >= 0.62:
+        strengths.append(f"Players suit the {formation} shape (avg fit {ext['formation_fit']:.2f}).")
+    sections.append({"title": "Formation fit", "bullets": fit_bullets})
+
+    depth_bullets: list[str] = []
+    bench = bench or {}
+    bench_count = bench.get("bench_count") or 0
+    if bench_count == 0:
+        depth_bullets.append("No bench listed — depth multiplier not applied.")
+        weaknesses.append("No squad depth on the bench.")
+    elif bench.get("contributed"):
+        boosts = bench.get("boosts") or {}
+        depth_bullets.append(bench.get("summary") or "Bench adds a small depth boost.")
+        depth_bullets.append(
+            f"Depth boosts: attack +{boosts.get('attack', 0) * 100:.1f}%, "
+            f"creation +{boosts.get('creation', 0) * 100:.1f}%, "
+            f"defence +{boosts.get('defence', 0) * 100:.1f}%."
+        )
+        standouts = [
+            p["player"]
+            for p in bench.get("players") or []
+            if any((p.get("outstanding") or {}).values())
+        ]
+        if standouts:
+            depth_bullets.append(f"Standout bench options: {', '.join(standouts[:4])}.")
+            strengths.append(f"Useful bench depth ({', '.join(standouts[:3])}).")
+    else:
+        depth_bullets.append(bench.get("summary") or "Bench present but no elite depth traits detected.")
+    sections.append({"title": "Squad depth", "bullets": depth_bullets})
+
+    if u.get("gk_is_backup"):
+        weaknesses.append("Starting goalkeeper profile looks like a backup/low-minutes option.")
+    elif u.get("goalkeeper", 0) >= 0.62:
+        strengths.append(f"Reliable goalkeeper ({u['goalkeeper']:.2f}).")
+
+    if u.get("transition_risk", 0) >= 0.58:
+        weaknesses.append(
+            f"High transition risk ({u['transition_risk']:.2f}) — vulnerable on the counter."
+        )
+
+    if not strengths:
+        strengths.append("Balanced squad without a standout elite unit — outcomes depend on matchups.")
+    if not weaknesses:
+        weaknesses.append("No glaring structural weaknesses detected in unit ratings.")
+
+    summary = (
+        f"{team_name}: "
+        + ("; ".join(strengths[:2]) if strengths else "Even profile across units.")
+    )
+
+    return {
+        "name": team_name,
+        "formation": formation,
+        "summary": summary,
+        "strengths": strengths[:6],
+        "weaknesses": weaknesses[:6],
+        "sections": sections,
+        "units": {k: round(float(v), 3) if isinstance(v, (int, float)) else v for k, v in u.items()},
+    }
+
+
+def build_squad_strengths_report(report: dict[str, Any]) -> dict[str, Any]:
+    """Highlight each side's squad strengths and weaknesses."""
+    matchup = report["matchup"]
+    bench = report.get("bench_impact") or {}
+    return {
+        "home": _analyze_single_squad(
+            matchup["home"]["name"],
+            matchup["home"]["formation"],
+            report["profiles"]["home"],
+            bench.get("home"),
+        ),
+        "away": _analyze_single_squad(
+            matchup["away"]["name"],
+            matchup["away"]["formation"],
+            report["profiles"]["away"],
+            bench.get("away"),
+        ),
+    }
+
+
+def analyze_team_squad(
+    team_name: str,
+    formation: str,
+    profile: dict[str, Any],
+    bench: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Public wrapper for single-team squad evaluation."""
+    return _analyze_single_squad(team_name, formation, profile, bench)
+
+
+_SCOUT_COMPARE_UNITS: tuple[tuple[str, str, bool], ...] = (
+    ("Attack", "attack", True),
+    ("Finishing", "finishing", True),
+    ("Chance creation", "chance_creation", True),
+    ("Midfield", "midfield", True),
+    ("Defence", "defence", True),
+    ("Midfield shield", "midfield_defence", True),
+    ("Goalkeeper", "goalkeeper", True),
+    ("Transition safety", "transition_risk", False),
+)
+
+
+def _scout_edge(my_val: float, opp_val: float, *, higher_better: bool = True) -> str:
+    diff = (my_val - opp_val) if higher_better else (opp_val - my_val)
+    if diff >= 0.06:
+        return "advantage"
+    if diff <= -0.06:
+        return "disadvantage"
+    return "even"
+
+
+def _scout_verdict_text(area: str, edge: str) -> str:
+    area_l = area.lower()
+    if edge == "advantage":
+        return f"Your {area_l} profile looks stronger than theirs."
+    if edge == "disadvantage":
+        return f"Their {area_l} looks stronger than yours."
+    return f"{area} looks evenly matched."
+
+
+def build_scout_report(
+    my_eval: dict[str, Any],
+    opponent_eval: dict[str, Any],
+    *,
+    my_team: dict[str, Any],
+    opponent_team: dict[str, Any],
+) -> dict[str, Any]:
+    """
+    Limited opponent scout: expected lineup/shape and comparative unit scouting.
+    No score predictions, win probabilities, or xG totals.
+    """
+    my_u = my_eval.get("units") or {}
+    opp_u = opponent_eval.get("units") or {}
+    comparisons: list[dict[str, str]] = []
+    for label, key, higher_better in _SCOUT_COMPARE_UNITS:
+        my_v = float(my_u.get(key, 0))
+        opp_v = float(opp_u.get(key, 0))
+        edge = _scout_edge(my_v, opp_v, higher_better=higher_better)
+        comparisons.append(
+            {
+                "area": label,
+                "verdict": edge,
+                "summary": _scout_verdict_text(label, edge),
+            }
+        )
+
+    opp_meta = opponent_team.get("sheet_meta") or {}
+    roster = opp_meta.get("full_roster") or []
+    bench = opponent_team.get("bench") or opp_meta.get("bench_players") or []
+
+    scout_notes: list[str] = []
+    for s in (opponent_eval.get("strengths") or [])[:3]:
+        scout_notes.append(f"They look strong: {s.split('(')[0].strip().rstrip('.')}.")
+    for w in (opponent_eval.get("weaknesses") or [])[:2]:
+        scout_notes.append(f"Possible weakness: {w.split('(')[0].strip().rstrip('.')}.")
+
+    fit_section = next(
+        (sec for sec in (opponent_eval.get("sections") or []) if sec.get("title") == "Formation fit"),
+        None,
+    )
+    if fit_section and fit_section.get("bullets"):
+        scout_notes.append(fit_section["bullets"][0])
+
+    return {
+        "limited": True,
+        "my_team": my_team.get("name") or my_eval.get("name"),
+        "opponent": opponent_team.get("name") or opponent_eval.get("name"),
+        "formation": opponent_team.get("formation") or opponent_eval.get("formation"),
+        "expected_lineup": opponent_team.get("lineup") or [],
+        "roster_overview": {
+            "starting_xi": [
+                (row.get("player") or "").strip()
+                for row in (opponent_team.get("lineup") or [])
+                if (row.get("player") or "").strip()
+            ],
+            "bench": list(bench),
+            "squad_size": opp_meta.get("squad_size") or len(roster) or len(bench) + 11,
+        },
+        "comparisons": comparisons,
+        "scout_notes": scout_notes[:5],
+        "summary": (
+            f"Scout report on {opponent_eval.get('name')}: "
+            f"expected {opponent_eval.get('formation')} shape. "
+            "Comparative notes only — no simulated scorelines or win odds."
+        ),
+    }

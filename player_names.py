@@ -206,6 +206,8 @@ ALIASES: dict[str, str] = {
     "john stones": "John Stones",
     "mahrez": "Riyad Mahrez",
     "riyad mahrez": "Riyad Mahrez",
+    "cole palmer": "Cole Palmer",
+    "palmer": "Cole Palmer",
 }
 
 # Bypass Sofascore search when rate-limited or names are ambiguous.
@@ -258,6 +260,8 @@ KNOWN_SOFASCORE_IDS: dict[str, int] = {
     "kevin de bruyne": 70996,
     "kdb": 70996,
     "casemiro": 122951,
+    "cole palmer": 982780,
+    "palmer": 982780,
 }
 
 KNOWN_PLAYER_POSITIONS: dict[int, str] = {
@@ -287,6 +291,7 @@ KNOWN_PLAYER_POSITIONS: dict[int, str] = {
     827606: "M",
     70996: "M",
     122951: "M",
+    982780: "M",
 }
 
 
@@ -307,6 +312,7 @@ KNOWN_PRIME_SEASON_SUFFIX: dict[int, str] = {
     124712: "14/15",
     146219: "14/15",
     122951: "17/18",
+    982780: "23/24",
 }
 
 # Expected club for historical season picks / primes (Understat fallback when Sofascore blocked).
@@ -334,6 +340,7 @@ KNOWN_SEASON_CONTEXT: dict[int, dict[str, dict[str, str]]] = {
     70996: {"19/20": {"team": "Manchester City", "league": "Premier League"}},
     122951: {"17/18": {"team": "Real Madrid", "league": "LaLiga"}},
     146219: {"14/15": {"team": "Real Madrid", "league": "LaLiga"}},
+    982780: {"23/24": {"team": "Chelsea", "league": "Premier League"}},
 }
 
 

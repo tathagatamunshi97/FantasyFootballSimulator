@@ -1,6 +1,16 @@
 if (!requireAuthOrAdmin()) throw new Error("auth");
 
 const expId = window.location.pathname.split("/").pop();
+const fromMatchday = new URLSearchParams(window.location.search).get("from") === "matchday";
+
+if (isAdminUser() || getAdminToken()) {
+  document.getElementById("adminLink").hidden = false;
+}
+document.getElementById("navBack").innerHTML = fromMatchday
+  ? '<a href="/matchday" class="btn-link">← Matchday</a>'
+  : isTeamUser()
+    ? '<a href="/matchday" class="btn-link">Matchday</a>'
+    : '<a href="/home" class="btn-link">My experiments</a>';
 
 function setStatus(exp) {
   const badge = document.getElementById("statusBadge");
@@ -23,7 +33,7 @@ async function refresh() {
     }
 
     if (exp.status === "error") {
-      app.innerHTML = `<div class="empty"><span class="badge error">Error</span><p>${esc(exp.message)}</p><p><a href="/lab">Try again</a></p></div>`;
+      app.innerHTML = `<div class="empty"><span class="badge error">Error</span><p>${esc(exp.message)}</p><p>${document.getElementById("navBack").innerHTML}</p></div>`;
       return;
     }
 

@@ -71,6 +71,11 @@ class TournamentStatusRequest(BaseModel):
     status: str
 
 
+class TournamentSettingsRequest(BaseModel):
+    group_count: int | None = None
+    teams_per_group: int | None = None
+
+
 def _session_user(x_session_token: str | None) -> str:
     user = auth.get_user(x_session_token)
     if not user:
@@ -86,6 +91,24 @@ def _check_admin(token: str | None) -> None:
 
 def _is_admin(token: str | None) -> bool:
     return bool(token and token == sim_state.get_admin_token())
+
+
+def _is_admin_session(user: str | None) -> bool:
+    return auth.is_admin_user(user)
+
+
+def _require_sim_builder(
+    x_session_token: str | None,
+    x_admin_token: str | None = None,
+) -> str:
+    """Session required; only admin users may use lab/sim-building APIs."""
+    user = _session_user(x_session_token)
+    if not auth.can_run_simulations(user, is_admin_token=_is_admin(x_admin_token)):
+        raise HTTPException(
+            status_code=403,
+            detail="Simulation building requires admin access. Squad logins: use /squad.",
+        )
+    return user
 
 
 def _session_user_or_admin(
@@ -112,9 +135,15 @@ def login(body: LoginRequest) -> dict:
     if not user:
         raise HTTPException(
             status_code=401,
-            detail="Invalid login. Password must match your name (case-insensitive).",
+            detail=(
+                "Invalid login. Use your Google Sheet team name as both username and password "
+                "(case-insensitive), or admin / admin."
+            ),
         )
-    token = auth.create_session(user)
+    try:
+        token = auth.create_session(user)
+    except ValueError as exc:
+        raise HTTPException(status_code=429, detail=str(exc)) from exc
     return {"token": token, "user": user}
 
 
@@ -127,7 +156,15 @@ def logout(x_session_token: str | None = Header(default=None, alias="X-Session-T
 @app.get("/api/session")
 def session(x_session_token: str | None = Header(default=None, alias="X-Session-Token")) -> dict:
     user = auth.get_user(x_session_token)
-    return {"logged_in": bool(user), "user": user}
+    role = auth.user_role(user)
+    return {
+        "logged_in": bool(user),
+        "user": user,
+        "role": role,
+        "can_simulate": auth.can_run_simulations(user),
+        "max_team_sessions": auth.MAX_TEAM_SESSIONS,
+        "active_sessions": auth.active_session_count(user) if user else 0,
+    }
 
 
 @app.get("/api/meta")
@@ -171,11 +208,10 @@ def sheets_config() -> dict:
 
 @app.get("/api/sheets/teams")
 def sheets_teams(
-    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
 ) -> dict:
-    """List fantasy teams from the configured Google Sheet."""
-    _session_user_or_admin(x_session_token, x_admin_token)
+    """List fantasy teams from the configured Google Sheet (admin only)."""
+    _check_admin(x_admin_token)
     from google_sheets_teams import list_sheet_teams
 
     try:
@@ -189,11 +225,10 @@ def sheets_teams(
 def sheets_team(
     name: str,
     formation: str = "4-3-3",
-    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
 ) -> dict:
-    """Load one team roster from the Google Sheet by name."""
-    _session_user_or_admin(x_session_token, x_admin_token)
+    """Load one team roster from the Google Sheet by name (admin only)."""
+    _check_admin(x_admin_token)
     from google_sheets_teams import load_team_by_name
 
     store = sim_state.get_stats_store()
@@ -210,9 +245,10 @@ def sheets_team(
 def assign_lineup(
     body: LineupAssignRequest,
     x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
 ) -> dict:
     """Assign formation slots to an unordered player list using position + stats fit."""
-    _session_user(x_session_token)
+    _require_sim_builder(x_session_token, x_admin_token)
     from formation_fit import FORMATION_SLOTS, team_formation_fit
     from lineup_builder import assign_lineup_slots, lineup_from_assignments
 
@@ -241,9 +277,10 @@ def assign_lineup(
 def random_lineup_api(
     body: LineupRandomRequest,
     x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
 ) -> dict:
     """Pick random players from the catalog (1 GK when possible) and assign slots."""
-    _session_user(x_session_token)
+    _require_sim_builder(x_session_token, x_admin_token)
     from formation_fit import FORMATION_SLOTS
     from lineup_builder import random_lineup
 
@@ -265,15 +302,25 @@ def random_lineup_api(
 def ensure_players(
     body: PlayerEnsureRequest,
     x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
 ) -> dict:
     """Resolve player names and fetch missing stats from Sofascore."""
-    _session_user(x_session_token)
+    _require_sim_builder(x_session_token, x_admin_token)
     store = sim_state.get_stats_store()
     try:
         mapping = store.ensure_players(body.names)
     except KeyError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return {"players": mapping}
+
+
+@app.get("/api/matchday")
+def matchday_experiments(
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+) -> dict:
+    """Admin matchday simulations visible to all logged-in users."""
+    _session_user(x_session_token)
+    return {"experiments": experiments.list_matchday_experiments()}
 
 
 @app.get("/api/experiments")
@@ -288,8 +335,18 @@ def my_experiments(
 def create_experiment(
     body: ExperimentRequest,
     x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
 ) -> dict:
     user = _session_user(x_session_token)
+    is_admin = _is_admin(x_admin_token)
+    if not auth.can_run_simulations(user, is_admin_token=is_admin):
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                "Creating simulations requires admin access. "
+                "Squad logins can view squad evaluation and scout opponents at /squad."
+            ),
+        )
     try:
         summary = experiments.create_and_run_experiment(
             user,
@@ -299,6 +356,7 @@ def create_experiment(
                 "simulations": body.simulations,
                 "seed": body.seed,
             },
+            is_admin=is_admin,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -316,9 +374,124 @@ def get_experiment(
         raise HTTPException(status_code=404, detail="Experiment not found")
     user = auth.get_user(x_session_token)
     is_admin = x_admin_token and x_admin_token == sim_state.get_admin_token()
-    if not is_admin and exp.get("user") != user:
-        raise HTTPException(status_code=403, detail="Not allowed to view this experiment")
+    is_matchday = bool(exp.get("matchday") or exp.get("user") == "admin")
+    if not is_admin:
+        if not user:
+            raise HTTPException(status_code=401, detail="Login required")
+        if exp.get("user") != user and not is_matchday:
+            raise HTTPException(status_code=403, detail="Not allowed to view this experiment")
     return {"experiment": exp}
+
+
+def _load_sheet_team_payload(team_name: str) -> dict[str, Any]:
+    from google_sheets_teams import load_team_by_name
+
+    store = sim_state.get_stats_store()
+    try:
+        return load_team_by_name(team_name, store=store)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+
+def _resolve_squad_team_name(
+    session_user: str,
+    *,
+    team: str | None,
+    is_admin_token: bool,
+) -> str:
+    if team and (_is_admin_session(session_user) or is_admin_token):
+        return team.strip()
+    if auth.is_team_user(session_user):
+        return session_user
+    if team:
+        return team.strip()
+    if _is_admin_session(session_user):
+        raise HTTPException(status_code=400, detail="Provide ?team= for squad evaluation.")
+    raise HTTPException(status_code=403, detail="Not a sheet team login.")
+
+
+@app.get("/api/squad/opponents")
+def squad_opponents(
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """List Google Sheet teams available for scouting."""
+    user = _session_user(x_session_token)
+    from google_sheets_teams import list_sheet_teams
+
+    try:
+        teams = list_sheet_teams()
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    my_team: str | None = None
+    if auth.is_team_user(user):
+        my_team = user
+        teams = [t for t in teams if t["name"].lower() != user.lower()]
+    elif not (_is_admin_session(user) or _is_admin(x_admin_token)):
+        raise HTTPException(status_code=403, detail="Squad access requires team or admin login.")
+
+    return {"my_team": my_team, "teams": teams}
+
+
+@app.get("/api/my-squad")
+def my_squad_api(
+    team: str | None = None,
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Full squad evaluation for the logged-in sheet team (admin may pass ?team=)."""
+    user = _session_user(x_session_token)
+    is_admin = _is_admin(x_admin_token)
+    if not (auth.is_team_user(user) or _is_admin_session(user) or is_admin):
+        raise HTTPException(status_code=403, detail="Squad evaluation requires team or admin login.")
+
+    team_name = _resolve_squad_team_name(user, team=team, is_admin_token=is_admin)
+    if auth.is_team_user(user) and team_name.lower() != user.lower():
+        raise HTTPException(status_code=403, detail="You can only view your own squad evaluation.")
+
+    from squad_intel import build_squad_evaluation
+
+    team_payload = _load_sheet_team_payload(team_name)
+    store = sim_state.get_stats_store()
+    try:
+        result = build_squad_evaluation(team_payload, store)
+    except (KeyError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"squad": result}
+
+
+@app.get("/api/scout/{opponent_name}")
+def scout_opponent_api(
+    opponent_name: str,
+    my_team: str | None = None,
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Limited opponent scout report (comparative, no score predictions)."""
+    user = _session_user(x_session_token)
+    is_admin = _is_admin(x_admin_token)
+    if not (auth.is_team_user(user) or _is_admin_session(user) or is_admin):
+        raise HTTPException(status_code=403, detail="Scouting requires team or admin login.")
+
+    my_team_name = _resolve_squad_team_name(user, team=my_team, is_admin_token=is_admin)
+    if auth.is_team_user(user) and my_team_name.lower() != user.lower():
+        raise HTTPException(status_code=403, detail="You can only scout from your own squad perspective.")
+    if opponent_name.strip().lower() == my_team_name.lower():
+        raise HTTPException(status_code=400, detail="Cannot scout your own team — use /api/my-squad.")
+
+    from squad_intel import build_opponent_scout
+
+    my_payload = _load_sheet_team_payload(my_team_name)
+    opp_payload = _load_sheet_team_payload(opponent_name)
+    store = sim_state.get_stats_store()
+    try:
+        report = build_opponent_scout(my_payload, opp_payload, store)
+    except (KeyError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"scout": report}
 
 
 @app.get("/api/admin/experiments")
@@ -345,6 +518,7 @@ def admin_create_experiment(
                 "simulations": body.simulations,
                 "seed": body.seed,
             },
+            is_admin=True,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -398,6 +572,16 @@ def login_page() -> FileResponse:
 @app.get("/lab")
 def lab_page() -> FileResponse:
     return FileResponse(STATIC / "lab.html")
+
+
+@app.get("/squad")
+def squad_page() -> FileResponse:
+    return FileResponse(STATIC / "squad.html")
+
+
+@app.get("/matchday")
+def matchday_page() -> FileResponse:
+    return FileResponse(STATIC / "matchday.html")
 
 
 @app.get("/experiment/{exp_id}")
@@ -549,6 +733,29 @@ def patch_tournament_status_api(
     _check_admin(x_admin_token)
     try:
         t = tournament.set_status(tournament_id, body.status)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"tournament": t}
+
+
+@app.patch("/api/tournament/{tournament_id}/settings")
+def patch_tournament_settings_api(
+    tournament_id: str,
+    body: TournamentSettingsRequest,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    _check_admin(x_admin_token)
+    payload: dict[str, Any] = {}
+    if body.group_count is not None:
+        payload["group_count"] = body.group_count
+    if body.teams_per_group is not None:
+        payload["teams_per_group"] = body.teams_per_group
+    if not payload:
+        raise HTTPException(status_code=400, detail="Provide group_count or teams_per_group")
+    try:
+        t = tournament.update_settings(tournament_id, payload)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:

@@ -204,14 +204,48 @@ async function loadTournamentList() {
   if (currentId) sel.value = currentId;
 }
 
+function validGroupCounts(teamCount) {
+  if (teamCount < 4) return teamCount >= 2 ? [1] : [];
+  const out = [];
+  for (let g = 1; g <= teamCount; g++) {
+    if (teamCount % g === 0 && teamCount / g >= 2) out.push(g);
+  }
+  return out;
+}
+
+function renderGroupSettings(t) {
+  const n = (t.team_names || []).length;
+  if (t.status !== "draft" || n < 2) return "";
+  const opts = validGroupCounts(n);
+  if (!opts.length) return "";
+  const cur = t.settings?.group_count ?? opts[0];
+  const options = opts
+    .map((g) => {
+      const per = n / g;
+      const sel = g === cur ? " selected" : "";
+      return `<option value="${g}"${sel}>${g} group${g === 1 ? "" : "s"} × ${per} teams</option>`;
+    })
+    .join("");
+  const advance = t.settings?.advance_per_group ?? "?";
+  return `
+    <div class="form-row inline" style="margin-top:0.5rem">
+      <label for="groupCount">Group layout</label>
+      <select id="groupCount">${options}</select>
+      <button type="button" class="btn-ghost" id="saveGroupBtn">Save layout</button>
+    </div>
+    <p class="muted">Top ${advance} from each group advance. Choose layout before running the draw.</p>`;
+}
+
 function renderControls(t) {
   const el = document.getElementById("controls");
   const st = t.status;
+  const groupSettings = renderGroupSettings(t);
   el.innerHTML = `
     <div>
       <p><strong>${esc(t.name)}</strong></p>
       <p class="muted">Status: ${esc(st)} · ${(t.team_names || []).length} teams</p>
-      <p class="muted">${JSON.stringify(t.settings || {})}</p>
+      <p class="muted">${t.settings?.group_count || "?"} groups × ${t.settings?.teams_per_group || "?"} teams · top ${t.settings?.advance_per_group || "?"} advance</p>
+      ${groupSettings}
     </div>
     <div class="btn-stack">
       <button type="button" class="btn-ghost" data-action="draw" ${st !== "draft" && st !== "group_draw" ? "disabled" : ""}>Run group draw</button>
@@ -223,6 +257,24 @@ function renderControls(t) {
   el.querySelectorAll("[data-action]").forEach((btn) => {
     btn.addEventListener("click", () => runAction(btn.dataset.action));
   });
+  const saveBtn = document.getElementById("saveGroupBtn");
+  if (saveBtn) {
+    saveBtn.addEventListener("click", () => saveGroupSettings().catch((e) => tLog(e.message)));
+  }
+}
+
+async function saveGroupSettings() {
+  if (!currentId) return;
+  const sel = document.getElementById("groupCount");
+  if (!sel) return;
+  const group_count = Number(sel.value);
+  tLog("Saving group layout…");
+  await adminApi(`/api/tournament/${currentId}/settings`, {
+    method: "PATCH",
+    json: { group_count },
+  });
+  await loadCurrent();
+  tLog(`Group layout saved: ${group_count} groups`);
 }
 
 function renderMatchControls(t) {

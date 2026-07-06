@@ -15,7 +15,8 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
       return j;
     });
     setSession(data.token, data.user);
-    const next = new URLSearchParams(window.location.search).get("next") || "/home";
+    const defaultNext = data.user === "admin" ? "/home" : "/matchday";
+    const next = new URLSearchParams(window.location.search).get("next") || defaultNext;
     window.location.href = next;
   } catch (ex) {
     err.textContent = ex.message;
@@ -24,5 +25,5 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
 });
 
 if (getToken()) {
-  window.location.href = "/home";
+  window.location.href = isAdminUser() ? "/home" : "/matchday";
 }

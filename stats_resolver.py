@@ -139,3 +139,46 @@ def prepare_match_player_stats(
                 ) from exc
 
     return player_stats, overrides, name_map
+
+
+def prepare_team_player_stats(
+    team: dict[str, Any],
+    store: StatsStore,
+) -> tuple[dict[str, PlayerStats], dict[str, str]]:
+    """Load player stats for a single team dict (sheet roster or lab payload)."""
+    all_names = _team_player_names(team)
+    name_map = store.ensure_players(all_names)
+    player_stats: dict[str, PlayerStats] = copy.deepcopy(
+        {name_map[raw]: store.players[name_map[raw]] for raw in all_names}
+    )
+
+    prime = (team.get("prime_player") or "").strip()
+    if prime:
+        meta: dict[str, Any] = {"type": "prime", "requested": prime}
+        _apply_override(
+            store,
+            player_stats,
+            prime,
+            lambda r, s: build_prime_stats_dict(r, s),
+            meta,
+        )
+
+    peak = team.get("peak_season") or {}
+    peak_player = (peak.get("player") or "").strip()
+    peak_season_raw = (peak.get("season") or "").strip()
+    if peak_player and peak_season_raw:
+        suffix = normalize_season_input(peak_season_raw)
+        meta = {
+            "type": "peak_season",
+            "requested": peak_player,
+            "season_input": peak_season_raw,
+        }
+        _apply_override(
+            store,
+            player_stats,
+            peak_player,
+            lambda r, s, suf=suffix: build_season_stats_dict(r, suf, s),
+            meta,
+        )
+
+    return player_stats, name_map

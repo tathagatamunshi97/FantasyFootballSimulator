@@ -76,6 +76,40 @@ def _best_group_count(n: int) -> int:
     return max(1, min(4, n))
 
 
+def valid_group_counts(team_count: int) -> list[int]:
+    """Divisors of team_count where each group has at least 2 teams."""
+    if team_count < 4:
+        return [1] if team_count >= 2 else []
+    return [g for g in range(1, team_count + 1) if team_count % g == 0 and team_count // g >= 2]
+
+
+def _validate_group_settings(team_count: int, group_count: int) -> None:
+    if group_count < 1:
+        raise ValueError("group_count must be at least 1")
+    if group_count > team_count:
+        raise ValueError(f"Cannot have more groups ({group_count}) than teams ({team_count})")
+    if team_count % group_count != 0:
+        raise ValueError(
+            f"{team_count} teams do not divide evenly into {group_count} groups"
+        )
+    per_group = team_count // group_count
+    if per_group < 2:
+        raise ValueError(f"Each group needs at least 2 teams (would be {per_group})")
+
+
+def _settings_from_group_count(team_count: int, group_count: int) -> dict[str, Any]:
+    _validate_group_settings(team_count, group_count)
+    teams_per_group = team_count // group_count
+    advance = 2 if teams_per_group >= 4 else 1
+    return {
+        "group_count": group_count,
+        "teams_per_group": teams_per_group,
+        "advance_per_group": advance,
+        "knockout_format": "single_elim",
+        "simulations_per_match": 10000,
+    }
+
+
 def _round_robin_fixtures(teams: list[str], group_key: str) -> list[dict[str, Any]]:
     n = len(teams)
     if n < 2:
@@ -198,7 +232,11 @@ def set_teams(tournament_id: str, team_names: list[str]) -> dict[str, Any]:
     if len(teams) < 2:
         raise ValueError("At least 2 teams required")
     t["team_names"] = teams
-    t["settings"] = _default_settings(len(teams))
+    prev_gc = (t.get("settings") or {}).get("group_count")
+    try:
+        t["settings"] = _settings_from_group_count(len(teams), int(prev_gc))
+    except (TypeError, ValueError):
+        t["settings"] = _default_settings(len(teams))
     if settings := t.get("settings"):
         t["knockout"]["format"] = settings.get("knockout_format", "single_elim")
     t["groups"] = {}
@@ -218,15 +256,11 @@ def perform_group_draw(tournament_id: str, *, seed: int | None = None) -> dict[s
     per_group = int(cfg["teams_per_group"])
     expected = g_count * per_group
     if len(teams) != expected:
-        cfg = _default_settings(len(teams))
-        t["settings"] = cfg
-        g_count = cfg["group_count"]
-        per_group = cfg["teams_per_group"]
-        if len(teams) != g_count * per_group:
-            raise ValueError(
-                f"Team count {len(teams)} does not divide evenly into groups. "
-                f"Use {g_count * per_group} teams or adjust settings."
-            )
+        raise ValueError(
+            f"Team count ({len(teams)}) does not match group layout "
+            f"({g_count} groups × {per_group} teams = {expected}). "
+            "Adjust group settings before running the draw."
+        )
 
     rng = random.Random(seed)
     pool = teams[:]
@@ -644,7 +678,40 @@ def update_settings(tournament_id: str, settings: dict[str, Any]) -> dict[str, A
         raise KeyError("Tournament not found")
     if t["status"] != "draft":
         raise ValueError("Settings can only be changed in draft status")
+    team_count = len(t.get("team_names") or [])
+    if team_count < 2:
+        raise ValueError("Add at least 2 teams before configuring groups")
+
     merged = {**t["settings"], **settings}
+    if "group_count" in settings:
+        merged = _settings_from_group_count(team_count, int(settings["group_count"]))
+        merged["simulations_per_match"] = int(
+            settings.get("simulations_per_match")
+            or t["settings"].get("simulations_per_match", 10000)
+        )
+        merged["knockout_format"] = settings.get("knockout_format") or t["settings"].get(
+            "knockout_format", "single_elim"
+        )
+    elif "teams_per_group" in settings:
+        per_group = int(settings["teams_per_group"])
+        if per_group < 2:
+            raise ValueError("Each group needs at least 2 teams")
+        if team_count % per_group != 0:
+            raise ValueError(
+                f"{team_count} teams do not divide evenly into groups of {per_group}"
+            )
+        merged = _settings_from_group_count(team_count, team_count // per_group)
+        merged["simulations_per_match"] = int(
+            settings.get("simulations_per_match")
+            or t["settings"].get("simulations_per_match", 10000)
+        )
+        merged["knockout_format"] = settings.get("knockout_format") or t["settings"].get(
+            "knockout_format", "single_elim"
+        )
+    else:
+        _validate_group_settings(team_count, int(merged.get("group_count", 1)))
+
     t["settings"] = merged
+    t["knockout"]["format"] = merged.get("knockout_format", "single_elim")
     save_tournament(t)
     return t

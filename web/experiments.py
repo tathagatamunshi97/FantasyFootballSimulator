@@ -30,10 +30,11 @@ def _experiment_path(exp_id: str) -> Path:
     return EXPERIMENTS_DIR / f"{exp_id}.json"
 
 
-def _default_experiment(exp_id: str, user: str, payload: dict[str, Any]) -> dict[str, Any]:
+def _default_experiment(exp_id: str, user: str, payload: dict[str, Any], *, matchday: bool = False) -> dict[str, Any]:
     return {
         "id": exp_id,
         "user": user,
+        "matchday": matchday,
         "created_at": _now(),
         "updated_at": _now(),
         "status": "queued",
@@ -84,6 +85,18 @@ def _normalize_team_overrides(team: dict[str, Any]) -> dict[str, Any]:
     if not (peak.get("player") or "").strip():
         out["peak_season"] = {"player": "", "season": ""}
     return out
+
+
+def simulation_permission_errors(user: str, *, is_admin: bool) -> list[str]:
+    """Only admin session users or SIM_ADMIN_TOKEN may create simulations."""
+    from web.auth import can_run_simulations
+
+    if can_run_simulations(user, is_admin_token=is_admin):
+        return []
+    return [
+        "Creating simulations requires admin access. "
+        "Squad logins can view squad evaluation and scout opponents at /squad."
+    ]
 
 
 def validate_matchup_payload(payload: dict[str, Any]) -> list[str]:
@@ -202,9 +215,11 @@ def list_experiments(*, user: str | None = None) -> list[dict[str, Any]]:
 def _summary(exp: dict[str, Any]) -> dict[str, Any]:
     mc = (exp.get("report") or {}).get("monte_carlo") or {}
     exg = mc.get("expected_xg") or {}
+    top_scores = (mc.get("scorelines") or [])[:3]
     return {
         "id": exp["id"],
         "user": exp.get("user"),
+        "matchday": bool(exp.get("matchday") or exp.get("user") == "admin"),
         "created_at": exp.get("created_at"),
         "updated_at": exp.get("updated_at"),
         "status": exp.get("status"),
@@ -218,8 +233,27 @@ def _summary(exp: dict[str, Any]) -> dict[str, Any]:
         "expected_xg_home": exg.get("home"),
         "expected_xg_away": exg.get("away"),
         "home_win_pct": mc.get("home_win_pct"),
+        "draw_pct": mc.get("draw_pct"),
         "away_win_pct": mc.get("away_win_pct"),
+        "top_scorelines": [{"score": r.get("score"), "pct": r.get("pct")} for r in top_scores],
     }
+
+
+def list_matchday_experiments(*, limit: int = 20) -> list[dict[str, Any]]:
+    """Recent admin/matchday experiments visible to all logged-in teams."""
+    if not EXPERIMENTS_DIR.exists():
+        return []
+    rows: list[dict[str, Any]] = []
+    for path in EXPERIMENTS_DIR.glob("*.json"):
+        try:
+            exp = json.loads(path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            continue
+        if not (exp.get("matchday") or exp.get("user") == "admin"):
+            continue
+        rows.append(_summary(exp))
+    rows.sort(key=lambda r: r.get("created_at") or "", reverse=True)
+    return rows[:limit]
 
 
 def is_experiment_running(exp_id: str) -> bool:
@@ -227,13 +261,19 @@ def is_experiment_running(exp_id: str) -> bool:
         return exp_id in _running_ids
 
 
-def create_and_run_experiment(user: str, payload: dict[str, Any]) -> dict[str, Any]:
+def create_and_run_experiment(
+    user: str,
+    payload: dict[str, Any],
+    *,
+    is_admin: bool = False,
+) -> dict[str, Any]:
     errors = validate_matchup_payload(payload)
+    errors.extend(simulation_permission_errors(user, is_admin=is_admin))
     if errors:
         raise ValueError("; ".join(errors))
 
     exp_id = uuid.uuid4().hex[:12]
-    exp = _default_experiment(exp_id, user, payload)
+    exp = _default_experiment(exp_id, user, payload, matchday=is_admin)
 
     with _lock:
         if exp_id in _running_ids:

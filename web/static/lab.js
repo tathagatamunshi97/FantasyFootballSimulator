@@ -1,10 +1,16 @@
 if (!requireAuth()) throw new Error("auth");
+if (isTeamUser()) {
+  window.location.replace("/squad");
+  throw new Error("redirect");
+}
 
 let meta = null;
 /** Squad player lists per side after loading from Google Sheet or random gen (enables slot dropdowns). */
 let teamSquads = { a: null, b: null };
 /** Per-side source mode: "sheet" | "random". */
 let teamSource = { a: "sheet", b: "sheet" };
+/** Last sheet-loaded team payloads (for sheet_meta on submit). */
+let loadedSheetTeams = { a: null, b: null };
 
 function lineupPlayersFromSide(side) {
   return [...document.querySelectorAll(`[data-side="${side}"][data-slot]`)].map((el) => el.value.trim()).filter(Boolean);
@@ -243,7 +249,7 @@ function collectTeam(side) {
     const el = document.querySelector(`[data-side="${side}"][data-slot="${slot}"]`);
     return { slot, player: (el?.value || "").trim(), captain: false, vice_captain: false };
   });
-  return {
+  const team = {
     name: document.getElementById(`name_${side}`).value.trim(),
     formation,
     lineup,
@@ -253,6 +259,12 @@ function collectTeam(side) {
       season: document.getElementById(`peak_season_${side}`)?.value || "",
     },
   };
+  const sheet = loadedSheetTeams[side];
+  if (sheet?.sheet_meta) {
+    team.sheet_meta = sheet.sheet_meta;
+    if (sheet.bench) team.bench = sheet.bench;
+  }
+  return team;
 }
 
 function setSourceMode(side, mode) {
@@ -281,6 +293,7 @@ async function generateRandomTeam(side) {
       json: { formation, count: 11, seed: Date.now() + (side === "b" ? 1 : 0) },
     });
     teamSquads[side] = [...data.players].sort((a, b) => a.localeCompare(b));
+    loadedSheetTeams[side] = null;
     const team = {
       name: cur.name || (side === "a" ? "Random Team A" : "Random Team B"),
       formation: data.formation,
@@ -301,7 +314,47 @@ async function generateRandomTeam(side) {
   }
 }
 
+function isLabAdmin() {
+  return !!getAdminToken();
+}
+
+function configureSheetAccessForUser() {
+  const admin = isLabAdmin();
+  const note = document.getElementById("sheetAdminNote");
+  const sheetLoad = document.querySelector(".sheet-load");
+  if (admin) {
+    if (note) note.hidden = true;
+    return;
+  }
+  if (note) note.hidden = false;
+  teamSource = { a: "random", b: "random" };
+  ["a", "b"].forEach((side) => {
+    setSourceMode(side, "random");
+    const root = document.querySelector(`.source-side[data-side="${side}"]`);
+    if (!root) return;
+    root.querySelectorAll('.source-tabs .tab-btn[data-source="sheet"]').forEach((btn) => {
+      btn.disabled = true;
+      btn.title = "Google Sheet teams require admin token";
+    });
+    const sheetPanel = root.querySelector(".sheet-panel");
+    if (sheetPanel) sheetPanel.hidden = true;
+  });
+  const refreshBtn = document.getElementById("refreshSheetTeams");
+  const loadBtn = document.getElementById("loadSheetTeams");
+  if (refreshBtn) refreshBtn.hidden = true;
+  if (loadBtn) loadBtn.hidden = true;
+  if (sheetLoad) {
+    const intro = sheetLoad.querySelector("p.muted");
+    if (intro && !intro.id) intro.textContent = "Generate random squads from the player catalog (Google Sheet loading is admin-only).";
+  }
+}
+
 async function loadSheetTeamList() {
+  if (!isLabAdmin()) {
+    document.getElementById("sheetStatus").textContent =
+      "Google Sheet teams require admin access (/admin with SIM_ADMIN_TOKEN).";
+    return [];
+  }
   const status = document.getElementById("sheetStatus");
   status.textContent = "Loading teams from Google Sheet…";
   const data = await api("/api/sheets/teams");
@@ -320,6 +373,7 @@ async function loadSheetTeamList() {
 
 async function init() {
   meta = await api("/api/meta");
+  configureSheetAccessForUser();
   const dl = document.getElementById("playerList");
   dl.innerHTML = meta.players.map((p) => `<option value="${esc(p.name)}">`).join("");
   const def = meta.default_matchup;
@@ -344,6 +398,12 @@ async function init() {
     });
   });
   document.getElementById("loadSheetTeams").addEventListener("click", async () => {
+    if (!isLabAdmin()) {
+      document.getElementById("formError").textContent =
+        "Loading Google Sheet teams requires admin access. Use Random squad or open /admin.";
+      document.getElementById("formError").hidden = false;
+      return;
+    }
     const err = document.getElementById("formError");
     const status = document.getElementById("sheetStatus");
     const loadBtn = document.getElementById("loadSheetTeams");
@@ -380,6 +440,8 @@ async function init() {
       }
       teamSquads.a = nameA ? extractRoster(teamA) : teamSquads.a;
       teamSquads.b = nameB ? extractRoster(teamB) : teamSquads.b;
+      loadedSheetTeams.a = nameA ? teamA : loadedSheetTeams.a;
+      loadedSheetTeams.b = nameB ? teamB : loadedSheetTeams.b;
       mountPanels(teamA, teamB);
       status.textContent = warnings.length
         ? warnings.join(" ")
