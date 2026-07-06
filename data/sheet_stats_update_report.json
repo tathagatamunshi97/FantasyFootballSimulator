@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-07-06T14:15:44.485754+00:00",
+  "generated_at": "2026-07-06T15:26:56.981779+00:00",
   "sheet_teams": 14,
-  "total_unique_players": 204,
-  "before_full_count": 204,
-  "after_full_count": 204,
+  "total_unique_players": 210,
+  "before_full_count": 210,
+  "after_full_count": 210,
   "fixed_count": 0,
   "still_missing_count": 0,
   "updates": [],
@@ -16,6 +16,10 @@
     {
       "raw": "Alex Grimaldo",
       "target": "Alejandro Grimaldo"
+    },
+    {
+      "raw": "Alexander Sorloth",
+      "target": "Alexander S\u00f8rloth"
     },
     {
       "raw": "Alexis Sanchez",
@@ -128,6 +132,10 @@
     {
       "raw": "Diego Godin",
       "target": "Diego God\u00edn"
+    },
+    {
+      "raw": "Diogo Costa",
+      "target": "Diogo Costa"
     },
     {
       "raw": "Diogo Dalot",

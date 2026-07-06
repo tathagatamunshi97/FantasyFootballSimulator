@@ -38235,7 +38235,8 @@
       "understat_matched": true,
       "understat_xg90": 0.9241695749168526,
       "understat_xa90": 0.06666306493113733,
-      "understat_shots90": 3.8963649322879546
+      "understat_shots90": 3.8963649322879546,
+      "player_id": 309078
     },
     "Arnaut Danjuma": {
       "team": "Valencia",
@@ -120992,6 +120993,59 @@
       "data_source": "fbref",
       "fbref_matched": true,
       "season_profile": "2024-2025"
+    },
+    "Diogo Costa": {
+      "team": "FC Porto",
+      "primary_position": "GK",
+      "fpl_position": "GK",
+      "positions": [
+        "GK"
+      ],
+      "minutes": 2893.5,
+      "games": 32,
+      "starts": 28,
+      "seasons_used": [
+        "2024-2025",
+        "2025-2026"
+      ],
+      "teams_by_season": {
+        "2024-2025": "FC Porto",
+        "2025-2026": "FC Porto"
+      },
+      "goals90": 0.0,
+      "assists90": 0.0,
+      "xg90": 0.0,
+      "xa90": 0.0026298921105843654,
+      "shots90": 0.0,
+      "shots_on_target90": 0.0,
+      "key_passes90": 0.0,
+      "tackles90": 0.0,
+      "interceptions90": 0.0,
+      "clearances90": 0.8388157894736842,
+      "dribbles90": 0.0,
+      "dribble_pct": 0.0,
+      "passes_completed90": 25.65416989164087,
+      "pass_pct": 79.263276251228,
+      "long_balls90": 5.47547407120743,
+      "long_ball_pct": 46.011253196930994,
+      "big_chances_created90": 0.0,
+      "big_chances_missed90": 0.0,
+      "possession_lost90": 6.93406540247678,
+      "penalty_goals90": 0.0,
+      "saves90": 1.8506675696594428,
+      "goals_prevented90": 0.06204635255417956,
+      "goals_conceded90": 1.0782837766060371,
+      "clean_sheet_pct": 28.744556230650154,
+      "yellow_cards90": 0.04643962848297214,
+      "red_cards90": 0.0,
+      "rating": 7.039678030303049,
+      "npxg90": 0.0,
+      "xg_chain90": 0.0,
+      "xg_buildup90": 0.0,
+      "understat_key_passes90": 0.0,
+      "player_id": 843115,
+      "league": "Primeira Liga",
+      "stat_profile": "seeded_sofascore"
     }
   },
   "meta": {
@@ -121007,8 +121061,8 @@
       "Serie A",
       "Bundesliga"
     ],
-    "updated_at": "2026-07-06T14:04:00Z",
-    "player_count": 2246,
+    "updated_at": "2026-07-06T15:22:31Z",
+    "player_count": 2247,
     "fetch_log": [
       "Premier League 24/25: 317 players",
       "Premier League 25/26: 323 players",
@@ -121021,6 +121075,6 @@
       "Bundesliga 24/25: 322 players",
       "Bundesliga 25/26: 320 players"
     ],
-    "seed_merged_at": "2026-07-06T14:04:07Z"
+    "seed_merged_at": "2026-07-06T15:26:20Z"
   }
 }

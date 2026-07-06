@@ -347,7 +347,7 @@ function renderReport(report, matchup) {
 
 function renderMatchdayList(items) {
   if (!items.length) {
-    return `<div class="empty"><p>No matchday simulations yet.</p><p class="muted">When the admin runs a match simulation, it will appear here for all logged-in teams.</p></div>`;
+    return `<div class="empty"><p>No matchday simulations yet.</p><p class="muted">When the admin runs a match simulation, it will appear here.</p></div>`;
   }
   const rows = items
     .map((e) => {

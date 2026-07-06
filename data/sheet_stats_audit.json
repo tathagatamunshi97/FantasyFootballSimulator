@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-07-06T14:19:19.895998+00:00",
+  "generated_at": "2026-07-06T15:30:34.757035+00:00",
   "sheet_teams": 14,
-  "total_unique_players": 204,
-  "full_stats_count": 204,
+  "total_unique_players": 210,
+  "full_stats_count": 210,
   "missing_or_weak_count": 0,
   "alias_failures_count": 0,
   "nickname_failures_count": 0,
@@ -24,8 +24,8 @@
     },
     {
       "team": "DDR",
-      "player_count": 14,
-      "full_count": 14,
+      "player_count": 15,
+      "full_count": 15,
       "missing_count": 0,
       "missing_players": []
     },
@@ -38,8 +38,8 @@
     },
     {
       "team": "Kinjal+Sayan C",
-      "player_count": 14,
-      "full_count": 14,
+      "player_count": 15,
+      "full_count": 15,
       "missing_count": 0,
       "missing_players": []
     },
@@ -59,8 +59,8 @@
     },
     {
       "team": "Raktim",
-      "player_count": 14,
-      "full_count": 14,
+      "player_count": 15,
+      "full_count": 15,
       "missing_count": 0,
       "missing_players": []
     },
@@ -80,15 +80,15 @@
     },
     {
       "team": "Ryan",
-      "player_count": 14,
-      "full_count": 14,
+      "player_count": 15,
+      "full_count": 15,
       "missing_count": 0,
       "missing_players": []
     },
     {
       "team": "Sohom+Mayukh",
-      "player_count": 13,
-      "full_count": 13,
+      "player_count": 15,
+      "full_count": 15,
       "missing_count": 0,
       "missing_players": []
     },
@@ -289,6 +289,10 @@
       "cached_as": "\u00c1lvaro Carreras"
     },
     {
+      "raw": "Felix Nmecha",
+      "cached_as": "Felix Nmecha"
+    },
+    {
       "raw": "Mbappe",
       "cached_as": "Kylian Mbapp\u00e9"
     },
@@ -403,6 +407,10 @@
     {
       "raw": "Eli Junior Kroupi",
       "cached_as": "Eli Junior Kroupi"
+    },
+    {
+      "raw": "Diogo Costa",
+      "cached_as": "Diogo Costa"
     },
     {
       "raw": "Dembele",
@@ -581,6 +589,10 @@
       "cached_as": "Takefusa Kubo"
     },
     {
+      "raw": "David Raum",
+      "cached_as": "David Raum"
+    },
+    {
       "raw": "KDB",
       "cached_as": "Kevin De Bruyne"
     },
@@ -757,6 +769,10 @@
       "cached_as": "Piero Hincapi\u00e9"
     },
     {
+      "raw": "Alexander Sorloth",
+      "cached_as": "Alexander S\u00f8rloth"
+    },
+    {
       "raw": "Rudiger",
       "cached_as": "Antonio R\u00fcdiger"
     },
@@ -807,6 +823,14 @@
     {
       "raw": "Harry Maguire",
       "cached_as": "Harry Maguire"
+    },
+    {
+      "raw": "Lennart Karl",
+      "cached_as": "Lennart Karl"
+    },
+    {
+      "raw": "Francesco Acerbi",
+      "cached_as": "Francesco Acerbi"
     },
     {
       "raw": "Vitinha",

@@ -208,6 +208,9 @@ ALIASES: dict[str, str] = {
     "riyad mahrez": "Riyad Mahrez",
     "cole palmer": "Cole Palmer",
     "palmer": "Cole Palmer",
+    "alexander sorloth": "Alexander Sørloth",
+    "sorloth": "Alexander Sørloth",
+    "diogo costa": "Diogo Costa",
 }
 
 # Bypass Sofascore search when rate-limited or names are ambiguous.
@@ -264,6 +267,9 @@ KNOWN_SOFASCORE_IDS: dict[str, int] = {
     "palmer": 982780,
     "ismael saibari": 1063767,
     "saibari": 1063767,
+    "alexander sorloth": 309078,
+    "sorloth": 309078,
+    "diogo costa": 843115,
 }
 
 # Primary slot codes when FBref/Sofascore bucket wingers as ST or generic MF/F.

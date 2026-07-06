@@ -15,9 +15,9 @@
   </header>
 
   <main style="max-width: 420px; margin: 2rem auto; padding: 0 1rem;">
-    <div class="card">
+    <div class="card" id="loginCard">
       <h2>Login</h2>
-      <p class="muted">Log in with your <strong>Google Sheet team name</strong> as both username and password (case-insensitive). Site admins use <strong>admin</strong> / <strong>admin</strong>.</p>
+      <p class="muted">Log in with your <strong>Google Sheet team name</strong> and password. First-time users will be prompted to set a password. Site admins use <strong>admin</strong> / <strong>admin</strong>.</p>
       <form id="loginForm">
         <div class="form-row">
           <label for="name">Team name or admin</label>
@@ -25,7 +25,7 @@
         </div>
         <div class="form-row">
           <label for="password">Password</label>
-          <input id="password" type="password" required autocomplete="current-password" placeholder="Same as team name (or admin)" />
+          <input id="password" type="password" required autocomplete="current-password" placeholder="Your team password" />
         </div>
         <button type="submit" class="btn-primary">Log in</button>
         <p id="error" class="error-msg" hidden></p>
@@ -33,6 +33,25 @@
       <p class="muted" style="margin-top: 1.25rem; text-align: center;">
         <a href="/admin">Admin dashboard</a> · <a href="/">Home</a>
       </p>
+    </div>
+
+    <div class="card" id="setupCard" hidden>
+      <h2>Set your password</h2>
+      <p class="muted">Welcome, <strong id="setupTeamLabel"></strong>. Choose a password for future logins (minimum 6 characters).</p>
+      <form id="setupForm">
+        <input type="hidden" id="setupTeamName" />
+        <div class="form-row">
+          <label for="newPassword">New password</label>
+          <input id="newPassword" type="password" required autocomplete="new-password" minlength="6" placeholder="At least 6 characters" />
+        </div>
+        <div class="form-row">
+          <label for="confirmPassword">Confirm password</label>
+          <input id="confirmPassword" type="password" required autocomplete="new-password" minlength="6" placeholder="Re-enter password" />
+        </div>
+        <button type="submit" class="btn-primary">Save password &amp; continue</button>
+        <button type="button" id="setupBackBtn" class="btn-ghost" style="margin-left:0.5rem">Back to login</button>
+        <p id="setupError" class="error-msg" hidden></p>
+      </form>
     </div>
   </main>
 

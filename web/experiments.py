@@ -240,7 +240,7 @@ def _summary(exp: dict[str, Any]) -> dict[str, Any]:
 
 
 def list_matchday_experiments(*, limit: int = 20) -> list[dict[str, Any]]:
-    """Recent admin/matchday experiments visible to all logged-in teams."""
+    """Recent admin/matchday experiments (admin-only API)."""
     if not EXPERIMENTS_DIR.exists():
         return []
     rows: list[dict[str, Any]] = []

@@ -75,8 +75,12 @@ function showTab(name) {
   });
   document.getElementById("panel-simulations").hidden = name !== "simulations";
   document.getElementById("panel-tournament").hidden = name !== "tournament";
+  document.getElementById("panel-teams").hidden = name !== "teams";
   if (name === "tournament" && getAdminTokenFromUI()) {
     loadTournamentPanel().catch((e) => tLog(e.message));
+  }
+  if (name === "teams" && getAdminTokenFromUI()) {
+    loadTeamPasswords().catch((e) => pwLog(e.message));
   }
   if (location.hash !== `#${name}`) {
     history.replaceState(null, "", `#${name}`);
@@ -405,6 +409,65 @@ async function loadTournamentPanel() {
   }
 }
 
+// --- Team passwords ---
+
+function pwLog(msg) {
+  const el = document.getElementById("pwLog");
+  if (el) el.textContent = msg;
+}
+
+function renderPasswordTable(teams) {
+  if (!teams.length) return "<p class='muted'>No teams on sheet.</p>";
+  const rows = teams
+    .map((t) => {
+      const status = t.has_password
+        ? "<span class='badge ready'>Password set</span>"
+        : "<span class='badge'>Needs setup</span>";
+      const resetBtn = t.has_password
+        ? `<button type="button" class="btn-ghost reset-pw" data-team="${esc(t.name)}">Reset</button>`
+        : "—";
+      return `<tr>
+        <td>${esc(t.name)}</td>
+        <td class="muted">${t.player_count}/11</td>
+        <td>${status}</td>
+        <td>${resetBtn}</td>
+      </tr>`;
+    })
+    .join("");
+  return `<table>
+    <thead><tr><th>Team</th><th>Roster</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+async function loadTeamPasswords() {
+  const data = await adminApi("/api/admin/team-passwords");
+  const teams = data.teams || [];
+  document.getElementById("pwTable").innerHTML = renderPasswordTable(teams);
+  document.getElementById("pwTable").querySelectorAll(".reset-pw").forEach((btn) => {
+    btn.addEventListener("click", () => resetTeamPassword(btn.dataset.team));
+  });
+  const set = teams.filter((t) => t.has_password).length;
+  pwLog(`Loaded ${teams.length} team(s); ${set} with password set.`);
+}
+
+async function resetTeamPassword(teamName) {
+  if (!confirm(`Reset password for "${teamName}"? They will need to set a new password on next login.`)) {
+    return;
+  }
+  try {
+    pwLog(`Resetting password for ${teamName}…`);
+    const res = await adminApi("/api/admin/team-passwords/reset", {
+      method: "POST",
+      json: { team_name: teamName },
+    });
+    pwLog(res.message || "Password reset.");
+    await loadTeamPasswords();
+  } catch (err) {
+    pwLog(`Error: ${err.message}`);
+  }
+}
+
 // --- Init ---
 
 document.getElementById("token").value = getAdminToken() || "";
@@ -416,6 +479,7 @@ document.getElementById("refreshBtn").addEventListener("click", loadExperiments)
 document.getElementById("testRunBtn").addEventListener("click", runTestSimulation);
 
 document.getElementById("createBtn").addEventListener("click", () => createTournament().catch((e) => tLog(e.message)));
+document.getElementById("refreshPwBtn").addEventListener("click", () => loadTeamPasswords().catch((e) => pwLog(e.message)));
 document.getElementById("tSelect").addEventListener("change", (e) => {
   currentId = e.target.value || null;
   if (currentId) loadCurrent().catch((err) => tLog(err.message));
@@ -439,7 +503,12 @@ document.getElementById("runBtn")?.addEventListener("click", async () => {
   }
 });
 
-const initialTab = location.hash === "#tournament" ? "tournament" : "simulations";
+const initialTab =
+  location.hash === "#tournament"
+    ? "tournament"
+    : location.hash === "#teams"
+      ? "teams"
+      : "simulations";
 showTab(initialTab);
 
 if (getAdminToken()) {

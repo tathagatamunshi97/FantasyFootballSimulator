@@ -26,6 +26,16 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class SetPasswordRequest(BaseModel):
+    name: str
+    new_password: str
+    confirm_password: str
+
+
+class TeamPasswordResetRequest(BaseModel):
+    team_name: str
+
+
 class RunRequest(BaseModel):
     simulations: int = Field(default=10000, ge=100, le=100_000)
     seed: int | None = None
@@ -111,6 +121,33 @@ def _require_sim_builder(
     return user
 
 
+def _require_admin_session(x_session_token: str | None) -> str:
+    """Logged-in admin user only (not SIM_ADMIN_TOKEN)."""
+    user = _session_user(x_session_token)
+    if not _is_admin_session(user):
+        raise HTTPException(
+            status_code=403,
+            detail="Admin login required. Team users: use /squad for squad evaluation and scouting.",
+        )
+    return user
+
+
+def _require_admin_session_or_token(
+    x_session_token: str | None,
+    x_admin_token: str | None = None,
+) -> None:
+    """Admin session or SIM_ADMIN_TOKEN may view simulation history."""
+    user = auth.get_user(x_session_token)
+    if _is_admin_session(user) or _is_admin(x_admin_token):
+        return
+    if not user:
+        raise HTTPException(status_code=401, detail="Login required")
+    raise HTTPException(
+        status_code=403,
+        detail="Simulation history is admin-only. Team users: use /squad.",
+    )
+
+
 def _session_user_or_admin(
     x_session_token: str | None,
     x_admin_token: str | None,
@@ -131,20 +168,48 @@ def health() -> dict:
 
 @app.post("/api/login")
 def login(body: LoginRequest) -> dict:
-    user = auth.validate_login(body.name, body.password)
-    if not user:
+    result = auth.attempt_login(body.name, body.password)
+    if result["status"] == "needs_password_setup":
+        return {
+            "needs_password_setup": True,
+            "user": result["user"],
+        }
+    if result["status"] != "ok":
         raise HTTPException(
             status_code=401,
             detail=(
-                "Invalid login. Use your Google Sheet team name as both username and password "
-                "(case-insensitive), or admin / admin."
+                "Invalid login. Use your Google Sheet team name and password, "
+                "or admin / admin."
             ),
         )
+    user = result["user"]
     try:
         token = auth.create_session(user)
     except ValueError as exc:
         raise HTTPException(status_code=429, detail=str(exc)) from exc
     return {"token": token, "user": user}
+
+
+@app.post("/api/set-password")
+def set_password(body: SetPasswordRequest) -> dict:
+    team = auth.resolve_sheet_team(body.name)
+    if not team:
+        raise HTTPException(status_code=400, detail="Unknown team — must match a Google Sheet team name.")
+    if auth.team_has_password(team):
+        raise HTTPException(
+            status_code=400,
+            detail="Password already set for this team. Contact admin to reset.",
+        )
+    try:
+        auth.set_team_password(team, body.new_password, body.confirm_password)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    try:
+        token = auth.create_session(team)
+    except ValueError as exc:
+        auth.reset_team_password(team)
+        raise HTTPException(status_code=429, detail=str(exc)) from exc
+    return {"token": token, "user": team, "message": "Password set. You are now logged in."}
 
 
 @app.post("/api/logout")
@@ -317,18 +382,23 @@ def ensure_players(
 @app.get("/api/matchday")
 def matchday_experiments(
     x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
 ) -> dict:
-    """Admin matchday simulations visible to all logged-in users."""
-    _session_user(x_session_token)
+    """Admin matchday simulation history (admin session or SIM_ADMIN_TOKEN only)."""
+    _require_admin_session_or_token(x_session_token, x_admin_token)
     return {"experiments": experiments.list_matchday_experiments()}
 
 
 @app.get("/api/experiments")
 def my_experiments(
     x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
 ) -> dict:
-    user = _session_user(x_session_token)
-    return {"experiments": experiments.list_experiments(user=user)}
+    _require_admin_session_or_token(x_session_token, x_admin_token)
+    user = auth.get_user(x_session_token)
+    if _is_admin_session(user):
+        return {"experiments": experiments.list_experiments(user=user)}
+    return {"experiments": experiments.list_experiments()}
 
 
 @app.post("/api/experiments")
@@ -372,14 +442,7 @@ def get_experiment(
     exp = experiments.load_experiment(exp_id)
     if not exp:
         raise HTTPException(status_code=404, detail="Experiment not found")
-    user = auth.get_user(x_session_token)
-    is_admin = x_admin_token and x_admin_token == sim_state.get_admin_token()
-    is_matchday = bool(exp.get("matchday") or exp.get("user") == "admin")
-    if not is_admin:
-        if not user:
-            raise HTTPException(status_code=401, detail="Login required")
-        if exp.get("user") != user and not is_matchday:
-            raise HTTPException(status_code=403, detail="Not allowed to view this experiment")
+    _require_admin_session_or_token(x_session_token, x_admin_token)
     return {"experiment": exp}
 
 
@@ -510,6 +573,38 @@ def admin_experiments(
 ) -> dict:
     _check_admin(x_admin_token)
     return {"experiments": experiments.list_experiments()}
+
+
+@app.get("/api/admin/team-passwords")
+def admin_team_passwords(
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    _check_admin(x_admin_token)
+    return {"teams": auth.list_team_password_status()}
+
+
+@app.post("/api/admin/team-passwords/reset")
+def admin_reset_team_password(
+    body: TeamPasswordResetRequest,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    _check_admin(x_admin_token)
+    team = auth.resolve_sheet_team(body.team_name)
+    if not team:
+        raise HTTPException(status_code=400, detail="Unknown team.")
+    if not auth.reset_team_password(team):
+        raise HTTPException(status_code=404, detail="Team has no password set.")
+    return {"ok": True, "team": team, "message": f"Password reset for {team}. Team must set a new password on next login."}
+
+
+@app.post("/api/admin/sessions/clear")
+def admin_clear_sessions(
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Revoke all user session tokens (forces re-login everywhere)."""
+    _check_admin(x_admin_token)
+    cleared = auth.clear_all_sessions()
+    return {"ok": True, "cleared": cleared, "message": f"Revoked {cleared} session(s)."}
 
 
 @app.post("/api/admin/experiments")
@@ -771,6 +866,14 @@ def patch_tournament_settings_api(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return {"tournament": t}
+
+
+@app.on_event("startup")
+def _clear_sessions_on_startup() -> None:
+    """Revoke all sessions on server start so deploys force re-login."""
+    cleared = auth.clear_all_sessions()
+    if cleared:
+        print(f"Sessions: cleared {cleared} active session(s) on startup.")
 
 
 app.mount("/static", StaticFiles(directory=STATIC), name="static")

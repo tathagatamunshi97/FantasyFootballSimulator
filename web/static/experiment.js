@@ -1,4 +1,8 @@
 if (!requireAuthOrAdmin()) throw new Error("auth");
+if (isTeamUser()) {
+  window.location.replace("/squad");
+  throw new Error("redirect");
+}
 
 const expId = window.location.pathname.split("/").pop();
 const fromMatchday = new URLSearchParams(window.location.search).get("from") === "matchday";
@@ -8,9 +12,7 @@ if (isAdminUser() || getAdminToken()) {
 }
 document.getElementById("navBack").innerHTML = fromMatchday
   ? '<a href="/matchday" class="btn-link">← Matchday</a>'
-  : isTeamUser()
-    ? '<a href="/matchday" class="btn-link">Matchday</a>'
-    : '<a href="/home" class="btn-link">My experiments</a>';
+  : '<a href="/home" class="btn-link">My experiments</a>';
 
 function setStatus(exp) {
   const badge = document.getElementById("statusBadge");

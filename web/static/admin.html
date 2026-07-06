@@ -28,6 +28,7 @@
     <nav class="tab-bar" style="margin-top:1rem" role="tablist">
       <button type="button" class="tab-btn active" data-tab="simulations" role="tab">Simulations</button>
       <button type="button" class="tab-btn" data-tab="tournament" role="tab">Tournament</button>
+      <button type="button" class="tab-btn" data-tab="teams" role="tab">Team access</button>
     </nav>
 
     <div id="panel-simulations" class="tab-panel" role="tabpanel">
@@ -93,6 +94,16 @@
         <div id="controls" class="grid grid-2" style="margin-top:0.75rem"></div>
         <div id="matchControls" style="margin-top:1rem"></div>
         <div id="tLog" class="log" style="margin-top:0.75rem">Ready.</div>
+      </div>
+    </div>
+
+    <div id="panel-teams" class="tab-panel" role="tabpanel" hidden>
+      <div class="card" style="margin-top:0">
+        <h2>Team passwords</h2>
+        <p class="muted">Each Google Sheet team sets a password on first login. Reset a team to force them to choose a new password.</p>
+        <button type="button" id="refreshPwBtn" class="btn-ghost" style="margin-bottom:0.75rem">Refresh status</button>
+        <div id="pwTable" class="table-wrap"><p class="muted">Enter token and refresh.</p></div>
+        <div id="pwLog" class="log" style="margin-top:0.75rem">Ready.</div>
       </div>
     </div>
   </main>

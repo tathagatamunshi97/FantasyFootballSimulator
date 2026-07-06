@@ -1,4 +1,8 @@
 if (!requireAuth()) throw new Error("auth");
+if (isTeamUser()) {
+  window.location.replace("/squad");
+  throw new Error("redirect");
+}
 
 document.getElementById("userLabel").textContent = getUser() || "";
 if (isAdminUser()) {
@@ -21,6 +25,10 @@ async function refresh() {
     if (e.message.includes("401") || e.message.includes("Login")) {
       clearSession();
       window.location.href = "/login?next=/matchday";
+      return;
+    }
+    if (e.message.includes("403") || e.message.includes("admin")) {
+      window.location.replace("/squad");
       return;
     }
     document.getElementById("app").innerHTML = `<div class="empty">Failed to load: ${esc(e.message)}</div>`;
