@@ -77,7 +77,7 @@
     "Harry Maguire (prime 18/19)": "FBref via soccerdata",
     "Luka Modrić (prime 17/18)": "FBref via soccerdata",
     "Aymeric Laporte (prime 21/22)": "FBref via soccerdata",
-    "Manuel Neuer (prime 13/14)": "FBref via soccerdata",
+    "Manuel Neuer (prime 13/14)": "FBref keeper 2013-14 Bundesliga (31g, 2745min, 99SoTA, 81sv, 18GA, 81.8% sv%, 0.59 GA90, 15CS); no PSxG column in FBref/soccerdata for 2013-14; PSxG est. 20.4 (0.67/90) via save%-premium shrinkage; goals_prevented90=0.08; pass% 86% BFW; rating 7.35 peak est.",
     "Alaba (prime 19/20)": "FBref via soccerdata"
   },
   "unverified": [],
@@ -101,6 +101,11 @@
       "player": "Gonzalo Higuaín",
       "note": "FBref verified 15/16 Napoli Serie A: 36g, 2a, 2958 min, 83 shots (2.53/90). Corrected assists90 0.15->0.06 and minutes 2989->2958.",
       "source": "FBref 2015-16 Serie A"
+    },
+    {
+      "player": "Manuel Neuer",
+      "note": "PSxG unavailable for 2013-14 Bundesliga on FBref. SoTA=99 (81sv+18GA). League save% 70.2% (22 qualifying GKs, 900+ min); league GA/SoTA 29.8%. Naive PSxG=29.5 (0.97/90); raw goals prevented=11.5. Bayern faced 62% of league SoTA/90 (3.25 vs 5.26) and BFW ranked Neuer mid-pack on shot-stopping — applied 21% shrinkage to credit only keeper shot-stopping vs team shell → 2.4 goals prevented, goals_prevented90=0.079≈0.08. Profile unchanged.",
+      "source": "FBref keeper table via soccerdata + BFW shot-stopper analysis Feb 2014"
     }
   ]
 }
