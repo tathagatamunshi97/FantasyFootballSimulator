@@ -34,8 +34,8 @@ function seasonSelectOptions(selected) {
 function renderLineupBuilder(data) {
   const config = data.lineup || {};
   const roster = data.roster || [];
-  const formation = config.formation || "4-3-3";
-  const formations = meta?.formations?.formations || ["4-3-3", "4-4-2", "3-5-2"];
+  const formation = config.formation || "4-3-3 flat";
+  const formations = meta?.formations?.formations || ["4-3-3 flat", "4-4-2", "3-5-2"];
   const slots = meta?.formations?.slots?.[formation] || [];
   const lineupMap = lineupMapFromConfig(config);
   const prime = config.prime_player || "";
@@ -151,7 +151,7 @@ function renderOpponentScoutPanel() {
 }
 
 function collectLineupPayload() {
-  const formation = document.getElementById("lineupFormation")?.value || "4-3-3";
+  const formation = document.getElementById("lineupFormation")?.value || "4-3-3 flat";
   const slots = meta?.formations?.slots?.[formation] || [];
   const lineup = slots.map((slot) => {
     const el = document.querySelector(`[data-slot="${slot}"]`);

@@ -73,7 +73,14 @@ class PlayerStats:
 
     @classmethod
     def from_dict(cls, name: str, data: dict[str, Any]) -> PlayerStats:
+        from player_names import apply_known_position_overrides_by_name, known_sofascore_id
+
         payload = dict(data)
+        apply_known_position_overrides_by_name(payload, name)
+        if payload.get("player_id") is None:
+            pid = known_sofascore_id(name)
+            if pid is not None:
+                payload["player_id"] = pid
         _normalize_stat_gaps(payload)
         pos = payload.get("primary_position", "MF")
         fpl = payload.get("fpl_position") or _infer_fpl_position(pos)
@@ -196,10 +203,20 @@ def _normalize_stat_gaps(data: dict[str, Any]) -> None:
 
     positions = {str(p).upper() for p in data.get("positions", [])}
     primary = str(data.get("primary_position", "")).upper()
-    is_winger = primary in {"RW", "LW", "RM", "LM"} or bool(positions & {"RW", "LW", "RM", "LM"})
+    fpl = str(data.get("fpl_position") or _infer_fpl_position(primary)).upper()
+    kp = float(data.get("key_passes90", 0) or data.get("understat_key_passes90", 0))
+    ast = float(data.get("assists90", 0))
+    is_winger = (
+        primary in {"RW", "LW", "RM", "LM"}
+        or bool(positions & {"RW", "LW", "RM", "LM"})
+        or (
+            primary in {"ST", "CF", "FW"}
+            and fpl == "FWD"
+            and kp >= 1.2
+            and ast >= 0.12
+        )
+    )
     if is_winger and not data.get("dribbles90"):
-        kp = float(data.get("key_passes90", 0))
-        ast = float(data.get("assists90", 0))
         data["dribbles90"] = min(3.0, kp * 0.32 + ast * 0.55)
 
 

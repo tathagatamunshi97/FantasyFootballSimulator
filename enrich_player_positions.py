@@ -13,6 +13,7 @@ from typing import Any
 from fbref_client import fetch_fbref_season_index, lookup_fbref_player, season_label_from_suffix
 from player_names import (
     KNOWN_PLAYER_POSITIONS,
+    KNOWN_PLAYER_POSITIONS_BY_NAME,
     KNOWN_PLAYER_PRIMARY,
     canonical_name,
     known_sofascore_id,
@@ -248,6 +249,8 @@ def enrich_all(*, use_fbref: bool = True, dry_run: bool = False) -> dict[str, An
 
         pid = job.get("player_id")
         known_override = KNOWN_PLAYER_PRIMARY.get(pid) if pid else None
+        if known_override is None:
+            known_override = KNOWN_PLAYER_POSITIONS_BY_NAME.get(cached_as)
         seed_entry = seed_by_key.get(f"id:{pid}") if pid else None
         if seed_entry is None:
             seed_entry = seed_by_key.get(normalize_key(job.get("display", cached_as)))

@@ -1,7 +1,7 @@
 {
   "home": {
     "name": "Team A",
-    "formation": "4-3-3",
+    "formation": "4-3-3 attacking",
     "lineup": [
       {"player": "David Raya", "slot": "GK", "captain": false, "vice_captain": false},
       {"player": "Jules Koundé", "slot": "RB", "captain": false, "vice_captain": false},

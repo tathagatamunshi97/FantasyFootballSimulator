@@ -27,6 +27,8 @@ ALIASES: dict[str, str] = {
     "pacho": "Willian Pacho",
     "pau cubarsi": "Pau Cubarsí",
     "cubarsi": "Pau Cubarsí",
+    "eric garcia": "Eric García",
+    "eric garcía": "Eric García",
     "theo hernandez": "Theo Hernández",
     "theo hernández": "Theo Hernández",
     "joao neves": "João Neves",
@@ -41,6 +43,8 @@ ALIASES: dict[str, str] = {
     "desire doue": "Désiré Doué",
     "désiré doué": "Désiré Doué",
     "doue": "Désiré Doué",
+    "guela doue": "Guéla Doué",
+    "guéla doué": "Guéla Doué",
     "ousmane dembele": "Ousmane Dembélé",
     "ousmane dembélé": "Ousmane Dembélé",
     "dembele": "Ousmane Dembélé",
@@ -145,6 +149,8 @@ ALIASES: dict[str, str] = {
     "aymen el kaabi": "Ayoub El Kaabi",
     "ayoub el kaabi": "Ayoub El Kaabi",
     "bernard": "Bernardo Silva",
+    "bernardo": "Bernardo Silva",
+    "bernardo silva": "Bernardo Silva",
     "marcos llorente": "Marcos Llorente",
     "cucurella": "Marc Cucurella",
     "enzo f": "Enzo Fernández",
@@ -258,6 +264,10 @@ KNOWN_SOFASCORE_IDS: dict[str, int] = {
     "neymar": 124712,
     "alexis sanchez": 34120,
     "sanchez": 34120,
+    "bernardo silva": 331209,
+    "grimaldo": 177177,
+    "alex grimaldo": 177177,
+    "alejandro grimaldo": 177177,
     "radamel falcao": 25682,
     "falcao": 25682,
     "gundogan": 45853,
@@ -346,6 +356,50 @@ KNOWN_PLAYER_PRIMARY: dict[int, dict[str, Any]] = {
         "primary_position": "RW",
         "fpl_position": "MID",
         "positions": ["RW", "LW", "RM"],
+    },
+    34120: {
+        "primary_position": "LW",
+        "fpl_position": "FWD",
+        "positions": ["LW", "ST", "RW", "CM"],
+    },
+    124712: {
+        "primary_position": "LW",
+        "fpl_position": "FWD",
+        "positions": ["LW", "RW", "ST", "CM"],
+    },
+    177177: {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": ["LB", "LM", "LW", "CM"],
+    },
+    331209: {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": ["CM", "AM", "RW", "LW"],
+    },
+}
+
+# Curated positions for players mis-tagged in cache / FBref (keyed by canonical cache name).
+KNOWN_PLAYER_POSITIONS_BY_NAME: dict[str, dict[str, Any]] = {
+    "Dayot Upamecano": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB"],
+    },
+    "Pau Cubarsí": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB"],
+    },
+    "Dean Huijsen": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB"],
+    },
+    "Eric García": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB", "CM"],
     },
 }
 
@@ -487,6 +541,13 @@ def apply_known_position_overrides(data: dict[str, Any], player_id: int | None) 
         data.update(override)
 
 
+def apply_known_position_overrides_by_name(data: dict[str, Any], player_name: str) -> None:
+    """Apply curated positions keyed by canonical cache player name."""
+    override = KNOWN_PLAYER_POSITIONS_BY_NAME.get(str(player_name).strip())
+    if override:
+        data.update(override)
+
+
 def loose_name_key(name: str) -> str:
     return normalize_key(name).replace("'", "").replace("-", " ")
 
@@ -557,7 +618,9 @@ def resolve_player_name(raw: str, store: StatsStore | None = None) -> str:
     key = normalize_key(cleaned)
 
     if key in ALIASES:
-        return ALIASES[key]
+        aliased = ALIASES[key]
+        if store is None or aliased in store.players:
+            return aliased
 
     if store is not None:
         if cleaned in store.players:
@@ -578,7 +641,10 @@ def resolve_player_name(raw: str, store: StatsStore | None = None) -> str:
         if len(matches) == 1:
             return matches[0]
         if len(matches) > 1:
-            matches.sort(key=lambda n: abs(len(normalize_key(n)) - len(key)))
+            # Prefer the longest (most specific) name when Excel truncates e.g. "Bernardo" → Bernardo Silva.
+            matches.sort(
+                key=lambda n: (-len(normalize_key(n)), abs(len(normalize_key(n)) - len(key)))
+            )
             return matches[0]
         fuzzy = fuzzy_surname_match(cleaned, list(store.players))
         if fuzzy:

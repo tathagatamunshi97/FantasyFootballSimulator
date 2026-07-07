@@ -7,7 +7,7 @@ from typing import Any
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
-from formation_fit import FORMATION_SLOTS, player_slot_fit
+from formation_fit import DEFAULT_FORMATION, FORMATION_SLOTS, normalize_formation, player_slot_fit
 from models import FantasyTeam, LineupSlot, PlayerStats
 from slot_roles import slot_role
 
@@ -15,7 +15,8 @@ _FPL_QUOTAS: dict[str, int] = {"GK": 1, "DEF": 4, "MID": 4, "FWD": 2}
 
 
 def _slot_order(formation: str) -> list[str]:
-    slots = FORMATION_SLOTS.get(formation, FORMATION_SLOTS["4-4-2"])
+    formation = normalize_formation(formation)
+    slots = FORMATION_SLOTS.get(formation, FORMATION_SLOTS[DEFAULT_FORMATION])
     return [s["slot"] for s in slots]
 
 
@@ -110,7 +111,7 @@ def _select_xi_by_formation_roles(
     player_stats: dict[str, PlayerStats],
 ) -> list[str]:
     """
-    Pick 11 players matching formation role counts (e.g. 4-3-3 → 1 GK, 4 DEF, 3 MID, 3 FWD).
+    Pick 11 players matching formation role counts (e.g. 4-3-3 flat → 1 GK, 4 DEF, 3 MID, 3 FWD).
     Rank within each bucket by best assignment score for that bucket's slots.
     """
     needs = _formation_bucket_needs(formation)
@@ -288,8 +289,9 @@ def random_lineup(
     seed: int | None = None,
 ) -> tuple[list[str], list[dict[str, Any]]]:
     """Build a random squad and assign formation slots."""
+    formation = normalize_formation(formation)
     if formation not in FORMATION_SLOTS:
-        formation = "4-3-3"
+        formation = DEFAULT_FORMATION
     players = random_squad_players(player_stats, count=count, seed=seed)
     pairs = assign_lineup_slots(formation, players, player_stats)
     lineup = lineup_from_assignments(formation, pairs)

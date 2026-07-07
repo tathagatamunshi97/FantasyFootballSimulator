@@ -9,7 +9,7 @@ from typing import Any
 
 import pandas as pd
 
-from formation_fit import FORMATION_SLOTS
+from formation_fit import DEFAULT_FORMATION, FORMATION_SLOTS, normalize_formation
 from lineup_builder import assign_lineup_slots, lineup_from_assignments, select_starting_xi
 from player_names import canonical_name, names_loosely_match, normalize_key, resolve_player_name
 
@@ -191,7 +191,7 @@ def default_peak_season(roster: SheetRoster) -> dict[str, str]:
 def team_payload_from_roster(
     roster: SheetRoster,
     *,
-    formation: str = "4-3-3",
+    formation: str = DEFAULT_FORMATION,
     store: Any,
     resolve_names: bool = True,
 ) -> dict[str, Any]:
@@ -199,8 +199,9 @@ def team_payload_from_roster(
     Build a lab experiment team dict from a sheet roster.
     Auto-assigns slots when exactly 11 players; otherwise maps in formation order.
     """
+    formation = normalize_formation(formation)
     if formation not in FORMATION_SLOTS:
-        formation = "4-3-3"
+        formation = DEFAULT_FORMATION
 
     raw_squad = roster.players[:15]
     full_resolved: list[str] = []
@@ -266,7 +267,7 @@ def team_payload_from_roster(
 def load_team_by_name(
     team_name: str,
     *,
-    formation: str = "4-3-3",
+    formation: str = DEFAULT_FORMATION,
     store: Any = None,
     spreadsheet_id: str | None = None,
     gid: str | None = None,
@@ -306,8 +307,8 @@ def load_matchup_by_names(
     team_a_name: str,
     team_b_name: str,
     *,
-    formation_a: str = "4-3-3",
-    formation_b: str = "4-3-3",
+    formation_a: str = DEFAULT_FORMATION,
+    formation_b: str = DEFAULT_FORMATION,
     store: Any = None,
     spreadsheet_id: str | None = None,
     gid: str | None = None,

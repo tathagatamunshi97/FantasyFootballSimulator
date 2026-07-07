@@ -9,6 +9,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
+from web.state import get_admin_token
+
 ROOT = Path(__file__).resolve().parent.parent
 SESSIONS_FILE = ROOT / "data" / "sessions.json"
 PASSWORDS_FILE = ROOT / "data" / "team_passwords.json"
@@ -194,8 +196,11 @@ def attempt_login(name: str, password: str) -> dict[str, Any]:
     if not pwd:
         return {"status": "invalid"}
 
-    if canonical.lower() == ADMIN_USER and pwd.lower() == ADMIN_USER:
-        return {"status": "ok", "user": ADMIN_USER}
+    if canonical.lower() == ADMIN_USER:
+        expected = get_admin_token()
+        if expected and secrets.compare_digest(pwd, expected):
+            return {"status": "ok", "user": ADMIN_USER}
+        return {"status": "invalid"}
 
     sheet_name = resolve_sheet_team(canonical)
     if not sheet_name:

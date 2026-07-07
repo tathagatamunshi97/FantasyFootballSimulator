@@ -109,6 +109,11 @@ th { color: var(--muted); font-weight: 600; font-size: 0.75rem; text-transform: 
 }
 .metric .label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; }
 .metric .value { font-size: 1.1rem; font-weight: 700; margin-top: 0.15rem; }
+.metric-note { font-size: 0.68rem; color: var(--muted); margin: 0.35rem 0 0; line-height: 1.35; }
+.unit-ratings-intro { font-size: 0.8rem; margin: 0 0 0.5rem; }
+.unit-ratings-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+.metric-explained { min-height: 5.5rem; }
+.squad-section .section-note { font-size: 0.78rem; margin: 0.15rem 0 0.35rem; line-height: 1.4; }
 .lineup { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
 .slot-row { display: flex; justify-content: space-between; gap: 0.5rem; padding: 0.25rem 0; border-bottom: 1px dashed var(--border); font-size: 0.88rem; }
 .empty { text-align: center; padding: 3rem 1rem; color: var(--muted); }

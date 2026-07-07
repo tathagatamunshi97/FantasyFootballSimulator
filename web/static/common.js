@@ -106,20 +106,48 @@ function metric(label, value) {
   return `<div class="metric"><div class="label">${esc(label)}</div><div class="value">${esc(value)}</div></div>`;
 }
 
-function barRow(label, value, max = 100) {
-  const w = Math.min(100, (Number(value) / max) * 100);
-  return `<div class="bar-row"><span style="width:5rem">${esc(label)}</span><div class="bar-track"><div class="bar-fill" style="width:${w}%"></div></div><span style="width:3rem;text-align:right">${esc(value)}%</span></div>`;
+/** Brief explanations for unit ratings (from team_ratings.py). */
+const UNIT_RATING_HELP = {
+  attack: "Combined forward threat: 56% finishing + 44% chance creation, weighted by each player’s role in your formation.",
+  finishing: "Shooting quality — npxG/xG, shots on target, big chances, dribbles, plus progressive buildup in attack chains.",
+  chance_creation: "Supply into the box — key passes, xA, xG buildup/chain, assists, and big chances created.",
+  midfield: "Middle-third control — passing progression, chance creation, tackles/interceptions, minus possession lost.",
+  defence: "Back-line stopping power — tackles, interceptions, and clearances from defenders.",
+  midfield_defence: "Midfield shield — ball-winning and screening (tackles, interceptions, clearances, low turnovers).",
+  transition_risk: "Counter-attack exposure when fullbacks push up, minus cover from defensive mids and central mids. Lower is safer.",
+  goalkeeper: "Keeper quality — goals prevented, rating, goals conceded, pass accuracy; low-minute keepers are regressed toward average.",
+};
+
+const SQUAD_SECTION_HELP = {
+  Attack: "How your XI generates shots and xG — effectiveness index, chance creation, and the finishing vs creation split.",
+  Midfield: "Control of the middle — midfield unit rating, possession, pass completion, and pressing intensity.",
+  Defence: "Structural defending — back line, midfield shield, xGA suppression, aerial defence, and transition safety.",
+  "Formation fit": "How well each starter’s stats suit their slot in your chosen formation (0–1 per player).",
+  "Squad depth": "Bench quality — whether substitutes add small boosts to attack, creation, or defence.",
+};
+
+function unitMetric(label, value, noteKey) {
+  const note = UNIT_RATING_HELP[noteKey];
+  const noteHtml = note ? `<p class="metric-note" title="${esc(note)}">${esc(note)}</p>` : "";
+  return `<div class="metric metric-explained"><div class="label">${esc(label)}</div><div class="value">${esc(value)}</div>${noteHtml}</div>`;
 }
 
-function renderLineup(team) {
-  return team.lineup
-    .map((p) => `<div class="slot-row"><span>${esc(p.slot)}</span><span>${esc(p.player)}</span></div>`)
-    .join("");
-}
-
-function renderUnits(u) {
+function renderUnits(u, options = {}) {
   if (!u) return "";
-  return `
+  const showNotes = options.showNotes !== false;
+  const grid = showNotes
+    ? `
+    <div class="metric-grid unit-ratings-grid">
+      ${unitMetric("Attack", num(u.attack), "attack")}
+      ${unitMetric("Finishing", num(u.finishing), "finishing")}
+      ${unitMetric("Creation", num(u.chance_creation), "chance_creation")}
+      ${unitMetric("Midfield", num(u.midfield), "midfield")}
+      ${unitMetric("Defence", num(u.defence), "defence")}
+      ${unitMetric("Mid-def", num(u.midfield_defence), "midfield_defence")}
+      ${unitMetric("Trans risk", num(u.transition_risk), "transition_risk")}
+      ${unitMetric("GK", num(u.goalkeeper), "goalkeeper")}
+    </div>`
+    : `
     <div class="metric-grid">
       ${metric("Attack", num(u.attack))}
       ${metric("Finishing", num(u.finishing))}
@@ -130,6 +158,23 @@ function renderUnits(u) {
       ${metric("Trans risk", num(u.transition_risk))}
       ${metric("GK", num(u.goalkeeper))}
     </div>`;
+  if (!showNotes) return grid;
+  return `
+    <div class="unit-ratings-block">
+      <p class="muted unit-ratings-intro">Unit ratings (0–1 scale) from player stats and formation fit. Hover a tile for the full note.</p>
+      ${grid}
+    </div>`;
+}
+
+function barRow(label, value, max = 100) {
+  const w = Math.min(100, (Number(value) / max) * 100);
+  return `<div class="bar-row"><span style="width:5rem">${esc(label)}</span><div class="bar-track"><div class="bar-fill" style="width:${w}%"></div></div><span style="width:3rem;text-align:right">${esc(value)}%</span></div>`;
+}
+
+function renderLineup(team) {
+  return team.lineup
+    .map((p) => `<div class="slot-row"><span>${esc(p.slot)}</span><span>${esc(p.player)}</span></div>`)
+    .join("");
 }
 
 function renderTeamProfile(side, teamName) {
@@ -146,7 +191,7 @@ function renderTeamProfile(side, teamName) {
   return `
     <div class="card">
       <h3>${esc(teamName)}</h3>
-      ${renderUnits(u)}
+      ${renderUnits(u, { showNotes: false })}
       <p class="muted" style="margin:0.75rem 0 0">
         Possession ${num(ext.possession_control)} · Chance creation ${num(ext.chance_creation)} ·
         Fit ${num(ext.formation_fit)} · xGA suppress ${num(ext.xga_suppression, 3)}
@@ -183,7 +228,11 @@ function renderSingleSquadEval(evaluation, team) {
   const sections = (side.sections || [])
     .map((s) => {
       const bullets = (s.bullets || []).map((b) => `<li>${esc(b)}</li>`).join("");
-      return `<div class="squad-section"><h4>${esc(s.title)}</h4><ul class="analysis-bullets">${bullets}</ul></div>`;
+      const sectionHelp = SQUAD_SECTION_HELP[s.title];
+      const helpHtml = sectionHelp
+        ? `<p class="section-note muted">${esc(sectionHelp)}</p>`
+        : "";
+      return `<div class="squad-section"><h4>${esc(s.title)}</h4>${helpHtml}<ul class="analysis-bullets">${bullets}</ul></div>`;
     })
     .join("");
   const strengths = (side.strengths || []).map((s) => `<li>${esc(s)}</li>`).join("");
@@ -191,7 +240,7 @@ function renderSingleSquadEval(evaluation, team) {
   const lineup = team?.lineup?.length
     ? `<div class="lineup-mini" style="margin-top:0.75rem">${renderLineup(team)}</div>`
     : "";
-  const units = side.units ? renderUnits(side.units) : "";
+  const units = side.units ? renderUnits(side.units, { showNotes: true }) : "";
   return `
     <div class="card squad-card">
       <h2 style="margin-bottom:0.5rem">Squad evaluation</h2>

@@ -10,6 +10,7 @@ from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+from formation_fit import DEFAULT_FORMATION, normalize_formation
 from web import auth, experiments, matchday_session, state as sim_state, team_lineups, tournament
 
 STATIC = Path(__file__).resolve().parent / "static"
@@ -53,18 +54,18 @@ class PlayerEnsureRequest(BaseModel):
 
 
 class LineupAssignRequest(BaseModel):
-    formation: str = "4-3-3"
+    formation: str = DEFAULT_FORMATION
     players: list[str] = Field(default_factory=list)
 
 
 class LineupRandomRequest(BaseModel):
-    formation: str = "4-3-3"
+    formation: str = DEFAULT_FORMATION
     count: int = Field(default=11, ge=1, le=11)
     seed: int | None = None
 
 
 class LineupSaveRequest(BaseModel):
-    formation: str = "4-3-3"
+    formation: str = DEFAULT_FORMATION
     lineup: list[dict[str, Any]] = Field(default_factory=list)
     prime_player: str = ""
     peak_season: dict[str, str] | None = None
@@ -187,7 +188,7 @@ def login(body: LoginRequest) -> dict:
             status_code=401,
             detail=(
                 "Invalid login. Use your Google Sheet team name and password, "
-                "or admin / admin."
+                "or admin with the SIM_ADMIN_TOKEN password."
             ),
         )
     user = result["user"]
@@ -297,7 +298,7 @@ def sheets_teams(
 @app.get("/api/sheets/team")
 def sheets_team(
     name: str,
-    formation: str = "4-3-3",
+    formation: str = DEFAULT_FORMATION,
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
 ) -> dict:
     """Load one team roster from the Google Sheet by name (admin only)."""
@@ -329,7 +330,7 @@ def assign_lineup(
     from formation_fit import FORMATION_SLOTS, team_formation_fit
     from lineup_builder import assign_lineup_slots, lineup_from_assignments
 
-    formation = body.formation if body.formation in FORMATION_SLOTS else "4-3-3"
+    formation = normalize_formation(body.formation)
     players = [p.strip() for p in body.players if p and p.strip()]
     if not players:
         slots = [s["slot"] for s in FORMATION_SLOTS[formation]]
@@ -361,7 +362,7 @@ def random_lineup_api(
     from formation_fit import FORMATION_SLOTS
     from lineup_builder import random_lineup
 
-    formation = body.formation if body.formation in FORMATION_SLOTS else "4-3-3"
+    formation = normalize_formation(body.formation)
     store = sim_state.get_stats_store()
     catalog = store.players
     if not catalog:
@@ -493,7 +494,7 @@ def get_my_lineup(
     else:
         lineup_config = {
             "team_name": team_name,
-            "formation": sheet_payload.get("formation") or "4-3-3",
+            "formation": normalize_formation(sheet_payload.get("formation") or DEFAULT_FORMATION),
             "lineup": sheet_payload.get("lineup") or [],
             "prime_player": sheet_payload.get("prime_player") or "",
             "peak_season": sheet_payload.get("peak_season") or {"player": "", "season": ""},

@@ -11,7 +11,7 @@ DM_SLOTS = frozenset({"DM", "DM1", "DM2"})
 CM_SLOTS = frozenset({"CM", "CM1", "CM2", "CM3"})
 AM_SLOTS = frozenset({"AM"})
 WINGER_SLOTS = frozenset({"RW", "LW", "RM", "LM"})
-STRIKER_SLOTS = frozenset({"ST", "ST1", "ST2"})
+STRIKER_SLOTS = frozenset({"ST", "ST1", "ST2", "CF", "CF1", "CF2"})
 
 
 @dataclass(frozen=True)

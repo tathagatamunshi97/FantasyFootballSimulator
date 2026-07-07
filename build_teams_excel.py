@@ -8,7 +8,7 @@ from excel_loader import write_excel_template
 
 TEAM_A = {
     "name": "Team A",
-    "formation": "4-3-3",
+    "formation": "4-3-3 flat",
     "captain": "Kylian Mbappé",
     "vice_captain": "Lamine Yamal",
     "players": [

@@ -9,7 +9,7 @@
     "matchup": {
       "home": {
         "name": "Team A",
-        "formation": "4-3-3",
+        "formation": "4-3-3 flat",
         "lineup": [
           {
             "player": "David Raya",

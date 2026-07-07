@@ -94,7 +94,7 @@ First build takes ~3–5 minutes. When status is **Live**:
 https://fantasy-football-simulator.onrender.com/login
 ```
 
-Use `/admin` with your `SIM_ADMIN_TOKEN` to run simulations. Share `/login` with viewers; teams land on `/matchday` to watch live admin fixtures. See [MATCHDAY.md](MATCHDAY.md) for the full admin + player workflow.
+Use `/admin` with your `SIM_ADMIN_TOKEN` to run simulations. Admin web login at `/login` uses username **`admin`** and password **`SIM_ADMIN_TOKEN`** (not the literal word "admin"). Share `/login` with viewers; teams land on `/matchday` to watch live admin fixtures. See [MATCHDAY.md](MATCHDAY.md) for the full admin + player workflow.
 
 Every future `git push` to `main` triggers an automatic redeploy. **The URL never changes.**
 

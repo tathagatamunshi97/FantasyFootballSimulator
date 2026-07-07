@@ -6,7 +6,7 @@ Matchday is the **broadcast view** for admin-run simulations. Teams log in to **
 
 | Role | Can start sims | Can watch matchday | Can browse full history (`/home`, `/lab`) |
 |------|----------------|--------------------|-------------------------------------------|
-| **Admin** (`admin` / `admin`) | Yes | Yes | Yes |
+| **Admin** (`admin` + `SIM_ADMIN_TOKEN`) | Yes | Yes | Yes |
 | **Team** (sheet team + password) | No | Yes (live + last 24h) | No |
 
 ---

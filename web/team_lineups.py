@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from formation_fit import FORMATION_SLOTS
+from formation_fit import DEFAULT_FORMATION, FORMATION_SLOTS, normalize_formation
 from web.experiments import validate_team_payload
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -74,7 +74,7 @@ def has_saved_lineup(team_name: str) -> bool:
 
 
 def _build_record_payload(name: str, config: dict[str, Any]) -> dict[str, Any]:
-    formation = (config.get("formation") or "4-3-3").strip()
+    formation = normalize_formation((config.get("formation") or DEFAULT_FORMATION).strip())
     if formation not in FORMATION_SLOTS:
         raise ValueError(f"Unsupported formation: {formation}")
 

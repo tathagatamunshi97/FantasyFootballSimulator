@@ -10,7 +10,7 @@ from typing import Any
 
 MATCHDAY_WATCH_HOURS = 24
 
-from formation_fit import FORMATION_SLOTS, supported_formations
+from formation_fit import FORMATION_SLOTS, normalize_formation, supported_formations
 from models import FantasyTeam
 from report_builder import build_report
 from stats_resolver import prepare_match_player_stats, validate_season_overrides
@@ -95,7 +95,7 @@ def validate_team_payload(team: dict[str, Any], label: str) -> list[str]:
     name = (team.get("name") or "").strip()
     if not name:
         errors.append(f"{label}: team name is required.")
-    formation = team.get("formation") or "4-4-2"
+    formation = normalize_formation(team.get("formation") or "4-4-2")
     if formation not in FORMATION_SLOTS:
         errors.append(f"{label}: unsupported formation {formation}.")
     expected_slots = [s["slot"] for s in FORMATION_SLOTS.get(formation, [])]

@@ -525,11 +525,12 @@ def _load_teams_for_match(
     tournament_id: str | None = None,
     match_id: str | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
+    from formation_fit import DEFAULT_FORMATION
     from google_sheets_teams import load_team_by_name
 
     store = get_stats_store()
     for name in (home_name, away_name):
-        draft = load_team_by_name(name, formation="4-3-3", store=store)
+        draft = load_team_by_name(name, formation=DEFAULT_FORMATION, store=store)
         meta = draft.get("sheet_meta") or {}
         if not meta.get("ready"):
             count = meta.get("player_count", "?")
@@ -555,11 +556,11 @@ def _load_teams_for_match(
     away_round = round_key or get_team_immediate_round(away_name).get("round_key")
 
     team_a = apply_team_lineup(
-        load_team_by_name(home_name, formation="4-3-3", store=store),
+        load_team_by_name(home_name, formation=DEFAULT_FORMATION, store=store),
         round_key=home_round,
     )
     team_b = apply_team_lineup(
-        load_team_by_name(away_name, formation="4-3-3", store=store),
+        load_team_by_name(away_name, formation=DEFAULT_FORMATION, store=store),
         round_key=away_round,
     )
     for label, payload in (("Home", team_a), ("Away", team_b)):

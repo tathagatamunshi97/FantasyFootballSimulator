@@ -156,7 +156,7 @@ function renderTeamPanel(side, teamData) {
   const label = side === "a" ? "Team A" : "Team B";
   const formations = meta.formations.formations;
   const slotsByForm = meta.formations.slots;
-  const formation = teamData.formation || "4-3-3";
+  const formation = teamData.formation || "4-3-3 flat";
   const slots = slotsByForm[formation] || [];
   const lineupMap = {};
   (teamData.lineup || []).forEach((r) => {
@@ -283,7 +283,7 @@ async function generateRandomTeam(side) {
   const status = document.getElementById("sheetStatus");
   const btn = document.getElementById(side === "a" ? "genRandomA" : "genRandomB");
   err.hidden = true;
-  const formation = document.getElementById(`formation_${side}`)?.value || "4-3-3";
+  const formation = document.getElementById(`formation_${side}`)?.value || "4-3-3 flat";
   const cur = collectTeam(side);
   btn.disabled = true;
   status.textContent = `Generating random Team ${side.toUpperCase()}…`;
@@ -417,8 +417,8 @@ async function init() {
     loadBtn.disabled = true;
     status.textContent = "Loading teams from sheet…";
     try {
-      const formationA = document.getElementById("formation_a")?.value || "4-3-3";
-      const formationB = document.getElementById("formation_b")?.value || "4-3-3";
+      const formationA = document.getElementById("formation_a")?.value || "4-3-3 flat";
+      const formationB = document.getElementById("formation_b")?.value || "4-3-3 flat";
       const warnings = [];
       const [teamA, teamB] = await Promise.all([
         nameA

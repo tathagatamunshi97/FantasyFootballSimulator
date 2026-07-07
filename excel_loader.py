@@ -8,7 +8,7 @@ from typing import Any
 import pandas as pd
 
 from sofascore_client import StatsStore
-from formation_fit import supported_formations
+from formation_fit import DEFAULT_FORMATION, normalize_formation, supported_formations
 from lineup_builder import build_fantasy_team
 from models import FantasyTeam
 from player_names import normalize_key, resolve_player_name
@@ -31,12 +31,17 @@ def _normalize_formation(value: str) -> str:
     text = value.replace(" ", "").strip()
     if text in supported_formations():
         return text
-    # Allow 433 -> 4-3-3
+    # Allow 433 -> 4-3-3 flat (via legacy alias 4-3-3 -> attacking, but digit shorthand -> flat)
     if len(text) == 3 and text.isdigit():
-        return f"{text[0]}-{text[1]}-{text[2]}"
+        if text == "433":
+            return DEFAULT_FORMATION
+        return normalize_formation(f"{text[0]}-{text[1]}-{text[2]}")
     if len(text) == 4 and text.isdigit():
         return f"{text[0]}-{text[1]}-{text[2]}-{text[3]}"
-    raise ValueError(f"Unsupported formation '{value}'. Use e.g. 4-3-3, 4-2-3-1")
+    resolved = normalize_formation(value.strip(), fallback="")
+    if resolved in supported_formations():
+        return resolved
+    raise ValueError(f"Unsupported formation '{value}'. Use e.g. 4-3-3 flat, 4-2-3-1")
 
 
 def _parse_team_column(
@@ -115,7 +120,7 @@ def load_matchup_from_excel(
     Supported layout (matches Team A | Team B grid):
 
         |          | Team A   | Team B   |
-        | Formation| 4-3-3    | 4-2-3-1  |
+        | Formation| 4-3-3 flat | 4-2-3-1  |
         | Captain  | Mbappé   | Bruno F. |  (optional)
         |          | Player 1 | Player 1 |
         |          | ...      | ...      |  (11 players)
@@ -160,7 +165,7 @@ def write_excel_template(path: Path | str, home: dict[str, Any], away: dict[str,
     """Write a reusable Excel template for H2H input."""
     rows = [
         ["", home.get("name", "Team A"), away.get("name", "Team B")],
-        ["Formation", home.get("formation", "4-3-3"), away.get("formation", "4-2-3-1")],
+        ["Formation", home.get("formation", DEFAULT_FORMATION), away.get("formation", "4-2-3-1")],
         ["Captain", home.get("captain", ""), away.get("captain", "")],
         ["Vice Captain", home.get("vice_captain", ""), away.get("vice_captain", "")],
     ]
