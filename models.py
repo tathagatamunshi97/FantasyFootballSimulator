@@ -43,6 +43,15 @@ class PlayerStats:
     tackles90: float = 0.0
     interceptions90: float = 0.0
     clearances90: float = 0.0
+    blocks90: float = 0.0
+    ball_recoveries90: float = 0.0
+    aerials_won90: float = 0.0
+    aerials_lost90: float = 0.0
+    aerials_won_pct: float = 0.0
+    duels_won_pct: float = 0.0
+    preferred_foot: str = ""
+    fotmob_id: int | None = None
+    fotmob_matched: bool = False
     dribbles90: float = 0.0
     dribble_pct: float = 0.0
     passes_completed90: float = 0.0
@@ -107,6 +116,15 @@ class PlayerStats:
             tackles90=float(payload.get("tackles90", 0)),
             interceptions90=float(payload.get("interceptions90", 0)),
             clearances90=float(payload.get("clearances90", 0)),
+            blocks90=float(payload.get("blocks90", 0)),
+            ball_recoveries90=float(payload.get("ball_recoveries90", 0)),
+            aerials_won90=float(payload.get("aerials_won90", 0)),
+            aerials_lost90=float(payload.get("aerials_lost90", 0)),
+            aerials_won_pct=float(payload.get("aerials_won_pct", 0)),
+            duels_won_pct=float(payload.get("duels_won_pct", 0)),
+            preferred_foot=str(payload.get("preferred_foot", "") or ""),
+            fotmob_id=int(payload["fotmob_id"]) if payload.get("fotmob_id") is not None else None,
+            fotmob_matched=bool(payload.get("fotmob_matched", False)),
             dribbles90=float(payload.get("dribbles90", 0)),
             dribble_pct=float(payload.get("dribble_pct", 0)),
             passes_completed90=float(payload.get("passes_completed90", 0)),
@@ -155,6 +173,14 @@ class PlayerStats:
             "tackles90": self.tackles90,
             "interceptions90": self.interceptions90,
             "clearances90": self.clearances90,
+            "blocks90": self.blocks90,
+            "ball_recoveries90": self.ball_recoveries90,
+            "aerials_won90": self.aerials_won90,
+            "aerials_lost90": self.aerials_lost90,
+            "aerials_won_pct": self.aerials_won_pct,
+            "duels_won_pct": self.duels_won_pct,
+            "preferred_foot": self.preferred_foot,
+            "fotmob_matched": self.fotmob_matched,
             "dribbles90": self.dribbles90,
             "passes_completed90": self.passes_completed90,
             "pass_pct": self.pass_pct,
@@ -218,6 +244,19 @@ def _normalize_stat_gaps(data: dict[str, Any]) -> None:
     )
     if is_winger and not data.get("dribbles90"):
         data["dribbles90"] = min(3.0, kp * 0.32 + ast * 0.55)
+
+    if not data.get("aerials_won90") and data.get("aerials_source") != "fotmob":
+        clearances = float(data.get("clearances90", 0) or 0)
+        if clearances > 0:
+            from fbref_client import _estimate_aerial_stats
+
+            fpl = str(data.get("fpl_position") or _infer_fpl_position(primary)).upper()
+            won90, lost90, pct = _estimate_aerial_stats(clearances, fpl)
+            if won90 > 0:
+                data["aerials_won90"] = won90
+                data["aerials_lost90"] = lost90
+                data["aerials_won_pct"] = pct
+                data.setdefault("aerials_source", "estimated")
 
 
 @dataclass

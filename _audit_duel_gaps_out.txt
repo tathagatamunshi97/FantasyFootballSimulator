@@ -1,0 +1,46 @@
+﻿DUEL_GAP 21
+Alisson
+Caoimhin Kelleher
+David Raya
+Diogo Costa
+Emiliano Martφnez
+Gianluigi Donnarumma
+Gregor Kobel
+Joan Garcφa
+Jordan Pickford
+Kim Min-jae
+Manuel Neuer
+Marco Carnesecchi
+Matvey Safonov
+Matz Sels
+Mike Maignan
+Nick Pope
+Senne Lammens
+Thibaut Courtois
+Unai Sim≤n
+Yann Sommer
+Yassine Bounou
+AERIAL_EMPTY 1
+┴ngel Di Marφa
+AERIAL_ESTIMATED 21
+Alisson
+Caoimhin Kelleher
+David Raya
+Diogo Costa
+Emiliano Martφnez
+Gianluigi Donnarumma
+Gregor Kobel
+Joan Garcφa
+Jordan Pickford
+Kim Min-jae
+Manuel Neuer
+Marco Carnesecchi
+Matvey Safonov
+Matz Sels
+Mike Maignan
+Nick Pope
+Senne Lammens
+Thibaut Courtois
+Unai Sim≤n
+Yann Sommer
+Yassine Bounou

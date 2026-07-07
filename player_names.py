@@ -320,6 +320,20 @@ KNOWN_SOFASCORE_IDS: dict[str, int] = {
     "cr7": 750,
 }
 
+# Bypass FotMob search when names are ambiguous or search terms fail.
+KNOWN_FOTMOB_IDS: dict[str, int] = {
+    "alaba": 121633,
+    "david alaba": 121633,
+    "gabriel magalhaes": 795179,
+    "marcelo": 28467,
+    "kenan yildiz": 1412132,
+    "kenan y ld z": 1412132,
+    "pape matar sarr": 1107280,
+    "pape sarr": 1107280,
+    "eli junior kroupi": 1460534,
+    "junior kroupi": 1460534,
+}
+
 # Primary slot codes when FBref/Sofascore bucket wingers as ST or generic MF/F.
 KNOWN_PLAYER_PRIMARY: dict[int, dict[str, Any]] = {
     30027: {
@@ -564,6 +578,21 @@ def canonical_name(raw: str) -> str:
 def known_sofascore_id(raw: str) -> int | None:
     for key in (normalize_key(raw), normalize_key(canonical_name(raw))):
         player_id = KNOWN_SOFASCORE_IDS.get(key)
+        if player_id is not None:
+            return player_id
+    return None
+
+
+def known_fotmob_id(raw: str) -> int | None:
+    from understat_client import normalize_name
+
+    for key in (
+        normalize_key(raw),
+        normalize_key(canonical_name(raw)),
+        normalize_name(raw),
+        normalize_name(canonical_name(raw)),
+    ):
+        player_id = KNOWN_FOTMOB_IDS.get(key)
         if player_id is not None:
             return player_id
     return None

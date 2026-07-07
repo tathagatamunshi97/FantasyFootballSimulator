@@ -1,0 +1,98 @@
+﻿[07/07/26 15:04:26] INFO     No custom team name replacements      _config.py:92
+                             found. You can configure these in                  
+                             C:\Users\Admin\soccerdata\config\team              
+                             name_replacements.json.                            
+                    INFO     No custom league dict found. You can _config.py:190
+                             configure additional leagues in                    
+                             C:\Users\Admin\soccerdata\config\lea               
+                             gue_dict.json.                                     
+                    INFO     Saving cached data to                _common.py:250
+                             C:\Users\Admin\soccerdata\data\FBref               
+[07/07/26 15:04:34] INFO     Saving cached data to                _common.py:250
+                             C:\Users\Admin\soccerdata\data\FBref               
+[07/07/26 15:04:36] INFO     Saving cached data to                _common.py:250
+                             C:\Users\Admin\soccerdata\data\FBref               
+[07/07/26 15:04:38] INFO     Saving cached data to                _common.py:250
+                             C:\Users\Admin\soccerdata\data\FBref               
+[07/07/26 15:04:40] INFO     Saving cached data to                _common.py:250
+                             C:\Users\Admin\soccerdata\data\FBref               
+[07/07/26 15:04:58] INFO     Saving cached data to                _common.py:250
+                             C:\Users\Admin\soccerdata\data\FBref               
+[07/07/26 15:05:22] INFO     Saving cached data to                _common.py:250
+                             C:\Users\Admin\soccerdata\data\FBref               
+[07/07/26 15:05:51] INFO     Saving cached data to                _common.py:250
+                             C:\Users\Admin\soccerdata\data\FBref               
+[07/07/26 15:06:00] INFO     Saving cached data to                _common.py:250
+                             C:\Users\Admin\soccerdata\data\FBref               
+[07/07/26 15:06:28] INFO     Saving cached data to                _common.py:250
+                             C:\Users\Admin\soccerdata\data\FBref               
+[07/07/26 15:07:00] INFO     Saving cached data to                _common.py:250
+                             C:\Users\Admin\soccerdata\data\FBref               
+[07/07/26 15:07:10] INFO     Saving cached data to                _common.py:250
+                             C:\Users\Admin\soccerdata\data\FBref               
+[07/07/26 15:07:39] INFO     Saving cached data to                _common.py:250
+                             C:\Users\Admin\soccerdata\data\FBref               
+[07/07/26 15:13:23] ERROR    Error while scraping                 _common.py:623
+                             https://fbref.com/en/comps/13/2015-2               
+                             016/defense/2015-2016-Ligue-1-Stats.               
+                              Retrying in 0 seconds... (attempt 1               
+                             of 5).                                             
+                             Traceback (most recent call last):                 
+                               File                                             
+                             "C:\Users\Admin\AppData\Local\Python               
+                             \pythoncore-3.14-64\Lib\site-package               
+                             s\soccerdata\_common.py", line 607,                
+                             in _download_and_save                              
+                                 response =                                     
+                             self._validate_page(url).encode("utf               
+                             -8")                                               
+                                            ~~~~~~~~~~~~~~~~~~~^^               
+                             ^^^                                                
+                               File                                             
+                             "C:\Users\Admin\AppData\Local\Python               
+                             \pythoncore-3.14-64\Lib\site-package               
+                             s\soccerdata\fbref.py", line 1031,                 
+                             in _validate_page                                  
+                                 raise Exception(                               
+                                 ...<2 lines>...                                
+                                 )                                              
+                             Exception: Could not retrieve page                 
+                             content within timeout. Possible                   
+                             reasons: failed CAPTCHA, IP block or               
+                             network issues.                                    
+[07/07/26 15:15:52] INFO     Saving cached data to                _common.py:250
+                             C:\Users\Admin\soccerdata\data\FBref               
+[07/07/26 15:20:19] INFO     Saving cached data to                _common.py:250
+                             C:\Users\Admin\soccerdata\data\FBref               
+[07/07/26 15:21:16] INFO     Saving cached data to                _common.py:250
+                             C:\Users\Admin\soccerdata\data\FBref               
+[07/07/26 15:21:50] INFO     Saving cached data to                _common.py:250
+                             C:\Users\Admin\soccerdata\data\FBref               
+[07/07/26 15:22:28] ERROR    Error while scraping                 _common.py:623
+                             https://fbref.com/en/comps/20/2015-2               
+                             016/defense/2015-2016-Bundesliga-Sta               
+                             ts. Retrying in 0 seconds...                       
+                             (attempt 1 of 5).                                  
+                             Traceback (most recent call last):                 
+                               File                                             
+                             "C:\Users\Admin\AppData\Local\Python               
+                             \pythoncore-3.14-64\Lib\site-package               
+                             s\soccerdata\_common.py", line 607,                
+                             in _download_and_save                              
+                                 response =                                     
+                             self._validate_page(url).encode("utf               
+                             -8")                                               
+                                            ~~~~~~~~~~~~~~~~~~~^^               
+                             ^^^                                                
+                               File                                             
+                             "C:\Users\Admin\AppData\Local\Python               
+                             \pythoncore-3.14-64\Lib\site-package               
+                             s\soccerdata\fbref.py", line 1031,                 
+                             in _validate_page                                  
+                                 raise Exception(                               
+                                 ...<2 lines>...                                
+                                 )                                              
+                             Exception: Could not retrieve page                 
+                             content within timeout. Possible                   
+                             reasons: failed CAPTCHA, IP block or               
+                             network issues.                                    

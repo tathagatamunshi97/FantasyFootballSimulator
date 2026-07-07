@@ -111,19 +111,44 @@ const UNIT_RATING_HELP = {
   attack: "Combined forward threat: 56% finishing + 44% chance creation, weighted by each player’s role in your formation.",
   finishing: "Shooting quality — npxG/xG, shots on target, big chances, dribbles, plus progressive buildup in attack chains.",
   chance_creation: "Supply into the box — key passes, xA, xG buildup/chain, assists, and big chances created.",
-  midfield: "Middle-third control — passing progression, chance creation, tackles/interceptions, minus possession lost.",
-  defence: "Back-line stopping power — tackles, interceptions, and clearances from defenders.",
-  midfield_defence: "Midfield shield — ball-winning and screening (tackles, interceptions, clearances, low turnovers).",
+  midfield: "DM/CM/AM slots only — passing progression, chance creation, tackles/interceptions, minus possession lost.",
+  defence: "Back-line stopping power — tackles, interceptions, clearances, plus FotMob duel/aerial wins and dribble-based press resistance.",
+  midfield_defence: "Midfield shield — ball-winning and screening (tackles, interceptions, clearances, duel wins, press resistance).",
   transition_risk: "Counter-attack exposure when fullbacks push up, minus cover from defensive mids and central mids. Lower is safer.",
   goalkeeper: "Keeper quality — goals prevented, rating, goals conceded, pass accuracy; low-minute keepers are regressed toward average.",
 };
 
+const TEAM_COMPOSITE_HELP = {
+  creativity: "Whole-XI chance creation — key passes, xA, big chances, and xG chain across all starters.",
+  midfield_control: "Team shape in the middle third — blends midfield-slot unit, possession, shield, and pressing.",
+  possession_control: "Ball retention across the XI — passing volume, accuracy, buildup, and turnovers.",
+  finishing_threat: "Team-wide goal threat — forward xG/shots blended with the finishing unit.",
+  defensive_solidity: "Structural defending — back-line stats, unit defence, goalkeeper, plus duel-win and aerial signals.",
+  attacking_effectiveness: "Overall attacking output — forward threat plus attack unit rating.",
+  pressing_intensity: "Collective pressing — tackles/interceptions across the XI, enhanced by FotMob duel-win % from mids and defenders.",
+  press_resistance: "Build-up under pressure — avg dribbles90 × dribble success % from defenders and midfielders (Sofascore).",
+  transition_threat: "Counter-attacking dribble threat from forwards and midfielders.",
+  aerial_defence: "Aerial/clearance strength from defenders (FotMob aerials when available).",
+  overall: "Weighted blend of team-profile composites.",
+};
+
+const TIER_LABELS = {
+  strength: "Strength",
+  moderate_strength: "Moderate strength",
+  balanced: "Balanced",
+  moderate_weakness: "Moderate weakness",
+  weakness: "Weakness",
+};
+
+const TIER_ORDER = ["strength", "moderate_strength", "balanced", "moderate_weakness", "weakness"];
+
 const SQUAD_SECTION_HELP = {
   Attack: "How your XI generates shots and xG — effectiveness index, chance creation, and the finishing vs creation split.",
-  Midfield: "Control of the middle — midfield unit rating, possession, pass completion, and pressing intensity.",
+  Midfield: "Control of the middle — midfield unit rating (DM/CM/AM slots only), possession, pass completion, and pressing intensity.",
   Defence: "Structural defending — back line, midfield shield, xGA suppression, aerial defence, and transition safety.",
   "Formation fit": "How well each starter’s stats suit their slot in your chosen formation (0–1 per player).",
   "Squad depth": "Bench quality — whether substitutes add small boosts to attack, creation, or defence.",
+  "Team profile": "Whole-XI composite scores — creativity, midfield control, possession, and finishing threat across all starters.",
 };
 
 function unitMetric(label, value, noteKey) {
@@ -161,9 +186,80 @@ function renderUnits(u, options = {}) {
   if (!showNotes) return grid;
   return `
     <div class="unit-ratings-block">
-      <p class="muted unit-ratings-intro">Unit ratings (0–1 scale) from player stats and formation fit. Hover a tile for the full note.</p>
+      <p class="muted unit-ratings-intro">Unit ratings (0–1) from slot-relevant players only — no whole-XI dilution. Hover a tile for the full note.</p>
       ${grid}
     </div>`;
+}
+
+function teamCompositeMetric(label, value, noteKey) {
+  const note = TEAM_COMPOSITE_HELP[noteKey];
+  const noteHtml = note ? `<p class="metric-note" title="${esc(note)}">${esc(note)}</p>` : "";
+  return `<div class="metric metric-explained"><div class="label">${esc(label)}</div><div class="value">${esc(value)}</div>${noteHtml}</div>`;
+}
+
+function renderTeamComposites(tc, options = {}) {
+  if (!tc) return "";
+  const showNotes = options.showNotes !== false;
+  const grid = showNotes
+    ? `
+    <div class="metric-grid team-profile-grid">
+      ${teamCompositeMetric("Creativity", num(tc.creativity), "creativity")}
+      ${teamCompositeMetric("Mid control", num(tc.midfield_control), "midfield_control")}
+      ${teamCompositeMetric("Possession", num(tc.possession_control), "possession_control")}
+      ${teamCompositeMetric("Fin threat", num(tc.finishing_threat), "finishing_threat")}
+      ${teamCompositeMetric("Def solidity", num(tc.defensive_solidity), "defensive_solidity")}
+      ${teamCompositeMetric("Atk effect", num(tc.attacking_effectiveness), "attacking_effectiveness")}
+      ${teamCompositeMetric("Pressing", num(tc.pressing_intensity), "pressing_intensity")}
+      ${teamCompositeMetric("Press resist", num(tc.press_resistance), "press_resistance")}
+      ${teamCompositeMetric("Trans threat", num(tc.transition_threat), "transition_threat")}
+      ${teamCompositeMetric("Aerial def", num(tc.aerial_defence), "aerial_defence")}
+    </div>`
+    : `
+    <div class="metric-grid">
+      ${metric("Creativity", num(tc.creativity))}
+      ${metric("Mid control", num(tc.midfield_control))}
+      ${metric("Possession", num(tc.possession_control))}
+      ${metric("Fin threat", num(tc.finishing_threat))}
+      ${metric("Def solidity", num(tc.defensive_solidity))}
+      ${metric("Atk effect", num(tc.attacking_effectiveness))}
+      ${metric("Pressing", num(tc.pressing_intensity))}
+      ${metric("Press resist", num(tc.press_resistance))}
+      ${metric("Trans threat", num(tc.transition_threat))}
+      ${metric("Aerial def", num(tc.aerial_defence))}
+    </div>`;
+  if (!showNotes) return grid;
+  return `
+    <div class="team-profile-block">
+      <p class="muted team-profile-intro">Team profile composites (0–1) across the full starting XI shape.</p>
+      ${grid}
+    </div>`;
+}
+
+function renderTierLabels(tierLabels) {
+  if (!tierLabels) return "";
+  const blocks = TIER_ORDER.map((tier) => {
+    const items = tierLabels[tier] || [];
+    if (!items.length) return "";
+    const lis = items.map((t) => `<li>${esc(t)}</li>`).join("");
+    return `<div class="tier-block tier-${tier}"><h4 class="tier-heading">${esc(TIER_LABELS[tier])}</h4><ul class="analysis-bullets tier-list">${lis}</ul></div>`;
+  }).join("");
+  if (!blocks.trim()) return "";
+  return `<div class="tier-labels" style="margin-top:0.75rem">${blocks}</div>`;
+}
+
+function renderScoutComparisons(rows, title) {
+  if (!rows?.length) return "";
+  const body = rows
+    .map((c) => {
+      const cls = c.verdict === "advantage" ? "scout-adv" : c.verdict === "disadvantage" ? "scout-dis" : "scout-even";
+      const vals =
+        c.my_value != null && c.opp_value != null
+          ? ` <span class="muted">(you ${num(c.my_value)} · them ${num(c.opp_value)})</span>`
+          : "";
+      return `<div class="scout-row ${cls}"><span class="scout-area">${esc(c.area)}</span><span>${esc(c.summary)}${vals}</span></div>`;
+    })
+    .join("");
+  return `<h4 style="font-size:0.85rem;margin:1rem 0 0.35rem">${esc(title)}</h4><div class="scout-comparisons">${body}</div>`;
 }
 
 function barRow(label, value, max = 100) {
@@ -235,33 +331,29 @@ function renderSingleSquadEval(evaluation, team) {
       return `<div class="squad-section"><h4>${esc(s.title)}</h4>${helpHtml}<ul class="analysis-bullets">${bullets}</ul></div>`;
     })
     .join("");
-  const strengths = (side.strengths || []).map((s) => `<li>${esc(s)}</li>`).join("");
-  const weaknesses = (side.weaknesses || []).map((s) => `<li>${esc(s)}</li>`).join("");
+  const tierHtml = renderTierLabels(side.tier_labels);
   const lineup = team?.lineup?.length
     ? `<div class="lineup-mini" style="margin-top:0.75rem">${renderLineup(team)}</div>`
     : "";
   const units = side.units ? renderUnits(side.units, { showNotes: true }) : "";
+  const teamProfile = side.team_composites ? renderTeamComposites(side.team_composites, { showNotes: true }) : "";
   return `
     <div class="card squad-card">
       <h2 style="margin-bottom:0.5rem">Squad evaluation</h2>
       <h3>${esc(side.name)} <span class="muted">${esc(side.formation || team?.formation || "")}</span></h3>
       <p class="muted">${esc(side.summary || "")}</p>
+      <h4 style="font-size:0.85rem;margin:0.75rem 0 0.25rem">Unit ratings</h4>
       ${units}
+      <h4 style="font-size:0.85rem;margin:1rem 0 0.25rem">Team profile</h4>
+      ${teamProfile}
+      ${tierHtml}
       ${lineup}
-      ${strengths ? `<h4 style="font-size:0.85rem;margin:0.75rem 0 0.25rem">Strengths</h4><ul class="analysis-bullets strengths">${strengths}</ul>` : ""}
-      ${weaknesses ? `<h4 style="font-size:0.85rem;margin:0.75rem 0 0.25rem">Weaknesses</h4><ul class="analysis-bullets weaknesses">${weaknesses}</ul>` : ""}
       <div class="squad-sections" style="margin-top:0.75rem">${sections}</div>
     </div>`;
 }
 
 function renderScoutReport(scout) {
   if (!scout) return "";
-  const comparisons = (scout.comparisons || [])
-    .map((c) => {
-      const cls = c.verdict === "advantage" ? "scout-adv" : c.verdict === "disadvantage" ? "scout-dis" : "scout-even";
-      return `<div class="scout-row ${cls}"><span class="scout-area">${esc(c.area)}</span><span>${esc(c.summary)}</span></div>`;
-    })
-    .join("");
   const notes = (scout.scout_notes || []).map((n) => `<li>${esc(n)}</li>`).join("");
   const roster = scout.roster_overview || {};
   const bench = (roster.bench || []).length
@@ -270,6 +362,15 @@ function renderScoutReport(scout) {
   const lineup = scout.expected_lineup?.length
     ? `<div class="lineup-mini">${renderLineup({ lineup: scout.expected_lineup })}</div>`
     : "";
+  const oppUnits = scout.opponent_units ? renderUnits(scout.opponent_units, { showNotes: false }) : "";
+  const oppTeam = scout.opponent_team_composites
+    ? renderTeamComposites(scout.opponent_team_composites, { showNotes: false })
+    : "";
+  const unitCmp = renderScoutComparisons(
+    scout.unit_comparisons || scout.comparisons,
+    `Unit ratings vs ${scout.my_team}`
+  );
+  const teamCmp = renderScoutComparisons(scout.team_comparisons, `Team profile vs ${scout.my_team}`);
   return `
     <div class="card scout-card">
       <h3>${esc(scout.opponent)} <span class="muted">expected ${esc(scout.formation)}</span></h3>
@@ -277,8 +378,12 @@ function renderScoutReport(scout) {
       <h4 style="font-size:0.85rem;margin:1rem 0 0.35rem">Expected lineup</h4>
       ${lineup}
       ${bench}
-      <h4 style="font-size:0.85rem;margin:1rem 0 0.35rem">Compared to ${esc(scout.my_team)}</h4>
-      <div class="scout-comparisons">${comparisons}</div>
+      <h4 style="font-size:0.85rem;margin:1rem 0 0.35rem">Their unit ratings</h4>
+      ${oppUnits}
+      <h4 style="font-size:0.85rem;margin:1rem 0 0.35rem">Their team profile</h4>
+      ${oppTeam}
+      ${unitCmp}
+      ${teamCmp}
       ${notes ? `<h4 style="font-size:0.85rem;margin:1rem 0 0.35rem">Scout notes</h4><ul class="analysis-bullets">${notes}</ul>` : ""}
     </div>`;
 }

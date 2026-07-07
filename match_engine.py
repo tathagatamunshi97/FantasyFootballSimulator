@@ -13,10 +13,12 @@ from models import FantasyTeam, PlayerStats
 from team_ratings import (
     UnitRatings,
     combined_attack_xg,
+    compute_team_composites,
     compute_unit_ratings,
     compute_wide_matchup_modifier,
     defence_suppression,
     midfield_battle_multiplier,
+    press_xg_suppression,
 )
 from slot_roles import slot_assist_weight, slot_scorer_weight
 from trophy_bonus import apply_trophy_multiplier, team_trophy_profile
@@ -199,7 +201,9 @@ def _expected_goals(
     mid_mult: float,
     formation_fit: float,
     home_adv: float = 0.0,
-) -> tuple[float, dict[str, float | bool]]:
+    attack_composites=None,
+    defend_composites=None,
+) -> tuple[float, dict[str, float | bool], dict[str, float | bool]]:
     base = combined_attack_xg(attack)
     suppression = defence_suppression(
         opponent.defence,
@@ -211,11 +215,35 @@ def _expected_goals(
     wide = compute_wide_matchup_modifier(
         attack_team, defend_team, player_stats, opponent.transition_risk
     )
+    if attack_composites is None:
+        attack_composites = compute_team_composites(attack_team, player_stats)
+    if defend_composites is None:
+        defend_composites = compute_team_composites(defend_team, player_stats)
+    duel_bearers = [
+        player_stats[s.player]
+        for s in defend_team.lineup
+        if player_stats[s.player].fpl_position in ("DEF", "MID")
+        and player_stats[s.player].duels_won_pct > 0
+    ]
+    avg_duel = (
+        sum(p.duels_won_pct for p in duel_bearers) / len(duel_bearers) if duel_bearers else 0.0
+    )
+    press = press_xg_suppression(
+        attack_composites.pressing_intensity,
+        defend_composites.press_resistance,
+        duel_win_pct=avg_duel,
+    )
     xg = max(
         0.25,
-        base * suppression * mid_mult * fit_boost * float(wide["multiplier"]) * (1.0 + home_adv),
+        base
+        * suppression
+        * mid_mult
+        * fit_boost
+        * float(wide["multiplier"])
+        * float(press["multiplier"])
+        * (1.0 + home_adv),
     )
-    return xg, wide
+    return xg, wide, press
 
 
 def simulate_match_once(
@@ -241,7 +269,7 @@ def simulate_match_once(
         home_units.midfield, away_units.midfield
     )
 
-    home_xg, _home_wide = _expected_goals(
+    home_xg, _home_wide, _home_press = _expected_goals(
         home_units,
         away_units,
         attack_team=home,
@@ -251,7 +279,7 @@ def simulate_match_once(
         formation_fit=home_fit_info["average_fit"],
         home_adv=cfg.home_advantage,
     )
-    away_xg, _away_wide = _expected_goals(
+    away_xg, _away_wide, _away_press = _expected_goals(
         away_units,
         home_units,
         attack_team=away,
@@ -323,7 +351,9 @@ def monte_carlo_matches(
         away.formation, [(s.player, s.slot) for s in away.lineup], player_stats
     )
     h_mid, a_mid = midfield_battle_multiplier(home_units.midfield, away_units.midfield)
-    expected_home_xg, home_wide = _expected_goals(
+    home_composites = compute_team_composites(home, player_stats)
+    away_composites = compute_team_composites(away, player_stats)
+    expected_home_xg, home_wide, home_press = _expected_goals(
         home_units,
         away_units,
         attack_team=home,
@@ -332,8 +362,10 @@ def monte_carlo_matches(
         mid_mult=h_mid,
         formation_fit=home_fit["average_fit"],
         home_adv=cfg.home_advantage,
+        attack_composites=home_composites,
+        defend_composites=away_composites,
     )
-    expected_away_xg, away_wide = _expected_goals(
+    expected_away_xg, away_wide, away_press = _expected_goals(
         away_units,
         home_units,
         attack_team=away,
@@ -341,6 +373,8 @@ def monte_carlo_matches(
         player_stats=player_stats,
         mid_mult=a_mid,
         formation_fit=away_fit["average_fit"],
+        attack_composites=away_composites,
+        defend_composites=home_composites,
     )
 
     for i in range(cfg.n_simulations):
@@ -402,6 +436,22 @@ def monte_carlo_matches(
         "wide_matchup": {
             "home": home_wide,
             "away": away_wide,
+        },
+        "press_matchup": {
+            "home": home_press,
+            "away": away_press,
+        },
+        "team_composites": {
+            "home": {
+                "pressing_intensity": home_composites.pressing_intensity,
+                "press_resistance": home_composites.press_resistance,
+                "defensive_solidity": home_composites.defensive_solidity,
+            },
+            "away": {
+                "pressing_intensity": away_composites.pressing_intensity,
+                "press_resistance": away_composites.press_resistance,
+                "defensive_solidity": away_composites.defensive_solidity,
+            },
         },
         "expected_xg": {"home": round(expected_home_xg, 2), "away": round(expected_away_xg, 2)},
         "home_win_pct": round(100 * home_wins / n, 1),

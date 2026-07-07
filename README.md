@@ -17,8 +17,9 @@ python main.py monte-carlo -n 20000
 |--------|-------|
 | **Sofascore** | xG, xA, shots, key passes, tackles, interceptions, clearances, dribbles, passing, long balls, big chances, possession lost, saves, goals prevented, rating |
 | **Understat** | npxG, xGChain, xGBuildup (progression / involvement in attacks) |
+| **FotMob** | Aerial duel %, overall duel %, preferred foot (overrides estimated aerials when matched) |
 
-Understat fills gaps Sofascore lacks (build-up play, chain involvement). Pressures, blocks, and aerials are still unavailable from either source.
+Understat fills gaps Sofascore lacks (build-up play, chain involvement). FBref defence-page scrape adds clearances, blocks, and estimated aerial-duel rates (Opta removed raw aerial columns from FBref in 2026). **FotMob** supplies real aerial-duel %, overall duel %, and preferred foot via `_backfill_fotmob_stats.py` (sheet players). Duel/aerial rates are pulled from each player's **main league** for the last two league seasons (aligned with `seasons_used` when possible), then **minutes-weighted** across those seasons—not from recent cups or international tournaments. Pressures remain unavailable.
 
 ## Match model
 
@@ -34,7 +35,8 @@ Then:
 1. **Midfield battle** — better midfield gets a chance-creation multiplier (~±8%)
 2. **Attack vs defence** — attack rating converted to xG, suppressed by opponent DEF+GK
 3. **Formation fit** — tactical slot fit tweaks output
-4. **Poisson goals** — scoreline sampled; scorers assigned by xG/xA shares
+4. **Press vs press-resistance** — high press vs weak build-up trims opponent xG (~3–8% layered on defence suppression)
+5. **Poisson goals** — scoreline sampled; scorers assigned by xG/xA shares
 
 ## Web dashboard (share results with viewers)
 

@@ -231,3 +231,13 @@ a.landing-card h2 { color: var(--text); }
 tr.matchday-live { background: rgba(61, 214, 140, 0.06); }
 .analysis-bullets.strengths li { color: var(--accent); }
 .analysis-bullets.weaknesses li { color: var(--warn); }
+
+.tier-block { margin-top: 0.5rem; }
+.tier-heading { font-size: 0.82rem; margin: 0.35rem 0 0.2rem; font-weight: 600; }
+.tier-strength .tier-heading, .tier-strength .tier-list li { color: var(--accent); }
+.tier-moderate_strength .tier-heading, .tier-moderate_strength .tier-list li { color: #7dd3a8; }
+.tier-balanced .tier-heading, .tier-balanced .tier-list li { color: var(--muted); }
+.tier-moderate_weakness .tier-heading, .tier-moderate_weakness .tier-list li { color: #e8b86d; }
+.tier-weakness .tier-heading, .tier-weakness .tier-list li { color: var(--warn); }
+.team-profile-block, .unit-ratings-block { margin-top: 0.35rem; }
+.team-profile-intro, .unit-ratings-intro { font-size: 0.82rem; margin: 0 0 0.35rem; }

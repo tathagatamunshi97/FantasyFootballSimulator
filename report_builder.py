@@ -17,11 +17,14 @@ from team_ratings import (
     UnitRatings,
     attack_to_xg,
     combined_attack_xg,
+    compute_team_composites,
     compute_unit_ratings,
+    compute_unit_ratings_by_slot,
     compute_wide_matchup_modifier,
     creation_to_xg,
     defence_suppression,
     midfield_battle_multiplier,
+    team_composites_dict,
     _fullback_attack_exposure,
     _player_chance_creation_contrib,
 )
@@ -109,47 +112,23 @@ def extended_metrics(team: FantasyTeam, stats: dict[str, PlayerStats]) -> dict[s
     defs = [p for p in lineup if p.fpl_position == "DEF"]
     mids = [p for p in lineup if p.fpl_position == "MID"]
     fwds = [p for p in lineup if p.fpl_position == "FWD"]
-    units = compute_unit_ratings(team, stats)
+    units = compute_unit_ratings_by_slot(team, stats)
+    composites = compute_team_composites(team, stats, units=units)
     fit = team_formation_fit(team.formation, [(s.player, s.slot) for s in team.lineup], stats)
-    mid_line = mids + defs
-
-    defensive_raw = (
-        _scale(_avg([p.tackles90 for p in defs]), 2.5) * 0.25
-        + _scale(_avg([p.interceptions90 for p in defs]), 1.8) * 0.25
-        + _scale(_avg([p.clearances90 for p in defs]), 5.0) * 0.20
-        + units.defence * 0.20
-        + units.goalkeeper * 0.10
-    )
-    possession_raw = (
-        _scale(_avg([p.passes_completed90 for p in mid_line + defs]), 55.0) * 0.30
-        + _scale(_avg([p.pass_pct for p in lineup]), 100.0) * 0.25
-        + _scale(_avg([p.xg_buildup90 for p in mid_line]), 0.65) * 0.25
-        + _scale(12.0 - _avg([p.possession_lost90 for p in mid_line]), 12.0) * 0.20
-    )
-    chance_raw = (
-        _scale(_avg([p.key_passes90 for p in lineup]), 2.0) * 0.22
-        + _scale(_avg([p.xa90 for p in lineup]), 0.45) * 0.22
-        + _scale(_avg([p.big_chances_created90 for p in lineup]), 0.9) * 0.22
-        + _scale(_avg([p.xg_chain90 for p in lineup]), 0.85) * 0.18
-        + _scale(_avg([p.understat_key_passes90 for p in lineup]), 2.0) * 0.16
-    )
-    attack_raw = (
-        _scale(_avg([p.xg90 for p in fwds]), 0.85) * 0.30
-        + _scale(_avg([p.npxg90 for p in fwds]), 0.75) * 0.20
-        + _scale(_avg([p.shots90 for p in fwds]), 4.0) * 0.15
-        + _scale(_avg([p.shots_on_target90 for p in fwds]), 2.0) * 0.10
-        + units.attack * 0.25
-    )
 
     return {
-        "defensive_unit": round(defensive_raw, 3),
-        "possession_control": round(possession_raw, 3),
-        "chance_creation": round(chance_raw, 3),
-        "attacking_effectiveness": round(attack_raw, 3),
+        "defensive_unit": composites.defensive_solidity,
+        "possession_control": composites.possession_control,
+        "chance_creation": composites.creativity,
+        "attacking_effectiveness": composites.attacking_effectiveness,
+        "midfield_control": composites.midfield_control,
+        "finishing_threat": composites.finishing_threat,
         "formation_fit": round(fit["average_fit"], 3),
-        "pressing_intensity": round(_scale(_avg([p.tackles90 + p.interceptions90 for p in lineup]), 4.5), 3),
-        "transition_threat": round(_scale(_avg([p.dribbles90 for p in fwds + mids]), 2.5), 3),
-        "aerial_defence": round(_scale(_avg([p.clearances90 for p in defs]), 5.5), 3),
+        "pressing_intensity": composites.pressing_intensity,
+        "press_resistance": composites.press_resistance,
+        "transition_threat": composites.transition_threat,
+        "aerial_defence": composites.aerial_defence,
+        "team_composites": team_composites_dict(composites),
         "units": _units_dict(units),
         "xga_suppression": round(
             defence_suppression(
@@ -289,6 +268,7 @@ def build_report(
                     away, home, player_stats, uh.transition_risk
                 ),
             },
+            "press_matchup": mc.get("press_matchup") or {},
         },
         "monte_carlo": {
             "simulations": mc["simulations"],

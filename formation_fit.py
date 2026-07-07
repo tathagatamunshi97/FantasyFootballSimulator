@@ -372,6 +372,20 @@ def _fit_stat_value(stats: PlayerStats, stat: str) -> float:
     return 0.0
 
 
+def _preferred_foot_bonus(stats: PlayerStats, slot_name: str) -> float:
+    foot = (stats.preferred_foot or "").lower()
+    if not foot:
+        return 0.0
+    slot = slot_name.upper()
+    if slot in {"LW", "LM"} and foot == "left":
+        return 0.04
+    if slot in {"RW", "RM"} and foot == "right":
+        return 0.04
+    if foot == "both":
+        return 0.02
+    return 0.0
+
+
 def player_slot_fit(stats: PlayerStats, formation: str, slot_name: str) -> float:
     formation = normalize_formation(formation)
     slot_def = get_slot_definition(formation, slot_name)
@@ -384,7 +398,7 @@ def player_slot_fit(stats: PlayerStats, formation: str, slot_name: str) -> float
         prof = _centre_back_profile_fit(stats, base_profile)
     else:
         prof = _profile_fit(stats, base_profile)
-    return max(0.25, min(1.0, 0.62 * pos + 0.38 * prof))
+    return max(0.25, min(1.0, 0.62 * pos + 0.38 * prof + _preferred_foot_bonus(stats, slot_name)))
 
 
 def team_formation_fit(

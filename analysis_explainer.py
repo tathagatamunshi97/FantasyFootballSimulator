@@ -1,7 +1,11 @@
 """Generate human-readable matchup analysis explaining simulation outcomes."""
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
+
+from slot_roles import slot_role
+
+Tier = Literal["strength", "moderate_strength", "balanced", "moderate_weakness", "weakness"]
 
 
 def _side_label(matchup: dict, side: str) -> str:
@@ -175,6 +179,32 @@ def build_matchup_analysis(report: dict[str, Any]) -> dict[str, Any]:
         }
     )
 
+    h_tc = home_p["extended"].get("team_composites") or {}
+    a_tc = away_p["extended"].get("team_composites") or {}
+    press_edge = _winner_side(
+        float(h_tc.get("pressing_intensity", 0)) - float(a_tc.get("press_resistance", 0)),
+        float(a_tc.get("pressing_intensity", 0)) - float(h_tc.get("press_resistance", 0)),
+    )
+    press_d = _delta(
+        float(h_tc.get("pressing_intensity", 0)) - float(a_tc.get("press_resistance", 0)),
+        float(a_tc.get("pressing_intensity", 0)) - float(h_tc.get("press_resistance", 0)),
+    )
+    if abs(press_d) >= 0.04:
+        factors.append(
+            {
+                "factor": "Press vs build-up",
+                "edge": press_edge,
+                "home": round(float(h_tc.get("pressing_intensity", 0)), 3),
+                "away": round(float(a_tc.get("press_resistance", 0)), 3),
+                "delta": press_d,
+                "impact": abs(press_d) * 0.85,
+                "explanation": (
+                    f"{_edge_phrase(press_edge, home_name, away_name)} can disrupt the other's build-up "
+                    f"(press intensity vs press-resistance edge {press_d:+.2f})."
+                ),
+            }
+        )
+
     poss_edge = _winner_side(
         home_p["extended"]["possession_control"],
         away_p["extended"]["possession_control"],
@@ -302,6 +332,7 @@ def build_matchup_analysis(report: dict[str, Any]) -> dict[str, Any]:
                 _fullback_narrative(home_name, home_p["fullbacks"]),
                 _fullback_narrative(away_name, away_p["fullbacks"]),
                 _wide_matchup_narrative(home_name, away_name, mech.get("wide_matchup") or {}),
+                _press_matchup_narrative(home_name, away_name, mech.get("press_matchup") or {}),
             ],
             "bullets": [],
         },
@@ -368,6 +399,7 @@ def build_matchup_analysis(report: dict[str, Any]) -> dict[str, Any]:
             "home_attacks_vs_away_defence": h_sup,
             "away_attacks_vs_home_defence": a_sup,
             "midfield_battle": mech["midfield_battle"],
+            "press_matchup": mech.get("press_matchup") or {},
         },
         "sections": sections,
     }
@@ -457,6 +489,29 @@ def _wide_matchup_narrative(home_name: str, away_name: str, wide: dict[str, Any]
     return " ".join(parts)
 
 
+def _press_matchup_narrative(home_name: str, away_name: str, press: dict[str, Any]) -> str:
+    parts: list[str] = []
+    for side_key, team_name, opp_name in (
+        ("home", home_name, away_name),
+        ("away", away_name, home_name),
+    ):
+        row = press.get(side_key) or {}
+        if not row.get("active"):
+            continue
+        sup_pct = float(row.get("suppression", 0)) * 100
+        parts.append(
+            f"Press vs build-up: {team_name}'s press trims {opp_name}'s chance creation by "
+            f"~{sup_pct:.1f}% (press {float(row.get('pressing_intensity', 0)):.2f} vs "
+            f"resistance {float(row.get('press_resistance', 0)):.2f})."
+        )
+    if not parts:
+        return (
+            "Press matchup: evenly matched or strong press-resistance on both sides — "
+            "no extra xG suppression from the press battle."
+        )
+    return " ".join(parts)
+
+
 def _fullback_narrative(team_name: str, fb: dict[str, Any]) -> str:
     rows = fb.get("fullbacks") or []
     if not rows:
@@ -492,15 +547,199 @@ def _rate_label(value: float, *, high: float = 0.62, low: float = 0.48) -> str |
     return None
 
 
-# Attack-style units (top-N aggregation) sit near 0.5–1.0; midfield/defence are
-# XI-weighted averages and typically land ~0.15–0.33 — separate cutoffs avoid
-# labelling every squad as thin in those areas.
-_DEFAULT_UNIT_THRESHOLDS = (0.62, 0.48)
-_UNIT_THRESHOLDS: dict[str, tuple[float, float]] = {
-    "midfield": (0.30, 0.25),
-    "midfield_defence": (0.14, 0.11),
-    "defence": (0.21, 0.17),
+# Unit-specific tier thresholds (strength_hi, mod_strength, mod_weakness, weakness_lo).
+# Attack-style units use 0–1 scale; midfield/defence slot units use lower absolute ranges.
+_UNIT_TIER_THRESHOLDS: dict[str, tuple[float, float, float, float]] = {
+    "attack": (0.72, 0.62, 0.48, 0.40),
+    "finishing": (0.72, 0.62, 0.48, 0.40),
+    "chance_creation": (0.68, 0.58, 0.44, 0.36),
+    "goalkeeper": (0.68, 0.58, 0.42, 0.35),
+    "midfield": (0.36, 0.32, 0.27, 0.23),
+    "defence": (0.26, 0.22, 0.17, 0.14),
+    "midfield_defence": (0.18, 0.15, 0.11, 0.08),
+    "transition_risk": (0.84, 0.78, 0.66, 0.58),  # inverted: lower risk is better
 }
+
+_TEAM_TIER_THRESHOLDS: dict[str, tuple[float, float, float, float]] = {
+    "creativity": (0.62, 0.54, 0.42, 0.35),
+    "midfield_control": (0.58, 0.50, 0.40, 0.33),
+    "possession_control": (0.62, 0.54, 0.42, 0.35),
+    "finishing_threat": (0.62, 0.54, 0.42, 0.35),
+    "defensive_solidity": (0.58, 0.50, 0.40, 0.33),
+    "attacking_effectiveness": (0.62, 0.54, 0.42, 0.35),
+}
+
+_CRITICAL_SLOTS = frozenset(
+    {"GK", "RB", "LB", "RWB", "LWB", "CB1", "CB2", "CB3", "DM", "DM1", "DM2", "ST", "ST1", "ST2"}
+)
+
+
+def _classify_tier(
+    value: float,
+    thresholds: tuple[float, float, float, float],
+    *,
+    higher_better: bool = True,
+) -> Tier:
+    hi, mod_hi, mod_lo, lo = thresholds
+    v = value if higher_better else 1.0 - value
+    if v >= hi:
+        return "strength"
+    if v >= mod_hi:
+        return "moderate_strength"
+    if v <= lo:
+        return "weakness"
+    if v <= mod_lo:
+        return "moderate_weakness"
+    return "balanced"
+
+
+def _tier_label_text(tier: Tier) -> str:
+    return {
+        "strength": "Strength",
+        "moderate_strength": "Moderate strength",
+        "balanced": "Balanced",
+        "moderate_weakness": "Moderate weakness",
+        "weakness": "Weakness",
+    }[tier]
+
+
+def _tier_item(tier: Tier, text: str) -> dict[str, str]:
+    return {"tier": tier, "text": text}
+
+
+def _slot_fit_tier(fit: float) -> Tier | None:
+    if fit < 0.42:
+        return "weakness"
+    if fit < 0.50:
+        return "moderate_weakness"
+    if fit >= 0.72:
+        return "strength"
+    if fit >= 0.62:
+        return "moderate_strength"
+    return None
+
+
+def _slot_area_label(slot: str) -> str:
+    role = slot_role(slot)
+    if role in {"fullback", "centre_back"}:
+        return "defence"
+    if role in {"dm", "cm", "am"}:
+        return "midfield"
+    if role in {"winger", "striker", "am"}:
+        return "attack"
+    if role == "gk":
+        return "goalkeeper"
+    return "formation fit"
+
+
+def _collect_slot_fit_labels(fit_players: list[dict[str, Any]]) -> list[dict[str, str]]:
+    items: list[dict[str, str]] = []
+    for p in fit_players:
+        fit = float(p.get("fit", 1))
+        tier = _slot_fit_tier(fit)
+        if tier is None:
+            continue
+        slot = p.get("slot", "?")
+        player = p.get("player", "?")
+        area = _slot_area_label(slot)
+        if tier == "weakness":
+            text = f"Misfit at {slot}: {player} (fit {fit:.2f}) — glaring {area} concern."
+        elif tier == "moderate_weakness":
+            text = f"Awkward at {slot}: {player} (fit {fit:.2f}) — slight {area} concern."
+        elif tier == "strength":
+            text = f"Elite fit at {slot}: {player} (fit {fit:.2f})."
+        else:
+            text = f"Good fit at {slot}: {player} (fit {fit:.2f})."
+        items.append(_tier_item(tier, text))
+    return items
+
+
+def _unit_tier_label(label: str, key: str, value: float, *, higher_better: bool = True) -> dict[str, str] | None:
+    if value <= 0.001 and key != "transition_risk":
+        return None
+    thresholds = _UNIT_TIER_THRESHOLDS.get(key, (0.68, 0.58, 0.45, 0.38))
+    tier = _classify_tier(value, thresholds, higher_better=higher_better)
+    if tier == "balanced":
+        return None
+    val_txt = f"{value:.2f}"
+    if key == "transition_risk":
+        val_txt = f"{value:.2f} (lower is safer)"
+    phrases = {
+        "strength": f"Elite {label.lower()} ({val_txt}).",
+        "moderate_strength": f"Solid {label.lower()} ({val_txt}).",
+        "moderate_weakness": f"Slight {label.lower()} concern ({val_txt}).",
+        "weakness": f"Thin {label.lower()} ({val_txt}).",
+    }
+    return _tier_item(tier, phrases[tier])
+
+
+def _team_tier_label(label: str, key: str, value: float) -> dict[str, str] | None:
+    thresholds = _TEAM_TIER_THRESHOLDS.get(key, (0.62, 0.54, 0.42, 0.35))
+    tier = _classify_tier(value, thresholds)
+    if tier == "balanced":
+        return None
+    val_txt = f"{value:.2f}"
+    phrases = {
+        "strength": f"Team {label.lower()} stands out ({val_txt}).",
+        "moderate_strength": f"Team {label.lower()} slightly above average ({val_txt}).",
+        "moderate_weakness": f"Team {label.lower()} slightly below average ({val_txt}).",
+        "weakness": f"Team {label.lower()} is a concern ({val_txt}).",
+    }
+    return _tier_item(tier, phrases[tier])
+
+
+def _group_tier_items(items: list[dict[str, str]]) -> dict[str, list[str]]:
+    grouped: dict[str, list[str]] = {
+        "strength": [],
+        "moderate_strength": [],
+        "balanced": [],
+        "moderate_weakness": [],
+        "weakness": [],
+    }
+    for item in items:
+        grouped[item["tier"]].append(item["text"])
+    return grouped
+
+
+def _prioritize_tier_items(items: list[dict[str, str]]) -> list[dict[str, str]]:
+    """Keep the most actionable labels — slot-fit and glaring issues first."""
+    priority = {"weakness": 0, "moderate_weakness": 1, "strength": 2, "moderate_strength": 3, "balanced": 4}
+    ranked = sorted(items, key=lambda i: (priority.get(i["tier"], 9), "misfit" not in i["text"].lower(), i["text"]))
+    kept: list[dict[str, str]] = []
+    areas_covered: set[str] = set()
+
+    def _area_key(text: str) -> str | None:
+        lower = text.lower()
+        for area in ("defence", "midfield", "attack", "goalkeeper", "creation", "finishing", "transition"):
+            if area in lower:
+                return area
+        return None
+
+    for item in ranked:
+        tier = item["tier"]
+        if tier in {"weakness", "moderate_weakness"}:
+            if len([k for k in kept if k["tier"] in {"weakness", "moderate_weakness"}]) >= 6:
+                continue
+            area = _area_key(item["text"])
+            if area and area in areas_covered and "misfit" not in item["text"].lower():
+                continue
+            if area:
+                areas_covered.add(area)
+        if tier in {"strength", "moderate_strength"}:
+            if len([k for k in kept if k["tier"] in {"strength", "moderate_strength"}]) >= 5:
+                continue
+        kept.append(item)
+    return kept
+
+
+def _legacy_strengths_weaknesses(grouped: dict[str, list[str]]) -> tuple[list[str], list[str]]:
+    strengths = grouped["strength"] + grouped["moderate_strength"]
+    weaknesses = grouped["weakness"] + grouped["moderate_weakness"]
+    if not strengths:
+        strengths = ["Balanced squad without a standout elite unit — outcomes depend on matchups."]
+    if not weaknesses:
+        weaknesses = ["No glaring structural weaknesses detected."]
+    return strengths[:6], weaknesses[:6]
 
 
 def _analyze_single_squad(
@@ -512,14 +751,13 @@ def _analyze_single_squad(
     """Per-team strengths, weaknesses, and unit breakdown for squad display."""
     ext = profile["extended"]
     u = ext["units"]
+    tc = ext.get("team_composites") or {}
     fb = profile.get("fullbacks") or {}
     fit_players = ext.get("formation_fit_players") or []
 
-    strengths: list[str] = []
-    weaknesses: list[str] = []
+    tier_items: list[dict[str, str]] = []
     sections: list[dict[str, Any]] = []
 
-    unit_notes: list[str] = []
     for label, key, higher_better in (
         ("Attack", "attack", True),
         ("Finishing", "finishing", True),
@@ -531,31 +769,89 @@ def _analyze_single_squad(
         ("Transition safety", "transition_risk", False),
     ):
         val = float(u.get(key, 0))
-        high, low = _UNIT_THRESHOLDS.get(key, _DEFAULT_UNIT_THRESHOLDS)
-        tag = _rate_label(val if higher_better else 1.0 - val, high=high, low=low)
-        unit_notes.append(f"{label}: {val:.2f}")
-        if tag == "strength":
-            strengths.append(f"Strong {label.lower()} ({val:.2f}).")
-        elif tag == "weakness":
-            weaknesses.append(f"Thin {label.lower()} ({val:.2f}).")
+        if key == "transition_risk" and val <= 0.001 and not fb.get("fullbacks"):
+            continue
+        item = _unit_tier_label(label, key, val, higher_better=higher_better)
+        if item:
+            tier_items.append(item)
+
+    for label, key in (
+        ("Creativity", "creativity"),
+        ("Midfield control", "midfield_control"),
+        ("Possession control", "possession_control"),
+        ("Finishing threat", "finishing_threat"),
+        ("Defensive solidity", "defensive_solidity"),
+        ("Press resistance", "press_resistance"),
+        ("Pressing intensity", "pressing_intensity"),
+    ):
+        val = float(tc.get(key, 0))
+        item = _team_tier_label(label, key, val)
+        if item:
+            tier_items.append(item)
+
+    tier_items.extend(_collect_slot_fit_labels(fit_players))
+
+    if u.get("gk_is_backup"):
+        tier_items.append(_tier_item("weakness", "Starting goalkeeper profile looks like a backup/low-minutes option."))
+
+    if float(u.get("transition_risk", 0)) >= 0.38:
+        fb_note = ""
+        if fb.get("fullbacks"):
+            top_exposure = max((r.get("attack_exposure", 0) for r in fb["fullbacks"]), default=0)
+            if top_exposure >= 0.45:
+                fb_note = " — elite opposition wingers can exploit wide overloads."
+        tier_items.append(
+            _tier_item(
+                "weakness",
+                f"High transition risk ({u['transition_risk']:.2f}) — vulnerable on the counter{fb_note}",
+            )
+        )
+    elif float(u.get("transition_risk", 0)) >= 0.28:
+        tier_items.append(
+            _tier_item("moderate_weakness", f"Elevated transition risk ({u['transition_risk']:.2f}).")
+        )
+
+    bench = bench or {}
+    bench_count = bench.get("bench_count") or 0
+    if bench_count == 0:
+        tier_items.append(_tier_item("moderate_weakness", "No squad depth on the bench."))
+    elif bench.get("contributed"):
+        standouts = [
+            p["player"]
+            for p in bench.get("players") or []
+            if any((p.get("outstanding") or {}).values())
+        ]
+        if standouts:
+            tier_items.append(
+                _tier_item("moderate_strength", f"Useful bench depth ({', '.join(standouts[:3])}).")
+            )
+
+    if ext["formation_fit"] >= 0.72:
+        tier_items.append(
+            _tier_item("strength", f"Players suit the {formation} shape (avg fit {ext['formation_fit']:.2f}).")
+        )
+
+    tier_items = _prioritize_tier_items(tier_items)
+    grouped = _group_tier_items(tier_items)
+    strengths, weaknesses = _legacy_strengths_weaknesses(grouped)
 
     attack_bullets = [
-        f"Attacking effectiveness index {ext['attacking_effectiveness']:.2f}.",
-        f"Chance creation index {ext['chance_creation']:.2f}; forwards avg xG/90 {ext.get('fwd_xg90', 0):.2f}.",
+        f"Attacking effectiveness {ext['attacking_effectiveness']:.2f} (whole XI).",
+        f"Unit attack {u['attack']:.2f}; finishing {u['finishing']:.2f}; creation {u['chance_creation']:.2f}.",
         f"Raw xG split: finishing {ext['xg_split']['finishing']:.2f} + creation {ext['xg_split']['creation']:.2f}.",
     ]
     sections.append({"title": "Attack", "bullets": attack_bullets})
 
     mid_bullets = [
-        f"Midfield rating {u['midfield']:.2f}; possession control {ext['possession_control']:.2f}.",
-        f"Pass completion avg {ext.get('avg_pass_pct', 0):.1f}%.",
-        f"Pressing intensity {ext.get('pressing_intensity', 0):.2f}.",
+        f"Midfield unit (DM/CM/AM slots) {u['midfield']:.2f}; team midfield control {tc.get('midfield_control', 0):.2f}.",
+        f"Possession control {ext['possession_control']:.2f}; pass completion avg {ext.get('avg_pass_pct', 0):.1f}%.",
+        f"Pressing intensity {ext.get('pressing_intensity', 0):.2f}; press resistance {ext.get('press_resistance', tc.get('press_resistance', 0)):.2f}.",
     ]
     sections.append({"title": "Midfield", "bullets": mid_bullets})
 
     def_bullets = [
-        f"Back-line defence {u['defence']:.2f}; midfield shield {u['midfield_defence']:.2f}.",
-        f"xGA suppression {ext['xga_suppression']:.3f}; aerial defence {ext.get('aerial_defence', 0):.2f}.",
+        f"Back-line unit {u['defence']:.2f}; midfield shield {u['midfield_defence']:.2f}.",
+        f"Team defensive solidity {tc.get('defensive_solidity', 0):.2f}; aerial defence {tc.get('aerial_defence', 0):.2f}; xGA suppression {ext['xga_suppression']:.3f}.",
         f"Transition risk {u['transition_risk']:.2f} (lower is safer).",
     ]
     if fb.get("fullbacks"):
@@ -570,19 +866,13 @@ def _analyze_single_squad(
     if weak_slots:
         weak_txt = ", ".join(f"{p['player']} at {p['slot']} (fit {p['fit']:.2f})" for p in weak_slots[:4])
         fit_bullets.append(f"Misplaced or awkward slots: {weak_txt}.")
-        weaknesses.append(f"Formation weak links: {weak_txt}.")
     else:
         fit_bullets.append("No major formation-fit concerns in the starting XI.")
-    if ext["formation_fit"] >= 0.62:
-        strengths.append(f"Players suit the {formation} shape (avg fit {ext['formation_fit']:.2f}).")
     sections.append({"title": "Formation fit", "bullets": fit_bullets})
 
     depth_bullets: list[str] = []
-    bench = bench or {}
-    bench_count = bench.get("bench_count") or 0
     if bench_count == 0:
         depth_bullets.append("No bench listed — depth multiplier not applied.")
-        weaknesses.append("No squad depth on the bench.")
     elif bench.get("contributed"):
         boosts = bench.get("boosts") or {}
         depth_bullets.append(bench.get("summary") or "Bench adds a small depth boost.")
@@ -598,44 +888,32 @@ def _analyze_single_squad(
         ]
         if standouts:
             depth_bullets.append(f"Standout bench options: {', '.join(standouts[:4])}.")
-            strengths.append(f"Useful bench depth ({', '.join(standouts[:3])}).")
     else:
         depth_bullets.append(bench.get("summary") or "Bench present but no elite depth traits detected.")
     sections.append({"title": "Squad depth", "bullets": depth_bullets})
 
-    if u.get("gk_is_backup"):
-        weaknesses.append("Starting goalkeeper profile looks like a backup/low-minutes option.")
-    elif u.get("goalkeeper", 0) >= 0.62:
-        strengths.append(f"Reliable goalkeeper ({u['goalkeeper']:.2f}).")
+    team_profile_bullets = [
+        f"Creativity {tc.get('creativity', 0):.2f} · Midfield control {tc.get('midfield_control', 0):.2f} · "
+        f"Possession {tc.get('possession_control', 0):.2f}.",
+        f"Finishing threat {tc.get('finishing_threat', 0):.2f} · Defensive solidity {tc.get('defensive_solidity', 0):.2f}.",
+        f"Pressing {tc.get('pressing_intensity', 0):.2f} · Press resistance {tc.get('press_resistance', 0):.2f} · "
+        f"Team profile overall {tc.get('overall', 0):.2f}.",
+    ]
+    sections.append({"title": "Team profile", "bullets": team_profile_bullets})
 
-    if u.get("transition_risk", 0) >= 0.58:
-        fb_note = ""
-        if fb.get("fullbacks"):
-            top_exposure = max((r.get("attack_exposure", 0) for r in fb["fullbacks"]), default=0)
-            if top_exposure >= 0.45:
-                fb_note = " — elite opposition wingers can exploit wide overloads."
-        weaknesses.append(
-            f"High transition risk ({u['transition_risk']:.2f}) — vulnerable on the counter{fb_note}"
-        )
-
-    if not strengths:
-        strengths.append("Balanced squad without a standout elite unit — outcomes depend on matchups.")
-    if not weaknesses:
-        weaknesses.append("No glaring structural weaknesses detected in unit ratings.")
-
-    summary = (
-        f"{team_name}: "
-        + ("; ".join(strengths[:2]) if strengths else "Even profile across units.")
-    )
+    summary_parts = grouped["strength"][:1] + grouped["weakness"][:1]
+    summary = f"{team_name}: " + ("; ".join(summary_parts) if summary_parts else "Balanced profile across units.")
 
     return {
         "name": team_name,
         "formation": formation,
         "summary": summary,
-        "strengths": strengths[:6],
-        "weaknesses": weaknesses[:6],
+        "strengths": strengths,
+        "weaknesses": weaknesses,
+        "tier_labels": grouped,
         "sections": sections,
         "units": {k: round(float(v), 3) if isinstance(v, (int, float)) else v for k, v in u.items()},
+        "team_composites": {k: round(float(v), 3) for k, v in tc.items()},
     }
 
 
@@ -673,12 +951,45 @@ _SCOUT_COMPARE_UNITS: tuple[tuple[str, str, bool], ...] = (
     ("Attack", "attack", True),
     ("Finishing", "finishing", True),
     ("Chance creation", "chance_creation", True),
-    ("Midfield", "midfield", True),
+    ("Midfield (slots)", "midfield", True),
     ("Defence", "defence", True),
     ("Midfield shield", "midfield_defence", True),
     ("Goalkeeper", "goalkeeper", True),
     ("Transition safety", "transition_risk", False),
 )
+
+_SCOUT_COMPARE_TEAM: tuple[tuple[str, str, bool], ...] = (
+    ("Creativity", "creativity", True),
+    ("Midfield control", "midfield_control", True),
+    ("Possession control", "possession_control", True),
+    ("Finishing threat", "finishing_threat", True),
+    ("Defensive solidity", "defensive_solidity", True),
+    ("Pressing intensity", "pressing_intensity", True),
+    ("Press resistance", "press_resistance", True),
+)
+
+
+def _scout_compare_block(
+    label: str,
+    my_vals: dict[str, float],
+    opp_vals: dict[str, float],
+    fields: tuple[tuple[str, str, bool], ...],
+) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for area, key, higher_better in fields:
+        my_v = float(my_vals.get(key, 0))
+        opp_v = float(opp_vals.get(key, 0))
+        edge = _scout_edge(my_v, opp_v, higher_better=higher_better)
+        rows.append(
+            {
+                "area": area,
+                "verdict": edge,
+                "my_value": round(my_v, 3),
+                "opp_value": round(opp_v, 3),
+                "summary": _scout_verdict_text(area, edge),
+            }
+        )
+    return rows
 
 
 def _scout_edge(my_val: float, opp_val: float, *, higher_better: bool = True) -> str:
@@ -712,28 +1023,26 @@ def build_scout_report(
     """
     my_u = my_eval.get("units") or {}
     opp_u = opponent_eval.get("units") or {}
-    comparisons: list[dict[str, str]] = []
-    for label, key, higher_better in _SCOUT_COMPARE_UNITS:
-        my_v = float(my_u.get(key, 0))
-        opp_v = float(opp_u.get(key, 0))
-        edge = _scout_edge(my_v, opp_v, higher_better=higher_better)
-        comparisons.append(
-            {
-                "area": label,
-                "verdict": edge,
-                "summary": _scout_verdict_text(label, edge),
-            }
-        )
+    my_tc = my_eval.get("team_composites") or {}
+    opp_tc = opponent_eval.get("team_composites") or {}
+
+    unit_comparisons = _scout_compare_block("units", my_u, opp_u, _SCOUT_COMPARE_UNITS)
+    team_comparisons = _scout_compare_block("team", my_tc, opp_tc, _SCOUT_COMPARE_TEAM)
 
     opp_meta = opponent_team.get("sheet_meta") or {}
     roster = opp_meta.get("full_roster") or []
     bench = opponent_team.get("bench") or opp_meta.get("bench_players") or []
 
     scout_notes: list[str] = []
-    for s in (opponent_eval.get("strengths") or [])[:3]:
-        scout_notes.append(f"They look strong: {s.split('(')[0].strip().rstrip('.')}.")
-    for w in (opponent_eval.get("weaknesses") or [])[:2]:
-        scout_notes.append(f"Possible weakness: {w.split('(')[0].strip().rstrip('.')}.")
+    opp_tiers = opponent_eval.get("tier_labels") or {}
+    for s in (opp_tiers.get("strength") or [])[:2]:
+        scout_notes.append(f"They look strong: {s.rstrip('.')}.")
+    for s in (opp_tiers.get("moderate_strength") or [])[:1]:
+        scout_notes.append(f"Solid area: {s.rstrip('.')}.")
+    for w in (opp_tiers.get("weakness") or [])[:2]:
+        scout_notes.append(f"Possible weakness: {w.rstrip('.')}.")
+    for w in (opp_tiers.get("moderate_weakness") or [])[:1]:
+        scout_notes.append(f"Slight concern: {w.rstrip('.')}.")
 
     fit_section = next(
         (sec for sec in (opponent_eval.get("sections") or []) if sec.get("title") == "Formation fit"),
@@ -742,12 +1051,29 @@ def build_scout_report(
     if fit_section and fit_section.get("bullets"):
         scout_notes.append(fit_section["bullets"][0])
 
+    my_press = float(my_tc.get("pressing_intensity", 0))
+    my_resist = float(my_tc.get("press_resistance", 0))
+    opp_press = float(opp_tc.get("pressing_intensity", 0))
+    opp_resist = float(opp_tc.get("press_resistance", 0))
+    if opp_press - my_resist >= 0.06:
+        scout_notes.append(
+            f"Their press ({opp_press:.2f}) may trouble your build-up (your press-resistance {my_resist:.2f})."
+        )
+    elif my_press - opp_resist >= 0.06:
+        scout_notes.append(
+            f"Your press ({my_press:.2f}) can disrupt their build-up (their press-resistance {opp_resist:.2f})."
+        )
+
     return {
         "limited": True,
         "my_team": my_team.get("name") or my_eval.get("name"),
         "opponent": opponent_team.get("name") or opponent_eval.get("name"),
         "formation": opponent_team.get("formation") or opponent_eval.get("formation"),
         "expected_lineup": opponent_team.get("lineup") or [],
+        "opponent_units": opp_u,
+        "opponent_team_composites": opp_tc,
+        "my_units": my_u,
+        "my_team_composites": my_tc,
         "roster_overview": {
             "starting_xi": [
                 (row.get("player") or "").strip()
@@ -757,11 +1083,14 @@ def build_scout_report(
             "bench": list(bench),
             "squad_size": opp_meta.get("squad_size") or len(roster) or len(bench) + 11,
         },
-        "comparisons": comparisons,
-        "scout_notes": scout_notes[:5],
+        "unit_comparisons": unit_comparisons,
+        "team_comparisons": team_comparisons,
+        "comparisons": unit_comparisons,
+        "scout_notes": scout_notes[:6],
         "summary": (
             f"Scout report on {opponent_eval.get('name')}: "
             f"expected {opponent_eval.get('formation')} shape. "
-            "Comparative notes only — no simulated scorelines or win odds."
+            "Unit ratings (slot-pure) and team profile (whole XI) shown separately — "
+            "no simulated scorelines or win odds."
         ),
     }
