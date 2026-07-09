@@ -16,7 +16,7 @@ from dataclasses import dataclass
 
 
 
-from formation_fit import player_slot_fit
+from formation_fit import get_slot_definition, normalize_formation, player_slot_fit
 
 from models import FantasyTeam, PlayerStats
 
@@ -387,6 +387,149 @@ def _player_gk_contrib(stats: PlayerStats, fit: float) -> tuple[float, float, bo
 
 
 
+TWO_DM_FORMATIONS = frozenset({"3-4-1-2 (flat)", "4-2-3-1"})
+THREE_BACK_FORMATIONS = frozenset({"3-4-1-2 (flat)", "3-4-1-2 (normal)", "3-5-2", "3-4-3"})
+# Wingbacks push higher than fullbacks, but a third centre-back holds the line behind them.
+THREE_AT_BACK_EXPOSURE_SCALE = 0.66
+THREE_AT_BACK_CB_COVER_BLEND = 0.28
+THREE_AT_BACK_CB_SCREEN_WEIGHT = 0.48
+THREE_AT_BACK_NON_DEF_WIDE_SCALE = 0.62
+
+
+def _count_centre_backs(team: FantasyTeam) -> int:
+    return sum(1 for s in team.lineup if slot_role(s.slot) == "centre_back")
+
+
+def _transition_cb_screen(team: FantasyTeam, player_stats: dict[str, PlayerStats]) -> float:
+    """Screening from the back-three — compensates for advanced wingbacks."""
+    scores: list[float] = []
+    for slot in team.lineup:
+        if slot_role(slot.slot) != "centre_back":
+            continue
+        stats = player_stats[slot.player]
+        fit = player_slot_fit(stats, team.formation, slot.slot)
+        scores.append(_player_defence_contrib(stats, fit) * THREE_AT_BACK_CB_SCREEN_WEIGHT)
+    return _avg(scores, 0.38)
+
+
+def _midfield_shield_best_slots(team: FantasyTeam, player_stats: dict[str, PlayerStats]) -> float:
+    """Best-case DM/CM/AM screening for each midfielder — used for 4-back baseline ceiling."""
+    by_player: list[float] = []
+    for slot in team.lineup:
+        if slot_role(slot.slot) not in ("dm", "cm", "am"):
+            continue
+        stats = player_stats[slot.player]
+        best = 0.0
+        for probe in ("DM", "CM", "AM"):
+            fit = player_slot_fit(stats, "4-3-3 attacking", probe)
+            w = slot_unit_weights(probe, stats.fpl_position)
+            best = max(best, _player_midfield_defence_contrib(stats, fit) * w.midfield_defence)
+        by_player.append(best)
+    by_player.sort(reverse=True)
+    dm = by_player[0] if by_player else 0.38
+    cm = by_player[1] if len(by_player) > 1 else 0.38
+    am = by_player[2] if len(by_player) > 2 else 0.0
+    return 0.68 * dm + 0.32 * cm + 0.14 * am
+
+
+def _four_back_transition_baseline(
+    team: FantasyTeam,
+    player_stats: dict[str, PlayerStats],
+) -> float:
+    """Nominal 4-back transition risk using DEF players at RB/LB — ceiling for 3-at-the-back."""
+    formation = normalize_formation(team.formation)
+    fb_exposure: list[float] = []
+    all_def_wide: list[float] = []
+    seen: set[str] = set()
+    for slot in team.lineup:
+        stats = player_stats[slot.player]
+        if stats.fpl_position != "DEF" or slot.player in seen:
+            continue
+        seen.add(slot.player)
+        role = slot_role(slot.slot)
+        exp_rb = _fullback_attack_exposure(stats, player_slot_fit(stats, "4-3-3 attacking", "RB"))
+        exp_lb = _fullback_attack_exposure(stats, player_slot_fit(stats, "4-3-3 attacking", "LB"))
+        wide_exp = max(exp_rb, exp_lb)
+        all_def_wide.append(wide_exp)
+        if role != "centre_back" and (
+            role == "fullback" or _counts_as_transition_exposure(formation, slot.slot, role)
+        ):
+            fb_exposure.append(wide_exp)
+    if not fb_exposure:
+        fb_exposure = all_def_wide
+    if not fb_exposure:
+        return 0.48
+    exposure = max(fb_exposure)
+    cover = _midfield_shield_best_slots(team, player_stats)
+    uncovered = max(0.08, 1.0 - cover * 0.95)
+    return _clamp(exposure * uncovered * 1.35, 0.0, 0.48)
+
+
+def _slot_has_wingback_tag(formation: str, slot: str) -> bool:
+    slot_def = get_slot_definition(formation, slot)
+    if slot_def is None:
+        return False
+    return "WB" in {t.upper() for t in slot_def.get("tags", [])}
+
+
+def _counts_as_transition_exposure(formation: str, slot: str, role: str) -> bool:
+    su = slot.upper()
+    if su in FULLBACK_SLOTS or role == "fullback":
+        return True
+    if _slot_has_wingback_tag(formation, slot):
+        return True
+    return False
+
+
+def _transition_mid_cover(
+    formation: str,
+    dm_cover: list[float],
+    cm_cover: list[float],
+    am_cover: list[float],
+) -> float:
+    """Formation-aware midfield shield for transition risk."""
+    formation = normalize_formation(formation)
+    dm_avg = _avg(dm_cover, 0.38)
+    cm_avg = _avg(cm_cover, 0.38)
+    am_avg = _avg(am_cover, 0.0)
+
+    if formation == "4-3-3 flat":
+        # Flat three: DM anchor plus CM pair shares the AM screening weight (no #10).
+        cms = cm_cover if cm_cover else [cm_avg]
+        return 0.68 * dm_avg + (0.32 + 0.14) * (sum(cms) / len(cms))
+
+    if formation in THREE_BACK_FORMATIONS and dm_cover:
+        # 3-at-the-back with a DM pivot: same DM-heavy shield as 4-3-3 attacking.
+        return 0.68 * dm_avg + 0.32 * cm_avg + 0.14 * am_avg
+
+    if formation in {"3-5-2", "3-4-3"} and not dm_cover and cm_cover:
+        # No dedicated DM: lean on the best central screener in the midfield three/four.
+        best = max(cm_cover)
+        avg = sum(cm_cover) / len(cm_cover)
+        return 0.55 * best + 0.45 * avg
+
+    if formation == "4-3-1-2 diamond":
+        shield = list(dm_cover) + list(cm_cover) + list(am_cover)
+        if shield:
+            return sum(shield) / len(shield)
+        return 0.38
+
+    if formation == "4-3-3 attacking":
+        return 0.68 * dm_avg + 0.32 * cm_avg + 0.14 * am_avg
+
+    if formation in TWO_DM_FORMATIONS or len(dm_cover) >= 2:
+        rest = list(cm_cover) + list(am_cover)
+        if rest:
+            return 0.55 * dm_avg + 0.45 * (sum(rest) / len(rest))
+        return dm_avg
+
+    if len(dm_cover) + len(cm_cover) >= 3 and not am_cover:
+        shield = list(dm_cover) + list(cm_cover)
+        return sum(shield) / len(shield)
+
+    return 0.68 * dm_avg + 0.32 * cm_avg
+
+
 def _compute_transition_risk(
 
     team: FantasyTeam,
@@ -397,40 +540,65 @@ def _compute_transition_risk(
 
     """
 
-    Attacking fullbacks increase transition exposure when midfield cannot cover.
+    Attacking fullbacks / wingbacks increase transition exposure when midfield cannot cover.
 
-    High creation fullbacks (e.g. Dumfries) push forward; DMs/CMs must shield the space.
+    High creation wide defenders (e.g. Dumfries) push forward; central mids must shield the space.
 
     """
 
+    formation = normalize_formation(team.formation)
     fb_exposure: list[float] = []
     dm_cover: list[float] = []
     cm_cover: list[float] = []
+    am_cover: list[float] = []
+
+    cb_count = _count_centre_backs(team)
 
     for slot in team.lineup:
         stats = player_stats[slot.player]
         fit = player_slot_fit(stats, team.formation, slot.slot)
         role = slot_role(slot.slot)
 
-        if slot.slot.upper() in FULLBACK_SLOTS or role == "fullback":
-            fb_exposure.append(_fullback_attack_exposure(stats, fit))
+        if _counts_as_transition_exposure(formation, slot.slot, role):
+            exp = _fullback_attack_exposure(stats, fit)
+            if cb_count >= 3 and stats.fpl_position != "DEF":
+                exp *= THREE_AT_BACK_NON_DEF_WIDE_SCALE
+            fb_exposure.append(exp)
         if role == "dm":
             w = slot_unit_weights(slot.slot, stats.fpl_position)
             dm_cover.append(_player_midfield_defence_contrib(stats, fit) * w.midfield_defence)
         if role == "cm":
             w = slot_unit_weights(slot.slot, stats.fpl_position)
             cm_cover.append(_player_midfield_defence_contrib(stats, fit) * w.midfield_defence)
+        if role == "am":
+            w = slot_unit_weights(slot.slot, stats.fpl_position)
+            am_cover.append(_player_midfield_defence_contrib(stats, fit) * w.midfield_defence)
 
     if not fb_exposure:
         return 0.0
 
-    # The most aggressive fullback drives transition exposure (not the pair average).
+    # The most aggressive wide defender drives transition exposure (not the pair average).
     exposure = max(fb_exposure)
-    dm = _avg(dm_cover, 0.38)
-    cm = _avg(cm_cover, 0.38)
-    cover = 0.68 * dm + 0.32 * cm
+    cover = _transition_mid_cover(formation, dm_cover, cm_cover, am_cover)
+    if cb_count >= 3:
+        cb_screen = _transition_cb_screen(team, player_stats)
+        cover = (1.0 - THREE_AT_BACK_CB_COVER_BLEND) * cover + THREE_AT_BACK_CB_COVER_BLEND * cb_screen
+        exposure *= THREE_AT_BACK_EXPOSURE_SCALE
     uncovered = max(0.08, 1.0 - cover * 0.95)
-    return _clamp(exposure * uncovered * 1.35, 0.0, 0.48)
+    risk = _clamp(exposure * uncovered * 1.35, 0.0, 0.48)
+    if cb_count >= 3:
+        has_def_at_wide = any(
+            player_stats[s.player].fpl_position == "DEF"
+            and (
+                slot_role(s.slot) == "fullback"
+                or _counts_as_transition_exposure(formation, s.slot, slot_role(s.slot))
+            )
+            for s in team.lineup
+        )
+        if has_def_at_wide:
+            baseline = _four_back_transition_baseline(team, player_stats)
+            risk = min(risk, baseline)
+    return risk
 
 
 

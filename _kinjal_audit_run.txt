@@ -1,0 +1,24 @@
+﻿[07/09/26 11:20:49] INFO     No custom team name replacements      _config.py:92
+                             found. You can configure these in                  
+                             C:\Users\Admin\soccerdata\config\team              
+                             name_replacements.json.                            
+                    INFO     No custom league dict found. You can _config.py:190
+                             configure additional leagues in                    
+                             C:\Users\Admin\soccerdata\config\lea               
+                             gue_dict.json.                                     
+python : Traceback (most recent call last):
+At C:\Users\Admin\AppData\Local\Temp\ps-script-0e7098d6-5a50-4b0d-a3b2-193bbbe3b997.ps1:109 char:137
++ ... 2.2\fantasy_football_simulator"; python _kinjal_audit.py 2>&1 | Out-F ...
++                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "C:\Users\Admin\OneDrive - Mojro Technologies\Desktop\Code Repo\Driver Assignment 
+Engine\v2.2\fantasy_football_simulator\_kinjal_audit.py", line 260, in <module>
+    out = {"kinjal": audit_kinjal()}
+                     ~~~~~~~~~~~~^^
+  File "C:\Users\Admin\OneDrive - Mojro Technologies\Desktop\Code Repo\Driver Assignment 
+Engine\v2.2\fantasy_football_simulator\_kinjal_audit.py", line 138, in audit_kinjal
+    "player": p.name,
+              ^^^^^^
+AttributeError: 'PlayerStats' object has no attribute 'name'. Did you mean: 'games'?

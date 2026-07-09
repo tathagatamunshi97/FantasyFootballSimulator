@@ -1,0 +1,42 @@
+{
+  "kinjal_433_flat": {
+    "before": 0.21,
+    "after": 0.203
+  },
+  "three_back_343": {
+    "before": 0.0,
+    "after": 0.244
+  },
+  "kinjal_debug": {
+    "dm": [
+      [
+        "Casemiro",
+        0.5567233571961422
+      ]
+    ],
+    "cm": [
+      [
+        "Bruno Guimar\u00e3es",
+        0.309876825383473
+      ],
+      [
+        "Jo\u00e3o Neves",
+        0.3603868465556728
+      ]
+    ],
+    "fb_exposure": [
+      [
+        "Jules Kound\u00e9",
+        0.3040827529038549
+      ],
+      [
+        "Nico O'Reilly",
+        0.2354809613177416
+      ]
+    ],
+    "old_cover": 0.4858,
+    "new_cover": 0.5327,
+    "old_risk": 0.221,
+    "new_risk": 0.20275341939979136
+  }
+}

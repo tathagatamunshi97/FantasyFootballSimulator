@@ -4,7 +4,7 @@ from __future__ import annotations
 import copy
 from typing import Any
 
-from models import PlayerStats
+from models import PlayerStats, _normalize_stat_gaps
 from seasonal_stats import (
     build_prime_stats_dict,
     build_season_stats_dict,
@@ -53,6 +53,8 @@ def _apply_override(
     meta: dict[str, Any],
 ) -> None:
     canon, data, season_label = builder(raw_name, store)
+    # Estimate aerials from clearances when manual/FBref override has gaps.
+    _normalize_stat_gaps(data)
     player_stats[canon] = PlayerStats.from_dict(canon, data)
     meta["resolved_name"] = canon
     meta["season"] = season_label

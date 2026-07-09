@@ -76,11 +76,11 @@
         "xa90": 0.21636824424075352,
         "shots90": 1.18,
         "shots_on_target90": 0.22,
-        "key_passes90": 0.0,
+        "key_passes90": 2.005813953488372,
         "tackles90": 2.443044110518662,
         "interceptions90": 1.0906446921958313,
-        "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "clearances90": 7.329132331555987,
+        "dribbles90": 0.812360465116279,
         "passes_completed90": 0.0,
         "rating": 6.86,
         "data_source": "fbref+verified",
@@ -104,7 +104,13 @@
         "pass_pct": 0.0,
         "yellow_cards90": 0.3053805138148328,
         "red_cards90": 0.043625787687833255,
-        "pos_raw": "DF"
+        "pos_raw": "DF",
+        "blocks90": 0.0,
+        "ball_recoveries90": 0.0,
+        "aerials_won90": 3.5179835191468736,
+        "aerials_lost90": 2.8783501520292605,
+        "aerials_won_pct": 55.0,
+        "aerials_source": "estimated"
       }
     },
     {
@@ -130,11 +136,11 @@
         "xa90": 0.3008613927845197,
         "shots90": 0.99,
         "shots_on_target90": 0.16,
-        "key_passes90": 0.0,
+        "key_passes90": 1.7414248021108178,
         "tackles90": 1.4611671785870997,
         "interceptions90": 1.7376042123738482,
-        "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "clearances90": 4.383501535761299,
+        "dribbles90": 0.7717559366754617,
         "passes_completed90": 0.0,
         "rating": 6.85,
         "data_source": "fbref+verified",
@@ -158,7 +164,13 @@
         "pass_pct": 0.0,
         "yellow_cards90": 0.07898200965335674,
         "red_cards90": 0.0,
-        "pos_raw": "DF"
+        "pos_raw": "DF",
+        "blocks90": 0.0,
+        "ball_recoveries90": 0.0,
+        "aerials_won90": 2.1040807371654235,
+        "aerials_lost90": 1.7215206031353465,
+        "aerials_won_pct": 55.0,
+        "aerials_source": "estimated"
       }
     },
     {
@@ -290,9 +302,9 @@
         "shots_on_target90": 0.2,
         "tackles90": 1.6993957703927491,
         "interceptions90": 3.4327794561933533,
-        "clearances90": 0.0,
+        "clearances90": 5.098187311178247,
         "dribbles90": 0.0,
-        "key_passes90": 0.0,
+        "key_passes90": 0.23773584905660378,
         "passes_completed90": 0.0,
         "pass_pct": 0.0,
         "yellow_cards90": 0.23791540785498488,
@@ -317,7 +329,14 @@
         "understat_key_passes90": 0.23773584905660378,
         "understat_shots90": 0.8490566037735849,
         "xg90": 0.08543346929451767,
-        "pos_raw": "DF"
+        "pos_raw": "DF",
+        "blocks90": 0.0,
+        "ball_recoveries90": 0.0,
+        "aerials_won90": 2.6,
+        "aerials_lost90": 1.2,
+        "aerials_won_pct": 68.4,
+        "aerials_source": "fbref+verified",
+        "xa90": 0.04426335163836209
       }
     },
     {
@@ -992,9 +1011,9 @@
         "shots_on_target90": 0.19,
         "tackles90": 0.41153710868800564,
         "interceptions90": 1.1396412240590925,
-        "clearances90": 0.0,
+        "clearances90": 1.2346113260640168,
         "dribbles90": 0.0,
-        "key_passes90": 0.0,
+        "key_passes90": 0.09480337078651685,
         "passes_completed90": 0.0,
         "pass_pct": 0.0,
         "yellow_cards90": 0.1266268026732325,
@@ -1019,7 +1038,14 @@
         "understat_key_passes90": 0.09480337078651685,
         "understat_shots90": 0.44241573033707865,
         "xg90": 0.06171766722187651,
-        "auto_populate_source": "fbref"
+        "auto_populate_source": "fbref",
+        "blocks90": 0.0,
+        "ball_recoveries90": 0.0,
+        "aerials_won90": 0.5926134365107281,
+        "aerials_lost90": 0.48486553896332296,
+        "aerials_won_pct": 55.0,
+        "aerials_source": "estimated",
+        "xa90": 0.0033369586735001104
       }
     },
     {
@@ -1044,10 +1070,10 @@
         "xa90": 0.18686181075561606,
         "shots90": 1.9,
         "shots_on_target90": 0.68,
-        "key_passes90": 0.0,
+        "key_passes90": 1.5166835187057635,
         "tackles90": 1.3203684749232343,
         "interceptions90": 0.7676560900716479,
-        "clearances90": 0.0,
+        "clearances90": 3.961105424769703,
         "dribbles90": 0.0,
         "dribble_pct": 75.0,
         "passes_completed90": 0.0,
@@ -1085,7 +1111,13 @@
         "understat_shots90": 1.8806875631951465,
         "data_source": "fbref+verified",
         "auto_populate_source": "sofascore",
-        "pos_raw": "MF,DF"
+        "pos_raw": "MF,DF",
+        "blocks90": 0.0,
+        "ball_recoveries90": 0.0,
+        "aerials_won90": 0.8714431934493346,
+        "aerials_lost90": 0.7129989764585465,
+        "aerials_won_pct": 55.0,
+        "aerials_source": "estimated"
       }
     },
     {
@@ -1171,14 +1203,14 @@
         "goals90": 0.0,
         "assists90": 0.18,
         "xg90": 0.018044781032256395,
-        "xa90": 0.0,
+        "xa90": 0.15741116975991068,
         "shots90": 0.4,
         "shots_on_target90": 0.18,
-        "key_passes90": 0.0,
+        "key_passes90": 1.5632754342431763,
         "tackles90": 1.8303571428571428,
         "interceptions90": 2.0089285714285716,
-        "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "clearances90": 5.491071428571429,
+        "dribbles90": 0.5992481389578164,
         "dribble_pct": 45.1,
         "passes_completed90": 0.0,
         "pass_pct": 0.0,
@@ -1215,7 +1247,13 @@
         "understat_shots90": 0.40198511166253104,
         "data_source": "fbref+verified",
         "auto_populate_source": "sofascore",
-        "pos_raw": "DF"
+        "pos_raw": "DF",
+        "blocks90": 0.0,
+        "ball_recoveries90": 0.0,
+        "aerials_won90": 2.6357142857142857,
+        "aerials_lost90": 2.1564935064935065,
+        "aerials_won_pct": 55.0,
+        "aerials_source": "estimated"
       }
     },
     {
@@ -1364,13 +1402,13 @@
         "starts": 27,
         "goals90": 0.16,
         "assists90": 0.04,
-        "shots90": 0.0,
+        "shots90": 1.1165263624280017,
         "shots_on_target90": 0.48,
         "tackles90": 1.12,
         "interceptions90": 1.12,
-        "clearances90": 0.0,
+        "clearances90": 4.24,
         "dribbles90": 0.0,
-        "key_passes90": 0.0,
+        "key_passes90": 0.3190075321222862,
         "passes_completed90": 0.0,
         "pass_pct": 0.0,
         "yellow_cards90": 0.4845222072678331,
@@ -1395,7 +1433,14 @@
         "understat_key_passes90": 0.3190075321222862,
         "understat_shots90": 1.1165263624280017,
         "xg90": 0.15897720428262077,
-        "auto_populate_source": "fbref"
+        "auto_populate_source": "fbref",
+        "blocks90": 0.0,
+        "ball_recoveries90": 0.0,
+        "aerials_won90": 2.53,
+        "aerials_lost90": 1.17,
+        "aerials_won_pct": 68.4,
+        "aerials_source": "verified",
+        "xa90": 0.02137716919411507
       }
     },
     {
@@ -1472,9 +1517,9 @@
         "shots_on_target90": 0.39,
         "tackles90": 0.800658978583196,
         "interceptions90": 0.771004942339374,
-        "clearances90": 0.0,
+        "clearances90": 2.401976935749588,
         "dribbles90": 0.0,
-        "key_passes90": 0.0,
+        "key_passes90": 0.3557312252964427,
         "passes_completed90": 0.0,
         "pass_pct": 0.0,
         "yellow_cards90": 0.26688632619439867,
@@ -1499,7 +1544,14 @@
         "understat_key_passes90": 0.3557312252964427,
         "understat_shots90": 1.4229249011857708,
         "xg90": 0.07931307777247057,
-        "auto_populate_source": "fbref"
+        "auto_populate_source": "fbref",
+        "blocks90": 0.0,
+        "ball_recoveries90": 0.0,
+        "aerials_won90": 1.152948929159802,
+        "aerials_lost90": 0.9433218511307472,
+        "aerials_won_pct": 55.0,
+        "aerials_source": "estimated",
+        "xa90": 0.021839042750036293
       }
     },
     {
@@ -1524,9 +1576,9 @@
         "shots_on_target90": 0.45,
         "tackles90": 0.5893682588597843,
         "interceptions90": 1.2480739599383668,
-        "clearances90": 0.0,
+        "clearances90": 1.768104776579353,
         "dribbles90": 0.0,
-        "key_passes90": 0.0,
+        "key_passes90": 0.38091573682185453,
         "passes_completed90": 0.0,
         "pass_pct": 0.0,
         "yellow_cards90": 0.20801232665639446,
@@ -1551,7 +1603,14 @@
         "understat_key_passes90": 0.38091573682185453,
         "understat_shots90": 1.0388611004232398,
         "xg90": 0.06442807946266717,
-        "auto_populate_source": "fbref"
+        "auto_populate_source": "fbref",
+        "blocks90": 0.0,
+        "ball_recoveries90": 0.0,
+        "aerials_won90": 0.8486902927580894,
+        "aerials_lost90": 0.6943829668020731,
+        "aerials_won_pct": 55.0,
+        "aerials_source": "estimated",
+        "xa90": 0.02308253797646232
       }
     },
     {
@@ -1638,10 +1697,10 @@
         "xa90": 0.01932811311817613,
         "shots90": 1.11,
         "shots_on_target90": 0.25,
-        "key_passes90": 0.0,
+        "key_passes90": 0.28441011235955055,
         "tackles90": 0.47736916548797736,
         "interceptions90": 0.6046676096181046,
-        "clearances90": 0.0,
+        "clearances90": 1.432107496463932,
         "dribbles90": 0.0,
         "dribble_pct": 100.0,
         "passes_completed90": 0.0,
@@ -1679,7 +1738,13 @@
         "understat_shots90": 1.1060393258426966,
         "data_source": "fbref+verified",
         "auto_populate_source": "sofascore",
-        "pos_raw": "DF"
+        "pos_raw": "DF",
+        "blocks90": 0.0,
+        "ball_recoveries90": 0.0,
+        "aerials_won90": 0.6874115983026873,
+        "aerials_lost90": 0.5624276713385623,
+        "aerials_won_pct": 55.0,
+        "aerials_source": "estimated"
       }
     },
     {
@@ -1747,13 +1812,13 @@
         "goals90": 0.04,
         "assists90": 0.04,
         "xg90": 0.0,
-        "xa90": 0.0,
+        "xa90": 0.013999999999999999,
         "shots90": 0.68,
         "shots_on_target90": 0.25,
         "key_passes90": 0.6845476381104884,
         "tackles90": 0.5764611689351481,
         "interceptions90": 1.0808646917534028,
-        "clearances90": 1.2249799839871898,
+        "clearances90": 1.7293835068054442,
         "dribbles90": 0.2522017614091273,
         "dribble_pct": 77.78,
         "passes_completed90": 79.29943955164131,
@@ -1784,7 +1849,17 @@
         "understat_matched": false,
         "data_source": "fbref+verified",
         "auto_populate_source": "sofascore",
-        "pos_raw": "DF"
+        "pos_raw": "DF",
+        "blocks90": 0.0,
+        "ball_recoveries90": 0.0,
+        "aerials_won90": 0.8301040832666132,
+        "aerials_lost90": 0.679176068127229,
+        "aerials_won_pct": 55.0,
+        "aerials_source": "estimated",
+        "understat_xa90": 0.013999999999999999,
+        "understat_key_passes90": 0.6831785428342674,
+        "understat_shots90": 0.67932,
+        "understat_estimated": true
       }
     }
   ],

@@ -1,0 +1,152 @@
+{
+  "transition_risk": 0.21,
+  "aerial_defence": 0.448,
+  "defence": 0.56,
+  "midfield_defence": 0.451,
+  "fullbacks": [
+    {
+      "player": "Jules Kound\u00e9",
+      "slot": "RB",
+      "exposure": 0.3041,
+      "fit": 0.78
+    },
+    {
+      "player": "Nico O'Reilly",
+      "slot": "LB",
+      "exposure": 0.2355,
+      "fit": 0.602
+    }
+  ],
+  "dm_cover": [
+    {
+      "player": "Casemiro",
+      "cover": 0.5567
+    }
+  ],
+  "cm_cover": [
+    {
+      "player": "Jo\u00e3o Neves",
+      "cover": 0.3604
+    }
+  ],
+  "aerial_defenders": [
+    {
+      "player": "Jules Kound\u00e9",
+      "slot": "RB",
+      "aerials_won90": 1.202,
+      "aerials_won_pct": 55.4,
+      "clearances90": 2.092,
+      "signal": 0.6662,
+      "mode": "aerial",
+      "primary_position": "LB"
+    },
+    {
+      "player": "Willian Pacho",
+      "slot": "CB1",
+      "aerials_won90": 1.446,
+      "aerials_won_pct": 54.4,
+      "clearances90": 3.431,
+      "signal": 0.7861,
+      "mode": "aerial",
+      "primary_position": "CB"
+    },
+    {
+      "player": "Diego God\u00edn",
+      "slot": "CB2",
+      "aerials_won90": 2.6,
+      "aerials_won_pct": 68.4,
+      "clearances90": 5.098,
+      "signal": 1.7784,
+      "mode": "aerial",
+      "primary_position": "CB"
+    },
+    {
+      "player": "Nico O'Reilly",
+      "slot": "LB",
+      "aerials_won90": 1.733,
+      "aerials_won_pct": 52.6,
+      "clearances90": 2.447,
+      "signal": 0.9118,
+      "mode": "aerial",
+      "primary_position": "RB"
+    }
+  ],
+  "bruno_excluded": {
+    "slot": "AM",
+    "role": "am",
+    "raw_middef": 0.4007,
+    "would_cover_if_cm": 0.3006
+  },
+  "overrides": {
+    "prime": {
+      "type": "prime",
+      "requested": "Casemiro",
+      "resolved_name": "Casemiro",
+      "season": "2017-2018",
+      "source": "manual_profiles",
+      "profile_type": "prime"
+    },
+    "peak_season": {
+      "type": "peak_season",
+      "requested": "Diego God\u00edn",
+      "season_input": "15/16",
+      "resolved_name": "Diego God\u00edn",
+      "season": "2015-2016",
+      "source": "manual_profiles",
+      "profile_type": "season_pick"
+    }
+  },
+  "lineup": [
+    {
+      "slot": "GK",
+      "player": "Joan Garc\u00eda"
+    },
+    {
+      "slot": "RB",
+      "player": "Jules Kound\u00e9"
+    },
+    {
+      "slot": "CB1",
+      "player": "Willian Pacho"
+    },
+    {
+      "slot": "CB2",
+      "player": "Diego God\u00edn"
+    },
+    {
+      "slot": "LB",
+      "player": "Nico O'Reilly"
+    },
+    {
+      "slot": "DM",
+      "player": "Casemiro"
+    },
+    {
+      "slot": "CM",
+      "player": "Jo\u00e3o Neves"
+    },
+    {
+      "slot": "AM",
+      "player": "Bruno Guimar\u00e3es"
+    },
+    {
+      "slot": "RW",
+      "player": "Michael Olise"
+    },
+    {
+      "slot": "ST",
+      "player": "Harry Kane"
+    },
+    {
+      "slot": "LW",
+      "player": "Leandro Trossard"
+    }
+  ],
+  "no_godin_peak": {
+    "transition_risk": 0.21,
+    "aerial_defence": 0.438
+  },
+  "bruno_as_cm": {
+    "transition_risk": 0.215
+  }
+}

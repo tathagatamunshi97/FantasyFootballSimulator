@@ -1,0 +1,328 @@
+{
+  "kinjal": {
+    "units": {
+      "transition_risk": 0.221,
+      "defence": 0.584,
+      "midfield_defence": 0.451
+    },
+    "composites": {
+      "aerial_defence": 0.522
+    },
+    "transition": {
+      "fullbacks": [
+        {
+          "player": "Willian Pacho",
+          "slot": "RB",
+          "exposure": 0.1228,
+          "fit": 0.608,
+          "xa90": 0.019,
+          "key_passes90": 0.11,
+          "xg_chain90": 0.722,
+          "shots90": 0.272,
+          "dribbles90": 0.066,
+          "big_chances_created90": 0.021
+        },
+        {
+          "player": "Jules Kound\u00e9",
+          "slot": "LB",
+          "exposure": 0.3182,
+          "fit": 0.873,
+          "xa90": 0.133,
+          "key_passes90": 1.009,
+          "xg_chain90": 0.839,
+          "shots90": 0.588,
+          "dribbles90": 0.796,
+          "big_chances_created90": 0.223
+        }
+      ],
+      "dm_cover": [
+        {
+          "player": "Casemiro",
+          "slot": "DM",
+          "cover": 0.5567,
+          "raw": 0.5567,
+          "fit": 0.819,
+          "weight": 1.0
+        }
+      ],
+      "cm_cover": [
+        {
+          "player": "Jo\u00e3o Neves",
+          "slot": "CM",
+          "cover": 0.3604,
+          "raw": 0.4805,
+          "fit": 0.884,
+          "weight": 0.75
+        }
+      ],
+      "am_cover": [
+        {
+          "player": "Michael Olise",
+          "slot": "AM",
+          "cover": 0.1165,
+          "raw": 0.3066,
+          "fit": 0.983,
+          "weight": 0.38
+        }
+      ],
+      "max_exposure": 0.3182,
+      "dm_avg": 0.5567,
+      "cm_avg": 0.3604,
+      "am_avg": 0.1165,
+      "cover": 0.5102,
+      "uncovered": 0.5153,
+      "computed_risk": 0.2214,
+      "function_risk": 0.2214,
+      "bruno_excluded": null
+    },
+    "aerial": {
+      "defenders": [
+        {
+          "player": "Willian Pacho",
+          "aerials_won90": 1.446,
+          "aerials_won_pct": 54.4,
+          "clearances90": 3.431,
+          "signal": 0.7861,
+          "mode": "aerial",
+          "primary_position": "CB"
+        },
+        {
+          "player": "J\u00e9r\u00e9my Jacquet",
+          "aerials_won90": 1.99,
+          "aerials_won_pct": 75.5,
+          "clearances90": 4.895,
+          "signal": 1.5028,
+          "mode": "aerial",
+          "primary_position": "CB"
+        },
+        {
+          "player": "Diego God\u00edn",
+          "aerials_won90": 2.6,
+          "aerials_won_pct": 68.4,
+          "clearances90": 5.098,
+          "signal": 1.7784,
+          "mode": "aerial",
+          "primary_position": "CB"
+        },
+        {
+          "player": "Jules Kound\u00e9",
+          "aerials_won90": 1.202,
+          "aerials_won_pct": 55.4,
+          "clearances90": 2.092,
+          "signal": 0.6662,
+          "mode": "aerial",
+          "primary_position": "LB"
+        }
+      ],
+      "avg_signal": 1.1834,
+      "avg_clearances": 3.8793,
+      "computed_aerial": 0.5216
+    },
+    "overrides": {
+      "prime": {
+        "type": "prime",
+        "requested": "Casemiro",
+        "resolved_name": "Casemiro",
+        "season": "2017-2018",
+        "source": "manual_profiles",
+        "profile_type": "prime"
+      },
+      "peak_season": {
+        "type": "peak_season",
+        "requested": "Diego God\u00edn",
+        "season_input": "15/16",
+        "resolved_name": "Diego God\u00edn",
+        "season": "2015-2016",
+        "source": "manual_profiles",
+        "profile_type": "season_pick"
+      }
+    },
+    "lineup": [
+      {
+        "slot": "GK",
+        "player": "Marco Carnesecchi"
+      },
+      {
+        "slot": "RB",
+        "player": "Willian Pacho"
+      },
+      {
+        "slot": "CB1",
+        "player": "J\u00e9r\u00e9my Jacquet"
+      },
+      {
+        "slot": "CB2",
+        "player": "Diego God\u00edn"
+      },
+      {
+        "slot": "LB",
+        "player": "Jules Kound\u00e9"
+      },
+      {
+        "slot": "DM",
+        "player": "Casemiro"
+      },
+      {
+        "slot": "CM",
+        "player": "Jo\u00e3o Neves"
+      },
+      {
+        "slot": "AM",
+        "player": "Michael Olise"
+      },
+      {
+        "slot": "RW",
+        "player": "Rafael Le\u00e3o"
+      },
+      {
+        "slot": "ST",
+        "player": "Harry Kane"
+      },
+      {
+        "slot": "LW",
+        "player": "Eli Junior Kroupi"
+      }
+    ],
+    "formation": "4-3-3 attacking",
+    "name_map": {
+      "Marco Carnesecchi": "Marco Carnesecchi",
+      "Willian Pacho": "Willian Pacho",
+      "J\u00e9r\u00e9my Jacquet": "J\u00e9r\u00e9my Jacquet",
+      "Diego God\u00edn": "Diego God\u00edn",
+      "Jules Kound\u00e9": "Jules Kound\u00e9",
+      "Casemiro": "Casemiro",
+      "Jo\u00e3o Neves": "Jo\u00e3o Neves",
+      "Michael Olise": "Michael Olise",
+      "Rafael Le\u00e3o": "Rafael Le\u00e3o",
+      "Harry Kane": "Harry Kane",
+      "Eli Junior Kroupi": "Eli Junior Kroupi",
+      "Pape Matar Sarr": "Pape Matar Sarr",
+      "Bruno Guimar\u00e3es": "Bruno Guimar\u00e3es",
+      "Nico O'Reilly": "Nico O'Reilly",
+      "Diogo Costa": "Diogo Costa"
+    },
+    "counterfactuals": {
+      "no_godin_peak": {
+        "aerial_defence": 0.511,
+        "transition_risk": 0.221
+      },
+      "bruno_cm_neves_am": {
+        "transition_risk": 0.217
+      }
+    }
+  },
+  "tournament": [
+    {
+      "team": "Moga+Sanmitro",
+      "formation": "4-3-3 attacking",
+      "transition_risk": 0.142,
+      "aerial_defence": 0.435,
+      "defence": 0.473,
+      "midfield_defence": 0.411
+    },
+    {
+      "team": "Chintu",
+      "formation": "4-3-3 attacking",
+      "transition_risk": 0.173,
+      "aerial_defence": 0.555,
+      "defence": 0.581,
+      "midfield_defence": 0.297
+    },
+    {
+      "team": "Rohan + AnaC",
+      "formation": "4-3-3 attacking",
+      "transition_risk": 0.194,
+      "aerial_defence": 0.415,
+      "defence": 0.483,
+      "midfield_defence": 0.48
+    },
+    {
+      "team": "Dilshad",
+      "formation": "4-3-3 attacking",
+      "transition_risk": 0.197,
+      "aerial_defence": 0.567,
+      "defence": 0.551,
+      "midfield_defence": 0.434
+    },
+    {
+      "team": "Kinjal+Sayan C",
+      "formation": "4-3-3 attacking",
+      "transition_risk": 0.218,
+      "aerial_defence": 0.522,
+      "defence": 0.584,
+      "midfield_defence": 0.457
+    },
+    {
+      "team": "Anindo",
+      "formation": "4-3-3 attacking",
+      "transition_risk": 0.258,
+      "aerial_defence": 0.486,
+      "defence": 0.499,
+      "midfield_defence": 0.416
+    },
+    {
+      "team": "DDR",
+      "formation": "4-3-3 attacking",
+      "transition_risk": 0.271,
+      "aerial_defence": 0.451,
+      "defence": 0.523,
+      "midfield_defence": 0.442
+    },
+    {
+      "team": "Rishav",
+      "formation": "4-3-3 attacking",
+      "transition_risk": 0.275,
+      "aerial_defence": 0.377,
+      "defence": 0.371,
+      "midfield_defence": 0.291
+    },
+    {
+      "team": "Subhadro+Shubhajit",
+      "formation": "4-3-3 attacking",
+      "transition_risk": 0.284,
+      "aerial_defence": 0.563,
+      "defence": 0.561,
+      "midfield_defence": 0.548
+    },
+    {
+      "team": "Sugata",
+      "formation": "4-3-3 attacking",
+      "transition_risk": 0.316,
+      "aerial_defence": 0.398,
+      "defence": 0.485,
+      "midfield_defence": 0.276
+    },
+    {
+      "team": "Sohom+Mayukh",
+      "formation": "4-3-3 attacking",
+      "transition_risk": 0.343,
+      "aerial_defence": 0.757,
+      "defence": 0.539,
+      "midfield_defence": 0.343
+    },
+    {
+      "team": "KP+SS",
+      "formation": "4-3-3 attacking",
+      "transition_risk": 0.344,
+      "aerial_defence": 0.497,
+      "defence": 0.567,
+      "midfield_defence": 0.317
+    },
+    {
+      "team": "Ryan",
+      "formation": "4-3-3 attacking",
+      "transition_risk": 0.472,
+      "aerial_defence": 0.53,
+      "defence": 0.528,
+      "midfield_defence": 0.299
+    },
+    {
+      "team": "Raktim",
+      "formation": "4-3-3 attacking",
+      "transition_risk": 0.48,
+      "aerial_defence": 0.288,
+      "defence": 0.472,
+      "midfield_defence": 0.292
+    }
+  ]
+}

@@ -114,7 +114,7 @@ const UNIT_RATING_HELP = {
   midfield: "DM/CM/AM slots only — passing progression, chance creation, tackles/interceptions, minus possession lost.",
   defence: "Back-line stopping power — tackles, interceptions, clearances, plus FotMob duel/aerial wins and dribble-based press resistance.",
   midfield_defence: "Midfield shield — ball-winning and screening (tackles, interceptions, clearances, duel wins, press resistance).",
-  transition_risk: "Counter-attack exposure when fullbacks push up, minus cover from defensive mids and central mids. Lower is safer.",
+  transition_risk: "Counter-attack exposure when fullbacks or wingbacks push up, minus midfield shielding and (in 3-at-the-back) extra centre-back cover behind the wingbacks. Lower is safer.",
   goalkeeper: "Keeper quality — goals prevented, rating, goals conceded, pass accuracy; low-minute keepers are regressed toward average.",
 };
 
