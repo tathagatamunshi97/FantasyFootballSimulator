@@ -739,7 +739,11 @@ def _run_group_match_job(
         "home": fx["home"],
         "away": fx["away"],
         **snapshot,
+        "engine_home_goals": snapshot["home_goals"],
+        "engine_away_goals": snapshot["away_goals"],
         "winner": winner,
+        "manually_overridden": False,
+        "admin_accepted": False,
         "played_at": _now(),
         "experiment_id": exp["id"],
     }
@@ -818,7 +822,11 @@ def _run_knockout_match_job(
         "home": tie["home"],
         "away": tie["away"],
         **snapshot,
+        "engine_home_goals": snapshot["home_goals"],
+        "engine_away_goals": snapshot["away_goals"],
         "winner": winner,
+        "manually_overridden": False,
+        "admin_accepted": False,
         "played_at": _now(),
         "experiment_id": exp["id"],
     }
@@ -1110,6 +1118,197 @@ def _advance_knockout_winner(t: dict[str, Any], tie: dict[str, Any], winner: str
                 nxt["home"] = winner
             else:
                 nxt["away"] = winner
+
+
+def _knockout_downstream_played(t: dict[str, Any], tie_id: str) -> bool:
+    for rnd in t.get("knockout", {}).get("rounds", []):
+        for nxt in rnd.get("ties", []):
+            feeds = nxt.get("feeds") or []
+            if tie_id in feeds and nxt.get("played"):
+                return True
+    return False
+
+
+def _recompute_group_table(t: dict[str, Any], gkey: str) -> None:
+    group = t["groups"][gkey]
+    table = _empty_table(list(group.get("teams") or []))
+    for fx in group.get("fixtures") or []:
+        if not fx.get("played"):
+            continue
+        rid = fx.get("result_id") or fx.get("id")
+        result = (t.get("match_results") or {}).get(rid) if rid else None
+        if not result:
+            continue
+        _apply_group_result(
+            table,
+            fx["home"],
+            fx["away"],
+            int(result.get("home_goals", 0)),
+            int(result.get("away_goals", 0)),
+        )
+    group["table"] = table
+
+
+def _ensure_engine_score(result: dict[str, Any]) -> None:
+    """Preserve original engine scoreline once for audit."""
+    if "engine_home_goals" not in result:
+        result["engine_home_goals"] = int(result.get("home_goals", 0))
+    if "engine_away_goals" not in result:
+        result["engine_away_goals"] = int(result.get("away_goals", 0))
+
+
+def _tiebreak_report_from_result(result: dict[str, Any]) -> dict[str, Any]:
+    """Minimal report so knockout draw overrides can reuse MC tiebreak."""
+    return {
+        "monte_carlo": {
+            "home_win_pct": result.get("home_win_pct") or 0,
+            "away_win_pct": result.get("away_win_pct") or 0,
+            "expected_xg": result.get("expected_xg") or {},
+        }
+    }
+
+
+def accept_match_result(tournament_id: str, match_id: str) -> dict[str, Any]:
+    """Admin accepts the engine scoreline without changing it."""
+    t = load_tournament(tournament_id)
+    if not t:
+        raise KeyError("Tournament not found")
+    found = _find_fixture(t, match_id)
+    if not found:
+        raise KeyError(f"Fixture '{match_id}' not found")
+    stage_key, fx = found
+    if not fx.get("played"):
+        raise ValueError(f"Match {match_id} has not been played yet")
+    result_id = fx.get("result_id") or match_id
+    result = (t.get("match_results") or {}).get(result_id)
+    if not result:
+        raise KeyError(f"Result for '{match_id}' not found")
+
+    _ensure_engine_score(result)
+    result["admin_accepted"] = True
+    result["admin_reviewed_at"] = _now()
+    if not result.get("manually_overridden"):
+        result["manually_overridden"] = False
+    save_tournament(t)
+    return {
+        "tournament": t,
+        "match": fx,
+        "result": result,
+        "stage": stage_key,
+    }
+
+
+def override_match_result(
+    tournament_id: str,
+    match_id: str,
+    home_goals: int,
+    away_goals: int,
+    winner: str | None = None,
+) -> dict[str, Any]:
+    """Admin overrides a completed match score and refreshes standings / KO advancement."""
+    if home_goals < 0 or away_goals < 0:
+        raise ValueError("Goals must be non-negative")
+
+    t = load_tournament(tournament_id)
+    if not t:
+        raise KeyError("Tournament not found")
+    found = _find_fixture(t, match_id)
+    if not found:
+        raise KeyError(f"Fixture '{match_id}' not found")
+    stage_key, fx = found
+    if not fx.get("played"):
+        raise ValueError(f"Match {match_id} has not been played yet")
+
+    is_knockout = stage_key == "knockout"
+    if not is_knockout and (t.get("knockout") or {}).get("rounds"):
+        raise ValueError(
+            "Cannot override group results after the knockout bracket is generated"
+        )
+    if is_knockout and _knockout_downstream_played(t, match_id):
+        raise ValueError(
+            f"Cannot override {match_id}: a later knockout match that depends on it "
+            "has already been played"
+        )
+
+    result_id = fx.get("result_id") or match_id
+    result = (t.get("match_results") or {}).get(result_id)
+    if not result:
+        raise KeyError(f"Result for '{match_id}' not found")
+
+    home = fx["home"]
+    away = fx["away"]
+    _ensure_engine_score(result)
+
+    if winner is not None:
+        winner = str(winner).strip()
+        if winner and winner not in (home, away):
+            raise ValueError(f"Winner must be '{home}' or '{away}'")
+
+    if is_knockout:
+        if home_goals == away_goals:
+            if winner in (home, away):
+                resolved = winner
+            else:
+                resolved = _resolve_winner(
+                    home,
+                    away,
+                    home_goals,
+                    away_goals,
+                    _tiebreak_report_from_result(result),
+                    require_winner=True,
+                )
+                if not resolved:
+                    raise ValueError(
+                        "Knockout override is a draw — pass winner (home or away team name) "
+                        "or keep a non-draw scoreline"
+                    )
+        else:
+            resolved = home if home_goals > away_goals else away
+            if winner in (home, away) and winner != resolved:
+                raise ValueError(
+                    f"Winner '{winner}' does not match scoreline {home_goals}-{away_goals}"
+                )
+        winner = resolved
+    else:
+        if home_goals > away_goals:
+            winner = home
+        elif away_goals > home_goals:
+            winner = away
+        else:
+            winner = None
+
+    score = f"{home_goals}-{away_goals}"
+    result["home_goals"] = int(home_goals)
+    result["away_goals"] = int(away_goals)
+    result["score"] = score
+    result["winner"] = winner
+    result["manually_overridden"] = True
+    result["admin_accepted"] = True
+    result["overridden_at"] = _now()
+    result["admin_reviewed_at"] = result["overridden_at"]
+
+    fx["score"] = score
+    fx["winner"] = winner
+
+    if is_knockout:
+        _advance_knockout_winner(t, fx, winner)
+        all_done = all(
+            t2.get("played")
+            for rnd in t["knockout"]["rounds"]
+            for t2 in rnd.get("ties", [])
+            if t2.get("home") and t2.get("away")
+        )
+        t["status"] = "complete" if all_done else "knockout"
+    else:
+        _recompute_group_table(t, stage_key)
+
+    save_tournament(t)
+    return {
+        "tournament": t,
+        "match": fx,
+        "result": result,
+        "stage": stage_key,
+    }
 
 
 def set_status(tournament_id: str, status: str) -> dict[str, Any]:

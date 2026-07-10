@@ -95,6 +95,12 @@ class TournamentSettingsRequest(BaseModel):
     advance_per_group: int | None = None
 
 
+class TournamentMatchOverrideRequest(BaseModel):
+    home_goals: int
+    away_goals: int
+    winner: str | None = None
+
+
 def _session_user(x_session_token: str | None) -> str:
     user = auth.get_user(x_session_token)
     if not user:
@@ -1175,6 +1181,43 @@ def run_knockout_match_api(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Match run failed: {exc}") from exc
+
+
+@app.post("/api/tournament/{tournament_id}/matches/{match_id}/accept")
+def accept_match_result_api(
+    tournament_id: str,
+    match_id: str,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    _check_admin(x_admin_token)
+    try:
+        return tournament.accept_match_result(tournament_id, match_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/api/tournament/{tournament_id}/matches/{match_id}/override")
+def override_match_result_api(
+    tournament_id: str,
+    match_id: str,
+    body: TournamentMatchOverrideRequest,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    _check_admin(x_admin_token)
+    try:
+        return tournament.override_match_result(
+            tournament_id,
+            match_id,
+            home_goals=body.home_goals,
+            away_goals=body.away_goals,
+            winner=body.winner,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @app.patch("/api/tournament/{tournament_id}/status")

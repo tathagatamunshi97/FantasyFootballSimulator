@@ -1,0 +1,2821 @@
+{
+  "tournament_id": "974c5ee7dfc3",
+  "name": "14-Team Full Sim 2026-07-10T073617Z",
+  "completed_at": "2026-07-10T08:15:02.663956+00:00",
+  "elapsed_seconds": 2335.0,
+  "team_names": [
+    "Anindo",
+    "Chintu",
+    "DDR",
+    "Dilshad",
+    "Kinjal+Sayan C",
+    "KP+SS",
+    "Moga+Sanmitro",
+    "Raktim",
+    "Rishav",
+    "Rohan + AnaC",
+    "Ryan",
+    "Sohom+Mayukh",
+    "Subhadro+Shubhajit",
+    "Sugata"
+  ],
+  "not_ready_teams": [],
+  "settings": {
+    "group_count": 2,
+    "teams_per_group": 7,
+    "advance_per_group": 2,
+    "knockout_format": "single_elim",
+    "simulations_per_match": 10000
+  },
+  "draw_seed": 42,
+  "groups": {
+    "A": {
+      "teams": [
+        "Rishav",
+        "Subhadro+Shubhajit",
+        "Raktim",
+        "Moga+Sanmitro",
+        "Sugata",
+        "Sohom+Mayukh",
+        "KP+SS"
+      ],
+      "fixtures": [
+        {
+          "id": "gA-1",
+          "home": "Subhadro+Shubhajit",
+          "away": "KP+SS",
+          "round": 1,
+          "played": true,
+          "result_id": "gA-1",
+          "score": "2-1",
+          "winner": "Subhadro+Shubhajit"
+        },
+        {
+          "id": "gA-2",
+          "home": "Raktim",
+          "away": "Sohom+Mayukh",
+          "round": 1,
+          "played": true,
+          "result_id": "gA-2",
+          "score": "1-2",
+          "winner": "Sohom+Mayukh"
+        },
+        {
+          "id": "gA-3",
+          "home": "Moga+Sanmitro",
+          "away": "Sugata",
+          "round": 1,
+          "played": true,
+          "result_id": "gA-3",
+          "score": "2-2",
+          "winner": null
+        },
+        {
+          "id": "gA-4",
+          "home": "Rishav",
+          "away": "KP+SS",
+          "round": 2,
+          "played": true,
+          "result_id": "gA-4",
+          "score": "2-2",
+          "winner": null
+        },
+        {
+          "id": "gA-5",
+          "home": "Subhadro+Shubhajit",
+          "away": "Sugata",
+          "round": 2,
+          "played": true,
+          "result_id": "gA-5",
+          "score": "2-1",
+          "winner": "Subhadro+Shubhajit"
+        },
+        {
+          "id": "gA-6",
+          "home": "Raktim",
+          "away": "Moga+Sanmitro",
+          "round": 2,
+          "played": true,
+          "result_id": "gA-6",
+          "score": "2-2",
+          "winner": null
+        },
+        {
+          "id": "gA-7",
+          "home": "Rishav",
+          "away": "Sohom+Mayukh",
+          "round": 3,
+          "played": true,
+          "result_id": "gA-7",
+          "score": "2-2",
+          "winner": null
+        },
+        {
+          "id": "gA-8",
+          "home": "KP+SS",
+          "away": "Sugata",
+          "round": 3,
+          "played": true,
+          "result_id": "gA-8",
+          "score": "2-2",
+          "winner": null
+        },
+        {
+          "id": "gA-9",
+          "home": "Subhadro+Shubhajit",
+          "away": "Raktim",
+          "round": 3,
+          "played": true,
+          "result_id": "gA-9",
+          "score": "2-1",
+          "winner": "Subhadro+Shubhajit"
+        },
+        {
+          "id": "gA-10",
+          "home": "Rishav",
+          "away": "Sugata",
+          "round": 4,
+          "played": true,
+          "result_id": "gA-10",
+          "score": "2-2",
+          "winner": null
+        },
+        {
+          "id": "gA-11",
+          "home": "Sohom+Mayukh",
+          "away": "Moga+Sanmitro",
+          "round": 4,
+          "played": true,
+          "result_id": "gA-11",
+          "score": "2-2",
+          "winner": null
+        },
+        {
+          "id": "gA-12",
+          "home": "KP+SS",
+          "away": "Raktim",
+          "round": 4,
+          "played": true,
+          "result_id": "gA-12",
+          "score": "2-2",
+          "winner": null
+        },
+        {
+          "id": "gA-13",
+          "home": "Rishav",
+          "away": "Moga+Sanmitro",
+          "round": 5,
+          "played": true,
+          "result_id": "gA-13",
+          "score": "1-2",
+          "winner": "Moga+Sanmitro"
+        },
+        {
+          "id": "gA-14",
+          "home": "Sugata",
+          "away": "Raktim",
+          "round": 5,
+          "played": true,
+          "result_id": "gA-14",
+          "score": "2-2",
+          "winner": null
+        },
+        {
+          "id": "gA-15",
+          "home": "Sohom+Mayukh",
+          "away": "Subhadro+Shubhajit",
+          "round": 5,
+          "played": true,
+          "result_id": "gA-15",
+          "score": "2-2",
+          "winner": null
+        },
+        {
+          "id": "gA-16",
+          "home": "Rishav",
+          "away": "Raktim",
+          "round": 6,
+          "played": true,
+          "result_id": "gA-16",
+          "score": "2-2",
+          "winner": null
+        },
+        {
+          "id": "gA-17",
+          "home": "Moga+Sanmitro",
+          "away": "Subhadro+Shubhajit",
+          "round": 6,
+          "played": true,
+          "result_id": "gA-17",
+          "score": "1-2",
+          "winner": "Subhadro+Shubhajit"
+        },
+        {
+          "id": "gA-18",
+          "home": "Sohom+Mayukh",
+          "away": "KP+SS",
+          "round": 6,
+          "played": true,
+          "result_id": "gA-18",
+          "score": "2-2",
+          "winner": null
+        },
+        {
+          "id": "gA-19",
+          "home": "Rishav",
+          "away": "Subhadro+Shubhajit",
+          "round": 7,
+          "played": true,
+          "result_id": "gA-19",
+          "score": "2-2",
+          "winner": null
+        },
+        {
+          "id": "gA-20",
+          "home": "Moga+Sanmitro",
+          "away": "KP+SS",
+          "round": 7,
+          "played": true,
+          "result_id": "gA-20",
+          "score": "2-2",
+          "winner": null
+        },
+        {
+          "id": "gA-21",
+          "home": "Sugata",
+          "away": "Sohom+Mayukh",
+          "round": 7,
+          "played": true,
+          "result_id": "gA-21",
+          "score": "2-2",
+          "winner": null
+        }
+      ],
+      "table": {
+        "Rishav": {
+          "played": 6,
+          "w": 0,
+          "d": 5,
+          "l": 1,
+          "gf": 11,
+          "ga": 12,
+          "gd": -1,
+          "pts": 5
+        },
+        "Subhadro+Shubhajit": {
+          "played": 6,
+          "w": 4,
+          "d": 2,
+          "l": 0,
+          "gf": 12,
+          "ga": 8,
+          "gd": 4,
+          "pts": 14
+        },
+        "Raktim": {
+          "played": 6,
+          "w": 0,
+          "d": 4,
+          "l": 2,
+          "gf": 10,
+          "ga": 12,
+          "gd": -2,
+          "pts": 4
+        },
+        "Moga+Sanmitro": {
+          "played": 6,
+          "w": 1,
+          "d": 4,
+          "l": 1,
+          "gf": 11,
+          "ga": 11,
+          "gd": 0,
+          "pts": 7
+        },
+        "Sugata": {
+          "played": 6,
+          "w": 0,
+          "d": 5,
+          "l": 1,
+          "gf": 11,
+          "ga": 12,
+          "gd": -1,
+          "pts": 5
+        },
+        "Sohom+Mayukh": {
+          "played": 6,
+          "w": 1,
+          "d": 5,
+          "l": 0,
+          "gf": 12,
+          "ga": 11,
+          "gd": 1,
+          "pts": 8
+        },
+        "KP+SS": {
+          "played": 6,
+          "w": 0,
+          "d": 5,
+          "l": 1,
+          "gf": 11,
+          "ga": 12,
+          "gd": -1,
+          "pts": 5
+        }
+      }
+    },
+    "B": {
+      "teams": [
+        "DDR",
+        "Rohan + AnaC",
+        "Dilshad",
+        "Kinjal+Sayan C",
+        "Anindo",
+        "Chintu",
+        "Ryan"
+      ],
+      "fixtures": [
+        {
+          "id": "gB-1",
+          "home": "Rohan + AnaC",
+          "away": "Ryan",
+          "round": 1,
+          "played": true,
+          "result_id": "gB-1",
+          "score": "2-2",
+          "winner": null
+        },
+        {
+          "id": "gB-2",
+          "home": "Dilshad",
+          "away": "Chintu",
+          "round": 1,
+          "played": true,
+          "result_id": "gB-2",
+          "score": "2-2",
+          "winner": null
+        },
+        {
+          "id": "gB-3",
+          "home": "Kinjal+Sayan C",
+          "away": "Anindo",
+          "round": 1,
+          "played": true,
+          "result_id": "gB-3",
+          "score": "2-1",
+          "winner": "Kinjal+Sayan C"
+        },
+        {
+          "id": "gB-4",
+          "home": "DDR",
+          "away": "Ryan",
+          "round": 2,
+          "played": true,
+          "result_id": "gB-4",
+          "score": "2-2",
+          "winner": null
+        },
+        {
+          "id": "gB-5",
+          "home": "Rohan + AnaC",
+          "away": "Anindo",
+          "round": 2,
+          "played": true,
+          "result_id": "gB-5",
+          "score": "2-2",
+          "winner": null
+        },
+        {
+          "id": "gB-6",
+          "home": "Dilshad",
+          "away": "Kinjal+Sayan C",
+          "round": 2,
+          "played": true,
+          "result_id": "gB-6",
+          "score": "1-2",
+          "winner": "Kinjal+Sayan C"
+        },
+        {
+          "id": "gB-7",
+          "home": "DDR",
+          "away": "Chintu",
+          "round": 3,
+          "played": true,
+          "result_id": "gB-7",
+          "score": "2-2",
+          "winner": null
+        },
+        {
+          "id": "gB-8",
+          "home": "Ryan",
+          "away": "Anindo",
+          "round": 3,
+          "played": true,
+          "result_id": "gB-8",
+          "score": "1-2",
+          "winner": "Anindo"
+        },
+        {
+          "id": "gB-9",
+          "home": "Rohan + AnaC",
+          "away": "Dilshad",
+          "round": 3,
+          "played": true,
+          "result_id": "gB-9",
+          "score": "1-2",
+          "winner": "Dilshad"
+        },
+        {
+          "id": "gB-10",
+          "home": "DDR",
+          "away": "Anindo",
+          "round": 4,
+          "played": true,
+          "result_id": "gB-10",
+          "score": "1-2",
+          "winner": "Anindo"
+        },
+        {
+          "id": "gB-11",
+          "home": "Chintu",
+          "away": "Kinjal+Sayan C",
+          "round": 4,
+          "played": true,
+          "result_id": "gB-11",
+          "score": "2-2",
+          "winner": null
+        },
+        {
+          "id": "gB-12",
+          "home": "Ryan",
+          "away": "Dilshad",
+          "round": 4,
+          "played": true,
+          "result_id": "gB-12",
+          "score": "2-2",
+          "winner": null
+        },
+        {
+          "id": "gB-13",
+          "home": "DDR",
+          "away": "Kinjal+Sayan C",
+          "round": 5,
+          "played": true,
+          "result_id": "gB-13",
+          "score": "2-1",
+          "winner": "DDR"
+        },
+        {
+          "id": "gB-14",
+          "home": "Anindo",
+          "away": "Dilshad",
+          "round": 5,
+          "played": true,
+          "result_id": "gB-14",
+          "score": "1-2",
+          "winner": "Dilshad"
+        },
+        {
+          "id": "gB-15",
+          "home": "Chintu",
+          "away": "Rohan + AnaC",
+          "round": 5,
+          "played": true,
+          "result_id": "gB-15",
+          "score": "2-2",
+          "winner": null
+        },
+        {
+          "id": "gB-16",
+          "home": "DDR",
+          "away": "Dilshad",
+          "round": 6,
+          "played": true,
+          "result_id": "gB-16",
+          "score": "2-1",
+          "winner": "DDR"
+        },
+        {
+          "id": "gB-17",
+          "home": "Kinjal+Sayan C",
+          "away": "Rohan + AnaC",
+          "round": 6,
+          "played": true,
+          "result_id": "gB-17",
+          "score": "2-1",
+          "winner": "Kinjal+Sayan C"
+        },
+        {
+          "id": "gB-18",
+          "home": "Chintu",
+          "away": "Ryan",
+          "round": 6,
+          "played": true,
+          "result_id": "gB-18",
+          "score": "2-2",
+          "winner": null
+        },
+        {
+          "id": "gB-19",
+          "home": "DDR",
+          "away": "Rohan + AnaC",
+          "round": 7,
+          "played": true,
+          "result_id": "gB-19",
+          "score": "2-1",
+          "winner": "DDR"
+        },
+        {
+          "id": "gB-20",
+          "home": "Kinjal+Sayan C",
+          "away": "Ryan",
+          "round": 7,
+          "played": true,
+          "result_id": "gB-20",
+          "score": "2-2",
+          "winner": null
+        },
+        {
+          "id": "gB-21",
+          "home": "Anindo",
+          "away": "Chintu",
+          "round": 7,
+          "played": true,
+          "result_id": "gB-21",
+          "score": "2-2",
+          "winner": null
+        }
+      ],
+      "table": {
+        "DDR": {
+          "played": 6,
+          "w": 3,
+          "d": 2,
+          "l": 1,
+          "gf": 11,
+          "ga": 9,
+          "gd": 2,
+          "pts": 11
+        },
+        "Rohan + AnaC": {
+          "played": 6,
+          "w": 0,
+          "d": 3,
+          "l": 3,
+          "gf": 9,
+          "ga": 12,
+          "gd": -3,
+          "pts": 3
+        },
+        "Dilshad": {
+          "played": 6,
+          "w": 2,
+          "d": 2,
+          "l": 2,
+          "gf": 10,
+          "ga": 10,
+          "gd": 0,
+          "pts": 8
+        },
+        "Kinjal+Sayan C": {
+          "played": 6,
+          "w": 3,
+          "d": 2,
+          "l": 1,
+          "gf": 11,
+          "ga": 9,
+          "gd": 2,
+          "pts": 11
+        },
+        "Anindo": {
+          "played": 6,
+          "w": 2,
+          "d": 2,
+          "l": 2,
+          "gf": 10,
+          "ga": 10,
+          "gd": 0,
+          "pts": 8
+        },
+        "Chintu": {
+          "played": 6,
+          "w": 0,
+          "d": 6,
+          "l": 0,
+          "gf": 12,
+          "ga": 12,
+          "gd": 0,
+          "pts": 6
+        },
+        "Ryan": {
+          "played": 6,
+          "w": 0,
+          "d": 5,
+          "l": 1,
+          "gf": 11,
+          "ga": 12,
+          "gd": -1,
+          "pts": 5
+        }
+      }
+    }
+  },
+  "knockout": {
+    "format": "single_elim",
+    "rounds": [
+      {
+        "name": "SF",
+        "label": "Semi-finals",
+        "ties": [
+          {
+            "id": "ko-sf-1",
+            "home": "Subhadro+Shubhajit",
+            "away": "Kinjal+Sayan C",
+            "played": true,
+            "winner": "Kinjal+Sayan C",
+            "score": "1-1",
+            "result_id": "ko-sf-1",
+            "feeds": null
+          },
+          {
+            "id": "ko-sf-2",
+            "home": "Sohom+Mayukh",
+            "away": "DDR",
+            "played": true,
+            "winner": "DDR",
+            "score": "2-2",
+            "result_id": "ko-sf-2",
+            "feeds": null
+          }
+        ]
+      },
+      {
+        "name": "Final",
+        "label": "Final",
+        "ties": [
+          {
+            "id": "ko-final-1",
+            "home": "Kinjal+Sayan C",
+            "away": "DDR",
+            "played": true,
+            "winner": "Kinjal+Sayan C",
+            "score": "2-2",
+            "result_id": "ko-final-1",
+            "feeds": [
+              "ko-sf-1",
+              "ko-sf-2"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "match_results": {
+    "gA-1": {
+      "match_id": "gA-1",
+      "stage": "group",
+      "group": "A",
+      "home": "Subhadro+Shubhajit",
+      "away": "KP+SS",
+      "score": "2-1",
+      "home_goals": 2,
+      "away_goals": 1,
+      "expected_xg": {
+        "home": 2.21,
+        "away": 2.08
+      },
+      "home_win_pct": 42.8,
+      "away_win_pct": 37.1,
+      "draw_pct": 20.1,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-1",
+        "pct": 7.6
+      },
+      "top_scorelines": [
+        {
+          "score": "2-1",
+          "pct": 7.6
+        },
+        {
+          "score": "2-2",
+          "pct": 7.1
+        },
+        {
+          "score": "1-1",
+          "pct": 6.4
+        },
+        {
+          "score": "1-2",
+          "pct": 6.3
+        },
+        {
+          "score": "3-2",
+          "pct": 5.2
+        }
+      ],
+      "winner": "Subhadro+Shubhajit",
+      "played_at": "2026-07-10T07:38:20.893656+00:00"
+    },
+    "gA-2": {
+      "match_id": "gA-2",
+      "stage": "group",
+      "group": "A",
+      "home": "Raktim",
+      "away": "Sohom+Mayukh",
+      "score": "1-2",
+      "home_goals": 1,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.01,
+        "away": 2.29
+      },
+      "home_win_pct": 34.5,
+      "away_win_pct": 46.1,
+      "draw_pct": 19.4,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "1-2",
+        "pct": 7.4
+      },
+      "top_scorelines": [
+        {
+          "score": "1-2",
+          "pct": 7.4
+        },
+        {
+          "score": "2-2",
+          "pct": 7.2
+        },
+        {
+          "score": "2-1",
+          "pct": 5.9
+        },
+        {
+          "score": "1-1",
+          "pct": 5.8
+        },
+        {
+          "score": "1-3",
+          "pct": 5.7
+        }
+      ],
+      "winner": "Sohom+Mayukh",
+      "played_at": "2026-07-10T07:40:36.111557+00:00"
+    },
+    "gA-3": {
+      "match_id": "gA-3",
+      "stage": "group",
+      "group": "A",
+      "home": "Moga+Sanmitro",
+      "away": "Sugata",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.25,
+        "away": 2.13
+      },
+      "home_win_pct": 41.9,
+      "away_win_pct": 39.1,
+      "draw_pct": 19.0,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 7.2
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.2
+        },
+        {
+          "score": "2-1",
+          "pct": 6.6
+        },
+        {
+          "score": "1-2",
+          "pct": 6.2
+        },
+        {
+          "score": "1-1",
+          "pct": 6.0
+        },
+        {
+          "score": "2-3",
+          "pct": 5.3
+        }
+      ],
+      "winner": null,
+      "played_at": "2026-07-10T07:42:41.207621+00:00"
+    },
+    "gA-4": {
+      "match_id": "gA-4",
+      "stage": "group",
+      "group": "A",
+      "home": "Rishav",
+      "away": "KP+SS",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.22,
+        "away": 2.32
+      },
+      "home_win_pct": 38.5,
+      "away_win_pct": 42.6,
+      "draw_pct": 19.0,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 6.8
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 6.8
+        },
+        {
+          "score": "1-2",
+          "pct": 6.6
+        },
+        {
+          "score": "2-1",
+          "pct": 6.4
+        },
+        {
+          "score": "1-1",
+          "pct": 5.6
+        },
+        {
+          "score": "2-3",
+          "pct": 5.4
+        }
+      ],
+      "winner": null,
+      "played_at": "2026-07-10T07:44:48.380746+00:00"
+    },
+    "gA-5": {
+      "match_id": "gA-5",
+      "stage": "group",
+      "group": "A",
+      "home": "Subhadro+Shubhajit",
+      "away": "Sugata",
+      "score": "2-1",
+      "home_goals": 2,
+      "away_goals": 1,
+      "expected_xg": {
+        "home": 2.25,
+        "away": 2.07
+      },
+      "home_win_pct": 43.9,
+      "away_win_pct": 36.2,
+      "draw_pct": 19.8,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-1",
+        "pct": 7.2
+      },
+      "top_scorelines": [
+        {
+          "score": "2-1",
+          "pct": 7.2
+        },
+        {
+          "score": "2-2",
+          "pct": 7.0
+        },
+        {
+          "score": "1-1",
+          "pct": 6.3
+        },
+        {
+          "score": "1-2",
+          "pct": 6.2
+        },
+        {
+          "score": "3-2",
+          "pct": 5.5
+        }
+      ],
+      "winner": "Subhadro+Shubhajit",
+      "played_at": "2026-07-10T07:46:51.795810+00:00"
+    },
+    "gA-6": {
+      "match_id": "gA-6",
+      "stage": "group",
+      "group": "A",
+      "home": "Raktim",
+      "away": "Moga+Sanmitro",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.02,
+        "away": 2.27
+      },
+      "home_win_pct": 35.1,
+      "away_win_pct": 45.1,
+      "draw_pct": 19.8,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 7.3
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.3
+        },
+        {
+          "score": "1-2",
+          "pct": 7.2
+        },
+        {
+          "score": "1-1",
+          "pct": 6.4
+        },
+        {
+          "score": "2-1",
+          "pct": 6.3
+        },
+        {
+          "score": "2-3",
+          "pct": 5.3
+        }
+      ],
+      "winner": null,
+      "played_at": "2026-07-10T07:49:05.415801+00:00"
+    },
+    "gA-7": {
+      "match_id": "gA-7",
+      "stage": "group",
+      "group": "A",
+      "home": "Rishav",
+      "away": "Sohom+Mayukh",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.16,
+        "away": 2.33
+      },
+      "home_win_pct": 37.2,
+      "away_win_pct": 43.3,
+      "draw_pct": 19.5,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 7.2
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.2
+        },
+        {
+          "score": "1-2",
+          "pct": 6.3
+        },
+        {
+          "score": "2-1",
+          "pct": 6.1
+        },
+        {
+          "score": "1-1",
+          "pct": 6.0
+        },
+        {
+          "score": "2-3",
+          "pct": 5.9
+        }
+      ],
+      "winner": null,
+      "played_at": "2026-07-10T07:51:11.424925+00:00"
+    },
+    "gA-8": {
+      "match_id": "gA-8",
+      "stage": "group",
+      "group": "A",
+      "home": "KP+SS",
+      "away": "Sugata",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.25,
+        "away": 2.2
+      },
+      "home_win_pct": 40.7,
+      "away_win_pct": 39.8,
+      "draw_pct": 19.5,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 7.0
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.0
+        },
+        {
+          "score": "1-2",
+          "pct": 6.5
+        },
+        {
+          "score": "2-1",
+          "pct": 6.5
+        },
+        {
+          "score": "1-1",
+          "pct": 5.9
+        },
+        {
+          "score": "3-2",
+          "pct": 5.5
+        }
+      ],
+      "winner": null,
+      "played_at": "2026-07-10T07:53:11.231101+00:00"
+    },
+    "gA-9": {
+      "match_id": "gA-9",
+      "stage": "group",
+      "group": "A",
+      "home": "Subhadro+Shubhajit",
+      "away": "Raktim",
+      "score": "2-1",
+      "home_goals": 2,
+      "away_goals": 1,
+      "expected_xg": {
+        "home": 2.26,
+        "away": 1.94
+      },
+      "home_win_pct": 46.7,
+      "away_win_pct": 33.8,
+      "draw_pct": 19.5,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-1",
+        "pct": 8.0
+      },
+      "top_scorelines": [
+        {
+          "score": "2-1",
+          "pct": 8.0
+        },
+        {
+          "score": "2-2",
+          "pct": 6.9
+        },
+        {
+          "score": "1-1",
+          "pct": 6.7
+        },
+        {
+          "score": "1-2",
+          "pct": 6.0
+        },
+        {
+          "score": "3-2",
+          "pct": 5.4
+        }
+      ],
+      "winner": "Subhadro+Shubhajit",
+      "played_at": "2026-07-10T07:54:35.492930+00:00"
+    },
+    "gA-10": {
+      "match_id": "gA-10",
+      "stage": "group",
+      "group": "A",
+      "home": "Rishav",
+      "away": "Sugata",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.26,
+        "away": 2.3
+      },
+      "home_win_pct": 40.3,
+      "away_win_pct": 40.6,
+      "draw_pct": 19.1,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 6.8
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 6.8
+        },
+        {
+          "score": "1-2",
+          "pct": 6.0
+        },
+        {
+          "score": "2-3",
+          "pct": 5.8
+        },
+        {
+          "score": "2-1",
+          "pct": 5.8
+        },
+        {
+          "score": "1-1",
+          "pct": 5.4
+        }
+      ],
+      "winner": null,
+      "played_at": "2026-07-10T07:55:04.598799+00:00"
+    },
+    "gA-11": {
+      "match_id": "gA-11",
+      "stage": "group",
+      "group": "A",
+      "home": "Sohom+Mayukh",
+      "away": "Moga+Sanmitro",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.15,
+        "away": 2.16
+      },
+      "home_win_pct": 40.9,
+      "away_win_pct": 39.4,
+      "draw_pct": 19.7,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 7.4
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.4
+        },
+        {
+          "score": "2-1",
+          "pct": 7.0
+        },
+        {
+          "score": "1-2",
+          "pct": 6.5
+        },
+        {
+          "score": "1-1",
+          "pct": 6.0
+        },
+        {
+          "score": "3-2",
+          "pct": 5.2
+        }
+      ],
+      "winner": null,
+      "played_at": "2026-07-10T07:55:34.384917+00:00"
+    },
+    "gA-12": {
+      "match_id": "gA-12",
+      "stage": "group",
+      "group": "A",
+      "home": "KP+SS",
+      "away": "Raktim",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.28,
+        "away": 2.05
+      },
+      "home_win_pct": 44.3,
+      "away_win_pct": 36.0,
+      "draw_pct": 19.6,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 7.3
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.3
+        },
+        {
+          "score": "2-1",
+          "pct": 6.7
+        },
+        {
+          "score": "1-2",
+          "pct": 6.4
+        },
+        {
+          "score": "1-1",
+          "pct": 6.0
+        },
+        {
+          "score": "3-2",
+          "pct": 5.2
+        }
+      ],
+      "winner": null,
+      "played_at": "2026-07-10T07:56:06.490555+00:00"
+    },
+    "gA-13": {
+      "match_id": "gA-13",
+      "stage": "group",
+      "group": "A",
+      "home": "Rishav",
+      "away": "Moga+Sanmitro",
+      "score": "1-2",
+      "home_goals": 1,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.17,
+        "away": 2.31
+      },
+      "home_win_pct": 37.4,
+      "away_win_pct": 43.3,
+      "draw_pct": 19.2,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "1-2",
+        "pct": 6.7
+      },
+      "top_scorelines": [
+        {
+          "score": "1-2",
+          "pct": 6.7
+        },
+        {
+          "score": "2-2",
+          "pct": 6.6
+        },
+        {
+          "score": "1-1",
+          "pct": 6.2
+        },
+        {
+          "score": "2-1",
+          "pct": 6.0
+        },
+        {
+          "score": "2-3",
+          "pct": 5.4
+        }
+      ],
+      "winner": "Moga+Sanmitro",
+      "played_at": "2026-07-10T07:56:40.743258+00:00"
+    },
+    "gA-14": {
+      "match_id": "gA-14",
+      "stage": "group",
+      "group": "A",
+      "home": "Sugata",
+      "away": "Raktim",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.26,
+        "away": 2.09
+      },
+      "home_win_pct": 43.1,
+      "away_win_pct": 37.0,
+      "draw_pct": 19.9,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 7.0
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.0
+        },
+        {
+          "score": "1-2",
+          "pct": 6.7
+        },
+        {
+          "score": "2-1",
+          "pct": 6.7
+        },
+        {
+          "score": "1-1",
+          "pct": 6.3
+        },
+        {
+          "score": "3-1",
+          "pct": 5.4
+        }
+      ],
+      "winner": null,
+      "played_at": "2026-07-10T07:57:15.835772+00:00"
+    },
+    "gA-15": {
+      "match_id": "gA-15",
+      "stage": "group",
+      "group": "A",
+      "home": "Sohom+Mayukh",
+      "away": "Subhadro+Shubhajit",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.1,
+        "away": 2.18
+      },
+      "home_win_pct": 38.6,
+      "away_win_pct": 41.3,
+      "draw_pct": 20.1,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 7.3
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.3
+        },
+        {
+          "score": "2-1",
+          "pct": 7.0
+        },
+        {
+          "score": "1-2",
+          "pct": 7.0
+        },
+        {
+          "score": "1-1",
+          "pct": 6.5
+        },
+        {
+          "score": "2-3",
+          "pct": 5.3
+        }
+      ],
+      "winner": null,
+      "played_at": "2026-07-10T07:57:50.724998+00:00"
+    },
+    "gA-16": {
+      "match_id": "gA-16",
+      "stage": "group",
+      "group": "A",
+      "home": "Rishav",
+      "away": "Raktim",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.28,
+        "away": 2.13
+      },
+      "home_win_pct": 42.6,
+      "away_win_pct": 38.4,
+      "draw_pct": 18.9,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 6.9
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 6.9
+        },
+        {
+          "score": "1-2",
+          "pct": 6.5
+        },
+        {
+          "score": "2-1",
+          "pct": 6.5
+        },
+        {
+          "score": "1-1",
+          "pct": 5.9
+        },
+        {
+          "score": "2-3",
+          "pct": 5.7
+        }
+      ],
+      "winner": null,
+      "played_at": "2026-07-10T07:58:25.054348+00:00"
+    },
+    "gA-17": {
+      "match_id": "gA-17",
+      "stage": "group",
+      "group": "A",
+      "home": "Moga+Sanmitro",
+      "away": "Subhadro+Shubhajit",
+      "score": "1-2",
+      "home_goals": 1,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.08,
+        "away": 2.14
+      },
+      "home_win_pct": 39.6,
+      "away_win_pct": 40.8,
+      "draw_pct": 19.7,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "1-2",
+        "pct": 7.1
+      },
+      "top_scorelines": [
+        {
+          "score": "1-2",
+          "pct": 7.1
+        },
+        {
+          "score": "2-1",
+          "pct": 6.9
+        },
+        {
+          "score": "2-2",
+          "pct": 6.8
+        },
+        {
+          "score": "1-1",
+          "pct": 6.6
+        },
+        {
+          "score": "3-2",
+          "pct": 5.4
+        }
+      ],
+      "winner": "Subhadro+Shubhajit",
+      "played_at": "2026-07-10T07:59:00.049888+00:00"
+    },
+    "gA-18": {
+      "match_id": "gA-18",
+      "stage": "group",
+      "group": "A",
+      "home": "Sohom+Mayukh",
+      "away": "KP+SS",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.23,
+        "away": 2.17
+      },
+      "home_win_pct": 40.7,
+      "away_win_pct": 39.0,
+      "draw_pct": 20.3,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 7.3
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.3
+        },
+        {
+          "score": "2-1",
+          "pct": 6.7
+        },
+        {
+          "score": "1-2",
+          "pct": 6.1
+        },
+        {
+          "score": "1-1",
+          "pct": 5.9
+        },
+        {
+          "score": "2-3",
+          "pct": 5.4
+        }
+      ],
+      "winner": null,
+      "played_at": "2026-07-10T07:59:34.062615+00:00"
+    },
+    "gA-19": {
+      "match_id": "gA-19",
+      "stage": "group",
+      "group": "A",
+      "home": "Rishav",
+      "away": "Subhadro+Shubhajit",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.09,
+        "away": 2.31
+      },
+      "home_win_pct": 36.0,
+      "away_win_pct": 44.7,
+      "draw_pct": 19.3,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 7.3
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.3
+        },
+        {
+          "score": "1-2",
+          "pct": 7.1
+        },
+        {
+          "score": "2-1",
+          "pct": 6.4
+        },
+        {
+          "score": "1-1",
+          "pct": 5.6
+        },
+        {
+          "score": "2-3",
+          "pct": 5.5
+        }
+      ],
+      "winner": null,
+      "played_at": "2026-07-10T08:00:08.132330+00:00"
+    },
+    "gA-20": {
+      "match_id": "gA-20",
+      "stage": "group",
+      "group": "A",
+      "home": "Moga+Sanmitro",
+      "away": "KP+SS",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.21,
+        "away": 2.12
+      },
+      "home_win_pct": 41.5,
+      "away_win_pct": 38.1,
+      "draw_pct": 20.4,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 7.2
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.2
+        },
+        {
+          "score": "2-1",
+          "pct": 7.0
+        },
+        {
+          "score": "1-1",
+          "pct": 6.5
+        },
+        {
+          "score": "1-2",
+          "pct": 6.4
+        },
+        {
+          "score": "2-3",
+          "pct": 5.1
+        }
+      ],
+      "winner": null,
+      "played_at": "2026-07-10T08:00:50.683179+00:00"
+    },
+    "gA-21": {
+      "match_id": "gA-21",
+      "stage": "group",
+      "group": "A",
+      "home": "Sugata",
+      "away": "Sohom+Mayukh",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.15,
+        "away": 2.26
+      },
+      "home_win_pct": 38.8,
+      "away_win_pct": 41.3,
+      "draw_pct": 19.9,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 7.4
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.4
+        },
+        {
+          "score": "2-1",
+          "pct": 6.8
+        },
+        {
+          "score": "1-2",
+          "pct": 6.6
+        },
+        {
+          "score": "1-1",
+          "pct": 6.1
+        },
+        {
+          "score": "3-2",
+          "pct": 5.3
+        }
+      ],
+      "winner": null,
+      "played_at": "2026-07-10T08:01:38.176060+00:00"
+    },
+    "gB-1": {
+      "match_id": "gB-1",
+      "stage": "group",
+      "group": "B",
+      "home": "Rohan + AnaC",
+      "away": "Ryan",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.21,
+        "away": 2.13
+      },
+      "home_win_pct": 41.4,
+      "away_win_pct": 39.1,
+      "draw_pct": 19.5,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 7.3
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.3
+        },
+        {
+          "score": "1-2",
+          "pct": 6.6
+        },
+        {
+          "score": "2-1",
+          "pct": 6.4
+        },
+        {
+          "score": "1-1",
+          "pct": 5.7
+        },
+        {
+          "score": "3-2",
+          "pct": 5.5
+        }
+      ],
+      "winner": null,
+      "played_at": "2026-07-10T08:02:25.411977+00:00"
+    },
+    "gB-2": {
+      "match_id": "gB-2",
+      "stage": "group",
+      "group": "B",
+      "home": "Dilshad",
+      "away": "Chintu",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.1,
+        "away": 2.07
+      },
+      "home_win_pct": 40.4,
+      "away_win_pct": 39.4,
+      "draw_pct": 20.3,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 7.4
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.4
+        },
+        {
+          "score": "1-2",
+          "pct": 7.3
+        },
+        {
+          "score": "2-1",
+          "pct": 7.2
+        },
+        {
+          "score": "1-1",
+          "pct": 6.7
+        },
+        {
+          "score": "3-1",
+          "pct": 5.1
+        }
+      ],
+      "winner": null,
+      "played_at": "2026-07-10T08:03:07.583645+00:00"
+    },
+    "gB-3": {
+      "match_id": "gB-3",
+      "stage": "group",
+      "group": "B",
+      "home": "Kinjal+Sayan C",
+      "away": "Anindo",
+      "score": "2-1",
+      "home_goals": 2,
+      "away_goals": 1,
+      "expected_xg": {
+        "home": 2.12,
+        "away": 2.02
+      },
+      "home_win_pct": 41.7,
+      "away_win_pct": 38.4,
+      "draw_pct": 19.9,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-1",
+        "pct": 7.5
+      },
+      "top_scorelines": [
+        {
+          "score": "2-1",
+          "pct": 7.5
+        },
+        {
+          "score": "2-2",
+          "pct": 7.1
+        },
+        {
+          "score": "1-2",
+          "pct": 7.1
+        },
+        {
+          "score": "1-1",
+          "pct": 6.8
+        },
+        {
+          "score": "3-1",
+          "pct": 5.1
+        }
+      ],
+      "winner": "Kinjal+Sayan C",
+      "played_at": "2026-07-10T08:03:42.114367+00:00"
+    },
+    "gB-4": {
+      "match_id": "gB-4",
+      "stage": "group",
+      "group": "B",
+      "home": "DDR",
+      "away": "Ryan",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.28,
+        "away": 2.17
+      },
+      "home_win_pct": 42.4,
+      "away_win_pct": 38.3,
+      "draw_pct": 19.3,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 7.2
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.2
+        },
+        {
+          "score": "2-1",
+          "pct": 6.2
+        },
+        {
+          "score": "1-2",
+          "pct": 6.0
+        },
+        {
+          "score": "3-2",
+          "pct": 5.8
+        },
+        {
+          "score": "1-1",
+          "pct": 5.5
+        }
+      ],
+      "winner": null,
+      "played_at": "2026-07-10T08:04:17.226534+00:00"
+    },
+    "gB-5": {
+      "match_id": "gB-5",
+      "stage": "group",
+      "group": "B",
+      "home": "Rohan + AnaC",
+      "away": "Anindo",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.1,
+        "away": 2.11
+      },
+      "home_win_pct": 40.2,
+      "away_win_pct": 40.2,
+      "draw_pct": 19.6,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 7.0
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.0
+        },
+        {
+          "score": "2-1",
+          "pct": 7.0
+        },
+        {
+          "score": "1-2",
+          "pct": 7.0
+        },
+        {
+          "score": "1-1",
+          "pct": 6.4
+        },
+        {
+          "score": "3-2",
+          "pct": 5.3
+        }
+      ],
+      "winner": null,
+      "played_at": "2026-07-10T08:04:50.764409+00:00"
+    },
+    "gB-6": {
+      "match_id": "gB-6",
+      "stage": "group",
+      "group": "B",
+      "home": "Dilshad",
+      "away": "Kinjal+Sayan C",
+      "score": "1-2",
+      "home_goals": 1,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.02,
+        "away": 2.11
+      },
+      "home_win_pct": 37.6,
+      "away_win_pct": 42.0,
+      "draw_pct": 20.3,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "1-2",
+        "pct": 7.9
+      },
+      "top_scorelines": [
+        {
+          "score": "1-2",
+          "pct": 7.9
+        },
+        {
+          "score": "2-2",
+          "pct": 7.3
+        },
+        {
+          "score": "2-1",
+          "pct": 6.8
+        },
+        {
+          "score": "1-1",
+          "pct": 6.8
+        },
+        {
+          "score": "2-3",
+          "pct": 5.2
+        }
+      ],
+      "winner": "Kinjal+Sayan C",
+      "played_at": "2026-07-10T08:05:24.207907+00:00"
+    },
+    "gB-7": {
+      "match_id": "gB-7",
+      "stage": "group",
+      "group": "B",
+      "home": "DDR",
+      "away": "Chintu",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.13,
+        "away": 2.11
+      },
+      "home_win_pct": 41.4,
+      "away_win_pct": 39.2,
+      "draw_pct": 19.4,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 7.3
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.3
+        },
+        {
+          "score": "2-1",
+          "pct": 7.0
+        },
+        {
+          "score": "1-2",
+          "pct": 6.6
+        },
+        {
+          "score": "1-1",
+          "pct": 6.1
+        },
+        {
+          "score": "3-2",
+          "pct": 5.2
+        }
+      ],
+      "winner": null,
+      "played_at": "2026-07-10T08:05:58.644224+00:00"
+    },
+    "gB-8": {
+      "match_id": "gB-8",
+      "stage": "group",
+      "group": "B",
+      "home": "Ryan",
+      "away": "Anindo",
+      "score": "1-2",
+      "home_goals": 1,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.14,
+        "away": 2.17
+      },
+      "home_win_pct": 39.3,
+      "away_win_pct": 41.1,
+      "draw_pct": 19.6,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "1-2",
+        "pct": 7.1
+      },
+      "top_scorelines": [
+        {
+          "score": "1-2",
+          "pct": 7.1
+        },
+        {
+          "score": "2-2",
+          "pct": 7.0
+        },
+        {
+          "score": "2-1",
+          "pct": 6.7
+        },
+        {
+          "score": "1-1",
+          "pct": 5.8
+        },
+        {
+          "score": "3-2",
+          "pct": 5.4
+        }
+      ],
+      "winner": "Anindo",
+      "played_at": "2026-07-10T08:06:33.592971+00:00"
+    },
+    "gB-9": {
+      "match_id": "gB-9",
+      "stage": "group",
+      "group": "B",
+      "home": "Rohan + AnaC",
+      "away": "Dilshad",
+      "score": "1-2",
+      "home_goals": 1,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.07,
+        "away": 2.11
+      },
+      "home_win_pct": 38.9,
+      "away_win_pct": 40.7,
+      "draw_pct": 20.4,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "1-2",
+        "pct": 7.2
+      },
+      "top_scorelines": [
+        {
+          "score": "1-2",
+          "pct": 7.2
+        },
+        {
+          "score": "2-2",
+          "pct": 7.1
+        },
+        {
+          "score": "1-1",
+          "pct": 6.8
+        },
+        {
+          "score": "2-1",
+          "pct": 6.6
+        },
+        {
+          "score": "3-2",
+          "pct": 5.2
+        }
+      ],
+      "winner": "Dilshad",
+      "played_at": "2026-07-10T08:07:07.146496+00:00"
+    },
+    "gB-10": {
+      "match_id": "gB-10",
+      "stage": "group",
+      "group": "B",
+      "home": "DDR",
+      "away": "Anindo",
+      "score": "1-2",
+      "home_goals": 1,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.16,
+        "away": 2.11
+      },
+      "home_win_pct": 41.7,
+      "away_win_pct": 38.9,
+      "draw_pct": 19.4,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "1-2",
+        "pct": 7.0
+      },
+      "top_scorelines": [
+        {
+          "score": "1-2",
+          "pct": 7.0
+        },
+        {
+          "score": "2-1",
+          "pct": 7.0
+        },
+        {
+          "score": "2-2",
+          "pct": 6.9
+        },
+        {
+          "score": "1-1",
+          "pct": 6.2
+        },
+        {
+          "score": "3-2",
+          "pct": 5.4
+        }
+      ],
+      "winner": "Anindo",
+      "played_at": "2026-07-10T08:07:40.992126+00:00"
+    },
+    "gB-11": {
+      "match_id": "gB-11",
+      "stage": "group",
+      "group": "B",
+      "home": "Chintu",
+      "away": "Kinjal+Sayan C",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.01,
+        "away": 2.12
+      },
+      "home_win_pct": 37.8,
+      "away_win_pct": 42.6,
+      "draw_pct": 19.6,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 7.3
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.3
+        },
+        {
+          "score": "1-2",
+          "pct": 7.2
+        },
+        {
+          "score": "2-1",
+          "pct": 7.0
+        },
+        {
+          "score": "1-1",
+          "pct": 6.2
+        },
+        {
+          "score": "2-3",
+          "pct": 5.2
+        }
+      ],
+      "winner": null,
+      "played_at": "2026-07-10T08:08:14.699116+00:00"
+    },
+    "gB-12": {
+      "match_id": "gB-12",
+      "stage": "group",
+      "group": "B",
+      "home": "Ryan",
+      "away": "Dilshad",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.1,
+        "away": 2.19
+      },
+      "home_win_pct": 38.0,
+      "away_win_pct": 42.1,
+      "draw_pct": 19.9,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 7.4
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.4
+        },
+        {
+          "score": "1-2",
+          "pct": 7.1
+        },
+        {
+          "score": "2-1",
+          "pct": 6.3
+        },
+        {
+          "score": "1-1",
+          "pct": 6.1
+        },
+        {
+          "score": "3-2",
+          "pct": 5.4
+        }
+      ],
+      "winner": null,
+      "played_at": "2026-07-10T08:08:48.919778+00:00"
+    },
+    "gB-13": {
+      "match_id": "gB-13",
+      "stage": "group",
+      "group": "B",
+      "home": "DDR",
+      "away": "Kinjal+Sayan C",
+      "score": "2-1",
+      "home_goals": 2,
+      "away_goals": 1,
+      "expected_xg": {
+        "home": 2.06,
+        "away": 2.12
+      },
+      "home_win_pct": 38.8,
+      "away_win_pct": 40.6,
+      "draw_pct": 20.6,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-1",
+        "pct": 7.2
+      },
+      "top_scorelines": [
+        {
+          "score": "2-1",
+          "pct": 7.2
+        },
+        {
+          "score": "2-2",
+          "pct": 6.9
+        },
+        {
+          "score": "1-1",
+          "pct": 6.8
+        },
+        {
+          "score": "1-2",
+          "pct": 6.8
+        },
+        {
+          "score": "2-3",
+          "pct": 5.1
+        }
+      ],
+      "winner": "DDR",
+      "played_at": "2026-07-10T08:09:23.943077+00:00"
+    },
+    "gB-14": {
+      "match_id": "gB-14",
+      "stage": "group",
+      "group": "B",
+      "home": "Anindo",
+      "away": "Dilshad",
+      "score": "1-2",
+      "home_goals": 1,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.08,
+        "away": 2.1
+      },
+      "home_win_pct": 39.9,
+      "away_win_pct": 40.0,
+      "draw_pct": 20.2,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "1-2",
+        "pct": 7.5
+      },
+      "top_scorelines": [
+        {
+          "score": "1-2",
+          "pct": 7.5
+        },
+        {
+          "score": "2-2",
+          "pct": 7.3
+        },
+        {
+          "score": "2-1",
+          "pct": 7.0
+        },
+        {
+          "score": "1-1",
+          "pct": 6.7
+        },
+        {
+          "score": "3-1",
+          "pct": 5.1
+        }
+      ],
+      "winner": "Dilshad",
+      "played_at": "2026-07-10T08:09:57.370178+00:00"
+    },
+    "gB-15": {
+      "match_id": "gB-15",
+      "stage": "group",
+      "group": "B",
+      "home": "Chintu",
+      "away": "Rohan + AnaC",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.1,
+        "away": 2.09
+      },
+      "home_win_pct": 40.5,
+      "away_win_pct": 39.1,
+      "draw_pct": 20.4,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 7.5
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.5
+        },
+        {
+          "score": "2-1",
+          "pct": 7.2
+        },
+        {
+          "score": "1-1",
+          "pct": 6.7
+        },
+        {
+          "score": "1-2",
+          "pct": 6.6
+        },
+        {
+          "score": "3-2",
+          "pct": 5.3
+        }
+      ],
+      "winner": null,
+      "played_at": "2026-07-10T08:10:30.921593+00:00"
+    },
+    "gB-16": {
+      "match_id": "gB-16",
+      "stage": "group",
+      "group": "B",
+      "home": "DDR",
+      "away": "Dilshad",
+      "score": "2-1",
+      "home_goals": 2,
+      "away_goals": 1,
+      "expected_xg": {
+        "home": 2.12,
+        "away": 2.11
+      },
+      "home_win_pct": 40.5,
+      "away_win_pct": 40.4,
+      "draw_pct": 19.2,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-1",
+        "pct": 7.4
+      },
+      "top_scorelines": [
+        {
+          "score": "2-1",
+          "pct": 7.4
+        },
+        {
+          "score": "2-2",
+          "pct": 6.9
+        },
+        {
+          "score": "1-2",
+          "pct": 6.6
+        },
+        {
+          "score": "1-1",
+          "pct": 5.8
+        },
+        {
+          "score": "2-3",
+          "pct": 5.4
+        }
+      ],
+      "winner": "DDR",
+      "played_at": "2026-07-10T08:11:05.710978+00:00"
+    },
+    "gB-17": {
+      "match_id": "gB-17",
+      "stage": "group",
+      "group": "B",
+      "home": "Kinjal+Sayan C",
+      "away": "Rohan + AnaC",
+      "score": "2-1",
+      "home_goals": 2,
+      "away_goals": 1,
+      "expected_xg": {
+        "home": 2.14,
+        "away": 2.01
+      },
+      "home_win_pct": 42.4,
+      "away_win_pct": 37.2,
+      "draw_pct": 20.3,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-1",
+        "pct": 7.2
+      },
+      "top_scorelines": [
+        {
+          "score": "2-1",
+          "pct": 7.2
+        },
+        {
+          "score": "2-2",
+          "pct": 7.2
+        },
+        {
+          "score": "1-2",
+          "pct": 6.9
+        },
+        {
+          "score": "1-1",
+          "pct": 6.8
+        },
+        {
+          "score": "3-1",
+          "pct": 5.3
+        }
+      ],
+      "winner": "Kinjal+Sayan C",
+      "played_at": "2026-07-10T08:11:38.931711+00:00"
+    },
+    "gB-18": {
+      "match_id": "gB-18",
+      "stage": "group",
+      "group": "B",
+      "home": "Chintu",
+      "away": "Ryan",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.19,
+        "away": 2.14
+      },
+      "home_win_pct": 41.4,
+      "away_win_pct": 38.8,
+      "draw_pct": 19.8,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 7.6
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.6
+        },
+        {
+          "score": "2-1",
+          "pct": 7.0
+        },
+        {
+          "score": "1-2",
+          "pct": 6.8
+        },
+        {
+          "score": "1-1",
+          "pct": 6.0
+        },
+        {
+          "score": "2-3",
+          "pct": 5.4
+        }
+      ],
+      "winner": null,
+      "played_at": "2026-07-10T08:12:12.801659+00:00"
+    },
+    "gB-19": {
+      "match_id": "gB-19",
+      "stage": "group",
+      "group": "B",
+      "home": "DDR",
+      "away": "Rohan + AnaC",
+      "score": "2-1",
+      "home_goals": 2,
+      "away_goals": 1,
+      "expected_xg": {
+        "home": 2.15,
+        "away": 2.12
+      },
+      "home_win_pct": 40.9,
+      "away_win_pct": 39.0,
+      "draw_pct": 20.0,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-1",
+        "pct": 7.0
+      },
+      "top_scorelines": [
+        {
+          "score": "2-1",
+          "pct": 7.0
+        },
+        {
+          "score": "2-2",
+          "pct": 6.9
+        },
+        {
+          "score": "1-1",
+          "pct": 6.5
+        },
+        {
+          "score": "1-2",
+          "pct": 6.5
+        },
+        {
+          "score": "3-2",
+          "pct": 5.1
+        }
+      ],
+      "winner": "DDR",
+      "played_at": "2026-07-10T08:12:46.949814+00:00"
+    },
+    "gB-20": {
+      "match_id": "gB-20",
+      "stage": "group",
+      "group": "B",
+      "home": "Kinjal+Sayan C",
+      "away": "Ryan",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.2,
+        "away": 2.05
+      },
+      "home_win_pct": 42.6,
+      "away_win_pct": 37.4,
+      "draw_pct": 20.0,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 7.0
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.0
+        },
+        {
+          "score": "2-1",
+          "pct": 6.9
+        },
+        {
+          "score": "1-1",
+          "pct": 6.5
+        },
+        {
+          "score": "1-2",
+          "pct": 6.3
+        },
+        {
+          "score": "3-1",
+          "pct": 5.5
+        }
+      ],
+      "winner": null,
+      "played_at": "2026-07-10T08:13:20.917380+00:00"
+    },
+    "gB-21": {
+      "match_id": "gB-21",
+      "stage": "group",
+      "group": "B",
+      "home": "Anindo",
+      "away": "Chintu",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.11,
+        "away": 2.09
+      },
+      "home_win_pct": 40.8,
+      "away_win_pct": 39.8,
+      "draw_pct": 19.5,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 7.1
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.1
+        },
+        {
+          "score": "1-2",
+          "pct": 7.0
+        },
+        {
+          "score": "2-1",
+          "pct": 6.8
+        },
+        {
+          "score": "1-1",
+          "pct": 6.3
+        },
+        {
+          "score": "3-2",
+          "pct": 5.2
+        }
+      ],
+      "winner": null,
+      "played_at": "2026-07-10T08:13:54.776626+00:00"
+    },
+    "ko-sf-1": {
+      "match_id": "ko-sf-1",
+      "stage": "knockout",
+      "home": "Subhadro+Shubhajit",
+      "away": "Kinjal+Sayan C",
+      "score": "1-1",
+      "home_goals": 1,
+      "away_goals": 1,
+      "expected_xg": {
+        "home": 2.07,
+        "away": 2.04
+      },
+      "home_win_pct": 39.4,
+      "away_win_pct": 40.2,
+      "draw_pct": 20.4,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "1-1",
+        "pct": 7.3
+      },
+      "top_scorelines": [
+        {
+          "score": "1-1",
+          "pct": 7.3
+        },
+        {
+          "score": "1-2",
+          "pct": 7.1
+        },
+        {
+          "score": "2-2",
+          "pct": 6.9
+        },
+        {
+          "score": "2-1",
+          "pct": 6.8
+        },
+        {
+          "score": "3-1",
+          "pct": 5.3
+        }
+      ],
+      "winner": "Kinjal+Sayan C",
+      "played_at": "2026-07-10T08:14:28.576058+00:00"
+    },
+    "ko-sf-2": {
+      "match_id": "ko-sf-2",
+      "stage": "knockout",
+      "home": "Sohom+Mayukh",
+      "away": "DDR",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.18,
+        "away": 2.19
+      },
+      "home_win_pct": 40.0,
+      "away_win_pct": 40.4,
+      "draw_pct": 19.6,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 7.2
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.2
+        },
+        {
+          "score": "1-2",
+          "pct": 6.5
+        },
+        {
+          "score": "2-1",
+          "pct": 6.5
+        },
+        {
+          "score": "1-1",
+          "pct": 6.0
+        },
+        {
+          "score": "1-3",
+          "pct": 5.4
+        }
+      ],
+      "winner": "DDR",
+      "played_at": "2026-07-10T08:15:02.660958+00:00"
+    },
+    "ko-final-1": {
+      "match_id": "ko-final-1",
+      "stage": "knockout",
+      "home": "Kinjal+Sayan C",
+      "away": "DDR",
+      "score": "2-2",
+      "home_goals": 2,
+      "away_goals": 2,
+      "expected_xg": {
+        "home": 2.12,
+        "away": 2.06
+      },
+      "home_win_pct": 40.9,
+      "away_win_pct": 38.7,
+      "draw_pct": 20.4,
+      "simulations": 10000,
+      "mode_scoreline": {
+        "score": "2-2",
+        "pct": 7.4
+      },
+      "top_scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.4
+        },
+        {
+          "score": "1-2",
+          "pct": 6.9
+        },
+        {
+          "score": "1-1",
+          "pct": 6.7
+        },
+        {
+          "score": "2-1",
+          "pct": 6.6
+        },
+        {
+          "score": "3-2",
+          "pct": 5.2
+        }
+      ],
+      "winner": "Kinjal+Sayan C",
+      "played_at": "2026-07-10T08:16:50.774208+00:00"
+    }
+  },
+  "champion": "Kinjal+Sayan C",
+  "runner_up": "DDR",
+  "final": {
+    "home": "Kinjal+Sayan C",
+    "away": "DDR",
+    "score": "2-2",
+    "winner": "Kinjal+Sayan C",
+    "expected_xg": {
+      "home": 2.12,
+      "away": 2.06
+    },
+    "home_win_pct": 40.9,
+    "draw_pct": 20.4,
+    "away_win_pct": 38.7,
+    "mode_scoreline": {
+      "score": "2-2",
+      "pct": 7.4
+    }
+  },
+  "upsets": [
+    {
+      "match_id": "gB-10",
+      "stage": "group",
+      "group": "B",
+      "home": "DDR",
+      "away": "Anindo",
+      "score": "1-2",
+      "winner": "Anindo",
+      "underdog": "Anindo",
+      "favorite": "DDR",
+      "strength_gap": 0.0475,
+      "home_win_pct": 41.7,
+      "away_win_pct": 38.9
+    },
+    {
+      "match_id": "ko-sf-2",
+      "stage": "knockout",
+      "group": null,
+      "home": "Sohom+Mayukh",
+      "away": "DDR",
+      "score": "2-2",
+      "winner": "DDR",
+      "underdog": "DDR",
+      "favorite": "Sohom+Mayukh",
+      "strength_gap": 0.0389,
+      "home_win_pct": 40.0,
+      "away_win_pct": 40.4
+    },
+    {
+      "match_id": "gB-8",
+      "stage": "group",
+      "group": "B",
+      "home": "Ryan",
+      "away": "Anindo",
+      "score": "1-2",
+      "winner": "Anindo",
+      "underdog": "Anindo",
+      "favorite": "Ryan",
+      "strength_gap": 0.0334,
+      "home_win_pct": 39.3,
+      "away_win_pct": 41.1
+    }
+  ],
+  "pre_tournament_strength": {
+    "Anindo": 0.533,
+    "Chintu": 0.5699,
+    "DDR": 0.5805,
+    "Dilshad": 0.6048,
+    "Kinjal+Sayan C": 0.5979,
+    "KP+SS": 0.5832,
+    "Moga+Sanmitro": 0.594,
+    "Raktim": 0.4153,
+    "Rishav": 0.539,
+    "Rohan + AnaC": 0.4953,
+    "Ryan": 0.5664,
+    "Sohom+Mayukh": 0.6194,
+    "Subhadro+Shubhajit": 0.6039,
+    "Sugata": 0.5498
+  }
+}
