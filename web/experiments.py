@@ -410,9 +410,19 @@ def create_and_run_experiment(
 
 
 def formation_meta() -> dict[str, Any]:
+    from slot_roles import ROLE_FILTER_OPTIONS, allowed_role_filters
+
+    slots = {f: [s["slot"] for s in FORMATION_SLOTS[f]] for f in supported_formations()}
+    role_filters: dict[str, dict[str, list[str]]] = {}
+    for form, slot_list in slots.items():
+        role_filters[form] = {
+            slot: allowed_role_filters(slot) for slot in slot_list if allowed_role_filters(slot)
+        }
     return {
         "formations": supported_formations(),
-        "slots": {f: [s["slot"] for s in FORMATION_SLOTS[f]] for f in supported_formations()},
+        "slots": slots,
+        "role_filters": role_filters,
+        "role_filter_options": {k: list(v) for k, v in ROLE_FILTER_OPTIONS.items()},
     }
 
 

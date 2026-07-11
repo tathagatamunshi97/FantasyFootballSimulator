@@ -104,6 +104,28 @@ async function reassignLineup(formation, players) {
   }
 }
 
+function roleFilterOptionsFor(slot, formation) {
+  const byForm = meta?.formations?.role_filters?.[formation] || {};
+  if (byForm[slot]?.length) return byForm[slot];
+  const key = String(slot || "")
+    .toUpperCase()
+    .replace(/^(CM|DM|CB|ST|CF)\d+$/, "$1");
+  return meta?.formations?.role_filter_options?.[key] || [];
+}
+
+function roleFilterControl(side, slot, formation, selected) {
+  const opts = roleFilterOptionsFor(slot, formation);
+  if (!opts.length) return "";
+  const cur = (selected || opts[0] || "").toUpperCase();
+  const options = opts
+    .map((r) => `<option value="${esc(r)}" ${r === cur ? "selected" : ""}>${esc(r)}</option>`)
+    .join("");
+  return `<label class="role-filter-wrap" title="Role filter for ${esc(slot)}">
+      <span class="role-filter-label">Role</span>
+      <select class="role-filter" data-side="${side}" data-role-filter-slot="${esc(slot)}" aria-label="Role filter ${esc(slot)}">${options}</select>
+    </label>`;
+}
+
 function slotPlayerControl(side, slot, val, squad) {
   if (squad && squad.length) {
     const opts = ['<option value="">— pick player —</option>'];
@@ -159,8 +181,10 @@ function renderTeamPanel(side, teamData) {
   const formation = teamData.formation || "4-3-3 flat";
   const slots = slotsByForm[formation] || [];
   const lineupMap = {};
+  const roleFilters = {};
   (teamData.lineup || []).forEach((r) => {
     lineupMap[r.slot] = r.player;
+    roleFilters[r.slot] = (r.role_filter || "").trim().toUpperCase();
   });
   const squad = teamSquads[side];
   const seasonPickPlayers = squad?.length ? squad : Object.values(lineupMap).filter(Boolean);
@@ -177,9 +201,13 @@ function renderTeamPanel(side, teamData) {
   const slotRows = slots
     .map((slot) => {
       const val = lineupMap[slot] || "";
+      const filterCtrl = roleFilterControl(side, slot, formation, roleFilters[slot] || "");
       return `<div class="form-row slot-row">
         <label>${esc(slot)}</label>
-        ${slotPlayerControl(side, slot, val, squad)}
+        <div class="slot-controls">
+          ${slotPlayerControl(side, slot, val, squad)}
+          ${filterCtrl}
+        </div>
       </div>`;
     })
     .join("");
@@ -247,7 +275,16 @@ function collectTeam(side) {
   const slots = meta.formations.slots[formation] || [];
   const lineup = slots.map((slot) => {
     const el = document.querySelector(`[data-side="${side}"][data-slot="${slot}"]`);
-    return { slot, player: (el?.value || "").trim(), captain: false, vice_captain: false };
+    const filterEl = document.querySelector(`[data-side="${side}"][data-role-filter-slot="${slot}"]`);
+    const natural = roleFilterOptionsFor(slot, formation)[0] || "";
+    const roleFilter = (filterEl?.value || "").trim().toUpperCase();
+    return {
+      slot,
+      player: (el?.value || "").trim(),
+      captain: false,
+      vice_captain: false,
+      role_filter: roleFilter || natural || "",
+    };
   });
   const team = {
     name: document.getElementById(`name_${side}`).value.trim(),

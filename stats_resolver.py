@@ -83,20 +83,38 @@ def prepare_match_player_stats(
     team_a: dict[str, Any],
     team_b: dict[str, Any],
     store: StatsStore,
+    *,
+    cache_only: bool = True,
 ) -> tuple[dict[str, PlayerStats], dict[str, Any], dict[str, str]]:
     """
     Build player stats for a matchup.
     Default: blended recent cache. Prime / peak-season slots replace stats entirely.
     Includes bench / full squad names when present on sheet teams.
+
+    cache_only=True (default) never opens Chrome/Sofascore — required on Render.
     """
     all_names: list[str] = []
     for team in (team_a, team_b):
         all_names.extend(_team_player_names(team))
 
-    name_map = store.ensure_players(all_names)
-    player_stats: dict[str, PlayerStats] = copy.deepcopy(
-        {name_map[raw]: store.players[name_map[raw]] for raw in all_names}
-    )
+    if cache_only:
+        cached = store.cached_stats_map(all_names)
+        name_map: dict[str, str] = {}
+        player_stats: dict[str, PlayerStats] = {}
+        for raw in all_names:
+            if not raw or not str(raw).strip():
+                continue
+            key = str(raw).strip()
+            ps = cached.get(key)
+            if ps is None:
+                continue
+            name_map[key] = ps.player
+            player_stats[ps.player] = copy.deepcopy(ps)
+    else:
+        name_map = store.ensure_players(all_names)
+        player_stats = copy.deepcopy(
+            {name_map[raw]: store.players[name_map[raw]] for raw in all_names}
+        )
 
     overrides: dict[str, Any] = {"team_a": {}, "team_b": {}}
 
@@ -109,7 +127,7 @@ def prepare_match_player_stats(
                     store,
                     player_stats,
                     prime,
-                    lambda r, s: build_prime_stats_dict(r, s),
+                    lambda r, s, co=cache_only: build_prime_stats_dict(r, s, cache_only=co),
                     meta,
                 )
                 overrides[side_key]["prime"] = meta
@@ -131,7 +149,9 @@ def prepare_match_player_stats(
                     store,
                     player_stats,
                     peak_player,
-                    lambda r, s, suf=suffix: build_season_stats_dict(r, suf, s),
+                    lambda r, s, suf=suffix, co=cache_only: build_season_stats_dict(
+                        r, suf, s, cache_only=co
+                    ),
                     meta,
                 )
                 overrides[side_key]["peak_season"] = meta

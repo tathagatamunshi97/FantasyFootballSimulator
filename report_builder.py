@@ -7,7 +7,12 @@ from pathlib import Path
 from typing import Any
 
 from bench_impact import bench_impact_for_team
-from analysis_explainer import build_matchup_analysis, build_squad_strengths_report
+from analysis_explainer import (
+    build_matchup_analysis,
+    build_squad_strengths_report,
+    enrich_analysis_with_board_result,
+    normalize_board_events,
+)
 from formation_fit import player_slot_fit, team_formation_fit
 from match_engine import MatchSimConfig, monte_carlo_matches, simulate_match_once
 from models import FantasyTeam, PlayerStats
@@ -73,6 +78,7 @@ def team_lineup_dict(team: FantasyTeam) -> dict[str, Any]:
                 "slot": s.slot,
                 "captain": s.is_captain,
                 "vice_captain": s.is_vice_captain,
+                "role_filter": (s.role_filter or "").strip().upper(),
             }
             for s in team.lineup
         ],
@@ -114,7 +120,11 @@ def extended_metrics(team: FantasyTeam, stats: dict[str, PlayerStats]) -> dict[s
     fwds = [p for p in lineup if p.fpl_position == "FWD"]
     units = compute_unit_ratings_by_slot(team, stats)
     composites = compute_team_composites(team, stats, units=units)
-    fit = team_formation_fit(team.formation, [(s.player, s.slot) for s in team.lineup], stats)
+    fit = team_formation_fit(
+        team.formation,
+        [(s.player, s.slot, s.role_filter or "") for s in team.lineup],
+        stats,
+    )
 
     return {
         "defensive_unit": composites.defensive_solidity,
@@ -153,7 +163,7 @@ def fullback_profile(team: FantasyTeam, stats: dict[str, PlayerStats]) -> dict[s
         if slot.slot.upper() not in FULLBACK_SLOTS and slot_role(slot.slot) != "fullback":
             continue
         p = stats[slot.player]
-        fit = player_slot_fit(p, team.formation, slot.slot)
+        fit = player_slot_fit(p, team.formation, slot.slot, role_filter=slot.role_filter or None)
         rows.append(
             {
                 "player": slot.player,
@@ -303,4 +313,44 @@ def build_report(
 
     report["analysis"] = build_matchup_analysis(report)
     report["squad_analysis"] = build_squad_strengths_report(report)
+    return report
+
+
+def build_board_result_report(
+    home: FantasyTeam,
+    away: FantasyTeam,
+    player_stats: dict[str, PlayerStats],
+    *,
+    home_goals: int,
+    away_goals: int,
+    board_events: list[dict[str, Any]] | None = None,
+    match_log: list[dict[str, Any]] | dict[str, Any] | None = None,
+    n_simulations: int = 800,
+    seed: int | None = None,
+    season_overrides: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Ratings-based report enriched with the official pin-board score and events."""
+    report = build_report(
+        home,
+        away,
+        player_stats,
+        n_simulations=max(200, int(n_simulations)),
+        seed=seed,
+        include_single_match=False,
+        season_overrides=season_overrides,
+    )
+    report["analysis"] = enrich_analysis_with_board_result(
+        report["analysis"],
+        report,
+        home_goals=int(home_goals),
+        away_goals=int(away_goals),
+        board_events=board_events,
+        match_log=match_log,
+    )
+    report["board_result"] = {
+        "home_goals": int(home_goals),
+        "away_goals": int(away_goals),
+        "board_events": normalize_board_events(board_events, match_log),
+        "engine": "tactic_board",
+    }
     return report

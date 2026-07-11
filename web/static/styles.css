@@ -134,6 +134,49 @@ input, select {
 }
 .slot-grid { display: grid; gap: 0.35rem; margin-top: 0.5rem; }
 .slot-row input { max-width: 100%; }
+.slot-row .slot-controls {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+.slot-row .slot-controls > select[data-slot] { flex: 1; min-width: 0; }
+.slot-row .role-filter-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex: 0 0 auto;
+  margin: 0;
+}
+.slot-row .role-filter-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.slot-row select.role-filter {
+  width: auto;
+  min-width: 4.5rem;
+  max-width: 5.5rem;
+  flex: 0 0 auto;
+  padding: 0.4rem 0.45rem;
+  font-size: 0.8rem;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel2);
+}
+.slot-row .slot-fit {
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  min-width: 2.4rem;
+  text-align: right;
+  flex: 0 0 auto;
+}
+.slot-row .slot-fit.fit-good { color: #3ecf8e; }
+.slot-row .slot-fit.fit-ok { color: var(--muted); }
+.slot-row .slot-fit.fit-weak { color: #e07a5f; }
 .team-panel { background: var(--panel2); border: 1px solid var(--border); border-radius: 10px; padding: 0.85rem; }
 .btn-primary, button.btn-primary {
   padding: 0.65rem 1.2rem;
@@ -250,3 +293,488 @@ tr.matchday-live { background: rgba(61, 214, 140, 0.06); }
 .tier-weakness .tier-heading, .tier-weakness .tier-list li { color: var(--warn); }
 .team-profile-block, .unit-ratings-block { margin-top: 0.35rem; }
 .team-profile-intro, .unit-ratings-intro { font-size: 0.82rem; margin: 0 0 0.35rem; }
+
+/* Tactic board — continuous pin / match watch */
+.tactic-watch-card h2 { color: var(--accent2); }
+.tactic-board { display: grid; gap: 0.55rem; position: relative; }
+.tactic-scorebar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0.5rem;
+  align-items: center;
+  text-align: center;
+}
+.tactic-score {
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  min-width: 5rem;
+}
+.tactic-hud {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr;
+  gap: 0.55rem;
+  align-items: center;
+  font-size: 0.78rem;
+  color: var(--muted);
+  padding: 0.4rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.tactic-hud-stat,
+.tactic-hud-cell,
+.tactic-momentum {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  min-width: 0;
+}
+.tactic-hud .hud-label,
+.tactic-hud-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.tactic-hud .hud-vals,
+.tactic-hud-value {
+  color: var(--text);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.momentum-track,
+.tactic-momentum-bar {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--home), #444 48%, #444 52%, var(--away));
+  overflow: hidden;
+}
+.momentum-fill,
+.tactic-momentum-needle {
+  position: absolute;
+  top: -2px;
+  width: 4px;
+  height: 12px;
+  border-radius: 2px;
+  background: #f5f7fa;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+  transform: translateX(-50%);
+  left: 50%;
+  transition: left 0.35s ease;
+}
+.momentum-fill.home-lean { background: var(--home); }
+.momentum-fill.away-lean { background: var(--away); }
+.tactic-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.tactic-ticker {
+  flex: 1;
+  text-align: right;
+  color: var(--text);
+  font-weight: 600;
+  font-size: 0.82rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 1.2em;
+}
+.tactic-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(200px, 280px);
+  gap: 0.85rem;
+  align-items: stretch;
+}
+.tactic-pitch-wrap {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+.tactic-pitch {
+  position: relative;
+  /* Vertical pitch — a bit larger, still FIFA proportions */
+  width: min(100%, 360px);
+  aspect-ratio: 68 / 105;
+  max-height: min(82vh, 640px);
+  margin: 0 auto;
+  border-radius: 8px;
+  border: 2px solid rgba(61, 214, 140, 0.35);
+  background:
+    linear-gradient(180deg, rgba(18, 48, 32, 0.92) 0%, rgba(14, 36, 24, 0.96) 100%);
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+.tactic-commentary {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: min(82vh, 640px);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  overflow: hidden;
+}
+.tactic-commentary-head {
+  padding: 0.45rem 0.65rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+.tactic-commentary-list,
+.tactic-feed {
+  flex: 1;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0.45rem 0.65rem;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+.tactic-commentary-item,
+.tactic-feed li {
+  color: var(--text);
+  border-left: 2px solid rgba(255, 255, 255, 0.12);
+  padding-left: 0.4rem;
+}
+.tactic-commentary-item.home { border-left-color: var(--home); }
+.tactic-commentary-item.away { border-left-color: var(--away); }
+.tactic-commentary-item .cm-min,
+.tactic-feed .feed-min {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  margin-right: 0.35rem;
+  font-size: 0.72rem;
+}
+.tactic-ht-overlay,
+.tactic-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(8, 12, 18, 0.82);
+  border-radius: 10px;
+}
+.tactic-ht-overlay[hidden],
+.tactic-overlay[hidden],
+.tactic-flash[hidden] { display: none !important; }
+.tactic-ht-card,
+.tactic-overlay-card {
+  width: min(100%, 640px);
+  max-height: min(86vh, 720px);
+  overflow: auto;
+  background: var(--card, #141a24);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  text-align: center;
+}
+.tactic-ht-card h3,
+.tactic-overlay-card h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1.15rem;
+}
+.tactic-ht-score {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin: 0.35rem 0 0.65rem;
+}
+.tactic-overlay-card { text-align: left; }
+.prematch-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+  margin: 0.85rem 0;
+}
+.prematch-side h4 {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+}
+.prematch-units {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin: 0 0 0.45rem;
+}
+.prematch-xi {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.8rem;
+}
+.prematch-xi li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.18rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.prematch-xi .slot { color: var(--muted); min-width: 2.4rem; }
+.prematch-screen { display: grid; gap: 0.85rem; }
+.prematch-actions { justify-content: center; margin-top: 0.25rem; }
+.ht-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.65rem;
+  margin: 0.85rem 0 1rem;
+  text-align: center;
+}
+.ht-stats .ht-val {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text);
+}
+.ht-stats .ht-lab {
+  font-size: 0.7rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.tactic-pens-list {
+  list-style: none;
+  margin: 0.5rem 0 0.85rem;
+  padding: 0;
+  text-align: left;
+  max-height: 11rem;
+  overflow: auto;
+  font-size: 0.82rem;
+}
+.tactic-pens-list .tactic-pen-row {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr auto;
+  gap: 0.35rem;
+  padding: 0.28rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.tactic-pens-list .tactic-pen-row.scored .pen-result { color: #6dcea0; font-weight: 700; }
+.tactic-pens-list .tactic-pen-row.missed .pen-result { color: var(--muted); }
+.tactic-pens-list .pen-side { color: var(--muted); }
+.tactic-pens-list {
+  list-style: none;
+  margin: 0.5rem 0 0.75rem;
+  padding: 0;
+  text-align: left;
+  max-height: 12rem;
+  overflow: auto;
+}
+.tactic-pen-row {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr auto;
+  gap: 0.35rem;
+  align-items: center;
+  padding: 0.28rem 0.35rem;
+  border-bottom: 1px solid var(--border, #2a3344);
+  font-size: 0.82rem;
+}
+.tactic-pen-row.scored .pen-result { color: #3dd68c; font-weight: 700; }
+.tactic-pen-row.missed .pen-result { color: #f07178; font-weight: 700; }
+.tactic-pen-row .pen-side { color: var(--muted, #8b93a7); font-size: 0.75rem; }
+@media (max-width: 720px) {
+  .tactic-stage { grid-template-columns: 1fr; }
+  .tactic-commentary { max-height: 220px; }
+  .prematch-grid { grid-template-columns: 1fr; }
+  .tactic-hud { grid-template-columns: 1fr; }
+}
+.pitch-lines { position: absolute; inset: 0; pointer-events: none; }
+.pitch-halfway {
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  top: 50%;
+  height: 1px;
+  background: rgba(232, 238, 247, 0.28);
+}
+.pitch-circle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 12%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(232, 238, 247, 0.28);
+  border-radius: 50%;
+}
+.pitch-box {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40%;
+  height: 12%;
+  border: 1px solid rgba(232, 238, 247, 0.28);
+}
+.pitch-box.top { top: 0; border-top: none; }
+.pitch-box.bottom { bottom: 0; border-bottom: none; }
+.pitch-spot.center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 50%;
+  background: rgba(232, 238, 247, 0.45);
+}
+/* Goal mouths at each end (readable posts + net depth) */
+.pitch-goal {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 14%;
+  height: 2.5%;
+  border: 2px solid rgba(232, 238, 247, 0.72);
+  background: rgba(232, 238, 247, 0.08);
+  box-sizing: border-box;
+  z-index: 1;
+}
+.pitch-goal.top {
+  top: 0;
+  border-top: none;
+  border-radius: 0 0 3px 3px;
+}
+.pitch-goal.bottom {
+  bottom: 0;
+  border-bottom: none;
+  border-radius: 3px 3px 0 0;
+}
+.pitch-goal::before,
+.pitch-goal::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: rgba(232, 238, 247, 0.85);
+}
+.pitch-goal::before { left: -2px; }
+.pitch-goal::after { right: -2px; }
+.tactic-pin.favored .pin-dot {
+  box-shadow: 0 0 0 2px rgba(255, 196, 86, 0.95), 0 0 12px rgba(255, 196, 86, 0.55);
+  transform: scale(1.15);
+}
+.tactic-pin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.12rem;
+  z-index: 2;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: none;
+  will-change: left, top;
+}
+.tactic-pin.running {
+  z-index: 3;
+}
+.tactic-pin .pin-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+  transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+.tactic-pin.home .pin-dot { background: var(--home); }
+.tactic-pin.away .pin-dot { background: var(--away); }
+.tactic-pin.has-ball .pin-dot {
+  box-shadow: 0 0 0 2px rgba(245, 247, 250, 0.95), 0 0 10px rgba(255, 255, 255, 0.45);
+  transform: scale(1.12);
+}
+.tactic-pin.pressing .pin-dot {
+  border-color: rgba(255, 196, 86, 0.95);
+}
+.tactic-pin.running .pin-dot {
+  border-color: rgba(120, 220, 160, 0.95);
+  transform: scale(1.08);
+}
+.tactic-pin .pin-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  line-height: 1;
+}
+.tactic-ball {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  background: #f5f7fa;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.35);
+  z-index: 3;
+  left: 50%;
+  top: 50%;
+  transition: none;
+  will-change: left, top;
+}
+.tactic-flash {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: clamp(1.6rem, 6vw, 2.4rem);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  z-index: 4;
+  background: rgba(11, 15, 20, 0.35);
+  animation: tactic-goal-pulse 0.9s ease-out;
+}
+.tactic-flash.home { color: var(--home); }
+.tactic-flash.away { color: var(--away); }
+.tactic-flash.offside {
+  color: #ffc456;
+  font-size: clamp(1.35rem, 5vw, 2rem);
+  letter-spacing: 0.06em;
+}
+@keyframes tactic-goal-pulse {
+  0% { opacity: 0; transform: scale(0.92); }
+  35% { opacity: 1; transform: scale(1.04); }
+  100% { opacity: 0.85; transform: scale(1); }
+}
+.tactic-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+}
+.tactic-instructions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+.tactic-speed {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: auto;
+  font-size: 0.8rem;
+}
+.tactic-speed select {
+  width: auto;
+  padding: 0.25rem 0.4rem;
+  font-size: 0.8rem;
+}
+.tactic-note { margin: 0; font-size: 0.78rem; }
+@media (max-width: 560px) {
+  .tactic-pin .pin-dot { width: 11px; height: 11px; }
+  .tactic-pin .pin-label { font-size: 0.55rem; }
+  .tactic-scorebar .team-name { font-size: 0.95rem; }
+  .tactic-ticker { font-size: 0.72rem; }
+  .tactic-pitch { width: min(100%, 320px); max-height: min(70vh, 520px); }
+}

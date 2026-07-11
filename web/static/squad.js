@@ -37,7 +37,7 @@ function renderLineupBuilder(data) {
   const formation = config.formation || "4-3-3 flat";
   const formations = meta?.formations?.formations || ["4-3-3 flat", "4-4-2", "3-5-2"];
   const slots = meta?.formations?.slots?.[formation] || [];
-  const lineupMap = lineupMapFromConfig(config);
+  const { map: lineupMap, filters: roleFilters } = lineupMapFromConfig(config);
   const prime = config.prime_player || "";
   const peak = config.peak_season || {};
   const peakPlayer = peak.player || "";
@@ -51,10 +51,9 @@ function renderLineupBuilder(data) {
     .join("");
 
   const slotRows = slots
-    .map((slot) => {
-      const val = lineupMap[slot] || "";
-      return `<div class="form-row slot-row"><label>${esc(slot)}</label>${slotPlayerControl(slot, val, roster, locked)}</div>`;
-    })
+    .map((slot) =>
+      renderSlotRow(slot, lineupMap[slot] || "", roster, formation, roleFilters[slot] || "", locked)
+    )
     .join("");
 
   const savedBadge = data.saved
@@ -69,7 +68,7 @@ function renderLineupBuilder(data) {
   return `
     <div class="card" style="margin-bottom:1rem">
       <h2>Lineup builder — ${esc(data.team_name)}</h2>
-      <p class="muted">Select your starting XI from your ${roster.length}-player roster. Finalize locks your XI for the current tournament matchday.</p>
+      <p class="muted">Select your starting XI from your ${roster.length}-player roster. Role dropdowns appear on AM/CM/DM and wide/fullback slots (GK/CB/ST stay locked). Live fit scores use the current engine. Finalize locks your XI for the current tournament matchday.</p>
       <p style="margin:0.5rem 0;display:flex;gap:0.5rem;flex-wrap:wrap">${savedBadge}${finalizedBadge}</p>
       <div class="form-row" style="margin-top:0.75rem">
         <label for="lineupFormation">Formation</label>
@@ -111,10 +110,56 @@ function slotPlayerControl(slot, val, roster, locked = false) {
 
 function lineupMapFromConfig(config) {
   const map = {};
+  const filters = {};
   (config?.lineup || []).forEach((r) => {
     map[r.slot] = r.player || "";
+    filters[r.slot] = (r.role_filter || "").trim().toUpperCase();
   });
-  return map;
+  return { map, filters };
+}
+
+function roleFilterOptionsFor(slot, formation) {
+  const byForm = meta?.formations?.role_filters?.[formation] || {};
+  if (byForm[slot]?.length) return byForm[slot];
+  const key = String(slot || "")
+    .toUpperCase()
+    .replace(/^(CM|DM|CB|ST|CF)\d+$/, "$1");
+  return meta?.formations?.role_filter_options?.[key] || [];
+}
+
+function roleFilterControl(slot, formation, selected, locked = false) {
+  const opts = roleFilterOptionsFor(slot, formation);
+  if (!opts.length) return "";
+  const disabled = locked ? "disabled" : "";
+  const cur = (selected || opts[0] || "").toUpperCase();
+  const options = opts
+    .map((r) => `<option value="${esc(r)}" ${r === cur ? "selected" : ""}>${esc(r)}</option>`)
+    .join("");
+  return `<label class="role-filter-wrap" title="Role filter for ${esc(slot)}">
+      <span class="role-filter-label">Role</span>
+      <select class="role-filter" data-role-filter-slot="${esc(slot)}" aria-label="Role filter ${esc(slot)}" ${disabled}>${options}</select>
+    </label>`;
+}
+
+function slotFitBadge(slot) {
+  const fitMap = lineupData?.slot_fits || {};
+  const fit = fitMap[slot];
+  if (fit == null || Number.isNaN(Number(fit))) return "";
+  const n = Number(fit);
+  const cls = n >= 0.9 ? "fit-good" : n >= 0.62 ? "fit-ok" : "fit-weak";
+  return `<span class="slot-fit ${cls}" title="Live formation fit">${n.toFixed(2)}</span>`;
+}
+
+function renderSlotRow(slot, val, roster, formation, roleFilter, locked) {
+  const filterCtrl = roleFilterControl(slot, formation, roleFilter, locked);
+  return `<div class="form-row slot-row">
+      <label>${esc(slot)}</label>
+      <div class="slot-controls">
+        ${slotPlayerControl(slot, val, roster, locked)}
+        ${filterCtrl}
+        ${slotFitBadge(slot)}
+      </div>
+    </div>`;
 }
 
 function renderAdminTeamPicker() {
@@ -154,12 +199,16 @@ function collectLineupPayload() {
   const formation = document.getElementById("lineupFormation")?.value || "4-3-3 flat";
   const slots = meta?.formations?.slots?.[formation] || [];
   const lineup = slots.map((slot) => {
-    const el = document.querySelector(`[data-slot="${slot}"]`);
+    const el = document.querySelector(`select[data-slot="${slot}"]`);
+    const filterEl = document.querySelector(`[data-role-filter-slot="${slot}"]`);
+    const natural = roleFilterOptionsFor(slot, formation)[0] || "";
+    const roleFilter = (filterEl?.value || "").trim().toUpperCase();
     return {
       slot,
       player: (el?.value || "").trim(),
       captain: false,
       vice_captain: false,
+      role_filter: roleFilter && roleFilter !== natural ? roleFilter : roleFilter || "",
     };
   });
   return {
@@ -177,9 +226,9 @@ async function onFormationChange() {
   if (lineupData?.locked) return;
   const formation = document.getElementById("lineupFormation")?.value;
   const roster = lineupData?.roster || [];
-  const players = [...document.querySelectorAll("[data-slot]")]
-    .map((el) => el.value.trim())
-    .filter(Boolean);
+    const players = [...document.querySelectorAll("select[data-slot]")]
+      .map((el) => el.value.trim())
+      .filter(Boolean);
   const status = document.getElementById("lineupStatus");
   if (status) status.textContent = "Reassigning slots…";
   try {
@@ -195,10 +244,7 @@ async function onFormationChange() {
     const grid = document.querySelector(".slot-grid");
     if (grid) {
       grid.innerHTML = slots
-        .map((slot) => {
-          const val = lineupMap[slot] || "";
-          return `<div class="form-row slot-row"><label>${esc(slot)}</label>${slotPlayerControl(slot, val, roster, lineupData?.locked)}</div>`;
-        })
+        .map((slot) => renderSlotRow(slot, lineupMap[slot] || "", roster, formation, "", lineupData?.locked))
         .join("");
     }
     if (status) status.textContent = "";

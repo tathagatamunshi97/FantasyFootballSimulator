@@ -1,0 +1,2317 @@
+{
+  "id": "30de44839074",
+  "user": "admin",
+  "matchday": true,
+  "created_at": "2026-07-11T10:08:40.994151+00:00",
+  "updated_at": "2026-07-11T10:09:32.494120+00:00",
+  "status": "ready",
+  "message": "Completed 10,000 simulations.",
+  "running": false,
+  "simulations": 10000,
+  "seed": null,
+  "team_a": {
+    "name": "Kinjal+Sayan C",
+    "formation": "4-3-3 flat",
+    "lineup": [
+      {
+        "slot": "GK",
+        "player": "Marco Carnesecchi",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RB",
+        "player": "Willian Pacho",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB1",
+        "player": "Jérémy Jacquet",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB2",
+        "player": "Diego Godín",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LB",
+        "player": "Jules Koundé",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "DM",
+        "player": "Casemiro",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CM1",
+        "player": "Michael Olise",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CM2",
+        "player": "João Neves",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RW",
+        "player": "Rafael Leão",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "ST",
+        "player": "Harry Kane",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LW",
+        "player": "Eli Junior Kroupi",
+        "captain": false,
+        "vice_captain": false
+      }
+    ],
+    "bench": [
+      "Pape Matar Sarr",
+      "Bruno Guimarães",
+      "Nico O'Reilly",
+      "Diogo Costa"
+    ],
+    "prime_player": "",
+    "peak_season": {
+      "player": "Diego Godin",
+      "season": "15/16"
+    },
+    "sheet_meta": {
+      "source": "google_sheets",
+      "player_count": 15,
+      "budgets": [
+        220.0,
+        220.0,
+        10.0,
+        80.0,
+        10.0,
+        10.0,
+        210.0,
+        60.0,
+        40.0,
+        10.0,
+        70.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0
+      ],
+      "ready": true,
+      "full_roster": [
+        "Michael Olise",
+        "Harry Kane",
+        "Jules Koundé",
+        "Willian Pacho",
+        "Casemiro",
+        "Pape Matar Sarr",
+        "João Neves",
+        "Diego Godín",
+        "Bruno Guimarães",
+        "Nico O'Reilly",
+        "Rafael Leão",
+        "Marco Carnesecchi",
+        "Jérémy Jacquet",
+        "Eli Junior Kroupi",
+        "Diogo Costa"
+      ],
+      "roster_players": [
+        "Marco Carnesecchi",
+        "Willian Pacho",
+        "Jérémy Jacquet",
+        "Diego Godín",
+        "Jules Koundé",
+        "Casemiro",
+        "Michael Olise",
+        "João Neves",
+        "Rafael Leão",
+        "Harry Kane",
+        "Eli Junior Kroupi"
+      ],
+      "bench_players": [
+        "Pape Matar Sarr",
+        "Bruno Guimarães",
+        "Nico O'Reilly",
+        "Diogo Costa"
+      ],
+      "squad_size": 15,
+      "season_pick": {
+        "player": "Diego Godin",
+        "season": "15/16"
+      }
+    }
+  },
+  "team_b": {
+    "name": "Raktim",
+    "formation": "4-3-3 flat",
+    "lineup": [
+      {
+        "slot": "GK",
+        "player": "Nick Pope",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RB",
+        "player": "Achraf Hakimi",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB1",
+        "player": "Jonathan Tah",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB2",
+        "player": "David Raum",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LB",
+        "player": "Trent Alexander-Arnold",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "DM",
+        "player": "Mikel Merino",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CM1",
+        "player": "Eberechi Eze",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CM2",
+        "player": "Youri Tielemans",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RW",
+        "player": "Viktor Gyökeres",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "ST",
+        "player": "Ayoub El Kaabi",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LW",
+        "player": "Takefusa Kubo",
+        "captain": false,
+        "vice_captain": false
+      }
+    ],
+    "bench": [
+      "Alisson",
+      "Alexis Sánchez",
+      "Éder Militão",
+      "Antonee Robinson"
+    ],
+    "prime_player": "",
+    "peak_season": {
+      "player": "Alexis Sanchez",
+      "season": "16/17"
+    },
+    "sheet_meta": {
+      "source": "google_sheets",
+      "player_count": 15,
+      "budgets": [
+        60.0,
+        180.0,
+        200.0,
+        40.0,
+        20.0,
+        40.0,
+        360.0,
+        10.0,
+        20.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0
+      ],
+      "ready": true,
+      "full_roster": [
+        "Trent Alexander-Arnold",
+        "Alisson",
+        "Achraf Hakimi",
+        "Ayoub El Kaabi",
+        "Mikel Merino",
+        "Viktor Gyökeres",
+        "Alexis Sánchez",
+        "Youri Tielemans",
+        "Eberechi Eze",
+        "Jonathan Tah",
+        "Éder Militão",
+        "Antonee Robinson",
+        "Nick Pope",
+        "Takefusa Kubo",
+        "David Raum"
+      ],
+      "roster_players": [
+        "Nick Pope",
+        "Achraf Hakimi",
+        "Jonathan Tah",
+        "David Raum",
+        "Trent Alexander-Arnold",
+        "Mikel Merino",
+        "Eberechi Eze",
+        "Youri Tielemans",
+        "Viktor Gyökeres",
+        "Ayoub El Kaabi",
+        "Takefusa Kubo"
+      ],
+      "bench_players": [
+        "Alisson",
+        "Alexis Sánchez",
+        "Éder Militão",
+        "Antonee Robinson"
+      ],
+      "squad_size": 15,
+      "season_pick": {
+        "player": "Alexis Sanchez",
+        "season": "16/17"
+      }
+    }
+  },
+  "report": {
+    "generated_at": "2026-07-11T10:09:32.483739+00:00",
+    "engine_version": "slot-aware-v2",
+    "matchup": {
+      "home": {
+        "name": "Kinjal+Sayan C",
+        "formation": "4-3-3 flat",
+        "lineup": [
+          {
+            "player": "Marco Carnesecchi",
+            "slot": "GK",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Willian Pacho",
+            "slot": "RB",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Jérémy Jacquet",
+            "slot": "CB1",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Diego Godín",
+            "slot": "CB2",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Jules Koundé",
+            "slot": "LB",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Casemiro",
+            "slot": "DM",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Michael Olise",
+            "slot": "CM1",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "João Neves",
+            "slot": "CM2",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Rafael Leão",
+            "slot": "RW",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Harry Kane",
+            "slot": "ST",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Eli Junior Kroupi",
+            "slot": "LW",
+            "captain": false,
+            "vice_captain": false
+          }
+        ]
+      },
+      "away": {
+        "name": "Raktim",
+        "formation": "4-3-3 flat",
+        "lineup": [
+          {
+            "player": "Nick Pope",
+            "slot": "GK",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Achraf Hakimi",
+            "slot": "RB",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Jonathan Tah",
+            "slot": "CB1",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "David Raum",
+            "slot": "CB2",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Trent Alexander-Arnold",
+            "slot": "LB",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Mikel Merino",
+            "slot": "DM",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Eberechi Eze",
+            "slot": "CM1",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Youri Tielemans",
+            "slot": "CM2",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Viktor Gyökeres",
+            "slot": "RW",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Ayoub El Kaabi",
+            "slot": "ST",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Takefusa Kubo",
+            "slot": "LW",
+            "captain": false,
+            "vice_captain": false
+          }
+        ]
+      }
+    },
+    "profiles": {
+      "home": {
+        "extended": {
+          "defensive_unit": 0.765,
+          "possession_control": 0.704,
+          "chance_creation": 0.49,
+          "attacking_effectiveness": 0.666,
+          "midfield_control": 0.636,
+          "finishing_threat": 0.778,
+          "formation_fit": 0.806,
+          "pressing_intensity": 0.536,
+          "press_resistance": 0.122,
+          "transition_threat": 0.475,
+          "aerial_defence": 0.522,
+          "team_composites": {
+            "creativity": 0.49,
+            "midfield_control": 0.636,
+            "possession_control": 0.704,
+            "finishing_threat": 0.778,
+            "defensive_solidity": 0.765,
+            "attacking_effectiveness": 0.666,
+            "pressing_intensity": 0.536,
+            "press_resistance": 0.122,
+            "transition_threat": 0.475,
+            "aerial_defence": 0.522,
+            "overall": 0.678
+          },
+          "units": {
+            "attack": 0.522,
+            "finishing": 0.969,
+            "chance_creation": 0.574,
+            "midfield": 0.67,
+            "defence": 0.584,
+            "midfield_defence": 0.374,
+            "transition_risk": 0.218,
+            "goalkeeper": 0.602,
+            "overall": 0.582,
+            "gk_confidence": 0.95,
+            "gk_is_backup": false
+          },
+          "xga_suppression": 0.691,
+          "xg_split": {
+            "finishing": 2.61,
+            "creation": 0.21,
+            "total_raw": 2.82
+          },
+          "fwd_xg90": 0.57,
+          "avg_pass_pct": 76.3,
+          "formation_fit_players": [
+            {
+              "player": "Marco Carnesecchi",
+              "slot": "GK",
+              "fit": 0.778,
+              "position": "GK"
+            },
+            {
+              "player": "Willian Pacho",
+              "slot": "RB",
+              "fit": 0.608,
+              "position": "CB"
+            },
+            {
+              "player": "Jérémy Jacquet",
+              "slot": "CB1",
+              "fit": 0.846,
+              "position": "CB"
+            },
+            {
+              "player": "Diego Godín",
+              "slot": "CB2",
+              "fit": 0.866,
+              "position": "CB"
+            },
+            {
+              "player": "Jules Koundé",
+              "slot": "LB",
+              "fit": 0.873,
+              "position": "LB"
+            },
+            {
+              "player": "Casemiro",
+              "slot": "DM",
+              "fit": 0.867,
+              "position": "CM"
+            },
+            {
+              "player": "Michael Olise",
+              "slot": "CM1",
+              "fit": 0.843,
+              "position": "CM"
+            },
+            {
+              "player": "João Neves",
+              "slot": "CM2",
+              "fit": 0.884,
+              "position": "CM"
+            },
+            {
+              "player": "Rafael Leão",
+              "slot": "RW",
+              "fit": 0.761,
+              "position": "ST"
+            },
+            {
+              "player": "Harry Kane",
+              "slot": "ST",
+              "fit": 0.976,
+              "position": "ST"
+            },
+            {
+              "player": "Eli Junior Kroupi",
+              "slot": "LW",
+              "fit": 0.566,
+              "position": "ST"
+            }
+          ]
+        },
+        "fullbacks": {
+          "fullbacks": [
+            {
+              "player": "Willian Pacho",
+              "slot": "RB",
+              "xa90": 0.02,
+              "key_passes90": 0.11,
+              "creation_score": 0.238,
+              "attack_exposure": 0.123,
+              "fit": 0.608
+            },
+            {
+              "player": "Jules Koundé",
+              "slot": "LB",
+              "xa90": 0.13,
+              "key_passes90": 1.01,
+              "creation_score": 0.402,
+              "attack_exposure": 0.318,
+              "fit": 0.873
+            }
+          ],
+          "transition_risk": 0.218,
+          "xga_suppression_base": 0.787,
+          "xga_suppression_with_transition": 0.799
+        },
+        "trophy_multiplier": 1.0568,
+        "players": [
+          {
+            "player": "Marco Carnesecchi",
+            "slot": "GK",
+            "team": "Atalanta",
+            "xg90": 0.0,
+            "npxg90": 0.0,
+            "xa90": 0.0,
+            "xg_buildup90": 0.19,
+            "rating": 7.26,
+            "minutes": 3195,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Willian Pacho",
+            "slot": "RB",
+            "team": "Paris Saint-Germain",
+            "xg90": 0.03,
+            "npxg90": 0.02,
+            "xa90": 0.02,
+            "xg_buildup90": 0.71,
+            "rating": 7.0,
+            "minutes": 2022,
+            "trophy_bonus": 0.18,
+            "trophy_notes": [
+              "2024-2025: league winner (Paris Saint-Germain)",
+              "2024-2025: UCL winner (Paris Saint-Germain)",
+              "2025-2026: league winner (Paris Saint-Germain)",
+              "2025-2026: UCL winner (Paris Saint-Germain)"
+            ]
+          },
+          {
+            "player": "Jérémy Jacquet",
+            "slot": "CB1",
+            "team": "Stade Rennais",
+            "xg90": 0.06,
+            "npxg90": 0.04,
+            "xa90": 0.03,
+            "xg_buildup90": 0.4,
+            "rating": 6.99,
+            "minutes": 1673,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Diego Godín",
+            "slot": "CB2",
+            "team": "Atlético Madrid",
+            "xg90": 0.09,
+            "npxg90": 0.09,
+            "xa90": 0.04,
+            "xg_buildup90": 0.19,
+            "rating": 6.67,
+            "minutes": 2648,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Jules Koundé",
+            "slot": "LB",
+            "team": "FC Barcelona",
+            "xg90": 0.06,
+            "npxg90": 0.09,
+            "xa90": 0.13,
+            "xg_buildup90": 0.72,
+            "rating": 7.04,
+            "minutes": 2437,
+            "trophy_bonus": 0.09,
+            "trophy_notes": [
+              "2024-2025: league winner (FC Barcelona)",
+              "2025-2026: league winner (FC Barcelona)"
+            ]
+          },
+          {
+            "player": "Casemiro",
+            "slot": "DM",
+            "team": "Manchester United",
+            "xg90": 0.19,
+            "npxg90": 0.17,
+            "xa90": 0.11,
+            "xg_buildup90": 0.35,
+            "rating": 7.22,
+            "minutes": 2593,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Michael Olise",
+            "slot": "CM1",
+            "team": "FC Bayern München",
+            "xg90": 0.41,
+            "npxg90": 0.42,
+            "xa90": 0.57,
+            "xg_buildup90": 0.62,
+            "rating": 7.89,
+            "minutes": 2331,
+            "trophy_bonus": 0.09,
+            "trophy_notes": [
+              "2024-2025: league winner (FC Bayern München)",
+              "2025-2026: league winner (FC Bayern München)"
+            ]
+          },
+          {
+            "player": "João Neves",
+            "slot": "CM2",
+            "team": "Paris Saint-Germain",
+            "xg90": 0.17,
+            "npxg90": 0.2,
+            "xa90": 0.17,
+            "xg_buildup90": 0.63,
+            "rating": 7.28,
+            "minutes": 1572,
+            "trophy_bonus": 0.1747,
+            "trophy_notes": [
+              "2024-2025: league winner (Paris Saint-Germain)",
+              "2024-2025: UCL winner (Paris Saint-Germain)",
+              "2025-2026: league winner (Paris Saint-Germain)",
+              "2025-2026: UCL winner (Paris Saint-Germain)"
+            ]
+          },
+          {
+            "player": "Rafael Leão",
+            "slot": "RW",
+            "team": "AC Milan",
+            "xg90": 0.38,
+            "npxg90": 0.36,
+            "xa90": 0.2,
+            "xg_buildup90": 0.3,
+            "rating": 7.05,
+            "minutes": 2094,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Harry Kane",
+            "slot": "ST",
+            "team": "FC Bayern München",
+            "xg90": 0.89,
+            "npxg90": 0.74,
+            "xa90": 0.19,
+            "xg_buildup90": 0.36,
+            "rating": 7.79,
+            "minutes": 2385,
+            "trophy_bonus": 0.09,
+            "trophy_notes": [
+              "2024-2025: league winner (FC Bayern München)",
+              "2025-2026: league winner (FC Bayern München)"
+            ]
+          },
+          {
+            "player": "Eli Junior Kroupi",
+            "slot": "LW",
+            "team": "Bournemouth",
+            "xg90": 0.44,
+            "npxg90": 0.39,
+            "xa90": 0.08,
+            "xg_buildup90": 0.27,
+            "rating": 6.81,
+            "minutes": 1690,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          }
+        ]
+      },
+      "away": {
+        "extended": {
+          "defensive_unit": 0.555,
+          "possession_control": 0.644,
+          "chance_creation": 0.489,
+          "attacking_effectiveness": 0.503,
+          "midfield_control": 0.489,
+          "finishing_threat": 0.58,
+          "formation_fit": 0.76,
+          "pressing_intensity": 0.472,
+          "press_resistance": 0.186,
+          "transition_threat": 0.415,
+          "aerial_defence": 0.288,
+          "team_composites": {
+            "creativity": 0.489,
+            "midfield_control": 0.489,
+            "possession_control": 0.644,
+            "finishing_threat": 0.58,
+            "defensive_solidity": 0.555,
+            "attacking_effectiveness": 0.503,
+            "pressing_intensity": 0.472,
+            "press_resistance": 0.186,
+            "transition_threat": 0.415,
+            "aerial_defence": 0.288,
+            "overall": 0.545
+          },
+          "units": {
+            "attack": 0.306,
+            "finishing": 0.612,
+            "chance_creation": 0.477,
+            "midfield": 0.434,
+            "defence": 0.476,
+            "midfield_defence": 0.319,
+            "transition_risk": 0.417,
+            "goalkeeper": 0.296,
+            "overall": 0.392,
+            "gk_confidence": 0.791,
+            "gk_is_backup": false
+          },
+          "xga_suppression": 0.749,
+          "xg_split": {
+            "finishing": 1.97,
+            "creation": 0.18,
+            "total_raw": 2.14
+          },
+          "fwd_xg90": 0.46,
+          "avg_pass_pct": 78.8,
+          "formation_fit_players": [
+            {
+              "player": "Nick Pope",
+              "slot": "GK",
+              "fit": 0.759,
+              "position": "GK"
+            },
+            {
+              "player": "Achraf Hakimi",
+              "slot": "RB",
+              "fit": 0.885,
+              "position": "RB"
+            },
+            {
+              "player": "Jonathan Tah",
+              "slot": "CB1",
+              "fit": 0.847,
+              "position": "CB"
+            },
+            {
+              "player": "David Raum",
+              "slot": "CB2",
+              "fit": 0.571,
+              "position": "LB"
+            },
+            {
+              "player": "Trent Alexander-Arnold",
+              "slot": "LB",
+              "fit": 0.924,
+              "position": "LB"
+            },
+            {
+              "player": "Mikel Merino",
+              "slot": "DM",
+              "fit": 0.705,
+              "position": "ST"
+            },
+            {
+              "player": "Eberechi Eze",
+              "slot": "CM1",
+              "fit": 0.764,
+              "position": "CM"
+            },
+            {
+              "player": "Youri Tielemans",
+              "slot": "CM2",
+              "fit": 0.875,
+              "position": "CM"
+            },
+            {
+              "player": "Viktor Gyökeres",
+              "slot": "RW",
+              "fit": 0.572,
+              "position": "ST"
+            },
+            {
+              "player": "Ayoub El Kaabi",
+              "slot": "ST",
+              "fit": 0.818,
+              "position": "ST"
+            },
+            {
+              "player": "Takefusa Kubo",
+              "slot": "LW",
+              "fit": 0.637,
+              "position": "CM"
+            }
+          ]
+        },
+        "fullbacks": {
+          "fullbacks": [
+            {
+              "player": "Achraf Hakimi",
+              "slot": "RB",
+              "xa90": 0.19,
+              "key_passes90": 1.8,
+              "creation_score": 0.478,
+              "attack_exposure": 0.446,
+              "fit": 0.885
+            },
+            {
+              "player": "Trent Alexander-Arnold",
+              "slot": "LB",
+              "xa90": 0.28,
+              "key_passes90": 2.12,
+              "creation_score": 0.557,
+              "attack_exposure": 0.515,
+              "fit": 0.924
+            }
+          ],
+          "transition_risk": 0.417,
+          "xga_suppression_base": 0.825,
+          "xga_suppression_with_transition": 0.845
+        },
+        "trophy_multiplier": 1.0373,
+        "players": [
+          {
+            "player": "Nick Pope",
+            "slot": "GK",
+            "team": "Newcastle United",
+            "xg90": 0.0,
+            "npxg90": 0.0,
+            "xa90": 0.0,
+            "xg_buildup90": 0.13,
+            "rating": 7.0,
+            "minutes": 2468,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Achraf Hakimi",
+            "slot": "RB",
+            "team": "Paris Saint-Germain",
+            "xg90": 0.14,
+            "npxg90": 0.18,
+            "xa90": 0.19,
+            "xg_buildup90": 0.69,
+            "rating": 7.26,
+            "minutes": 1720,
+            "trophy_bonus": 0.18,
+            "trophy_notes": [
+              "2024-2025: league winner (Paris Saint-Germain)",
+              "2024-2025: UCL winner (Paris Saint-Germain)",
+              "2025-2026: league winner (Paris Saint-Germain)",
+              "2025-2026: UCL winner (Paris Saint-Germain)"
+            ]
+          },
+          {
+            "player": "Jonathan Tah",
+            "slot": "CB1",
+            "team": "FC Bayern München",
+            "xg90": 0.03,
+            "npxg90": 0.03,
+            "xa90": 0.07,
+            "xg_buildup90": 0.5,
+            "rating": 7.18,
+            "minutes": 2497,
+            "trophy_bonus": 0.045,
+            "trophy_notes": [
+              "2025-2026: league winner (FC Bayern München)"
+            ]
+          },
+          {
+            "player": "David Raum",
+            "slot": "CB2",
+            "team": "RB Leipzig",
+            "xg90": 0.05,
+            "npxg90": 0.05,
+            "xa90": 0.4,
+            "xg_buildup90": 0.43,
+            "rating": 7.27,
+            "minutes": 2172,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Trent Alexander-Arnold",
+            "slot": "LB",
+            "team": "Liverpool FC",
+            "xg90": 0.07,
+            "npxg90": 0.07,
+            "xa90": 0.28,
+            "xg_buildup90": 0.52,
+            "rating": 7.25,
+            "minutes": 2377,
+            "trophy_bonus": 0.045,
+            "trophy_notes": [
+              "2024-2025: league winner (Liverpool)"
+            ]
+          },
+          {
+            "player": "Mikel Merino",
+            "slot": "DM",
+            "team": "Arsenal",
+            "xg90": 0.33,
+            "npxg90": 0.43,
+            "xa90": 0.07,
+            "xg_buildup90": 0.34,
+            "rating": 7.03,
+            "minutes": 1597,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Eberechi Eze",
+            "slot": "CM1",
+            "team": "Arsenal",
+            "xg90": 0.3,
+            "npxg90": 0.22,
+            "xa90": 0.14,
+            "xg_buildup90": 0.19,
+            "rating": 7.12,
+            "minutes": 2250,
+            "trophy_bonus": 0.07,
+            "trophy_notes": [
+              "2025-2026: league winner (Arsenal)",
+              "2025-2026: UCL finalist (Arsenal)"
+            ]
+          },
+          {
+            "player": "Youri Tielemans",
+            "slot": "CM2",
+            "team": "Aston Villa",
+            "xg90": 0.08,
+            "npxg90": 0.09,
+            "xa90": 0.16,
+            "xg_buildup90": 0.42,
+            "rating": 7.29,
+            "minutes": 2447,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Viktor Gyökeres",
+            "slot": "RW",
+            "team": "Arsenal",
+            "xg90": 0.5,
+            "npxg90": 0.46,
+            "xa90": 0.08,
+            "xg_buildup90": 0.13,
+            "rating": 6.61,
+            "minutes": 2254,
+            "trophy_bonus": 0.07,
+            "trophy_notes": [
+              "2025-2026: league winner (Arsenal)",
+              "2025-2026: UCL finalist (Arsenal)"
+            ]
+          },
+          {
+            "player": "Ayoub El Kaabi",
+            "slot": "ST",
+            "team": "Olympiacos",
+            "xg90": 0.55,
+            "npxg90": 0.64,
+            "xa90": 0.09,
+            "xg_buildup90": 0.0,
+            "rating": 7.2,
+            "minutes": 1964,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Takefusa Kubo",
+            "slot": "LW",
+            "team": "Real Sociedad",
+            "xg90": 0.14,
+            "npxg90": 0.16,
+            "xa90": 0.18,
+            "xg_buildup90": 0.22,
+            "rating": 7.05,
+            "minutes": 1945,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          }
+        ]
+      }
+    },
+    "mechanics": {
+      "home_attacks_vs_away_defence": 0.845,
+      "away_attacks_vs_home_defence": 0.799,
+      "midfield_battle": {
+        "home_multiplier": 1.006,
+        "away_multiplier": 0.994
+      },
+      "wide_matchup": {
+        "home": {
+          "multiplier": 1.0062,
+          "boost": 0.0062,
+          "winger_threat": 0.459,
+          "transition_risk": 0.417,
+          "active": true
+        },
+        "away": {
+          "multiplier": 1.0,
+          "boost": 0.0,
+          "winger_threat": 0.422,
+          "transition_risk": 0.218,
+          "active": false
+        }
+      },
+      "press_matchup": {
+        "home": {
+          "multiplier": 0.9063,
+          "suppression": 0.0937,
+          "press_edge": 0.35,
+          "pressing_intensity": 0.536,
+          "press_resistance": 0.186,
+          "active": true
+        },
+        "away": {
+          "multiplier": 0.9048,
+          "suppression": 0.0952,
+          "press_edge": 0.35,
+          "pressing_intensity": 0.472,
+          "press_resistance": 0.122,
+          "active": true
+        }
+      }
+    },
+    "monte_carlo": {
+      "simulations": 10000,
+      "expected_xg": {
+        "home": 2.21,
+        "away": 1.95
+      },
+      "home_win_pct": 44.4,
+      "draw_pct": 20.2,
+      "away_win_pct": 35.4,
+      "home_goals_avg": 2.2,
+      "away_goals_avg": 1.97,
+      "total_goals_avg": 4.17,
+      "btts_pct": 76.3,
+      "over_2_5_pct": 78.3,
+      "scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.3
+        },
+        {
+          "score": "2-1",
+          "pct": 7.1
+        },
+        {
+          "score": "1-1",
+          "pct": 6.9
+        },
+        {
+          "score": "1-2",
+          "pct": 6.2
+        },
+        {
+          "score": "3-1",
+          "pct": 5.5
+        },
+        {
+          "score": "3-2",
+          "pct": 5.4
+        },
+        {
+          "score": "2-3",
+          "pct": 4.6
+        },
+        {
+          "score": "1-3",
+          "pct": 4.2
+        }
+      ],
+      "unit_ratings": {
+        "home": {
+          "attack": 0.904,
+          "finishing": 1.0,
+          "chance_creation": 0.7,
+          "midfield": 0.341,
+          "defence": 0.31,
+          "midfield_defence": 0.189,
+          "transition_risk": 0.218,
+          "goalkeeper": 0.64,
+          "overall": 0.542,
+          "gk_confidence": 0.95,
+          "gk_is_backup": false
+        },
+        "away": {
+          "attack": 0.817,
+          "finishing": 0.956,
+          "chance_creation": 0.636,
+          "midfield": 0.269,
+          "defence": 0.247,
+          "midfield_defence": 0.159,
+          "transition_risk": 0.417,
+          "goalkeeper": 0.309,
+          "overall": 0.439,
+          "gk_confidence": 0.791,
+          "gk_is_backup": false
+        }
+      },
+      "home_trophy_multiplier": 1.0568,
+      "away_trophy_multiplier": 1.0373,
+      "midfield_battle": {
+        "home_chance_multiplier": 1.007,
+        "away_chance_multiplier": 0.993
+      },
+      "bench_impact": {
+        "home": {
+          "bench_count": 4,
+          "bench_players": [
+            "Pape Matar Sarr",
+            "Bruno Guimarães",
+            "Nico O'Reilly",
+            "Diogo Costa"
+          ],
+          "starting_xi": [
+            "Marco Carnesecchi",
+            "Willian Pacho",
+            "Jérémy Jacquet",
+            "Diego Godín",
+            "Jules Koundé",
+            "Casemiro",
+            "Michael Olise",
+            "João Neves",
+            "Rafael Leão",
+            "Harry Kane",
+            "Eli Junior Kroupi"
+          ],
+          "full_squad_size": 15,
+          "players": [
+            {
+              "player": "Pape Matar Sarr",
+              "fpl_position": "MID",
+              "scores": {
+                "attacking": 0.26,
+                "creative": 0.261,
+                "defensive": 0.414
+              },
+              "traits": {
+                "xg90": 0.175,
+                "npxg90": 0.162,
+                "goals90": 0.141,
+                "shots90": 1.6,
+                "xa90": 0.037,
+                "key_passes90": 0.753,
+                "xg_buildup90": 0.336,
+                "big_chances_created90": 0.047,
+                "tackles90": 2.305,
+                "interceptions90": 1.411,
+                "clearances90": 1.129,
+                "goals_prevented90": 0.0
+              },
+              "outstanding": {
+                "attacking": false,
+                "creative": false,
+                "defensive": true
+              }
+            },
+            {
+              "player": "Bruno Guimarães",
+              "fpl_position": "MID",
+              "scores": {
+                "attacking": 0.285,
+                "creative": 0.466,
+                "defensive": 0.326
+              },
+              "traits": {
+                "xg90": 0.162,
+                "npxg90": 0.156,
+                "goals90": 0.234,
+                "shots90": 1.387,
+                "xa90": 0.165,
+                "key_passes90": 1.57,
+                "xg_buildup90": 0.361,
+                "big_chances_created90": 0.293,
+                "tackles90": 2.274,
+                "interceptions90": 0.673,
+                "clearances90": 1.208,
+                "goals_prevented90": 0.0
+              },
+              "outstanding": {
+                "attacking": true,
+                "creative": true,
+                "defensive": false
+              }
+            },
+            {
+              "player": "Nico O'Reilly",
+              "fpl_position": "DEF",
+              "scores": {
+                "attacking": 0.289,
+                "creative": 0.344,
+                "defensive": 0.382
+              },
+              "traits": {
+                "xg90": 0.205,
+                "npxg90": 0.208,
+                "goals90": 0.17,
+                "shots90": 1.394,
+                "xa90": 0.091,
+                "key_passes90": 0.782,
+                "xg_buildup90": 0.393,
+                "big_chances_created90": 0.204,
+                "tackles90": 2.311,
+                "interceptions90": 0.68,
+                "clearances90": 2.447,
+                "goals_prevented90": 0.0
+              },
+              "outstanding": {
+                "attacking": true,
+                "creative": true,
+                "defensive": true
+              }
+            },
+            {
+              "player": "Diogo Costa",
+              "fpl_position": "GK",
+              "scores": {
+                "attacking": 0.0,
+                "creative": 0.001,
+                "defensive": 0.346
+              },
+              "traits": {
+                "xg90": 0.0,
+                "npxg90": 0.0,
+                "goals90": 0.0,
+                "shots90": 0.0,
+                "xa90": 0.003,
+                "key_passes90": 0.0,
+                "xg_buildup90": 0.0,
+                "big_chances_created90": 0.0,
+                "tackles90": 0.0,
+                "interceptions90": 0.0,
+                "clearances90": 0.839,
+                "goals_prevented90": 0.062
+              },
+              "outstanding": {
+                "attacking": false,
+                "creative": false,
+                "defensive": false
+              }
+            }
+          ],
+          "boosts": {
+            "attack": 0.0086,
+            "creation": 0.0122,
+            "defence": 0.0119,
+            "total_applied_pct": 0.0327
+          },
+          "contributed": true,
+          "summary": "4 on bench; 3 with standout quality (+3.3% squad depth boost).",
+          "team": "Kinjal+Sayan C"
+        },
+        "away": {
+          "bench_count": 4,
+          "bench_players": [
+            "Alisson",
+            "Alexis Sánchez",
+            "Éder Militão",
+            "Antonee Robinson"
+          ],
+          "starting_xi": [
+            "Nick Pope",
+            "Achraf Hakimi",
+            "Jonathan Tah",
+            "David Raum",
+            "Trent Alexander-Arnold",
+            "Mikel Merino",
+            "Eberechi Eze",
+            "Youri Tielemans",
+            "Viktor Gyökeres",
+            "Ayoub El Kaabi",
+            "Takefusa Kubo"
+          ],
+          "full_squad_size": 15,
+          "players": [
+            {
+              "player": "Alisson",
+              "fpl_position": "GK",
+              "scores": {
+                "attacking": 0.0,
+                "creative": 0.121,
+                "defensive": 0.052
+              },
+              "traits": {
+                "xg90": 0.0,
+                "npxg90": 0.0,
+                "goals90": 0.0,
+                "shots90": 0.0,
+                "xa90": 0.005,
+                "key_passes90": 0.018,
+                "xg_buildup90": 0.25,
+                "big_chances_created90": 0.018,
+                "tackles90": 0.018,
+                "interceptions90": 0.0,
+                "clearances90": 1.268,
+                "goals_prevented90": -0.014
+              },
+              "outstanding": {
+                "attacking": false,
+                "creative": false,
+                "defensive": false
+              }
+            },
+            {
+              "player": "Alexis Sánchez",
+              "fpl_position": "FWD",
+              "scores": {
+                "attacking": 0.725,
+                "creative": 0.477,
+                "defensive": 0.187
+              },
+              "traits": {
+                "xg90": 0.43,
+                "npxg90": 0.43,
+                "goals90": 0.67,
+                "shots90": 3.61,
+                "xa90": 0.25,
+                "key_passes90": 2.171,
+                "xg_buildup90": 0.253,
+                "big_chances_created90": 0.0,
+                "tackles90": 1.119,
+                "interceptions90": 0.755,
+                "clearances90": 0.0,
+                "goals_prevented90": 0.0
+              },
+              "outstanding": {
+                "attacking": true,
+                "creative": true,
+                "defensive": true
+              }
+            },
+            {
+              "player": "Éder Militão",
+              "fpl_position": "DEF",
+              "scores": {
+                "attacking": 0.028,
+                "creative": 0.25,
+                "defensive": 0.156
+              },
+              "traits": {
+                "xg90": 0.015,
+                "npxg90": 0.015,
+                "goals90": 0.0,
+                "shots90": 0.36,
+                "xa90": 0.0,
+                "key_passes90": 0.0,
+                "xg_buildup90": 0.585,
+                "big_chances_created90": 0.0,
+                "tackles90": 0.544,
+                "interceptions90": 0.907,
+                "clearances90": 0.0,
+                "goals_prevented90": 0.0
+              },
+              "outstanding": {
+                "attacking": false,
+                "creative": true,
+                "defensive": false
+              }
+            },
+            {
+              "player": "Antonee Robinson",
+              "fpl_position": "DEF",
+              "scores": {
+                "attacking": 0.056,
+                "creative": 0.354,
+                "defensive": 0.592
+              },
+              "traits": {
+                "xg90": 0.042,
+                "npxg90": 0.022,
+                "goals90": 0.03,
+                "shots90": 0.408,
+                "xa90": 0.106,
+                "key_passes90": 1.289,
+                "xg_buildup90": 0.312,
+                "big_chances_created90": 0.115,
+                "tackles90": 2.798,
+                "interceptions90": 1.756,
+                "clearances90": 3.407,
+                "goals_prevented90": 0.0
+              },
+              "outstanding": {
+                "attacking": false,
+                "creative": false,
+                "defensive": true
+              }
+            }
+          ],
+          "boosts": {
+            "attack": 0.02,
+            "creation": 0.0109,
+            "defence": 0.0117,
+            "total_applied_pct": 0.0426
+          },
+          "contributed": true,
+          "summary": "4 on bench; 3 with standout quality (+4.3% squad depth boost).",
+          "team": "Raktim"
+        }
+      }
+    },
+    "bench_impact": {
+      "home": {
+        "bench_count": 4,
+        "bench_players": [
+          "Pape Matar Sarr",
+          "Bruno Guimarães",
+          "Nico O'Reilly",
+          "Diogo Costa"
+        ],
+        "starting_xi": [
+          "Marco Carnesecchi",
+          "Willian Pacho",
+          "Jérémy Jacquet",
+          "Diego Godín",
+          "Jules Koundé",
+          "Casemiro",
+          "Michael Olise",
+          "João Neves",
+          "Rafael Leão",
+          "Harry Kane",
+          "Eli Junior Kroupi"
+        ],
+        "full_squad_size": 15,
+        "players": [
+          {
+            "player": "Pape Matar Sarr",
+            "fpl_position": "MID",
+            "scores": {
+              "attacking": 0.26,
+              "creative": 0.261,
+              "defensive": 0.414
+            },
+            "traits": {
+              "xg90": 0.175,
+              "npxg90": 0.162,
+              "goals90": 0.141,
+              "shots90": 1.6,
+              "xa90": 0.037,
+              "key_passes90": 0.753,
+              "xg_buildup90": 0.336,
+              "big_chances_created90": 0.047,
+              "tackles90": 2.305,
+              "interceptions90": 1.411,
+              "clearances90": 1.129,
+              "goals_prevented90": 0.0
+            },
+            "outstanding": {
+              "attacking": false,
+              "creative": false,
+              "defensive": true
+            }
+          },
+          {
+            "player": "Bruno Guimarães",
+            "fpl_position": "MID",
+            "scores": {
+              "attacking": 0.285,
+              "creative": 0.466,
+              "defensive": 0.326
+            },
+            "traits": {
+              "xg90": 0.162,
+              "npxg90": 0.156,
+              "goals90": 0.234,
+              "shots90": 1.387,
+              "xa90": 0.165,
+              "key_passes90": 1.57,
+              "xg_buildup90": 0.361,
+              "big_chances_created90": 0.293,
+              "tackles90": 2.274,
+              "interceptions90": 0.673,
+              "clearances90": 1.208,
+              "goals_prevented90": 0.0
+            },
+            "outstanding": {
+              "attacking": true,
+              "creative": true,
+              "defensive": false
+            }
+          },
+          {
+            "player": "Nico O'Reilly",
+            "fpl_position": "DEF",
+            "scores": {
+              "attacking": 0.289,
+              "creative": 0.344,
+              "defensive": 0.382
+            },
+            "traits": {
+              "xg90": 0.205,
+              "npxg90": 0.208,
+              "goals90": 0.17,
+              "shots90": 1.394,
+              "xa90": 0.091,
+              "key_passes90": 0.782,
+              "xg_buildup90": 0.393,
+              "big_chances_created90": 0.204,
+              "tackles90": 2.311,
+              "interceptions90": 0.68,
+              "clearances90": 2.447,
+              "goals_prevented90": 0.0
+            },
+            "outstanding": {
+              "attacking": true,
+              "creative": true,
+              "defensive": true
+            }
+          },
+          {
+            "player": "Diogo Costa",
+            "fpl_position": "GK",
+            "scores": {
+              "attacking": 0.0,
+              "creative": 0.001,
+              "defensive": 0.346
+            },
+            "traits": {
+              "xg90": 0.0,
+              "npxg90": 0.0,
+              "goals90": 0.0,
+              "shots90": 0.0,
+              "xa90": 0.003,
+              "key_passes90": 0.0,
+              "xg_buildup90": 0.0,
+              "big_chances_created90": 0.0,
+              "tackles90": 0.0,
+              "interceptions90": 0.0,
+              "clearances90": 0.839,
+              "goals_prevented90": 0.062
+            },
+            "outstanding": {
+              "attacking": false,
+              "creative": false,
+              "defensive": false
+            }
+          }
+        ],
+        "boosts": {
+          "attack": 0.0086,
+          "creation": 0.0122,
+          "defence": 0.0119,
+          "total_applied_pct": 0.0327
+        },
+        "contributed": true,
+        "summary": "4 on bench; 3 with standout quality (+3.3% squad depth boost).",
+        "team": "Kinjal+Sayan C"
+      },
+      "away": {
+        "bench_count": 4,
+        "bench_players": [
+          "Alisson",
+          "Alexis Sánchez",
+          "Éder Militão",
+          "Antonee Robinson"
+        ],
+        "starting_xi": [
+          "Nick Pope",
+          "Achraf Hakimi",
+          "Jonathan Tah",
+          "David Raum",
+          "Trent Alexander-Arnold",
+          "Mikel Merino",
+          "Eberechi Eze",
+          "Youri Tielemans",
+          "Viktor Gyökeres",
+          "Ayoub El Kaabi",
+          "Takefusa Kubo"
+        ],
+        "full_squad_size": 15,
+        "players": [
+          {
+            "player": "Alisson",
+            "fpl_position": "GK",
+            "scores": {
+              "attacking": 0.0,
+              "creative": 0.121,
+              "defensive": 0.052
+            },
+            "traits": {
+              "xg90": 0.0,
+              "npxg90": 0.0,
+              "goals90": 0.0,
+              "shots90": 0.0,
+              "xa90": 0.005,
+              "key_passes90": 0.018,
+              "xg_buildup90": 0.25,
+              "big_chances_created90": 0.018,
+              "tackles90": 0.018,
+              "interceptions90": 0.0,
+              "clearances90": 1.268,
+              "goals_prevented90": -0.014
+            },
+            "outstanding": {
+              "attacking": false,
+              "creative": false,
+              "defensive": false
+            }
+          },
+          {
+            "player": "Alexis Sánchez",
+            "fpl_position": "FWD",
+            "scores": {
+              "attacking": 0.725,
+              "creative": 0.477,
+              "defensive": 0.187
+            },
+            "traits": {
+              "xg90": 0.43,
+              "npxg90": 0.43,
+              "goals90": 0.67,
+              "shots90": 3.61,
+              "xa90": 0.25,
+              "key_passes90": 2.171,
+              "xg_buildup90": 0.253,
+              "big_chances_created90": 0.0,
+              "tackles90": 1.119,
+              "interceptions90": 0.755,
+              "clearances90": 0.0,
+              "goals_prevented90": 0.0
+            },
+            "outstanding": {
+              "attacking": true,
+              "creative": true,
+              "defensive": true
+            }
+          },
+          {
+            "player": "Éder Militão",
+            "fpl_position": "DEF",
+            "scores": {
+              "attacking": 0.028,
+              "creative": 0.25,
+              "defensive": 0.156
+            },
+            "traits": {
+              "xg90": 0.015,
+              "npxg90": 0.015,
+              "goals90": 0.0,
+              "shots90": 0.36,
+              "xa90": 0.0,
+              "key_passes90": 0.0,
+              "xg_buildup90": 0.585,
+              "big_chances_created90": 0.0,
+              "tackles90": 0.544,
+              "interceptions90": 0.907,
+              "clearances90": 0.0,
+              "goals_prevented90": 0.0
+            },
+            "outstanding": {
+              "attacking": false,
+              "creative": true,
+              "defensive": false
+            }
+          },
+          {
+            "player": "Antonee Robinson",
+            "fpl_position": "DEF",
+            "scores": {
+              "attacking": 0.056,
+              "creative": 0.354,
+              "defensive": 0.592
+            },
+            "traits": {
+              "xg90": 0.042,
+              "npxg90": 0.022,
+              "goals90": 0.03,
+              "shots90": 0.408,
+              "xa90": 0.106,
+              "key_passes90": 1.289,
+              "xg_buildup90": 0.312,
+              "big_chances_created90": 0.115,
+              "tackles90": 2.798,
+              "interceptions90": 1.756,
+              "clearances90": 3.407,
+              "goals_prevented90": 0.0
+            },
+            "outstanding": {
+              "attacking": false,
+              "creative": false,
+              "defensive": true
+            }
+          }
+        ],
+        "boosts": {
+          "attack": 0.02,
+          "creation": 0.0109,
+          "defence": 0.0117,
+          "total_applied_pct": 0.0426
+        },
+        "contributed": true,
+        "summary": "4 on bench; 3 with standout quality (+4.3% squad depth boost).",
+        "team": "Raktim"
+      }
+    },
+    "sample_match": {
+      "scoreline": "5-2",
+      "home": {
+        "team": "Kinjal+Sayan C",
+        "goals": 5,
+        "xg": 2.21,
+        "scorers": [
+          {
+            "minute": 30,
+            "scorer": "Harry Kane",
+            "assister": "João Neves"
+          },
+          {
+            "minute": 49,
+            "scorer": "Jérémy Jacquet",
+            "assister": "Michael Olise"
+          },
+          {
+            "minute": 54,
+            "scorer": "Harry Kane",
+            "assister": "Michael Olise"
+          },
+          {
+            "minute": 54,
+            "scorer": "Michael Olise",
+            "assister": "Willian Pacho"
+          },
+          {
+            "minute": 65,
+            "scorer": "Michael Olise",
+            "assister": null
+          }
+        ]
+      },
+      "away": {
+        "team": "Raktim",
+        "goals": 2,
+        "xg": 1.95,
+        "scorers": [
+          {
+            "minute": 48,
+            "scorer": "Viktor Gyökeres",
+            "assister": "Trent Alexander-Arnold"
+          },
+          {
+            "minute": 60,
+            "scorer": "Mikel Merino",
+            "assister": "Achraf Hakimi"
+          }
+        ]
+      },
+      "winner": "Kinjal+Sayan C"
+    },
+    "season_overrides": {
+      "team_a": {
+        "peak_season": {
+          "type": "peak_season",
+          "requested": "Diego Godin",
+          "season_input": "15/16",
+          "resolved_name": "Diego Godín",
+          "season": "2015-2016",
+          "source": "manual_profiles",
+          "profile_type": "season_pick"
+        }
+      },
+      "team_b": {
+        "peak_season": {
+          "type": "peak_season",
+          "requested": "Alexis Sanchez",
+          "season_input": "16/17",
+          "resolved_name": "Alexis Sánchez",
+          "season": "2016-2017",
+          "source": "manual_profiles",
+          "profile_type": "season_pick"
+        }
+      }
+    },
+    "analysis": {
+      "favorite": "Kinjal+Sayan C",
+      "favorite_side": "home",
+      "margin": "moderate",
+      "summary": "Kinjal+Sayan C is favoured (44.4% win vs 35.4% for Raktim, 20.2% draw). Expected goals: Kinjal+Sayan C 2.21 – 1.95 Raktim.",
+      "expected_xg": {
+        "home": 2.21,
+        "away": 1.95,
+        "edge_side": "home",
+        "delta": 0.26
+      },
+      "outcomes": {
+        "home_win_pct": 44.4,
+        "draw_pct": 20.2,
+        "away_win_pct": 35.4
+      },
+      "key_factors": [
+        {
+          "factor": "Finishing quality",
+          "edge": "home",
+          "home": 0.969,
+          "away": 0.612,
+          "delta": -0.357,
+          "impact": 0.49979999999999997,
+          "explanation": "Kinjal+Sayan C converts chances better (finishing 0.97 vs 0.61)."
+        },
+        {
+          "factor": "Goalkeeper",
+          "edge": "home",
+          "home": 0.602,
+          "away": 0.296,
+          "delta": -0.306,
+          "impact": 0.306,
+          "explanation": "Kinjal+Sayan C has the stronger keeper (0.60 vs 0.30), shifting expected goals against."
+        },
+        {
+          "factor": "Transition risk",
+          "edge": "home",
+          "home": 0.218,
+          "away": 0.417,
+          "delta": 0.199,
+          "impact": 0.21890000000000004,
+          "explanation": "Kinjal+Sayan C is more exposed on the counter (transition risk 0.22 vs 0.42 — lower is safer)."
+        },
+        {
+          "factor": "Chance creation",
+          "edge": "home",
+          "home": 0.574,
+          "away": 0.477,
+          "delta": -0.097,
+          "impact": 0.12610000000000002,
+          "explanation": "Kinjal+Sayan C builds more volume (creation 0.57 vs 0.48)."
+        },
+        {
+          "factor": "Back-line defence",
+          "edge": "home",
+          "home": 0.584,
+          "away": 0.476,
+          "delta": -0.108,
+          "impact": 0.108,
+          "explanation": "Kinjal+Sayan C defends better in the back line (0.58 vs 0.48)."
+        },
+        {
+          "factor": "Midfield shield",
+          "edge": "home",
+          "home": 0.374,
+          "away": 0.319,
+          "delta": -0.055,
+          "impact": 0.0495,
+          "explanation": "Kinjal+Sayan C shields the defence better (mid-def 0.37 vs 0.32)."
+        }
+      ],
+      "head_to_head": {
+        "finishing": {
+          "home": 0.969,
+          "away": 0.612,
+          "edge": "home"
+        },
+        "chance_creation": {
+          "home": 0.574,
+          "away": 0.477,
+          "edge": "home"
+        },
+        "goalkeeper": {
+          "home": 0.602,
+          "away": 0.296,
+          "edge": "home"
+        },
+        "defence": {
+          "home": 0.584,
+          "away": 0.476,
+          "edge": "home"
+        },
+        "midfield_defence": {
+          "home": 0.374,
+          "away": 0.319,
+          "edge": "home"
+        },
+        "transition_risk": {
+          "home": 0.218,
+          "away": 0.417,
+          "edge": "home"
+        },
+        "possession": {
+          "home": 0.704,
+          "away": 0.644,
+          "edge": "home"
+        },
+        "formation_fit": {
+          "home": 0.806,
+          "away": 0.76,
+          "edge": "home"
+        }
+      },
+      "mechanics_summary": {
+        "home_attacks_vs_away_defence": 0.845,
+        "away_attacks_vs_home_defence": 0.799,
+        "midfield_battle": {
+          "home_multiplier": 1.006,
+          "away_multiplier": 0.994
+        },
+        "press_matchup": {
+          "home": {
+            "multiplier": 0.9063,
+            "suppression": 0.0937,
+            "press_edge": 0.35,
+            "pressing_intensity": 0.536,
+            "press_resistance": 0.186,
+            "active": true
+          },
+          "away": {
+            "multiplier": 0.9048,
+            "suppression": 0.0952,
+            "press_edge": 0.35,
+            "pressing_intensity": 0.472,
+            "press_resistance": 0.122,
+            "active": true
+          }
+        }
+      },
+      "sections": [
+        {
+          "title": "Verdict",
+          "paragraphs": [
+            "Kinjal+Sayan C is favoured (44.4% win vs 35.4% for Raktim, 20.2% draw). Expected goals: Kinjal+Sayan C 2.21 – 1.95 Raktim."
+          ],
+          "bullets": [
+            "Kinjal+Sayan C converts chances better (finishing 0.97 vs 0.61).",
+            "Kinjal+Sayan C has the stronger keeper (0.60 vs 0.30), shifting expected goals against.",
+            "Kinjal+Sayan C is more exposed on the counter (transition risk 0.22 vs 0.42 — lower is safer)."
+          ]
+        },
+        {
+          "title": "Season profiles (prime / pick-season)",
+          "paragraphs": [
+            "Kinjal+Sayan C pick-season: Diego Godín uses 2015-2016 only (stats fully replaced).",
+            "Raktim pick-season: Alexis Sánchez uses 2016-2017 only (stats fully replaced)."
+          ],
+          "bullets": [
+            "Prime player: entire stat line replaced by their best top-league season (2014-15+).",
+            "Pick-season player: stats replaced by the chosen season only (not blended with current form)."
+          ]
+        },
+        {
+          "title": "Squad depth (bench impact)",
+          "paragraphs": [
+            "Non-starters with elite per-90 traits add a small squad-depth multiplier to unit ratings (capped at ~5% total; bench cannot dominate outcomes).",
+            "Kinjal+Sayan C: 4 on bench; 3 with standout quality (+3.3% squad depth boost). Standouts: Pape Matar Sarr, Bruno Guimarães, Nico O'Reilly. Boosts — attack +0.9%, creation +1.2%, defence +1.2%.",
+            "Raktim: 4 on bench; 3 with standout quality (+4.3% squad depth boost). Standouts: Alexis Sánchez, Éder Militão, Antonee Robinson. Boosts — attack +2.0%, creation +1.1%, defence +1.2%."
+          ],
+          "bullets": []
+        },
+        {
+          "title": "Expected goals pipeline",
+          "paragraphs": [
+            "The engine splits attack into finishing and chance-creation channels (xA / xG-buildup / xG-chain credit all outfield positions), then applies opponent suppression (back line 54%, mid shield 32%, GK 14%) and midfield battle modifiers.",
+            "Kinjal+Sayan C raw attack xG: 2.61 finishing + 0.21 creation = 2.82 before suppression. When Raktim defends, suppression factor is 0.799 (DEF 0.48, mid-def 0.32, GK 0.30, transition risk 0.42).",
+            "Raktim raw attack xG: 1.97 + 0.18 = 2.14. Kinjal+Sayan C suppression when defending: 0.845 (transition risk 0.22).",
+            "Midfield battle multipliers: Kinjal+Sayan C ×1.006, Raktim ×0.994. Net xG edge: Kinjal+Sayan C by 0.26."
+          ],
+          "bullets": []
+        },
+        {
+          "title": "Defensive structure & transitions",
+          "paragraphs": [
+            "Kinjal+Sayan C xGA suppression: 0.691 (base without transition penalty: 0.787). Raktim: 0.749 (base 0.825).",
+            "Kinjal+Sayan C fullbacks: Willian Pacho (RB, exposure 0.12), Jules Koundé (LB, exposure 0.32). Team transition risk 0.218 — high attacking fullbacks increase counter vulnerability when midfield cover is thin.",
+            "Raktim fullbacks: Achraf Hakimi (RB, exposure 0.45), Trent Alexander-Arnold (LB, exposure 0.52). Team transition risk 0.417 — high attacking fullbacks increase counter vulnerability when midfield cover is thin.",
+            "Opposition wing threat vs leaky fullbacks: Kinjal+Sayan C's wide attack gets a +0.6% xG edge (winger threat 0.46, Raktim transition risk 0.42).",
+            "Press vs build-up: Kinjal+Sayan C's press trims Raktim's chance creation by ~9.4% (press 0.54 vs resistance 0.19). Press vs build-up: Raktim's press trims Kinjal+Sayan C's chance creation by ~9.5% (press 0.47 vs resistance 0.12)."
+          ],
+          "bullets": []
+        },
+        {
+          "title": "Formation & squad fit",
+          "paragraphs": [
+            "Kinjal+Sayan C (4-3-3 flat): average formation fit 0.81. Chance creation index 0.49, possession 0.70.",
+            "Raktim (4-3-3 flat): average formation fit 0.76. Chance creation index 0.49, possession 0.64."
+          ],
+          "bullets": []
+        },
+        {
+          "title": "Monte Carlo interpretation",
+          "paragraphs": [
+            "Across 10,000 neutral-venue runs, average scoreline tendency is 2.20–1.97. Both teams score 76.3% of the time; over 2.5 goals 78.3%.",
+            "Most common scoreline: 2-2 (7.3%)."
+          ],
+          "bullets": [
+            "Trophy boost: Kinjal+Sayan C ×1.057, Raktim ×1.037 (applied in simulation units)."
+          ]
+        }
+      ]
+    },
+    "squad_analysis": {
+      "home": {
+        "name": "Kinjal+Sayan C",
+        "formation": "4-3-3 flat",
+        "summary": "Kinjal+Sayan C: Elite defence (0.58).; Team press resistance is a concern (0.12).",
+        "strengths": [
+          "Elite defence (0.58).",
+          "Elite finishing (0.97).",
+          "Elite fit at CB1: Jérémy Jacquet (fit 0.85).",
+          "Elite fit at CB2: Diego Godín (fit 0.87).",
+          "Elite fit at CM1: Michael Olise (fit 0.84)."
+        ],
+        "weaknesses": [
+          "Team press resistance is a concern (0.12)."
+        ],
+        "tier_labels": {
+          "strength": [
+            "Elite defence (0.58).",
+            "Elite finishing (0.97).",
+            "Elite fit at CB1: Jérémy Jacquet (fit 0.85).",
+            "Elite fit at CB2: Diego Godín (fit 0.87).",
+            "Elite fit at CM1: Michael Olise (fit 0.84)."
+          ],
+          "moderate_strength": [],
+          "balanced": [],
+          "moderate_weakness": [],
+          "weakness": [
+            "Team press resistance is a concern (0.12)."
+          ]
+        },
+        "sections": [
+          {
+            "title": "Attack",
+            "bullets": [
+              "Attacking effectiveness 0.67 (whole XI).",
+              "Unit attack 0.52; finishing 0.97; creation 0.57.",
+              "Raw xG split: finishing 2.61 + creation 0.21."
+            ]
+          },
+          {
+            "title": "Midfield",
+            "bullets": [
+              "Midfield unit (DM/CM/AM slots) 0.67; team midfield control 0.64.",
+              "Possession control 0.70; pass completion avg 76.3%.",
+              "Pressing intensity 0.54; press resistance 0.12."
+            ]
+          },
+          {
+            "title": "Defence",
+            "bullets": [
+              "Back-line unit 0.58; midfield shield 0.37.",
+              "Team defensive solidity 0.77; aerial defence 0.52; xGA suppression 0.691.",
+              "Transition risk 0.22 (lower is safer).",
+              "Wide defenders: Willian Pacho (RB), Jules Koundé (LB)."
+            ]
+          },
+          {
+            "title": "Formation fit",
+            "bullets": [
+              "Average formation fit 0.81 in 4-3-3 flat.",
+              "No major formation-fit concerns in the starting XI."
+            ]
+          },
+          {
+            "title": "Squad depth",
+            "bullets": [
+              "4 on bench; 3 with standout quality (+3.3% squad depth boost).",
+              "Depth boosts: attack +0.9%, creation +1.2%, defence +1.2%.",
+              "Standout bench options: Pape Matar Sarr, Bruno Guimarães, Nico O'Reilly."
+            ]
+          },
+          {
+            "title": "Team profile",
+            "bullets": [
+              "Creativity 0.49 · Midfield control 0.64 · Possession 0.70.",
+              "Finishing threat 0.78 · Defensive solidity 0.77.",
+              "Pressing 0.54 · Press resistance 0.12 · Team profile overall 0.68."
+            ]
+          }
+        ],
+        "units": {
+          "attack": 0.522,
+          "finishing": 0.969,
+          "chance_creation": 0.574,
+          "midfield": 0.67,
+          "defence": 0.584,
+          "midfield_defence": 0.374,
+          "transition_risk": 0.218,
+          "goalkeeper": 0.602,
+          "overall": 0.582,
+          "gk_confidence": 0.95,
+          "gk_is_backup": 0.0
+        },
+        "team_composites": {
+          "creativity": 0.49,
+          "midfield_control": 0.636,
+          "possession_control": 0.704,
+          "finishing_threat": 0.778,
+          "defensive_solidity": 0.765,
+          "attacking_effectiveness": 0.666,
+          "pressing_intensity": 0.536,
+          "press_resistance": 0.122,
+          "transition_threat": 0.475,
+          "aerial_defence": 0.522,
+          "overall": 0.678
+        }
+      },
+      "away": {
+        "name": "Raktim",
+        "formation": "4-3-3 flat",
+        "summary": "Raktim: Elite defence (0.48).; High transition risk (0.42) — vulnerable on the counter — elite opposition wingers can exploit wide overloads.",
+        "strengths": [
+          "Elite defence (0.48).",
+          "Elite fit at CB1: Jonathan Tah (fit 0.85).",
+          "Elite fit at CM1: Eberechi Eze (fit 0.76).",
+          "Elite fit at CM2: Youri Tielemans (fit 0.88).",
+          "Elite fit at GK: Nick Pope (fit 0.76)."
+        ],
+        "weaknesses": [
+          "High transition risk (0.42) — vulnerable on the counter — elite opposition wingers can exploit wide overloads.",
+          "Team press resistance is a concern (0.19).",
+          "Thin attack (0.31).",
+          "Thin goalkeeper (0.30)."
+        ],
+        "tier_labels": {
+          "strength": [
+            "Elite defence (0.48).",
+            "Elite fit at CB1: Jonathan Tah (fit 0.85).",
+            "Elite fit at CM1: Eberechi Eze (fit 0.76).",
+            "Elite fit at CM2: Youri Tielemans (fit 0.88).",
+            "Elite fit at GK: Nick Pope (fit 0.76)."
+          ],
+          "moderate_strength": [],
+          "balanced": [],
+          "moderate_weakness": [],
+          "weakness": [
+            "High transition risk (0.42) — vulnerable on the counter — elite opposition wingers can exploit wide overloads.",
+            "Team press resistance is a concern (0.19).",
+            "Thin attack (0.31).",
+            "Thin goalkeeper (0.30)."
+          ]
+        },
+        "sections": [
+          {
+            "title": "Attack",
+            "bullets": [
+              "Attacking effectiveness 0.50 (whole XI).",
+              "Unit attack 0.31; finishing 0.61; creation 0.48.",
+              "Raw xG split: finishing 1.97 + creation 0.18."
+            ]
+          },
+          {
+            "title": "Midfield",
+            "bullets": [
+              "Midfield unit (DM/CM/AM slots) 0.43; team midfield control 0.49.",
+              "Possession control 0.64; pass completion avg 78.8%.",
+              "Pressing intensity 0.47; press resistance 0.19."
+            ]
+          },
+          {
+            "title": "Defence",
+            "bullets": [
+              "Back-line unit 0.48; midfield shield 0.32.",
+              "Team defensive solidity 0.56; aerial defence 0.29; xGA suppression 0.749.",
+              "Transition risk 0.42 (lower is safer).",
+              "Wide defenders: Achraf Hakimi (RB), Trent Alexander-Arnold (LB)."
+            ]
+          },
+          {
+            "title": "Formation fit",
+            "bullets": [
+              "Average formation fit 0.76 in 4-3-3 flat.",
+              "No major formation-fit concerns in the starting XI."
+            ]
+          },
+          {
+            "title": "Squad depth",
+            "bullets": [
+              "4 on bench; 3 with standout quality (+4.3% squad depth boost).",
+              "Depth boosts: attack +2.0%, creation +1.1%, defence +1.2%.",
+              "Standout bench options: Alexis Sánchez, Éder Militão, Antonee Robinson."
+            ]
+          },
+          {
+            "title": "Team profile",
+            "bullets": [
+              "Creativity 0.49 · Midfield control 0.49 · Possession 0.64.",
+              "Finishing threat 0.58 · Defensive solidity 0.56.",
+              "Pressing 0.47 · Press resistance 0.19 · Team profile overall 0.55."
+            ]
+          }
+        ],
+        "units": {
+          "attack": 0.306,
+          "finishing": 0.612,
+          "chance_creation": 0.477,
+          "midfield": 0.434,
+          "defence": 0.476,
+          "midfield_defence": 0.319,
+          "transition_risk": 0.417,
+          "goalkeeper": 0.296,
+          "overall": 0.392,
+          "gk_confidence": 0.791,
+          "gk_is_backup": 0.0
+        },
+        "team_composites": {
+          "creativity": 0.489,
+          "midfield_control": 0.489,
+          "possession_control": 0.644,
+          "finishing_threat": 0.58,
+          "defensive_solidity": 0.555,
+          "attacking_effectiveness": 0.503,
+          "pressing_intensity": 0.472,
+          "press_resistance": 0.186,
+          "transition_threat": 0.415,
+          "aerial_defence": 0.288,
+          "overall": 0.545
+        }
+      }
+    }
+  },
+  "tournament_id": "8411a9f6bdae",
+  "tournament_name": "Season Tournament",
+  "match_id": "gA-1",
+  "stage": "group_A"
+}

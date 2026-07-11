@@ -4,17 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Tournament — Match Simulator</title>
-  <link rel="stylesheet" href="/static/styles.css" />
+  <link rel="stylesheet" href="/static/styles.css?v=squad-rf-1" />
 </head>
 <body>
   <header>
     <div>
       <h1 id="tournamentTitle">Tournament</h1>
-      <div class="sub">Live standings &amp; fixtures · <a href="/">Home</a></div>
+      <div class="sub">Live standings &amp; fixtures · <a href="/">Home</a> · <a href="/squad">Squad hub</a></div>
     </div>
     <div class="header-actions">
       <span id="userLabel" class="muted"></span>
       <span id="statusBadge" class="badge">—</span>
+      <a href="/squad" class="btn-link">Squad hub</a>
       <a href="/admin#tournament" class="btn-link">Admin</a>
       <button type="button" id="refreshBtn" class="btn-ghost">Refresh</button>
     </div>
@@ -28,7 +29,8 @@
     Auto-refreshes every 15s · Engine v2
   </footer>
 
-  <script src="/static/common.js"></script>
-  <script src="/static/tournament.js"></script>
+  <script src="/static/common.js?v=squad-rf-1"></script>
+  <script src="/static/tactic_board.js?v=ko-et-3"></script>
+  <script src="/static/tournament.js?v=squad-rf-1"></script>
 </body>
 </html>

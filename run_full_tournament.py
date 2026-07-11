@@ -105,6 +105,7 @@ def _play_group_match(t: dict, gkey: str, fx: dict, n_sims: int) -> None:
         "home": fx["home"],
         "away": fx["away"],
         **snapshot,
+        **tmod._analysis_payload_from_report(report),
         "winner": winner,
         "played_at": tmod._now(),
     }
@@ -135,6 +136,7 @@ def _play_knockout_match(t: dict, tie: dict, n_sims: int) -> None:
         "home": tie["home"],
         "away": tie["away"],
         **snapshot,
+        **tmod._analysis_payload_from_report(report),
         "winner": winner,
         "played_at": tmod._now(),
     }

@@ -35,7 +35,7 @@ def build_team_profile(
     trophy = team_trophy_profile(team, player_stats)
     fit = team_formation_fit(
         team.formation,
-        [(s.player, s.slot) for s in team.lineup],
+        [(s.player, s.slot, getattr(s, "role_filter", "") or "") for s in team.lineup],
         player_stats,
     )
 
@@ -77,6 +77,13 @@ def build_team_profile(
                 "npxg90": round(p.npxg90, 2),
                 "xa90": round(p.xa90, 2),
                 "xg_buildup90": round(p.xg_buildup90, 2),
+                "shots90": round(p.shots90, 2),
+                "key_passes90": round(p.key_passes90 or p.understat_key_passes90, 2),
+                "dribbles90": round(p.dribbles90, 2),
+                "dribble_pct": round(p.dribble_pct, 1),
+                "tackles90": round(p.tackles90, 2),
+                "interceptions90": round(p.interceptions90, 2),
+                "pass_pct": round(p.pass_pct, 1),
                 "rating": round(p.rating, 2),
                 "minutes": int(p.minutes),
                 "trophy_bonus": tp.bonus,

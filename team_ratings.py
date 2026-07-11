@@ -32,7 +32,24 @@ from sample_confidence import (
 
 )
 
-from slot_roles import FULLBACK_SLOTS, WINGER_SLOTS, slot_role, slot_unit_weights
+from slot_roles import (
+    FULLBACK_SLOTS,
+    WINGER_SLOTS,
+    effective_slot_name,
+    slot_role,
+    slot_unit_weights,
+)
+
+
+def _eff_slot(slot) -> str:
+    """Formation slot remapped by optional role_filter for engine weights/roles."""
+    return effective_slot_name(slot.slot, getattr(slot, "role_filter", "") or "")
+
+
+def _slot_fit(stats: PlayerStats, team: FantasyTeam, slot) -> float:
+    return player_slot_fit(
+        stats, team.formation, slot.slot, role_filter=getattr(slot, "role_filter", "") or None
+    )
 
 # Slot-role buckets for unit ratings (only relevant players per unit).
 _ATTACK_ROLES = frozenset({"winger", "striker", "am"})
@@ -399,7 +416,8 @@ THREE_AT_BACK_NON_DEF_WIDE_SCALE = 0.62
 # LM/RM (attacking wide) push higher than LWB/RWB (balanced wingbacks).
 ATTACKING_WIDE_MID_TRANSITION_SCALE = 1.18
 BALANCED_WINGBACK_TRANSITION_SCALE = 0.95
-_NO_DM_THREE_BACK = frozenset({"3-5-2", "3-4-3(1)", "3-4-3(2)"})
+# Kept for legacy transition-shield fallback; all current 3-back shapes now include a DM.
+_NO_DM_THREE_BACK = frozenset()
 
 
 def _count_centre_backs(team: FantasyTeam) -> int:
@@ -422,7 +440,7 @@ def _midfield_shield_best_slots(team: FantasyTeam, player_stats: dict[str, Playe
     """Best-case DM/CM/AM screening for each midfielder — used for 4-back baseline ceiling."""
     by_player: list[float] = []
     for slot in team.lineup:
-        if slot_role(slot.slot) not in ("dm", "cm", "am"):
+        if slot_role(_eff_slot(slot)) not in ("dm", "cm", "am"):
             continue
         stats = player_stats[slot.player]
         best = 0.0
@@ -562,12 +580,13 @@ def _compute_transition_risk(
 
     for slot in team.lineup:
         stats = player_stats[slot.player]
-        fit = player_slot_fit(stats, team.formation, slot.slot)
-        role = slot_role(slot.slot)
+        eff = _eff_slot(slot)
+        fit = _slot_fit(stats, team, slot)
+        role = slot_role(eff)
 
-        if _counts_as_transition_exposure(formation, slot.slot, role):
+        if _counts_as_transition_exposure(formation, eff, role):
             exp = _fullback_attack_exposure(stats, fit)
-            su = slot.slot.upper()
+            su = eff.upper()
             if su in {"LM", "RM"}:
                 # Attacking wide mids get forward more → higher transition risk.
                 exp *= ATTACKING_WIDE_MID_TRANSITION_SCALE
@@ -578,13 +597,13 @@ def _compute_transition_risk(
                 exp *= THREE_AT_BACK_NON_DEF_WIDE_SCALE
             fb_exposure.append(exp)
         if role == "dm":
-            w = slot_unit_weights(slot.slot, stats.fpl_position)
+            w = slot_unit_weights(eff, stats.fpl_position)
             dm_cover.append(_player_midfield_defence_contrib(stats, fit) * w.midfield_defence)
         if role == "cm":
-            w = slot_unit_weights(slot.slot, stats.fpl_position)
+            w = slot_unit_weights(eff, stats.fpl_position)
             cm_cover.append(_player_midfield_defence_contrib(stats, fit) * w.midfield_defence)
         if role == "am":
-            w = slot_unit_weights(slot.slot, stats.fpl_position)
+            w = slot_unit_weights(eff, stats.fpl_position)
             am_cover.append(_player_midfield_defence_contrib(stats, fit) * w.midfield_defence)
 
     if not fb_exposure:
@@ -603,8 +622,8 @@ def _compute_transition_risk(
         has_def_at_wide = any(
             player_stats[s.player].fpl_position == "DEF"
             and (
-                slot_role(s.slot) == "fullback"
-                or _counts_as_transition_exposure(formation, s.slot, slot_role(s.slot))
+                slot_role(_eff_slot(s)) == "fullback"
+                or _counts_as_transition_exposure(formation, _eff_slot(s), slot_role(_eff_slot(s)))
             )
             for s in team.lineup
         )
@@ -647,9 +666,9 @@ def compute_unit_ratings(
 
         stats = player_stats[slot.player]
 
-        fit = player_slot_fit(stats, team.formation, slot.slot)
+        fit = _slot_fit(stats, team, slot)
 
-        weights = slot_unit_weights(slot.slot, stats.fpl_position)
+        weights = slot_unit_weights(_eff_slot(slot), stats.fpl_position)
 
 
 
@@ -777,8 +796,8 @@ def compute_unit_ratings_by_slot(
 
     for slot in team.lineup:
         stats = player_stats[slot.player]
-        fit = player_slot_fit(stats, team.formation, slot.slot)
-        role = slot_role(slot.slot)
+        fit = _slot_fit(stats, team, slot)
+        role = slot_role(_eff_slot(slot))
 
         if stats.fpl_position == "GK" or role == "gk":
             score, conf, backup = _player_gk_contrib(stats, fit)

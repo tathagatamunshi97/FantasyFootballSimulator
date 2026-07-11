@@ -1,6 +1,8 @@
 let tournamentId = null;
 let pollTimer = null;
 let currentTournament = null;
+let openAnalysisMatchId = null;
+let analysisCache = {};
 
 function qsParam(name) {
   return new URLSearchParams(window.location.search).get(name);
@@ -11,6 +13,7 @@ function tabBar(active) {
     ["draw", "Group draw"],
     ["fixtures", "Fixtures"],
     ["table", "Tables"],
+    ["stats", "Stats"],
     ["knockout", "Knockout"],
     ["results", "Results"],
   ];
@@ -20,6 +23,35 @@ function tabBar(active) {
         `<button type="button" class="tab-btn${active === id ? " active" : ""}" data-tab="${id}">${esc(label)}</button>`
     )
     .join("")}</nav>`;
+}
+
+function renderLeaderboardTable(rows, countKey, emptyMsg) {
+  if (!rows?.length) {
+    return `<p class="muted" style="margin:0">${esc(emptyMsg)}</p>`;
+  }
+  const body = rows
+    .map((r, i) => {
+      const n = r[countKey] ?? 0;
+      return `<tr><td>${i + 1}</td><td>${esc(r.player || "—")}</td><td>${esc(r.team || "—")}</td><td><strong>${n}</strong></td></tr>`;
+    })
+    .join("");
+  const countLabel = countKey === "goals" ? "G" : "A";
+  return `<table><thead><tr><th>#</th><th>Player</th><th>Team</th><th>${countLabel}</th></tr></thead><tbody>${body}</tbody></table>`;
+}
+
+function renderStats(t) {
+  const scorers = t.top_goalscorers || [];
+  const assisters = t.top_assisters || [];
+  return `<div class="grid-2" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem">
+    <div class="card">
+      <h3>Top goalscorers</h3>
+      ${renderLeaderboardTable(scorers, "goals", "No goals recorded yet — play matches on the tactic board.")}
+    </div>
+    <div class="card">
+      <h3>Top assisters</h3>
+      ${renderLeaderboardTable(assisters, "assists", "No assists recorded yet — assists count when a goal follows a teammate's pass.")}
+    </div>
+  </div>`;
 }
 
 function resultMeta(t, matchId) {
@@ -37,6 +69,19 @@ function reviewBadge(result) {
   }
   if (result.admin_accepted) return `<span class="muted"> · accepted</span>`;
   return `<span class="muted"> · pending review</span>`;
+}
+
+function analysisControls(fx, result) {
+  if (!fx?.played) return "";
+  const mid = esc(fx.id);
+  const has = Boolean(result?.has_analysis || analysisCache[fx.id]?.analysis);
+  if (!has) return "";
+  return `<div class="analysis-controls" style="margin-top:0.35rem">
+    <div class="btn-stack">
+      <button type="button" class="btn-ghost btn-sm view-analysis-btn" data-match-id="${mid}">See analysis</button>
+    </div>
+    <div class="match-analysis-panel" data-match-id="${mid}" hidden style="margin-top:0.5rem"></div>
+  </div>`;
 }
 
 function adminReviewControls(fx, result, { isKnockout = false } = {}) {
@@ -100,12 +145,26 @@ function renderFixtures(t, { showRun = false } = {}) {
           const result = resultMeta(t, fx.result_id || fx.id);
           let status;
           if (fx.played) {
-            status = `<div><strong>${esc(fx.score)}</strong>${fx.winner ? ` · ${esc(fx.winner)}` : ""}${reviewBadge(result)}</div>
+            const eid = fx.experiment_id || result?.experiment_id || "";
+            const xgH = result?.expected_xg?.home ?? "";
+            const xgA = result?.expected_xg?.away ?? "";
+            const watch = ` <button type="button" class="btn-ghost btn-sm watch-match-btn"
+              data-match-id="${esc(fx.id)}"
+              data-home="${esc(fx.home)}"
+              data-away="${esc(fx.away)}"
+              data-score="${esc(fx.score)}"
+              data-experiment-id="${esc(eid)}"
+              data-xg-home="${esc(String(xgH))}"
+              data-xg-away="${esc(String(xgA))}"
+            >Watch</button>`;
+            status = `<div><strong>${esc(fx.score)}</strong>${fx.winner ? ` · ${esc(fx.winner)}` : ""}${reviewBadge(result)}${watch}</div>
+              ${analysisControls(fx, result)}
               ${koLocked ? `<span class="muted" style="font-size:0.75rem">Group locked (KO generated)</span>` : adminReviewControls(fx, result)}`;
           } else if (showRun) {
-            status = `<button type="button" class="btn-ghost btn-sm run-fixture-btn" data-match-id="${esc(fx.id)}">Run</button>`;
+            status = `<button type="button" class="btn-ghost btn-sm run-fixture-btn" data-match-id="${esc(fx.id)}">Run</button>
+              <a class="btn-link btn-sm" href="/matchday" style="margin-left:0.35rem">Matchday</a>`;
           } else {
-            status = `<span class="muted">Scheduled</span>`;
+            status = `<span class="muted">Scheduled</span> <a class="btn-link btn-sm" href="/matchday">Watch Matchday</a>`;
           }
           return `<tr><td>R${fx.round}</td><td>${esc(fx.home)}</td><td>${esc(fx.away)}</td><td>${status}</td></tr>`;
         })
@@ -133,10 +192,25 @@ function renderKnockout(t, { showRun = false } = {}) {
           const result = resultMeta(t, tie.result_id || tie.id);
           let res;
           if (tie.played) {
-            res = `<div><strong>${esc(tie.score)}</strong> · ${esc(tie.winner)}${reviewBadge(result)}</div>
+            const eid = tie.experiment_id || result?.experiment_id || "";
+            const xgH = result?.expected_xg?.home ?? "";
+            const xgA = result?.expected_xg?.away ?? "";
+            const watch = ` <button type="button" class="btn-ghost btn-sm watch-match-btn"
+              data-match-id="${esc(tie.id)}"
+              data-home="${esc(tie.home)}"
+              data-away="${esc(tie.away)}"
+              data-score="${esc(tie.score)}"
+              data-experiment-id="${esc(eid)}"
+              data-xg-home="${esc(String(xgH))}"
+              data-xg-away="${esc(String(xgA))}"
+            >Watch</button>`;
+            res = `<div><strong>${esc(tie.score)}</strong> · ${esc(tie.winner)}${reviewBadge(result)}${watch}</div>
+              ${typeof knockoutScoreNote === "function" ? knockoutScoreNote(result) : ""}
+              ${analysisControls(tie, result)}
               ${adminReviewControls(tie, result, { isKnockout: true })}`;
           } else if (showRun && tie.home && tie.away) {
-            res = `<button type="button" class="btn-ghost btn-sm run-ko-btn" data-match-id="${esc(tie.id)}">Run</button>`;
+            res = `<button type="button" class="btn-ghost btn-sm run-ko-btn" data-match-id="${esc(tie.id)}">Run</button>
+              <a class="btn-link btn-sm" href="/matchday" style="margin-left:0.35rem">Matchday</a>`;
           } else {
             res = `<span class="muted">—</span>`;
           }
@@ -189,31 +263,48 @@ function renderTournament(t, activeTab) {
     top ${advance} advance (${koTeams} knockout teams)</p>
     ${
       showRun
-        ? `<p class="muted">Admin token detected — Run starts matchday; Accept / Override score reviews completed results.</p>`
-        : ""
+        ? `<p class="muted">Admin — <strong>Run</strong> opens Matchday for everyone (pre-match → live tactic board → FT). Knockout draws go to extra time, then pens. Pin goals are the official score.</p>`
+        : `<p class="muted">Live fixtures play on <a href="/matchday">Matchday</a>. Knockout draws go to extra time, then pens.</p>`
     }
+    <div id="liveMatchdayBanner" hidden class="badge live" style="display:none;margin-top:0.5rem"></div>
   </div>`;
 
   let body = "";
   if (activeTab === "draw") body = renderDraw(t);
   else if (activeTab === "fixtures") body = renderFixtures(t, { showRun });
   else if (activeTab === "table") body = renderTables(t);
+  else if (activeTab === "stats") body = renderStats(t);
   else if (activeTab === "knockout") body = renderKnockout(t, { showRun });
   else body = renderResults(t);
 
-  return meta + tabBar(activeTab) + `<div class="tab-panel">${body}</div>`;
+  return meta + tabBar(activeTab) + `<div class="tab-panel">${body}</div>` + `<div class="card tactic-watch-card" id="tournamentWatchDock" style="margin-top:1rem" hidden>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;flex-wrap:wrap">
+      <h2 style="margin:0">Watch replay</h2>
+      <button type="button" class="btn-ghost btn-sm" id="closeTournamentWatch">Close</button>
+    </div>
+    <p class="muted" id="tournamentWatchTitle" style="margin:0.5rem 0 0.75rem"></p>
+    <div data-tactic-mount></div>
+  </div>`;
 }
 
 async function runFixture(matchId, isKnockout = false) {
-  if (!tournamentId || !getAdminToken()) return;
+  if (!tournamentId || !getAdminToken()) {
+    alert("Admin token required to Run a fixture.");
+    return;
+  }
   const path = isKnockout
     ? `/api/tournament/${tournamentId}/knockout/matches/${matchId}/run`
     : `/api/tournament/${tournamentId}/matches/${matchId}/run`;
   try {
-    await api(path, { method: "POST" });
-    window.location.href = "/matchday";
+    const res = await api(path, { method: "POST" });
+    const phase = res?.matchday?.session?.phase || res?.matchday?.phase;
+    if (!res?.redirect && !phase) {
+      alert("Run did not open a Matchday session. Restart the web server and try again.");
+      return;
+    }
+    window.location.href = res?.redirect || "/matchday";
   } catch (e) {
-    alert(e.message);
+    alert(e.message || "Run failed");
   }
 }
 
@@ -221,7 +312,7 @@ async function acceptResult(matchId) {
   if (!tournamentId || !getAdminToken()) return;
   try {
     await api(`/api/tournament/${tournamentId}/matches/${matchId}/accept`, { method: "POST" });
-    await loadTournament();
+    await loadTournament({ force: true });
   } catch (e) {
     alert(e.message);
   }
@@ -245,7 +336,7 @@ async function applyOverride(matchId, isKnockout) {
       method: "POST",
       json: body,
     });
-    await loadTournament();
+    await loadTournament({ force: true });
   } catch (e) {
     alert(e.message);
   }
@@ -292,6 +383,18 @@ function renderResults(t) {
       const fx = { id: r.match_id, home: r.home, away: r.away, played: true, score: r.score, winner: r.winner };
       const isKo = r.stage === "knockout";
       const canReview = getAdminToken() && (isKo || !koLocked);
+      const eid = r.experiment_id || "";
+      const xgH = r.expected_xg?.home ?? "";
+      const xgA = r.expected_xg?.away ?? "";
+      const watch = `<button type="button" class="btn-ghost btn-sm watch-match-btn"
+        data-match-id="${esc(r.match_id)}"
+        data-home="${esc(r.home)}"
+        data-away="${esc(r.away)}"
+        data-score="${esc(r.score)}"
+        data-experiment-id="${esc(eid)}"
+        data-xg-home="${esc(String(xgH))}"
+        data-xg-away="${esc(String(xgA))}"
+      >Watch</button>`;
       return `<tr>
         <td class="muted">${esc(r.match_id)}</td>
         <td>${esc(r.stage)}${r.group ? ` (${esc(r.group)})` : ""}</td>
@@ -299,19 +402,164 @@ function renderResults(t) {
         <td><strong>${esc(r.score)}</strong>${reviewBadge(r)}</td>
         <td>${esc(r.winner || "Draw")}</td>
         <td class="muted">${xg}</td>
-        <td>${canReview ? adminReviewControls(fx, r, { isKnockout: isKo }) : ""}</td>
+        <td>${watch}${analysisControls(fx, r)}${canReview ? adminReviewControls(fx, r, { isKnockout: isKo }) : ""}</td>
       </tr>`;
     })
     .join("");
   return `<div class="card"><h2>Match results</h2>
-    <table><thead><tr><th>ID</th><th>Stage</th><th>Match</th><th>Score</th><th>Winner</th><th>xG</th><th>Admin</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    <p class="muted" style="margin:0 0 0.75rem">Official scores come from the tactic-board pin match. Watch replays a board toward the saved scoreline. See analysis after full time.</p>
+    <table><thead><tr><th>ID</th><th>Stage</th><th>Match</th><th>Score</th><th>Winner</th><th>xG</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 let activeTab = "draw";
+let _tournamentWatchBoard = null;
+let _watchingMatchKey = "";
+
+function closeTournamentWatch() {
+  if (_tournamentWatchBoard && typeof _tournamentWatchBoard.destroy === "function") {
+    _tournamentWatchBoard.destroy();
+  }
+  _tournamentWatchBoard = null;
+  _watchingMatchKey = "";
+  const dock = document.getElementById("tournamentWatchDock");
+  if (dock) dock.hidden = true;
+}
+
+async function openWatchFromButton(btn) {
+  if (typeof TacticBoard === "undefined") {
+    alert("Tactic board not loaded.");
+    return;
+  }
+  const dock = document.getElementById("tournamentWatchDock");
+  const mount = dock?.querySelector("[data-tactic-mount]");
+  const title = document.getElementById("tournamentWatchTitle");
+  if (!dock || !mount) return;
+
+  const meta = {
+    matchId: btn.dataset.matchId,
+    home: btn.dataset.home,
+    away: btn.dataset.away,
+    score: btn.dataset.score,
+    experimentId: btn.dataset.experimentId || "",
+    xgHome: btn.dataset.xgHome ? Number(btn.dataset.xgHome) : undefined,
+    xgAway: btn.dataset.xgAway ? Number(btn.dataset.xgAway) : undefined,
+  };
+  _watchingMatchKey = `${meta.matchId}|${meta.score}`;
+  dock.hidden = false;
+  if (title) title.textContent = `${meta.home} ${meta.score} ${meta.away}`;
+  dock.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+  if (_tournamentWatchBoard && typeof _tournamentWatchBoard.destroy === "function") {
+    _tournamentWatchBoard.destroy();
+  }
+  _tournamentWatchBoard = await TacticBoard.openTournamentWatch(mount, meta, { apiFetch: api });
+}
+
+function wireWatchButtons() {
+  document.querySelectorAll(".watch-match-btn").forEach((btn) => {
+    btn.addEventListener("click", () => openWatchFromButton(btn));
+  });
+  const closeBtn = document.getElementById("closeTournamentWatch");
+  if (closeBtn) closeBtn.addEventListener("click", closeTournamentWatch);
+}
+
+function fillAnalysisPanel(matchId, data) {
+  const panel = document.querySelector(`.match-analysis-panel[data-match-id="${matchId}"]`);
+  if (!panel) return;
+  panel.hidden = false;
+  const header = `<p class="muted" style="margin:0 0 0.5rem">${esc(data.home || "")} ${esc(data.score || "")} ${esc(data.away || "")}</p>`;
+  const analysisHtml = typeof renderAnalysis === "function" ? renderAnalysis(data.analysis) : "";
+  const squadHtml = typeof renderSquadAnalysis === "function" ? renderSquadAnalysis(data.squad_analysis) : "";
+  panel.innerHTML = header + (analysisHtml || `<p class="muted">No analysis text.</p>`) + (squadHtml || "");
+  const btn = document.querySelector(`.view-analysis-btn[data-match-id="${matchId}"]`);
+  if (btn) btn.textContent = "Hide analysis";
+}
+
+async function fetchMatchAnalysis(matchId, { generate = false } = {}) {
+  const path = `/api/tournament/${tournamentId}/matches/${matchId}/analysis`;
+  const data = generate
+    ? await api(path, { method: "POST" })
+    : await api(path);
+  analysisCache[matchId] = data;
+  if (currentTournament?.match_results?.[matchId]) {
+    currentTournament.match_results[matchId].has_analysis = true;
+  }
+  return data;
+}
+
+async function toggleAnalysis(matchId) {
+  const panel = document.querySelector(`.match-analysis-panel[data-match-id="${matchId}"]`);
+  const btn = document.querySelector(`.view-analysis-btn[data-match-id="${matchId}"]`);
+  if (openAnalysisMatchId === matchId && panel && !panel.hidden) {
+    panel.hidden = true;
+    openAnalysisMatchId = null;
+    if (btn) {
+      const has = Boolean(
+        currentTournament?.match_results?.[matchId]?.has_analysis || analysisCache[matchId]?.analysis
+      );
+      btn.textContent = has ? "See analysis" : "See analysis";
+    }
+    return;
+  }
+  // Close any other open panel in-place (keeps Watch dock alive).
+  if (openAnalysisMatchId && openAnalysisMatchId !== matchId) {
+    const prev = document.querySelector(`.match-analysis-panel[data-match-id="${openAnalysisMatchId}"]`);
+    const prevBtn = document.querySelector(`.view-analysis-btn[data-match-id="${openAnalysisMatchId}"]`);
+    if (prev) prev.hidden = true;
+    if (prevBtn) {
+      prevBtn.textContent = "See analysis";
+    }
+  }
+  openAnalysisMatchId = matchId;
+  if (panel) {
+    panel.hidden = false;
+    panel.innerHTML = `<p class="muted">Loading analysis…</p>`;
+  }
+  try {
+    let data = analysisCache[matchId];
+    if (!data?.analysis) {
+      try {
+        data = await fetchMatchAnalysis(matchId);
+      } catch (err) {
+        if (panel) {
+          panel.innerHTML = `<p class="muted">${esc(err.message)}</p>`;
+        }
+        return;
+      }
+    }
+    fillAnalysisPanel(matchId, data);
+  } catch (e) {
+    if (panel) panel.innerHTML = `<p class="error-msg">${esc(e.message)}</p>`;
+  }
+}
+
+async function generateAnalysis(matchId) {
+  if (!tournamentId || !getAdminToken()) return;
+  openAnalysisMatchId = matchId;
+  const panel = document.querySelector(`.match-analysis-panel[data-match-id="${matchId}"]`);
+  if (panel) {
+    panel.hidden = false;
+    panel.innerHTML = `<p class="muted">Generating analysis…</p>`;
+  }
+  try {
+    const data = await fetchMatchAnalysis(matchId, { generate: true });
+    fillAnalysisPanel(matchId, data);
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+function wireAnalysisButtons() {
+  document.querySelectorAll(".view-analysis-btn").forEach((btn) => {
+    btn.onclick = () => toggleAnalysis(btn.dataset.matchId);
+  });
+}
 
 function bindTabs(t) {
   document.querySelectorAll(".tab-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
+      closeTournamentWatch();
+      openAnalysisMatchId = null;
       activeTab = btn.dataset.tab;
       document.getElementById("app").innerHTML = renderTournament(t, activeTab);
       bindTabs(t);
@@ -319,9 +567,11 @@ function bindTabs(t) {
   });
   wireRunButtons();
   wireReviewButtons();
+  wireAnalysisButtons();
+  wireWatchButtons();
 }
 
-async function loadTournament() {
+async function loadTournament({ force = false } = {}) {
   if (!tournamentId) {
     const list = await api("/api/tournament");
     const items = list.tournaments || [];
@@ -339,6 +589,24 @@ async function loadTournament() {
   const badge = document.getElementById("statusBadge");
   badge.textContent = t.status || "—";
   badge.className = `badge ${esc(t.status || "")}`;
+
+  const watching = Boolean(
+    _watchingMatchKey && document.querySelector("#tournamentWatchDock:not([hidden])")
+  );
+  const analysisOpen = Boolean(
+    openAnalysisMatchId &&
+      document.querySelector(`.match-analysis-panel[data-match-id="${openAnalysisMatchId}"]:not([hidden])`)
+  );
+  if (!force && (watching || analysisOpen)) return;
+
+  if (_tournamentWatchBoard) {
+    try {
+      _tournamentWatchBoard.destroy();
+    } catch (_) {}
+    _tournamentWatchBoard = null;
+  }
+  _watchingMatchKey = "";
+
   document.getElementById("app").innerHTML = renderTournament(t, activeTab);
   bindTabs(t);
 }
@@ -347,8 +615,23 @@ async function init() {
   const user = getUser();
   if (user) document.getElementById("userLabel").textContent = user;
   tournamentId = qsParam("id");
-  document.getElementById("refreshBtn").addEventListener("click", () => loadTournament().catch(showErr));
-  await loadTournament().catch(showErr);
+  document.getElementById("refreshBtn").addEventListener("click", () =>
+    loadTournament({ force: true }).catch(showErr)
+  );
+  await loadTournament({ force: true }).catch(showErr);
+
+  // Surface active Matchday fixture on the tournament page
+  try {
+    const md = await api("/api/matchday/active");
+    const banner = document.getElementById("liveMatchdayBanner");
+    const mdSession = md?.active ? md.session : null;
+    if (banner && mdSession && ["setup", "live", "running"].includes(mdSession.phase)) {
+      banner.hidden = false;
+      banner.style.display = "inline-block";
+      banner.innerHTML = `Live on Matchday: ${esc(mdSession.home)} vs ${esc(mdSession.away)} — <a href="/matchday" style="color:inherit">Open Matchday</a>`;
+    }
+  } catch (_) {}
+
   pollTimer = setInterval(() => loadTournament().catch(() => {}), 15000);
 }
 

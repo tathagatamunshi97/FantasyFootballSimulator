@@ -9,8 +9,9 @@ from pathlib import Path
 from typing import Any
 
 from models import FantasyTeam
-from report_builder import build_report
+from report_builder import build_board_result_report, build_report, extended_metrics, team_lineup_dict
 from stats_resolver import prepare_match_player_stats
+from team_profile import build_team_profile
 
 from web.experiments import _apply_name_map, validate_team_payload
 from web import matchday_session
@@ -233,6 +234,9 @@ def _default_tournament(name: str, team_names: list[str], settings: dict[str, An
         "groups": {},
         "knockout": {"format": cfg.get("knockout_format", "single_elim"), "rounds": []},
         "match_results": {},
+        "player_tallies": [],
+        "top_goalscorers": [],
+        "top_assisters": [],
     }
 
 
@@ -538,13 +542,14 @@ def _load_teams_for_match(
                 f"Team '{draft.get('name')}' has {count}/11 players on the sheet. "
                 "Each team needs at least 11 players."
             )
+        # Warm from disk/seed only — never live-fetch (Render has no Chrome).
         roster = meta.get("full_roster") or meta.get("roster_players") or [
             (r.get("player") or "").strip()
             for r in draft.get("lineup", [])
             if (r.get("player") or "").strip()
         ]
         if roster:
-            store.ensure_players(roster)
+            store.cached_stats_map(roster)
 
     round_key = resolve_fixture_round_key(
         tournament_id,
@@ -619,6 +624,153 @@ def _score_from_report(report: dict[str, Any]) -> tuple[int, int, str]:
     home_goals = int(sample.get("home", {}).get("goals", 0))
     away_goals = int(sample.get("away", {}).get("goals", 0))
     return home_goals, away_goals, f"{home_goals}-{away_goals}"
+
+
+_ANALYSIS_RESULT_KEYS = ("analysis", "squad_analysis", "analysis_matchup")
+_BOARD_LOG_KEYS = ("board_events", "match_log")
+# Bump when formation_fit / slot-fit narrative must invalidate persisted match analysis.
+_FIT_FORMULA_VERSION = 2
+
+
+def _analysis_payload_from_report(report: dict[str, Any]) -> dict[str, Any]:
+    """Persistable analysis fields — same payloads lab experiments store on the report."""
+    return {
+        "analysis": report.get("analysis"),
+        "squad_analysis": report.get("squad_analysis"),
+        "analysis_matchup": report.get("matchup"),
+        "fit_formula_version": _FIT_FORMULA_VERSION,
+    }
+
+
+def _result_has_analysis(result: dict[str, Any] | None) -> bool:
+    return bool(result and isinstance(result.get("analysis"), dict) and result["analysis"])
+
+
+def match_result_for_api(result: dict[str, Any]) -> dict[str, Any]:
+    """Strip heavy analysis blobs from list/poll payloads; expose has_analysis flag."""
+    skip = set(_ANALYSIS_RESULT_KEYS) | set(_BOARD_LOG_KEYS)
+    out = {k: v for k, v in result.items() if k not in skip}
+    out["has_analysis"] = _result_has_analysis(result)
+    return out
+
+
+def _board_events_from_result(result: dict[str, Any]) -> list[dict[str, Any]]:
+    """Pull match events from a stored result (board_events or match_log)."""
+    events = result.get("board_events")
+    if isinstance(events, list):
+        return [e for e in events if isinstance(e, dict)]
+    log = result.get("match_log")
+    if isinstance(log, dict):
+        if isinstance(log.get("events"), list):
+            return [e for e in log["events"] if isinstance(e, dict)]
+        goals = log.get("goals")
+        if isinstance(goals, list):
+            out: list[dict[str, Any]] = []
+            for g in goals:
+                if isinstance(g, dict):
+                    out.append({"type": "goal", **g})
+            return out
+    return []
+
+
+def _bump_player_tally(
+    tallies: dict[str, dict[str, Any]],
+    *,
+    player: str,
+    team: str,
+    field: str,
+) -> None:
+    key = f"{team}\0{player}"
+    row = tallies.get(key)
+    if not row:
+        row = {"player": player, "team": team, "goals": 0, "assists": 0}
+        tallies[key] = row
+    row[field] = int(row.get(field) or 0) + 1
+
+
+def aggregate_player_tallies(t: dict[str, Any]) -> list[dict[str, Any]]:
+    """Sum goals/assists per player across all completed matches with board events."""
+    tallies: dict[str, dict[str, Any]] = {}
+    for result in (t.get("match_results") or {}).values():
+        if not isinstance(result, dict):
+            continue
+        home = result.get("home")
+        away = result.get("away")
+        for ev in _board_events_from_result(result):
+            side = ev.get("side")
+            team = home if side == "home" else away if side == "away" else None
+            if not team:
+                continue
+            if ev.get("type") != "goal":
+                continue
+            player = str(ev.get("player") or "").strip()
+            if player:
+                _bump_player_tally(tallies, player=player, team=str(team), field="goals")
+            # Assist attributed on the goal event (last passer before shot).
+            assist = str(ev.get("assist") or ev.get("assist_player") or "").strip()
+            if assist and assist != player:
+                _bump_player_tally(tallies, player=assist, team=str(team), field="assists")
+    return sorted(
+        tallies.values(),
+        key=lambda r: (-int(r["goals"]), -int(r["assists"]), str(r["player"]).lower()),
+    )
+
+
+def player_leaderboards(t: dict[str, Any], *, limit: int = 10) -> dict[str, Any]:
+    """Top goalscorers / assisters for tournament API + persisted state."""
+    tallies = aggregate_player_tallies(t)
+    scorers = sorted(
+        [r for r in tallies if int(r.get("goals") or 0) > 0],
+        key=lambda r: (-int(r["goals"]), str(r["player"]).lower()),
+    )
+    assisters = sorted(
+        [r for r in tallies if int(r.get("assists") or 0) > 0],
+        key=lambda r: (-int(r["assists"]), str(r["player"]).lower()),
+    )
+
+    def _top(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        if len(rows) <= limit:
+            return rows
+        return rows[:limit]
+
+    return {
+        "player_tallies": tallies,
+        "top_goalscorers": _top(scorers),
+        "top_assisters": _top(assisters),
+    }
+
+
+def _refresh_player_tallies(t: dict[str, Any]) -> None:
+    """Persist leaderboard snapshot on the tournament document."""
+    boards = player_leaderboards(t)
+    t["player_tallies"] = boards["player_tallies"]
+    t["top_goalscorers"] = boards["top_goalscorers"]
+    t["top_assisters"] = boards["top_assisters"]
+
+
+def tournament_for_api(t: dict[str, Any]) -> dict[str, Any]:
+    mrs = t.get("match_results") or {}
+    boards = player_leaderboards(t)
+    return {
+        **t,
+        "match_results": {k: match_result_for_api(v) for k, v in mrs.items()},
+        **boards,
+    }
+
+
+def _import_analysis_from_experiment(result: dict[str, Any]) -> bool:
+    """Copy analysis from the linked experiment report if still available."""
+    eid = result.get("experiment_id")
+    if not eid:
+        return False
+    from web import experiments
+
+    exp = experiments.load_experiment(str(eid))
+    report = (exp or {}).get("report") or {}
+    if not isinstance(report.get("analysis"), dict) or not report["analysis"]:
+        return False
+    result.update(_analysis_payload_from_report(report))
+    return True
 
 
 def _run_simulation(
@@ -739,6 +891,7 @@ def _run_group_match_job(
         "home": fx["home"],
         "away": fx["away"],
         **snapshot,
+        **_analysis_payload_from_report(report),
         "engine_home_goals": snapshot["home_goals"],
         "engine_away_goals": snapshot["away_goals"],
         "winner": winner,
@@ -822,6 +975,7 @@ def _run_knockout_match_job(
         "home": tie["home"],
         "away": tie["away"],
         **snapshot,
+        **_analysis_payload_from_report(report),
         "engine_home_goals": snapshot["home_goals"],
         "engine_away_goals": snapshot["away_goals"],
         "winner": winner,
@@ -869,8 +1023,16 @@ def _preflight_match_stats(team_a: dict[str, Any], team_b: dict[str, Any]) -> No
     """Fail fast before starting a background run if stats cannot be loaded."""
     store = get_stats_store()
     try:
-        prepare_match_player_stats(team_a, team_b, store)
+        # Always cache/manual-only on tournament hosts (no Chrome on Render).
+        prepare_match_player_stats(team_a, team_b, store, cache_only=True)
     except Exception as exc:
+        msg = str(exc).strip()
+        if "Chrome not found" in msg or "Install it first" in msg.lower():
+            raise ValueError(
+                "Cannot load player stats for this fixture: a live stats scrape "
+                "was attempted but Chrome is unavailable. Ensure prime/peak "
+                "players have manual profiles (or clear the prime) and redeploy."
+            ) from exc
         raise ValueError(f"Cannot load player stats for this fixture: {exc}") from exc
 
 
@@ -967,14 +1129,441 @@ def execute_matchday_simulation() -> dict[str, Any]:
     }
 
 
+def _board_side_payload(team: FantasyTeam, player_stats: dict[str, Any]) -> dict[str, Any]:
+    """Lineup + per-player board stats + unit ratings for the tactic board."""
+    profile = build_team_profile(team, player_stats)
+    extended = extended_metrics(team, player_stats)
+    by_name = {p["player"]: p for p in profile.players}
+    lineup = []
+    for row in team_lineup_dict(team)["lineup"]:
+        st = by_name.get(row["player"]) or {}
+        lineup.append(
+            {
+                **row,
+                "stats": {
+                    "dribbles90": st.get("dribbles90", 0),
+                    "dribble_pct": st.get("dribble_pct", 50),
+                    "key_passes90": st.get("key_passes90", 0),
+                    "xa90": st.get("xa90", 0),
+                    "xg90": st.get("xg90", 0),
+                    "npxg90": st.get("npxg90", 0),
+                    "shots90": st.get("shots90", 0),
+                    "tackles90": st.get("tackles90", 0),
+                    "interceptions90": st.get("interceptions90", 0),
+                    "pass_pct": st.get("pass_pct", 75),
+                },
+            }
+        )
+    return {
+        "name": team.name,
+        "formation": team.formation,
+        "lineup": lineup,
+        "_unit": {
+            "pressing_intensity": extended.get("pressing_intensity"),
+            "press_resistance": extended.get("press_resistance"),
+            "attacking_effectiveness": extended.get("attacking_effectiveness"),
+            "finishing_threat": extended.get("finishing_threat"),
+            "defensive_unit": extended.get("defensive_unit"),
+            "xga_suppression": extended.get("xga_suppression"),
+            "chance_creation": extended.get("chance_creation"),
+            "aerial_defence": extended.get("aerial_defence"),
+            "attack": extended.get("attack") or (extended.get("units") or {}).get("attack"),
+            "defence": extended.get("defence") or (extended.get("units") or {}).get("defence"),
+            "midfield": extended.get("midfield") or (extended.get("units") or {}).get("midfield"),
+            "finishing": (extended.get("units") or {}).get("finishing"),
+            "goalkeeper": (extended.get("units") or {}).get("goalkeeper"),
+        },
+    }
+
+
+def prepare_board_match(tournament_id: str, match_id: str) -> dict[str, Any]:
+    """Load teams + stats, open Matchday session, redirect everyone to /matchday."""
+    t = load_tournament(tournament_id)
+    if not t:
+        raise KeyError("Tournament not found")
+    found = _find_fixture(t, match_id)
+    if not found:
+        raise KeyError(f"Fixture '{match_id}' not found")
+    stage_key, fx = found
+    if fx.get("played"):
+        raise ValueError(f"Match {match_id} already played")
+    if stage_key == "knockout" and (not fx.get("home") or not fx.get("away")):
+        raise ValueError(f"Match {match_id} is not ready (missing teams)")
+
+    home = fx["home"]
+    away = fx["away"]
+    team_a, team_b = _load_teams_for_match(
+        home, away, tournament_id=tournament_id, match_id=match_id
+    )
+    _preflight_match_stats(team_a, team_b)
+    store = get_stats_store()
+    player_stats, _season_overrides, name_map = prepare_match_player_stats(
+        team_a, team_b, store, cache_only=True
+    )
+    resolved = _apply_name_map({"team_a": team_a, "team_b": team_b}, name_map)
+    home_team = FantasyTeam.from_dict(resolved["team_a"])
+    away_team = FantasyTeam.from_dict(resolved["team_b"])
+    home_payload = _board_side_payload(home_team, player_stats)
+    away_payload = _board_side_payload(away_team, player_stats)
+    stage = f"group_{stage_key}" if stage_key != "knockout" else "knockout"
+    board = {
+        "match_id": match_id,
+        "home": home_payload,
+        "away": away_payload,
+        "unit_home": home_payload.get("_unit") or {},
+        "unit_away": away_payload.get("_unit") or {},
+    }
+    # Prefer board payloads as the public XI on Matchday
+    seed = abs(hash(f"{tournament_id}:{match_id}")) % (2**31)
+    status = matchday_session.start_board_session(
+        tournament_id=tournament_id,
+        tournament_name=t.get("name") or "Tournament",
+        fixture_id=match_id,
+        stage=stage,
+        home=home,
+        away=away,
+        team_a=home_payload,
+        team_b=away_payload,
+        board=board,
+        seed=seed,
+        is_knockout=stage_key == "knockout",
+    )
+    return {
+        "status": "board_ready",
+        "engine": "tactic_board",
+        "redirect": "/matchday",
+        "tournament_id": tournament_id,
+        "match_id": match_id,
+        "stage": stage,
+        "stage_key": stage_key,
+        "is_knockout": stage_key == "knockout",
+        "home": home,
+        "away": away,
+        "board": board,
+        "matchday": status,
+        "tournament": _summary(t) | {"id": t["id"]},
+    }
+
+
+def _format_knockout_score(
+    home_goals: int,
+    away_goals: int,
+    *,
+    decided_by: str | None = None,
+    pens_home: int | None = None,
+    pens_away: int | None = None,
+    score_display: str | None = None,
+) -> str:
+    """Human-readable KO scoreline: FT, AET, or pens."""
+    if score_display and str(score_display).strip():
+        return str(score_display).strip()
+    base = f"{int(home_goals)}-{int(away_goals)}"
+    if decided_by == "pens" and pens_home is not None and pens_away is not None:
+        return f"{base} ({int(pens_home)}-{int(pens_away)} pens)"
+    if decided_by == "aet":
+        return f"{base} AET"
+    return base
+
+
+def complete_from_board(
+    tournament_id: str,
+    match_id: str,
+    home_goals: int,
+    away_goals: int,
+    winner: str | None = None,
+    board_events: list[dict[str, Any]] | None = None,
+    match_log: list[dict[str, Any]] | dict[str, Any] | None = None,
+    *,
+    decided_by: str | None = None,
+    ft_home_goals: int | None = None,
+    ft_away_goals: int | None = None,
+    pens_home: int | None = None,
+    pens_away: int | None = None,
+    score_display: str | None = None,
+) -> dict[str, Any]:
+    """Persist official result from the tactic-board pin score (skips Monte Carlo)."""
+    if home_goals < 0 or away_goals < 0:
+        raise ValueError("Goals must be non-negative")
+
+    t = load_tournament(tournament_id)
+    if not t:
+        raise KeyError("Tournament not found")
+    found = _find_fixture(t, match_id)
+    if not found:
+        raise KeyError(f"Fixture '{match_id}' not found")
+    stage_key, fx = found
+    if fx.get("played"):
+        raise ValueError(f"Match {match_id} already played")
+    if stage_key == "knockout" and (not fx.get("home") or not fx.get("away")):
+        raise ValueError(f"Match {match_id} is not ready (missing teams)")
+
+    is_knockout = stage_key == "knockout"
+    home = fx["home"]
+    away = fx["away"]
+
+    decided = (decided_by or "").strip().lower() or None
+    if decided not in (None, "ft", "aet", "pens"):
+        decided = None
+
+    ph = int(pens_home) if pens_home is not None else None
+    pa = int(pens_away) if pens_away is not None else None
+    ft_h = int(ft_home_goals) if ft_home_goals is not None else None
+    ft_a = int(ft_away_goals) if ft_away_goals is not None else None
+
+    if winner is not None:
+        winner = str(winner).strip()
+        if winner and winner not in (home, away):
+            raise ValueError(f"Winner must be '{home}' or '{away}'")
+
+    if is_knockout:
+        if home_goals != away_goals:
+            resolved = home if home_goals > away_goals else away
+            if winner in (home, away) and winner != resolved:
+                raise ValueError(
+                    f"Winner '{winner}' does not match scoreline {home_goals}-{away_goals}"
+                )
+            winner = resolved
+            if not decided:
+                decided = "aet" if (ft_h is not None and ft_a is not None and (ft_h != home_goals or ft_a != away_goals)) else "ft"
+        elif decided == "pens" and ph is not None and pa is not None:
+            if ph == pa:
+                raise ValueError("Penalty shoot-out must have a winner")
+            winner = home if ph > pa else away
+        elif winner in (home, away):
+            if not decided:
+                decided = "pens" if ph is not None and pa is not None else "aet"
+        else:
+            # Legacy fallback — prefer home if board omitted pens winner
+            winner = home
+            if not decided:
+                decided = "pens" if ph is not None else "aet"
+    else:
+        if home_goals > away_goals:
+            winner = home
+        elif away_goals > home_goals:
+            winner = away
+        else:
+            winner = None
+        decided = None
+
+    stored_events: list[dict[str, Any]] | None = None
+    stored_log: dict[str, Any] | list[dict[str, Any]] | None = None
+    if isinstance(board_events, list) and board_events:
+        stored_events = [e for e in board_events if isinstance(e, dict)]
+    if isinstance(match_log, dict) and match_log:
+        stored_log = match_log
+        if not stored_events and isinstance(match_log.get("events"), list):
+            stored_events = [e for e in match_log["events"] if isinstance(e, dict)]
+    elif isinstance(match_log, list) and match_log:
+        stored_events = stored_events or [e for e in match_log if isinstance(e, dict)]
+        stored_log = {"events": stored_events, "goals": [e for e in stored_events if e.get("type") == "goal"]}
+
+    if is_knockout:
+        score = _format_knockout_score(
+            home_goals,
+            away_goals,
+            decided_by=decided,
+            pens_home=ph,
+            pens_away=pa,
+            score_display=score_display,
+        )
+    else:
+        score = f"{home_goals}-{away_goals}"
+
+    result_id = match_id
+    result: dict[str, Any] = {
+        "match_id": match_id,
+        "stage": "knockout" if is_knockout else "group",
+        "home": home,
+        "away": away,
+        "score": score,
+        "home_goals": int(home_goals),
+        "away_goals": int(away_goals),
+        "engine": "tactic_board",
+        "engine_home_goals": int(home_goals),
+        "engine_away_goals": int(away_goals),
+        "winner": winner,
+        "manually_overridden": False,
+        "admin_accepted": True,
+        "admin_reviewed_at": _now(),
+        "played_at": _now(),
+        "simulations": 0,
+    }
+    if is_knockout and decided:
+        result["decided_by"] = decided
+    if ft_h is not None and ft_a is not None:
+        result["ft_home_goals"] = ft_h
+        result["ft_away_goals"] = ft_a
+    if decided == "pens" and ph is not None and pa is not None:
+        result["pens_home"] = ph
+        result["pens_away"] = pa
+    if stored_events:
+        result["board_events"] = stored_events
+    if stored_log is not None:
+        result["match_log"] = stored_log
+        if isinstance(stored_log, dict):
+            live_xg = stored_log.get("xg") or stored_log.get("live_xg")
+            if isinstance(live_xg, dict) and (
+                live_xg.get("home") is not None or live_xg.get("away") is not None
+            ):
+                result["expected_xg"] = {
+                    "home": round(float(live_xg.get("home") or 0), 2),
+                    "away": round(float(live_xg.get("away") or 0), 2),
+                }
+            poss = stored_log.get("possession_pct") or stored_log.get("possession")
+            if isinstance(poss, dict):
+                result["possession_pct"] = {
+                    "home": round(float(poss.get("home") or 0), 1),
+                    "away": round(float(poss.get("away") or 0), 1),
+                }
+    elif stored_events:
+        result["match_log"] = {
+            "events": stored_events,
+            "goals": [e for e in stored_events if e.get("type") == "goal"],
+        }
+    if not is_knockout:
+        result["group"] = stage_key
+
+    t["match_results"][result_id] = result
+    fx["played"] = True
+    fx["result_id"] = result_id
+    fx["score"] = score
+    fx["winner"] = winner
+    if is_knockout and decided:
+        fx["decided_by"] = decided
+
+    if is_knockout:
+        _advance_knockout_winner(t, fx, winner)
+        all_done = all(
+            t2.get("played")
+            for rnd in t["knockout"]["rounds"]
+            for t2 in rnd.get("ties", [])
+            if t2.get("home") and t2.get("away")
+        )
+        t["status"] = "complete" if all_done else "knockout"
+    else:
+        _apply_group_result(
+            t["groups"][stage_key]["table"],
+            home,
+            away,
+            int(home_goals),
+            int(away_goals),
+        )
+        if t.get("status") == "group_draw":
+            t["status"] = "group_stage"
+
+    analysis_payload: dict[str, Any] | None = None
+    try:
+        analysis_payload = _build_and_attach_board_analysis(
+            t, result, tournament_id=tournament_id, match_id=match_id
+        )
+    except Exception:
+        # Never block official score save if analysis fails
+        analysis_payload = None
+
+    _refresh_player_tallies(t)
+    save_tournament(t)
+
+    md_result: dict[str, Any] = {
+        "match_id": match_id,
+        "score": score,
+        "home_goals": int(home_goals),
+        "away_goals": int(away_goals),
+        "winner": winner,
+        "home": home,
+        "away": away,
+        "engine": "tactic_board",
+        "tournament_id": tournament_id,
+        "expected_xg": result.get("expected_xg"),
+        "possession_pct": result.get("possession_pct"),
+        "has_analysis": _result_has_analysis(result),
+    }
+    if decided:
+        md_result["decided_by"] = decided
+    if ft_h is not None and ft_a is not None:
+        md_result["ft_home_goals"] = ft_h
+        md_result["ft_away_goals"] = ft_a
+    if decided == "pens" and ph is not None and pa is not None:
+        md_result["pens_home"] = ph
+        md_result["pens_away"] = pa
+    if analysis_payload:
+        for key in ("analysis", "squad_analysis", "matchup", "report"):
+            if key in analysis_payload:
+                md_result[key] = analysis_payload[key]
+        if analysis_payload.get("analysis"):
+            md_result["report"] = analysis_payload.get("report") or {
+                "analysis": analysis_payload["analysis"],
+                "squad_analysis": analysis_payload.get("squad_analysis"),
+                "matchup": analysis_payload.get("matchup"),
+            }
+    matchday_session.set_result(md_result)
+
+    out: dict[str, Any] = {
+        "tournament": tournament_for_api(t),
+        "match": fx,
+        "result": match_result_for_api(result),
+        "stage": stage_key,
+        "status": "complete",
+        "engine": "tactic_board",
+        "has_analysis": _result_has_analysis(result),
+        "analysis_ready": _result_has_analysis(result),
+        "matchday": matchday_session.active_status(),
+    }
+    if analysis_payload:
+        out.update(analysis_payload)
+    return out
+
+
+def _build_and_attach_board_analysis(
+    t: dict[str, Any],
+    result: dict[str, Any],
+    *,
+    tournament_id: str,
+    match_id: str,
+) -> dict[str, Any]:
+    """Build ratings + board-event analysis and persist onto the match result."""
+    home = result.get("home")
+    away = result.get("away")
+    if not home or not away:
+        raise ValueError("Missing team names for analysis")
+
+    team_a, team_b = _load_teams_for_match(
+        home, away, tournament_id=tournament_id, match_id=match_id
+    )
+    store = get_stats_store()
+    player_stats, season_overrides, name_map = prepare_match_player_stats(
+        team_a, team_b, store, cache_only=True
+    )
+    resolved = _apply_name_map({"team_a": team_a, "team_b": team_b}, name_map)
+    home_team = FantasyTeam.from_dict(resolved["team_a"])
+    away_team = FantasyTeam.from_dict(resolved["team_b"])
+    seed = abs(hash(match_id)) % (2**31)
+    events = result.get("board_events")
+    log = result.get("match_log")
+    report = build_board_result_report(
+        home_team,
+        away_team,
+        player_stats,
+        home_goals=int(result.get("home_goals") or 0),
+        away_goals=int(result.get("away_goals") or 0),
+        board_events=events if isinstance(events, list) else None,
+        match_log=log if isinstance(log, (list, dict)) else None,
+        n_simulations=800,
+        seed=seed,
+        season_overrides=season_overrides,
+    )
+    result.update(_analysis_payload_from_report(report))
+    return _analysis_response(result, match_id)
+
+
 def run_group_match(tournament_id: str, match_id: str) -> dict[str, Any]:
-    """Start a matchday broadcast session for a group fixture (does not run sim yet)."""
-    return start_matchday_session(tournament_id, match_id)
+    """Prepare interactive tactic-board match (official score from pins, not Monte Carlo)."""
+    return prepare_board_match(tournament_id, match_id)
 
 
 def run_knockout_match(tournament_id: str, match_id: str) -> dict[str, Any]:
-    """Start a matchday broadcast session for a knockout fixture (does not run sim yet)."""
-    return start_matchday_session(tournament_id, match_id)
+    """Prepare interactive tactic-board knockout match (official score from pins)."""
+    return prepare_board_match(tournament_id, match_id)
 
 
 def _qualified_teams(t: dict[str, Any]) -> list[tuple[str, str, int]]:
@@ -1168,6 +1757,138 @@ def _tiebreak_report_from_result(result: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _analysis_response(result: dict[str, Any], match_id: str) -> dict[str, Any]:
+    return {
+        "match_id": match_id,
+        "home": result.get("home"),
+        "away": result.get("away"),
+        "score": result.get("score"),
+        "winner": result.get("winner"),
+        "analysis": result.get("analysis"),
+        "squad_analysis": result.get("squad_analysis"),
+        "matchup": result.get("analysis_matchup"),
+        "has_analysis": _result_has_analysis(result),
+        "experiment_id": result.get("experiment_id"),
+    }
+
+
+def get_match_analysis(tournament_id: str, match_id: str) -> dict[str, Any]:
+    """Return persisted match analysis; backfill from linked experiment when possible."""
+    t = load_tournament(tournament_id)
+    if not t:
+        raise KeyError("Tournament not found")
+    found = _find_fixture(t, match_id)
+    if not found:
+        raise KeyError(f"Fixture '{match_id}' not found")
+    _, fx = found
+    if not fx.get("played"):
+        raise ValueError(f"Match {match_id} has not been played yet")
+    result_id = fx.get("result_id") or match_id
+    result = (t.get("match_results") or {}).get(result_id)
+    if not result:
+        raise KeyError(f"Result for '{match_id}' not found")
+
+    if not _result_has_analysis(result):
+        if _import_analysis_from_experiment(result):
+            save_tournament(t)
+
+    if not _result_has_analysis(result):
+        raise FileNotFoundError(
+            f"No analysis saved for '{match_id}'. "
+            "Finish the pin-board match (See analysis appears after full time) "
+            "or ask an admin to rebuild via POST /analysis."
+        )
+
+    # Stale CB/slot-fit narratives (e.g. Ramos 0.79) — rebuild when formula version lags.
+    if int(result.get("fit_formula_version") or 0) < _FIT_FORMULA_VERSION:
+        try:
+            if result.get("engine") == "tactic_board":
+                _build_and_attach_board_analysis(
+                    t, result, tournament_id=tournament_id, match_id=match_id
+                )
+            else:
+                # Non-board: rebuild squad + matchup ratings with current formation_fit.
+                home = result.get("home") or fx.get("home")
+                away = result.get("away") or fx.get("away")
+                if home and away:
+                    n_sims = int(
+                        result.get("simulations")
+                        or (t.get("settings") or {}).get("simulations_per_match")
+                        or 10000
+                    )
+                    team_a, team_b = _load_teams_for_match(
+                        home, away, tournament_id=tournament_id, match_id=match_id
+                    )
+                    report, _snapshot = _run_simulation(
+                        home, away, match_id, n_sims, team_a=team_a, team_b=team_b
+                    )
+                    result.update(_analysis_payload_from_report(report))
+            result["fit_formula_version"] = _FIT_FORMULA_VERSION
+            save_tournament(t)
+        except Exception:
+            # Prefer serving stale analysis over failing the view.
+            pass
+
+    return _analysis_response(result, match_id)
+
+
+def generate_match_analysis(tournament_id: str, match_id: str) -> dict[str, Any]:
+    """Rebuild and persist analysis for a completed match without changing the score."""
+    t = load_tournament(tournament_id)
+    if not t:
+        raise KeyError("Tournament not found")
+    found = _find_fixture(t, match_id)
+    if not found:
+        raise KeyError(f"Fixture '{match_id}' not found")
+    _, fx = found
+    if not fx.get("played"):
+        raise ValueError(f"Match {match_id} has not been played yet")
+    result_id = fx.get("result_id") or match_id
+    result = (t.get("match_results") or {}).get(result_id)
+    if not result:
+        raise KeyError(f"Result for '{match_id}' not found")
+
+    # Board-official matches: always (re)build ratings + board narrative
+    if result.get("engine") == "tactic_board":
+        _build_and_attach_board_analysis(
+            t, result, tournament_id=tournament_id, match_id=match_id
+        )
+        result["fit_formula_version"] = _FIT_FORMULA_VERSION
+        save_tournament(t)
+        return _analysis_response(result, match_id)
+
+    if not _result_has_analysis(result) and _import_analysis_from_experiment(result):
+        save_tournament(t)
+        return _analysis_response(result, match_id)
+
+    # Rebuild when fit formula is stale (even if narrative already exists).
+    if (
+        _result_has_analysis(result)
+        and int(result.get("fit_formula_version") or 0) >= _FIT_FORMULA_VERSION
+    ):
+        return _analysis_response(result, match_id)
+
+    home = result.get("home") or fx.get("home")
+    away = result.get("away") or fx.get("away")
+    if not home or not away:
+        raise ValueError(f"Match {match_id} is missing team names")
+
+    n_sims = int(
+        result.get("simulations")
+        or (t.get("settings") or {}).get("simulations_per_match")
+        or 10000
+    )
+    team_a, team_b = _load_teams_for_match(
+        home, away, tournament_id=tournament_id, match_id=match_id
+    )
+    report, _snapshot = _run_simulation(
+        home, away, match_id, n_sims, team_a=team_a, team_b=team_b
+    )
+    result.update(_analysis_payload_from_report(report))
+    save_tournament(t)
+    return _analysis_response(result, match_id)
+
+
 def accept_match_result(tournament_id: str, match_id: str) -> dict[str, Any]:
     """Admin accepts the engine scoreline without changing it."""
     t = load_tournament(tournament_id)
@@ -1189,11 +1910,13 @@ def accept_match_result(tournament_id: str, match_id: str) -> dict[str, Any]:
     result["admin_reviewed_at"] = _now()
     if not result.get("manually_overridden"):
         result["manually_overridden"] = False
+    if not _result_has_analysis(result):
+        _import_analysis_from_experiment(result)
     save_tournament(t)
     return {
-        "tournament": t,
+        "tournament": tournament_for_api(t),
         "match": fx,
-        "result": result,
+        "result": match_result_for_api(result),
         "stage": stage_key,
     }
 
@@ -1304,9 +2027,9 @@ def override_match_result(
 
     save_tournament(t)
     return {
-        "tournament": t,
+        "tournament": tournament_for_api(t),
         "match": fx,
-        "result": result,
+        "result": match_result_for_api(result),
         "stage": stage_key,
     }
 

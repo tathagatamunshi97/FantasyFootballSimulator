@@ -13,6 +13,74 @@ AM_SLOTS = frozenset({"AM"})
 WINGER_SLOTS = frozenset({"RW", "LW", "RM", "LM"})
 STRIKER_SLOTS = frozenset({"ST", "ST1", "ST2", "CF", "CF1", "CF2"})
 
+# Optional per-slot role remaps (UI filter). First entry is the natural default.
+# Locked (no options): GK, CB*, ST/CF*, RW/LW.
+ROLE_FILTER_OPTIONS: dict[str, tuple[str, ...]] = {
+    "AM": ("AM", "CM"),
+    "CM": ("CM", "DM"),
+    "DM": ("DM", "CM"),
+    "LB": ("LB", "LWB"),
+    "LWB": ("LWB", "LB", "LM"),
+    "LM": ("LM", "LWB"),
+    "RB": ("RB", "RWB"),
+    "RWB": ("RWB", "RB", "RM"),
+    "RM": ("RM", "RWB"),
+}
+
+
+def slot_filter_key(slot: str) -> str:
+    """Canonical key for role-filter lookup (CM1→CM, CB2→CB, …)."""
+    s = (slot or "").strip().upper()
+    if s == "GK" or s == "AM":
+        return s
+    if s.startswith("CB"):
+        return "CB"
+    if s.startswith("ST") or s.startswith("CF") or s.startswith("FW"):
+        return "ST"
+    if s.startswith("DM"):
+        return "DM"
+    if s.startswith("CM"):
+        return "CM"
+    return s
+
+
+def allowed_role_filters(slot: str) -> list[str]:
+    """Allowed role labels for a formation slot; empty if locked."""
+    opts = ROLE_FILTER_OPTIONS.get(slot_filter_key(slot))
+    return list(opts) if opts else []
+
+
+def normalize_role_filter(slot: str, role_filter: str | None) -> str:
+    """Return a valid filter label, or the natural default when locked/invalid."""
+    opts = ROLE_FILTER_OPTIONS.get(slot_filter_key(slot))
+    if not opts:
+        return slot_filter_key(slot)
+    rf = (role_filter or "").strip().upper()
+    if rf in opts:
+        return rf
+    return opts[0]
+
+
+def effective_slot_name(slot: str, role_filter: str | None = None) -> str:
+    """
+    Slot name used for weights / board role / fit when a filter is applied.
+    Natural midfield numbered slots (CM1, DM2) keep their name when unfiltered.
+    """
+    key = slot_filter_key(slot)
+    opts = ROLE_FILTER_OPTIONS.get(key)
+    if not opts:
+        return slot
+    rf = normalize_role_filter(slot, role_filter)
+    if rf == opts[0] and key in {"CM", "DM"}:
+        return slot
+    return rf
+
+
+def role_filters_meta() -> dict[str, list[str]]:
+    """slot → allowed filter labels (only remappable slots)."""
+    # Expose by concrete formation slot names via callers; here the option map itself.
+    return {k: list(v) for k, v in ROLE_FILTER_OPTIONS.items()}
+
 
 @dataclass(frozen=True)
 class SlotUnitWeights:

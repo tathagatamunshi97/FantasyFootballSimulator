@@ -552,11 +552,10 @@ async function waitForTournamentMatch(matchId, experimentId) {
 async function runGroupMatch(matchId) {
   if (!currentId) return;
   try {
-    tLog(`Starting matchday session for ${matchId}…`);
-    const res = await adminApi(`/api/tournament/${currentId}/matches/${matchId}/run`, { method: "POST" });
-    tLog(`Matchday session started — all users redirected to /matchday. Open /matchday to run simulation.`);
-    window.open("/matchday", "_blank");
-    await loadCurrent();
+    tLog(`Opening Matchday for ${matchId}…`);
+    await adminApi(`/api/tournament/${currentId}/matches/${matchId}/run`, { method: "POST" });
+    tLog(`Matchday session ready — redirecting to live board.`);
+    window.location.href = "/matchday";
   } catch (err) {
     tLog(`Error: ${err.message}`);
   }
@@ -565,11 +564,12 @@ async function runGroupMatch(matchId) {
 async function runKoMatch(matchId) {
   if (!currentId) return;
   try {
-    tLog(`Starting matchday session for knockout ${matchId}…`);
-    const res = await adminApi(`/api/tournament/${currentId}/knockout/matches/${matchId}/run`, { method: "POST" });
-    tLog(`Matchday session started — all users redirected to /matchday. Open /matchday to run simulation.`);
-    window.open("/matchday", "_blank");
-    await loadCurrent();
+    tLog(`Opening Matchday knockout for ${matchId}…`);
+    await adminApi(`/api/tournament/${currentId}/knockout/matches/${matchId}/run`, {
+      method: "POST",
+    });
+    tLog(`Matchday session ready — redirecting to live board.`);
+    window.location.href = "/matchday";
   } catch (err) {
     tLog(`Error: ${err.message}`);
   }

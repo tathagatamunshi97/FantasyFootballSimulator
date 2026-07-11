@@ -215,10 +215,10 @@ def main() -> None:
         from formation_fit import team_formation_fit
 
         home_fit = team_formation_fit(
-            home.formation, [(s.player, s.slot) for s in home.lineup], player_stats
+            home.formation, [(s.player, s.slot, getattr(s, "role_filter", "") or "") for s in home.lineup], player_stats
         )
         away_fit = team_formation_fit(
-            away.formation, [(s.player, s.slot) for s in away.lineup], player_stats
+            away.formation, [(s.player, s.slot, getattr(s, "role_filter", "") or "") for s in away.lineup], player_stats
         )
         print_formation_fit(home.name, home_fit)
         print_formation_fit(away.name, away_fit)

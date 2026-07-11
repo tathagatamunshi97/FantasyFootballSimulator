@@ -23,6 +23,8 @@ function setStatus(exp) {
   document.getElementById("pageSub").textContent = `By ${exp.user || "—"} · ${exp.simulations?.toLocaleString() || "—"} simulations`;
 }
 
+let _expWired = false;
+
 async function refresh() {
   try {
     const data = await api(`/api/experiments/${expId}`);
@@ -31,11 +33,13 @@ async function refresh() {
     const app = document.getElementById("app");
 
     if (exp.running || exp.status === "running" || exp.status === "queued") {
+      _expWired = false;
       app.innerHTML = `<div class="empty"><span class="badge live">Live</span><p>${esc(exp.message)}</p><p class="muted">Refreshing every 5 seconds…</p></div>`;
       return;
     }
 
     if (exp.status === "error") {
+      _expWired = false;
       app.innerHTML = `<div class="empty"><span class="badge error">Error</span><p>${esc(exp.message)}</p><p>${document.getElementById("navBack").innerHTML}</p></div>`;
       return;
     }
@@ -45,7 +49,14 @@ async function refresh() {
       return;
     }
 
+    const watching = Boolean(document.querySelector("[data-tactic-mount]:not([hidden])"));
+    if (_expWired && (watching || exp.status === "ready")) return;
+
     app.innerHTML = renderReport(exp.report, exp.report.matchup);
+    if (typeof TacticBoard !== "undefined") {
+      TacticBoard.wireWatchCard(app, exp.report, exp.report.matchup);
+    }
+    _expWired = true;
   } catch (e) {
     if (e.message.includes("403")) {
       window.location.replace("/matchday");

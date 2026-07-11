@@ -1,0 +1,1507 @@
+{
+  "ok": [
+    {
+      "player": "Declan Rice",
+      "raw": "Rice",
+      "season": "24/25",
+      "minutes": 2966.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Pau Cubarsí",
+      "raw": "Cubarsi",
+      "season": "24/25",
+      "minutes": 2664.0,
+      "pos": "CB",
+      "player_id": null
+    },
+    {
+      "player": "Marc Cucurella",
+      "raw": "Cucurella",
+      "season": "24/25",
+      "minutes": 2850.0,
+      "pos": "LB",
+      "player_id": null
+    },
+    {
+      "player": "Dayot Upamecano",
+      "raw": "Upamecano",
+      "season": "24/25",
+      "minutes": 1779.0,
+      "pos": "CB",
+      "player_id": null
+    },
+    {
+      "player": "Enzo Fernández",
+      "raw": "Enzo F",
+      "season": "24/25",
+      "minutes": 3033.5,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "João Palhinha",
+      "raw": "Joao Palhinha",
+      "season": "25/26",
+      "minutes": 2198.0,
+      "pos": "CM",
+      "player_id": 364612
+    },
+    {
+      "player": "Mike Maignan",
+      "raw": "Maignan",
+      "season": "24/25",
+      "minutes": 3295.5,
+      "pos": "GK",
+      "player_id": null
+    },
+    {
+      "player": "Luis Díaz",
+      "raw": "Luis Diaz",
+      "season": "24/25",
+      "minutes": 2430.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Josip Stanišić",
+      "raw": "Stanisic",
+      "season": "25/26",
+      "minutes": 1855.0,
+      "pos": "LB",
+      "player_id": 927407
+    },
+    {
+      "player": "Edmond Tapsoba",
+      "raw": "Tapsoba",
+      "season": "24/25",
+      "minutes": 2543.5,
+      "pos": "CB",
+      "player_id": null
+    },
+    {
+      "player": "Manuel Locatelli",
+      "raw": "Manuel Locatelli",
+      "season": "24/25",
+      "minutes": 2922.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Matheus Cunha",
+      "raw": "Matheus Cunha",
+      "season": "24/25",
+      "minutes": 2551.5,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Erling Haaland",
+      "raw": "Haaland",
+      "season": "24/25",
+      "minutes": 2849.5,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Bruno Fernandes",
+      "raw": "Bruno",
+      "season": "24/25",
+      "minutes": 3045.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Yassine Bounou",
+      "raw": "Bounou",
+      "season": "24/25",
+      "minutes": 2565.0,
+      "pos": "GK",
+      "player_id": null
+    },
+    {
+      "player": "Jérémy Doku",
+      "raw": "Doku",
+      "season": "24/25",
+      "minutes": 1658.5,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Nicolò Barella",
+      "raw": "Barella",
+      "season": "24/25",
+      "minutes": 2529.5,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Mason Greenwood",
+      "raw": "Mason Greenwood",
+      "season": "24/25",
+      "minutes": 2641.5,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Djed Spence",
+      "raw": "Djed Spence",
+      "season": "24/25",
+      "minutes": 1942.0,
+      "pos": "LB",
+      "player_id": null
+    },
+    {
+      "player": "Leandro Trossard",
+      "raw": "Leandro Trossard",
+      "season": "24/25",
+      "minutes": 2282.0,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Malick Thiaw",
+      "raw": "Malick Thiaw",
+      "season": "24/25",
+      "minutes": 2383.5,
+      "pos": "CB",
+      "player_id": null
+    },
+    {
+      "player": "Jordan Pickford",
+      "raw": "Jordan Pickford",
+      "season": "24/25",
+      "minutes": 3420.0,
+      "pos": "GK",
+      "player_id": null
+    },
+    {
+      "player": "Adam Wharton",
+      "raw": "Adam Wharton",
+      "season": "25/26",
+      "minutes": 2562.0,
+      "pos": "CM",
+      "player_id": 1109771
+    },
+    {
+      "player": "Maxence Lacroix",
+      "raw": "Maxence Lacroix",
+      "season": "24/25",
+      "minutes": 3102.5,
+      "pos": "CB",
+      "player_id": null
+    },
+    {
+      "player": "Noussair Mazraoui",
+      "raw": "Noussair Mazraoui",
+      "season": "24/25",
+      "minutes": 2848.0,
+      "pos": "CB",
+      "player_id": 847030
+    },
+    {
+      "player": "Lamine Yamal",
+      "raw": "Yamal",
+      "season": "24/25",
+      "minutes": 2564.5,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Ryan Gravenberch",
+      "raw": "Gravenberch",
+      "season": "24/25",
+      "minutes": 3082.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Jan Paul van Hecke",
+      "raw": "Van Hecke",
+      "season": "24/25",
+      "minutes": 3085.5,
+      "pos": "CB",
+      "player_id": null
+    },
+    {
+      "player": "Marc Guéhi",
+      "raw": "Marc Guehi",
+      "season": "24/25",
+      "minutes": 3105.0,
+      "pos": "CB",
+      "player_id": null
+    },
+    {
+      "player": "Konrad Laimer",
+      "raw": "Laimer",
+      "season": "24/25",
+      "minutes": 1850.5,
+      "pos": "LB",
+      "player_id": null
+    },
+    {
+      "player": "Arda Güler",
+      "raw": "Arda Guler",
+      "season": "25/26",
+      "minutes": 2026.0,
+      "pos": "CM",
+      "player_id": 1091116
+    },
+    {
+      "player": "Abdessamad Ezzalzouli",
+      "raw": "Abdessamad Ezzalzouli",
+      "season": "24/25",
+      "minutes": 2125.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Yan Diomande",
+      "raw": "Yan Diomande",
+      "season": "24/25",
+      "minutes": 1513.5,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Matvey Safonov",
+      "raw": "Matvei Safonov",
+      "season": "24/25",
+      "minutes": 1114.0,
+      "pos": "GK",
+      "player_id": null
+    },
+    {
+      "player": "Gregor Kobel",
+      "raw": "Gregor Kobel",
+      "season": "24/25",
+      "minutes": 2970.0,
+      "pos": "GK",
+      "player_id": null
+    },
+    {
+      "player": "Álvaro Carreras",
+      "raw": "Alvaro Carreras",
+      "season": "25/26",
+      "minutes": 2340.0,
+      "pos": "LB",
+      "player_id": 1085081
+    },
+    {
+      "player": "Felix Nmecha",
+      "raw": "Felix Nmecha",
+      "season": "24/25",
+      "minutes": 1847.5,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Kylian Mbappé",
+      "raw": "Mbappe",
+      "season": "24/25",
+      "minutes": 2759.5,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Federico Valverde",
+      "raw": "Fede Valverde",
+      "season": "24/25",
+      "minutes": 2889.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Dani Olmo",
+      "raw": "Dani Olmo",
+      "season": "25/26",
+      "minutes": 2077.0,
+      "pos": "CM",
+      "player_id": 789071
+    },
+    {
+      "player": "Nico Paz",
+      "raw": "Nico Paz",
+      "season": "24/25",
+      "minutes": 2790.5,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Matheus Nunes",
+      "raw": "Nunes",
+      "season": "24/25",
+      "minutes": 2273.5,
+      "pos": "LB",
+      "player_id": null
+    },
+    {
+      "player": "Elliot Anderson",
+      "raw": "Eliott Anderson",
+      "season": "24/25",
+      "minutes": 3038.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Christian Pulišić",
+      "raw": "Pulisic",
+      "season": "24/25",
+      "minutes": 2050.0,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Morgan Rogers",
+      "raw": "Morgan Rogers",
+      "season": "24/25",
+      "minutes": 3207.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Kim Min-jae",
+      "raw": "Kim Min Jae",
+      "season": "24/25",
+      "minutes": 1955.0,
+      "pos": "CB",
+      "player_id": null
+    },
+    {
+      "player": "Hugo Ekitiké",
+      "raw": "Hugo Ekitike",
+      "season": "24/25",
+      "minutes": 2194.0,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Hakan Çalhanoğlu",
+      "raw": "Hakan Calhanoglu",
+      "season": "24/25",
+      "minutes": 1805.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Amir Rrahmani",
+      "raw": "Rrahmani",
+      "season": "24/25",
+      "minutes": 2603.0,
+      "pos": "CB",
+      "player_id": null
+    },
+    {
+      "player": "Nordi Mukiele",
+      "raw": "Nordi Mukiele",
+      "season": "25/26",
+      "minutes": 2787.0,
+      "pos": "LB",
+      "player_id": 780014
+    },
+    {
+      "player": "Michael Olise",
+      "raw": "Olise",
+      "season": "24/25",
+      "minutes": 2331.5,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Harry Kane",
+      "raw": "Kane",
+      "season": "24/25",
+      "minutes": 2385.5,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Jules Koundé",
+      "raw": "Kounde",
+      "season": "24/25",
+      "minutes": 2437.5,
+      "pos": "LB",
+      "player_id": null
+    },
+    {
+      "player": "Willian Pacho",
+      "raw": "Willian Pacho",
+      "season": "24/25",
+      "minutes": 2022.5,
+      "pos": "CB",
+      "player_id": null
+    },
+    {
+      "player": "Pape Matar Sarr",
+      "raw": "Pape Matar Sarr",
+      "season": "24/25",
+      "minutes": 1913.0,
+      "pos": "CM",
+      "player_id": 1002711
+    },
+    {
+      "player": "João Neves",
+      "raw": "Joao Neves",
+      "season": "24/25",
+      "minutes": 1572.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Bruno Guimarães",
+      "raw": "Bruno G",
+      "season": "24/25",
+      "minutes": 2868.5,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Nico O'Reilly",
+      "raw": "Nico O'Reilly",
+      "season": "25/26",
+      "minutes": 2648.0,
+      "pos": "RB",
+      "player_id": 1142703
+    },
+    {
+      "player": "Rafael Leão",
+      "raw": "Rafael Leao",
+      "season": "24/25",
+      "minutes": 2094.5,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Marco Carnesecchi",
+      "raw": "Marco Carnesecchi",
+      "season": "24/25",
+      "minutes": 3195.0,
+      "pos": "GK",
+      "player_id": null
+    },
+    {
+      "player": "Jérémy Jacquet",
+      "raw": "Jeremy Jacquet",
+      "season": "25/26",
+      "minutes": 1673.0,
+      "pos": "CB",
+      "player_id": 1445625
+    },
+    {
+      "player": "Eli Junior Kroupi",
+      "raw": "Eli Junior Kroupi",
+      "season": "25/26",
+      "minutes": 1690.0,
+      "pos": "ST",
+      "player_id": 1426228
+    },
+    {
+      "player": "Ousmane Dembélé",
+      "raw": "Dembele",
+      "season": "24/25",
+      "minutes": 1399.0,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "David Raya",
+      "raw": "Raya",
+      "season": "24/25",
+      "minutes": 3375.0,
+      "pos": "GK",
+      "player_id": null
+    },
+    {
+      "player": "Lautaro Martínez",
+      "raw": "Lautaro Martinez",
+      "season": "24/25",
+      "minutes": 2377.5,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Marcus Thuram",
+      "raw": "Marcus Thuram",
+      "season": "24/25",
+      "minutes": 2105.5,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Jamal Musiala",
+      "raw": "Musiala",
+      "season": "24/25",
+      "minutes": 1804.0,
+      "pos": "CM",
+      "player_id": 1010231
+    },
+    {
+      "player": "Moisés Caicedo",
+      "raw": "Caicedo",
+      "season": "24/25",
+      "minutes": 3079.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Eric García",
+      "raw": "Eric Garcia",
+      "season": "24/25",
+      "minutes": 2152.5,
+      "pos": "CB",
+      "player_id": null
+    },
+    {
+      "player": "Karim Adeyemi",
+      "raw": "Karim Adeyemi",
+      "season": "24/25",
+      "minutes": 1330.5,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Alphonso Davies",
+      "raw": "Alphonso Davies",
+      "season": "24/25",
+      "minutes": 1561.0,
+      "pos": "LB",
+      "player_id": 843665
+    },
+    {
+      "player": "Sandro Tonali",
+      "raw": "Sandro Tonali",
+      "season": "24/25",
+      "minutes": 2587.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Reece James",
+      "raw": "Reece James",
+      "season": "25/26",
+      "minutes": 1961.0,
+      "pos": "RB",
+      "player_id": 885908
+    },
+    {
+      "player": "Dean Huijsen",
+      "raw": "Dean Huijsen",
+      "season": "24/25",
+      "minutes": 2229.5,
+      "pos": "CB",
+      "player_id": null
+    },
+    {
+      "player": "Fabián Ruiz",
+      "raw": "Ruiz",
+      "season": "24/25",
+      "minutes": 1529.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Khvicha Kvaratskhelia",
+      "raw": "Khvicha",
+      "season": "24/25",
+      "minutes": 1335.0,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Julián Alvarez",
+      "raw": "Julian Alvarez",
+      "season": "24/25",
+      "minutes": 2210.0,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Emiliano Martínez",
+      "raw": "Emiliano Martinez",
+      "season": "24/25",
+      "minutes": 3015.5,
+      "pos": "GK",
+      "player_id": null
+    },
+    {
+      "player": "Joško Gvardiol",
+      "raw": "Gvardiol",
+      "season": "24/25",
+      "minutes": 2326.5,
+      "pos": "CB",
+      "player_id": null
+    },
+    {
+      "player": "Jude Bellingham",
+      "raw": "Bellingham",
+      "season": "24/25",
+      "minutes": 2205.5,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Jurriën Timber",
+      "raw": "Timber",
+      "season": "24/25",
+      "minutes": 2439.5,
+      "pos": "LB",
+      "player_id": null
+    },
+    {
+      "player": "Riccardo Calafiori",
+      "raw": "Calafiori",
+      "season": "25/26",
+      "minutes": 1707.0,
+      "pos": "CB",
+      "player_id": 957602
+    },
+    {
+      "player": "Rayan Cherki",
+      "raw": "Cherki",
+      "season": "24/25",
+      "minutes": 1923.5,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Anthony Gordon",
+      "raw": "Anthony Gordon",
+      "season": "24/25",
+      "minutes": 2130.5,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Benjamin Šeško",
+      "raw": "Benjamin Sesko",
+      "season": "24/25",
+      "minutes": 2021.0,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Trent Alexander-Arnold",
+      "raw": "Trent",
+      "season": "24/25",
+      "minutes": 2377.0,
+      "pos": "LB",
+      "player_id": 795064
+    },
+    {
+      "player": "Alisson",
+      "raw": "Alisson",
+      "season": "24/25",
+      "minutes": 2424.5,
+      "pos": "GK",
+      "player_id": null
+    },
+    {
+      "player": "Mikel Merino",
+      "raw": "Mikel Merino",
+      "season": "24/25",
+      "minutes": 1597.0,
+      "pos": "ST",
+      "player_id": 592010
+    },
+    {
+      "player": "Viktor Gyökeres",
+      "raw": "Gyokeres",
+      "season": "25/26",
+      "minutes": 2254.0,
+      "pos": "ST",
+      "player_id": 804508
+    },
+    {
+      "player": "Youri Tielemans",
+      "raw": "Tielemans",
+      "season": "24/25",
+      "minutes": 2447.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Eberechi Eze",
+      "raw": "Eze",
+      "season": "24/25",
+      "minutes": 2250.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Jonathan Tah",
+      "raw": "Jonathan Tah",
+      "season": "24/25",
+      "minutes": 2497.0,
+      "pos": "CB",
+      "player_id": null
+    },
+    {
+      "player": "Antonee Robinson",
+      "raw": "Antonee Robinson",
+      "season": "24/25",
+      "minutes": 2329.5,
+      "pos": "LB",
+      "player_id": null
+    },
+    {
+      "player": "Nick Pope",
+      "raw": "Nick Pope",
+      "season": "24/25",
+      "minutes": 2468.5,
+      "pos": "GK",
+      "player_id": null
+    },
+    {
+      "player": "Takefusa Kubo",
+      "raw": "Takefusa Kubo",
+      "season": "24/25",
+      "minutes": 1945.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "David Raum",
+      "raw": "David Raum",
+      "season": "24/25",
+      "minutes": 2172.0,
+      "pos": "LB",
+      "player_id": null
+    },
+    {
+      "player": "Marquinhos",
+      "raw": "Marquinhos",
+      "season": "24/25",
+      "minutes": 1387.0,
+      "pos": "CB",
+      "player_id": null
+    },
+    {
+      "player": "William Saliba",
+      "raw": "Saliba",
+      "season": "24/25",
+      "minutes": 2828.0,
+      "pos": "CB",
+      "player_id": null
+    },
+    {
+      "player": "Denzel Dumfries",
+      "raw": "Dumfries",
+      "season": "24/25",
+      "minutes": 1951.0,
+      "pos": "CM",
+      "player_id": 759520
+    },
+    {
+      "player": "Kenan Yıldız",
+      "raw": "Kenan Yildiz",
+      "season": "24/25",
+      "minutes": 2623.0,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Tijjani Reijnders",
+      "raw": "Tijjiani Reijnders",
+      "season": "24/25",
+      "minutes": 2386.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Aleksandar Pavlović",
+      "raw": "Pavlovic",
+      "season": "24/25",
+      "minutes": 1458.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Antoine Semenyo",
+      "raw": "Semenyo",
+      "season": "24/25",
+      "minutes": 3204.5,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Thibaut Courtois",
+      "raw": "Courtois",
+      "season": "24/25",
+      "minutes": 2790.0,
+      "pos": "GK",
+      "player_id": null
+    },
+    {
+      "player": "Dominic Calvert-Lewin",
+      "raw": "Calvert-Lewin",
+      "season": "24/25",
+      "minutes": 2177.5,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Kingsley Coman",
+      "raw": "Kingsley Coman",
+      "season": "24/25",
+      "minutes": 1284.0,
+      "pos": "CM",
+      "player_id": 280441
+    },
+    {
+      "player": "Alejandro Balde",
+      "raw": "Alejandro Balde",
+      "season": "24/25",
+      "minutes": 2083.0,
+      "pos": "LB",
+      "player_id": null
+    },
+    {
+      "player": "Marcus Rashford",
+      "raw": "Marcus Rashford",
+      "season": "24/25",
+      "minutes": 1594.0,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Ayyoub Bouaddi",
+      "raw": "Ayoub Bouaddi",
+      "season": "24/25",
+      "minutes": 1746.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Vinícius Júnior",
+      "raw": "Vinicius",
+      "season": "24/25",
+      "minutes": 2541.0,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Alessandro Bastoni",
+      "raw": "Bastoni",
+      "season": "24/25",
+      "minutes": 2334.5,
+      "pos": "LB",
+      "player_id": null
+    },
+    {
+      "player": "Gabriel Magalhães",
+      "raw": "Gabriel Magalhaes",
+      "season": "24/25",
+      "minutes": 2558.0,
+      "pos": "CB",
+      "player_id": null
+    },
+    {
+      "player": "Aurélien Tchouaméni",
+      "raw": "Tchouameni",
+      "season": "24/25",
+      "minutes": 2657.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Nathaniel Brown",
+      "raw": "Nathaniel Brown",
+      "season": "24/25",
+      "minutes": 2305.5,
+      "pos": "LB",
+      "player_id": null
+    },
+    {
+      "player": "Daniel Muñoz",
+      "raw": "Daniel Munoz",
+      "season": "24/25",
+      "minutes": 2818.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Morgan Gibbs-White",
+      "raw": "Morgan Gibbs-White",
+      "season": "24/25",
+      "minutes": 2966.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Mateus Fernandes",
+      "raw": "Mateusz Fernandes",
+      "season": "24/25",
+      "minutes": 2971.5,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Matz Sels",
+      "raw": "Matz Sels",
+      "season": "24/25",
+      "minutes": 3043.5,
+      "pos": "GK",
+      "player_id": null
+    },
+    {
+      "player": "Micky van de Ven",
+      "raw": "Micky Van de Ven",
+      "season": "25/26",
+      "minutes": 3043.0,
+      "pos": "CB",
+      "player_id": 998247
+    },
+    {
+      "player": "Alexis Mac Allister",
+      "raw": "Alexis Mac Allister",
+      "season": "24/25",
+      "minutes": 2641.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "João Pedro",
+      "raw": "Joao Pedro",
+      "season": "24/25",
+      "minutes": 2313.5,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Caoimhin Kelleher",
+      "raw": "Caiomhin Kelleher",
+      "season": "24/25",
+      "minutes": 2115.0,
+      "pos": "GK",
+      "player_id": null
+    },
+    {
+      "player": "Virgil van Dijk",
+      "raw": "VVD",
+      "season": "24/25",
+      "minutes": 3375.0,
+      "pos": "CB",
+      "player_id": null
+    },
+    {
+      "player": "Marcos Llorente",
+      "raw": "Marcos Llorente",
+      "season": "24/25",
+      "minutes": 2348.5,
+      "pos": "LB",
+      "player_id": null
+    },
+    {
+      "player": "Dominik Szoboszlai",
+      "raw": "Szoboszalai",
+      "season": "24/25",
+      "minutes": 2864.5,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Cristian Romero",
+      "raw": "Christian Romero",
+      "season": "24/25",
+      "minutes": 1646.0,
+      "pos": "CB",
+      "player_id": null
+    },
+    {
+      "player": "Robert Lewandowski",
+      "raw": "Lewandowski",
+      "season": "24/25",
+      "minutes": 2168.5,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Warren Zaïre-Emery",
+      "raw": "Warren Zaire Emery",
+      "season": "24/25",
+      "minutes": 2252.5,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Unai Simón",
+      "raw": "Unai Simon",
+      "season": "24/25",
+      "minutes": 2610.0,
+      "pos": "GK",
+      "player_id": null
+    },
+    {
+      "player": "Granit Xhaka",
+      "raw": "Granit Xhaka",
+      "season": "24/25",
+      "minutes": 2897.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Martín Zubimendi",
+      "raw": "Martin Zubimendi",
+      "season": "24/25",
+      "minutes": 2981.5,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Piero Hincapié",
+      "raw": "Piero Hincapie",
+      "season": "24/25",
+      "minutes": 2231.0,
+      "pos": "CB",
+      "player_id": null
+    },
+    {
+      "player": "Pedri",
+      "raw": "Pedri",
+      "season": "24/25",
+      "minutes": 2499.5,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Raphinha",
+      "raw": "Raphinha",
+      "season": "24/25",
+      "minutes": 2844.0,
+      "pos": "ST",
+      "player_id": 831005
+    },
+    {
+      "player": "Joshua Kimmich",
+      "raw": "Kimmich",
+      "season": "24/25",
+      "minutes": 2563.5,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Federico Dimarco",
+      "raw": "Federico DiMarco",
+      "season": "24/25",
+      "minutes": 2466.5,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Bryan Mbeumo",
+      "raw": "Mbuemo",
+      "season": "24/25",
+      "minutes": 3018.0,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Endrick",
+      "raw": "Endrick",
+      "season": "24/25",
+      "minutes": 813.0,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Yann Sommer",
+      "raw": "Yan Sommer",
+      "season": "24/25",
+      "minutes": 2965.5,
+      "pos": "GK",
+      "player_id": null
+    },
+    {
+      "player": "Senne Lammens",
+      "raw": "Senne Lammens",
+      "season": "25/26",
+      "minutes": 2880.0,
+      "pos": "GK",
+      "player_id": 964753
+    },
+    {
+      "player": "Lennart Karl",
+      "raw": "Lennart Karl",
+      "season": "25/26",
+      "minutes": 1282.0,
+      "pos": "CM",
+      "player_id": 1861975
+    },
+    {
+      "player": "Vitinha (Paris Saint-Germain)",
+      "raw": "Vitinha",
+      "season": "24/25",
+      "minutes": 2078.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Nuno Mendes",
+      "raw": "Nuno",
+      "season": "24/25",
+      "minutes": 1467.0,
+      "pos": "LB",
+      "player_id": null
+    },
+    {
+      "player": "Serhou Guirassy",
+      "raw": "Guirassy",
+      "season": "24/25",
+      "minutes": 2474.5,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Désiré Doué",
+      "raw": "Desire Doue",
+      "season": "24/25",
+      "minutes": 1545.0,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Nico Williams",
+      "raw": "Nico Williams",
+      "season": "24/25",
+      "minutes": 1842.5,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Nico Schlotterbeck",
+      "raw": "Schlotterbeck",
+      "season": "24/25",
+      "minutes": 2252.0,
+      "pos": "CB",
+      "player_id": null
+    },
+    {
+      "player": "Ibrahima Konaté",
+      "raw": "Konate",
+      "season": "24/25",
+      "minutes": 2832.5,
+      "pos": "CB",
+      "player_id": null
+    },
+    {
+      "player": "Joan García",
+      "raw": "Joan Garcia",
+      "season": "24/25",
+      "minutes": 3060.0,
+      "pos": "GK",
+      "player_id": null
+    },
+    {
+      "player": "Guéla Doué",
+      "raw": "Guela Doue",
+      "season": "24/25",
+      "minutes": 2389.5,
+      "pos": "LB",
+      "player_id": null
+    },
+    {
+      "player": "Frenkie de Jong",
+      "raw": "Frenkie de Jong",
+      "season": "25/26",
+      "minutes": 1637.0,
+      "pos": "CM",
+      "player_id": 795222
+    },
+    {
+      "player": "Ademola Lookman",
+      "raw": "Ademola Lookman",
+      "season": "24/25",
+      "minutes": 1530.0,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Fermín López",
+      "raw": "Fermin Lopez",
+      "season": "25/26",
+      "minutes": 1797.0,
+      "pos": "CM",
+      "player_id": 1153270
+    },
+    {
+      "player": "Cristhian Mosquera",
+      "raw": "Cristhian Mosquera",
+      "season": "24/25",
+      "minutes": 3320.0,
+      "pos": "CB",
+      "player_id": 1144630
+    },
+    {
+      "player": "Pedro Porro",
+      "raw": "Porro",
+      "season": "24/25",
+      "minutes": 2710.0,
+      "pos": "LB",
+      "player_id": null
+    },
+    {
+      "player": "Matthijs de Ligt",
+      "raw": "De Ligt",
+      "season": "24/25",
+      "minutes": 2128.0,
+      "pos": "CB",
+      "player_id": 803031
+    },
+    {
+      "player": "Brahim Diaz",
+      "raw": "Brahim Diaz",
+      "season": "23/24",
+      "minutes": 1545.0,
+      "pos": "ST",
+      "player_id": 835485
+    },
+    {
+      "player": "Diogo Dalot",
+      "raw": "Diogo Dalot",
+      "season": "24/25",
+      "minutes": 2714.5,
+      "pos": "LB",
+      "player_id": null
+    },
+    {
+      "player": "Bradley Barcola",
+      "raw": "Bradley Barcola",
+      "season": "24/25",
+      "minutes": 1971.0,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Bukayo Saka",
+      "raw": "Saka",
+      "season": "24/25",
+      "minutes": 1980.0,
+      "pos": "ST",
+      "player_id": null
+    },
+    {
+      "player": "Scott McTominay",
+      "raw": "Mctominay",
+      "season": "24/25",
+      "minutes": 2867.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Florian Wirtz",
+      "raw": "Florian Wirtz",
+      "season": "24/25",
+      "minutes": 2371.5,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Gianluigi Donnarumma",
+      "raw": "Donnarumma",
+      "season": "24/25",
+      "minutes": 2576.0,
+      "pos": "GK",
+      "player_id": null
+    },
+    {
+      "player": "Kobbie Mainoo",
+      "raw": "Kobbie Mainoo",
+      "season": "24/25",
+      "minutes": 1663.0,
+      "pos": "CM",
+      "player_id": null
+    },
+    {
+      "player": "Theo Hernández",
+      "raw": "Theo Hernandez",
+      "season": "24/25",
+      "minutes": 2696.0,
+      "pos": "LB",
+      "player_id": 788027
+    }
+  ],
+  "skipped": [
+    {
+      "player": "Gonzalo Higuain",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Cole Palmer",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Antoine Griezmann",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Sergio Ramos",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Fernandinho",
+      "reason": "prime exists"
+    },
+    {
+      "player": "CR7",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Carvajal",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Arturo Vidal",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Neuer",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Marcelo",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Casemiro",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Diego Godin",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Diogo Costa",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Modric",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Giovanni Lo Celso",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Laporte",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Rodri",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Ruben Dias",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Angel Di Maria",
+      "reason": "prime exists"
+    },
+    {
+      "player": "John Stones",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Hakimi",
+      "reason": "prime exists"
+    },
+    {
+      "player": "El Kaabi",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Alexis Sanchez",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Eder Militao",
+      "reason": "prime exists"
+    },
+    {
+      "player": "KDB",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Luis Suarez",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Roberto Firmino",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Salah",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Messi",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Bernardo",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Neymar",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Alex Grimaldo",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Alexander Sorloth",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Rudiger",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Dani Alves",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Jamie Vardy",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Ismael Saibari",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Harry Maguire",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Francesco Acerbi",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Kante",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Edinson Cavani",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Alaba",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Radamel Falcao",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Gundogan",
+      "reason": "prime exists"
+    },
+    {
+      "player": "Riyad Mahrez",
+      "reason": "prime exists"
+    }
+  ],
+  "failed": []
+}

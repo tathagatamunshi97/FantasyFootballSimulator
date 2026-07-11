@@ -407,9 +407,10 @@ function renderAnalysis(analysis) {
     })
     .join("");
 
+  const heading = analysis.board_result ? "Match analysis" : "Why this result?";
   return `
     <section class="card analysis-card" style="margin-top:1rem">
-      <h2>Why this result?</h2>
+      <h2>${heading}</h2>
       <p class="analysis-verdict">${esc(analysis.summary)}</p>
       ${factors ? `<h3 style="font-size:0.9rem;margin-top:1rem">Key factors</h3><ul class="analysis-bullets">${factors}</ul>` : ""}
       <div class="analysis-sections" style="margin-top:1rem">${sections}</div>
@@ -438,6 +439,11 @@ function renderReport(report, matchup) {
       </div>`;
   }
 
+  const watchCard =
+    typeof TacticBoard !== "undefined" && TacticBoard.renderWatchCard
+      ? TacticBoard.renderWatchCard()
+      : "";
+
   return `
     <section class="card scoreboard">
       <div>
@@ -454,6 +460,8 @@ function renderReport(report, matchup) {
         <div class="muted">${esc(matchup.away.formation)}</div>
       </div>
     </section>
+
+    ${watchCard}
 
     ${renderAnalysis(report.analysis)}
 
@@ -504,8 +512,31 @@ function renderMatchdayList(items) {
 }
 
 function phaseLabel(phase) {
-  const labels = { setup: "Setup", running: "Live", result: "Full time" };
+  const labels = {
+    setup: "Pre-match",
+    live: "Live",
+    running: "Live",
+    result: "Full time",
+  };
   return labels[phase] || phase || "—";
+}
+
+/** Extra line under KO scorelines (FT / AET / pens). */
+function knockoutScoreNote(r) {
+  if (!r || !r.decided_by || r.decided_by === "ft") return "";
+  const bits = [];
+  if (r.ft_home_goals != null && r.ft_away_goals != null) {
+    bits.push(`90' ${r.ft_home_goals}–${r.ft_away_goals}`);
+  }
+  if (r.decided_by === "aet") bits.push("after extra time");
+  if (r.decided_by === "pens") {
+    if (r.pens_home != null && r.pens_away != null) {
+      bits.push(`pens ${r.pens_home}–${r.pens_away}`);
+    } else {
+      bits.push("penalties");
+    }
+  }
+  return bits.length ? `<p class="muted" style="margin:0.2rem 0 0">${bits.join(" · ")}</p>` : "";
 }
 
 function renderMatchdayTeamCard(team, label) {
@@ -527,17 +558,17 @@ function renderMatchdayTeamCard(team, label) {
 }
 
 function renderMatchdaySession(status, { isAdmin = false } = {}) {
-  const session = status?.session;
+  const session = status && typeof status === "object" ? status.session ?? null : null;
   if (!status?.active || !session) {
     return `<div class="empty">
-      <p>No live tournament fixture right now.</p>
-      <p class="muted">When the admin runs a tournament fixture, everyone is redirected here for setup → simulation → result.</p>
+      <p>No live match — waiting for admin to Run a fixture</p>
+      <p class="muted">When the admin clicks <strong>Run</strong> on a tournament fixture, everyone watches the live tactic board here.</p>
       <p class="muted"><a href="/tournament">View tournament standings</a> · <a href="/squad">Configure your lineup</a></p>
     </div>`;
   }
 
   const phase = session.phase;
-  const badgeClass = phase === "running" ? "live" : phase === "result" ? "ready" : "";
+  const badgeClass = phase === "live" || phase === "running" ? "live" : phase === "result" ? "ready" : "";
   const header = `
     <div class="card" style="margin-bottom:1rem">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap">
@@ -550,13 +581,15 @@ function renderMatchdaySession(status, { isAdmin = false } = {}) {
       <p class="muted" style="margin-top:0.5rem">${esc(session.message || "")}</p>
     </div>`;
 
+  const boardMount = `<div class="card" data-matchday-board-card style="margin-top:0.5rem">
+      <div data-tactic-mount></div>
+    </div>`;
+
   let phaseBody = "";
   if (phase === "setup") {
     const myTeam = getUser();
     const involved = myTeam && (myTeam === session.home || myTeam === session.away);
     const teamsMeta = session.teams_meta || {};
-    const homeMeta = teamsMeta[session.home] || {};
-    const awayMeta = teamsMeta[session.away] || {};
     const unfinalized = [session.home, session.away].filter((t) => teamsMeta[t] && !teamsMeta[t].finalized);
     const warnUnfinalized = unfinalized.length
       ? `<p class="badge error" style="display:inline-block;margin-top:0.75rem">Not finalized: ${unfinalized.map(esc).join(", ")} — <a href="/squad">finalize on Squad hub</a></p>`
@@ -569,25 +602,33 @@ function renderMatchdaySession(status, { isAdmin = false } = {}) {
           ? `<p class="badge ready" style="display:inline-block">Your squad is finalized ✓</p>`
           : "";
     const squadLink = involved
-      ? `<p><a href="/squad" class="btn-link">Configure your lineup on Squad hub</a> and finalize before the admin runs the simulation.</p>${myWarn}`
+      ? `<p><a href="/squad" class="btn-link">Configure your lineup on Squad hub</a> and finalize before kick-off.</p>${myWarn}`
       : `<p class="muted">Involved teams can configure and finalize lineups on <a href="/squad">Squad hub</a>.</p>`;
-    const adminRun = isAdmin || getAdminToken()
-      ? `<button type="button" id="matchdayRunBtn" class="btn-primary" style="margin-top:1rem">Run simulation</button>${warnUnfinalized ? `<p class="muted" style="margin-top:0.5rem">Admin: ${unfinalized.length} team(s) have not finalized.</p>` : ""}`
-      : `<p class="muted">Waiting for admin to start the simulation…</p>`;
+    const adminRun =
+      isAdmin || getAdminToken()
+        ? `<button type="button" id="matchdayRunBtn" class="btn-primary" style="margin-top:1rem">Start match</button>${
+            warnUnfinalized
+              ? `<p class="muted" style="margin-top:0.5rem">Admin: ${unfinalized.length} team(s) have not finalized.</p>`
+              : ""
+          }`
+        : `<p class="muted">Waiting for admin to start the match…</p>`;
     phaseBody = `
       <section>
-        <h3 style="margin-bottom:0.75rem">Lineups</h3>
+        <h3 style="margin-bottom:0.75rem">Pre-match lineups</h3>
         <div class="grid grid-2">${renderMatchdayTeamCard(session.team_a, "Home")}${renderMatchdayTeamCard(session.team_b, "Away")}</div>
         ${squadLink}
         ${warnUnfinalized && !isAdmin && !getAdminToken() ? warnUnfinalized : ""}
         ${adminRun}
       </section>`;
-  } else if (phase === "running") {
+  } else if (phase === "live" || phase === "running") {
+    const waiting =
+      session.engine === "tactic_board" || session.board
+        ? `<p class="muted" style="margin:0 0 0.75rem">Shared live tactic board — possession, xG and momentum update for everyone.</p>`
+        : `<p class="muted" style="margin:0 0 0.75rem">Monte Carlo in progress…</p>`;
     phaseBody = `
-      <div class="card">
-        <h3>Simulation running</h3>
-        <p class="muted">Monte Carlo in progress… results will appear when complete.</p>
-        <div class="grid grid-2" style="margin-top:1rem">${renderMatchdayTeamCard(session.team_a, "Home")}${renderMatchdayTeamCard(session.team_b, "Away")}</div>
+      <div>
+        ${waiting}
+        ${session.board || session.engine === "tactic_board" ? boardMount : `<div class="card"><div class="grid grid-2">${renderMatchdayTeamCard(session.team_a, "Home")}${renderMatchdayTeamCard(session.team_b, "Away")}</div></div>`}
       </div>`;
   } else if (phase === "result") {
     const r = session.result || {};
@@ -597,18 +638,36 @@ function renderMatchdaySession(status, { isAdmin = false } = {}) {
     const expLink = r.experiment_id
       ? `<p><a href="/experiment/${esc(r.experiment_id)}?from=matchday">Full match analysis</a></p>`
       : "";
-    const dismissBtn = isAdmin || getAdminToken()
-      ? `<button type="button" id="matchdayDismissBtn" class="btn-ghost" style="margin-top:1rem">Dismiss</button>`
-      : "";
+    const analysisBtn =
+      r.has_analysis || r.analysis || r.report
+        ? `<button type="button" class="btn-primary" id="matchdaySeeAnalysisBtn" style="margin-top:0.75rem">See analysis</button>`
+        : "";
+    const dismissBtn =
+      isAdmin || getAdminToken()
+        ? `<button type="button" id="matchdayDismissBtn" class="btn-ghost" style="margin-top:1rem">Dismiss</button>`
+        : "";
+    const watchCard =
+      typeof TacticBoard !== "undefined" && TacticBoard.renderWatchCard
+        ? TacticBoard.renderWatchCard()
+        : "";
+    const scoreBits =
+      r.engine === "tactic_board" || (!r.home_win_pct && r.score)
+        ? `<p class="muted">Official pin-board result${r.expected_xg ? ` · xG ${esc(String(r.expected_xg.home))}–${esc(String(r.expected_xg.away))}` : ""}</p>`
+        : `<p><strong>${esc(r.winner || "Draw")}</strong> · ${pct(r.home_win_pct)} home · ${pct(r.draw_pct)} draw · ${pct(r.away_win_pct)} away</p>`;
     phaseBody = `
       <div class="card">
         <h3 style="font-size:2rem;margin:0">${esc(r.score || "—")}</h3>
-        <p><strong>${esc(r.winner || "Draw")}</strong> · ${pct(r.home_win_pct)} home · ${pct(r.draw_pct)} draw · ${pct(r.away_win_pct)} away</p>
+        ${knockoutScoreNote(r)}
+        ${scoreBits}
+        ${r.winner != null ? `<p><strong>${esc(r.winner || "Draw")}</strong></p>` : ""}
         ${topScores ? `<p class="muted">Top scorelines: ${topScores}</p>` : ""}
         <p class="muted"><a href="/tournament?id=${esc(session.tournament_id)}">Updated on tournament table</a></p>
         ${expLink}
+        ${analysisBtn}
         ${dismissBtn}
-      </div>`;
+      </div>
+      ${watchCard}
+      <div id="matchdayAnalysisPanel" hidden style="margin-top:1rem"></div>`;
   }
 
   return header + phaseBody;
@@ -618,20 +677,20 @@ let _matchdayPollStarted = false;
 
 function startMatchdayBroadcastPoll() {
   if (_matchdayPollStarted) return;
-  if (!getToken()) return;
+  if (!getToken() && !getAdminToken()) return;
   _matchdayPollStarted = true;
   setInterval(async () => {
     if (window.location.pathname === "/matchday") return;
     try {
       const data = await api("/api/matchday/active");
-      if (data.active && data.redirect) {
+      if (data?.active && data?.redirect) {
         window.location.href = "/matchday";
       }
     } catch (_) {}
   }, 3000);
 }
 
-if (typeof document !== "undefined" && getToken()) {
+if (typeof document !== "undefined" && (getToken() || getAdminToken())) {
   startMatchdayBroadcastPoll();
 }
 

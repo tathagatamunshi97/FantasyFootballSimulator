@@ -1094,3 +1094,645 @@ def build_scout_report(
             "no simulated scorelines or win odds."
         ),
     }
+
+
+def normalize_board_events(
+    board_events: list[dict[str, Any]] | None,
+    match_log: list[dict[str, Any]] | dict[str, Any] | None,
+) -> list[dict[str, Any]]:
+    """Accept a flat event list, or a match_log dict with events/goals from the tactic board."""
+    raw: list[Any] = []
+    if isinstance(board_events, list) and board_events:
+        raw = list(board_events)
+    elif isinstance(match_log, dict):
+        ev = match_log.get("events")
+        goals = match_log.get("goals")
+        if isinstance(ev, list) and ev:
+            raw = list(ev)
+        elif isinstance(goals, list) and goals:
+            raw = [
+                {
+                    "type": "goal",
+                    "side": g.get("side"),
+                    "minute": g.get("minute"),
+                    "player": g.get("player") or g.get("player_short"),
+                }
+                for g in goals
+                if isinstance(g, dict)
+            ]
+    elif isinstance(match_log, list):
+        raw = list(match_log)
+
+    out: list[dict[str, Any]] = []
+    for row in raw:
+        if not isinstance(row, dict):
+            continue
+        et = str(row.get("type") or row.get("event") or "").strip().lower()
+        if not et:
+            continue
+        item = dict(row)
+        item["type"] = et
+        out.append(item)
+    return out
+
+
+# Back-compat alias used internally
+_normalize_board_events = normalize_board_events
+
+
+def _what_worked_section(
+    report: dict[str, Any],
+    home_name: str,
+    away_name: str,
+    home_goals: int,
+    away_goals: int,
+    events: list[dict[str, Any]],
+    match_log: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Per-team: what worked / what didn't from board counts + unit edges."""
+    home_p = report["profiles"]["home"]
+    away_p = report["profiles"]["away"]
+    hu = _units(home_p)
+    au = _units(away_p)
+    counts = {}
+    if isinstance(match_log, dict):
+        counts = match_log.get("counts") or {}
+    hc = counts.get("home") if isinstance(counts.get("home"), dict) else {}
+    ac = counts.get("away") if isinstance(counts.get("away"), dict) else {}
+
+    def _n(bucket: dict, key: str) -> int:
+        try:
+            return int(bucket.get(key) or 0)
+        except (TypeError, ValueError):
+            return 0
+
+    def _side_bullets(name: str, side: str, u: dict, c: dict, goals: int, conceded: int) -> list[str]:
+        out: list[str] = []
+        shots = _n(c, "shots")
+        big = _n(c, "big_chances")
+        broken = _n(c, "passes_broken")
+        turnovers = _n(c, "turnovers")
+        dribbles = _n(c, "dribbles_won")
+        offs = _n(c, "offsides")
+        poss = _n(c, "possessions")
+        saves_against = _n(ac if side == "home" else hc, "saves")
+        side_xg = 0.0
+        try:
+            xg_map = {}
+            if isinstance(match_log, dict):
+                xg_map = match_log.get("xg") or match_log.get("live_xg") or {}
+            if isinstance(xg_map, dict) and xg_map.get(side) is not None:
+                side_xg = float(xg_map[side])
+            elif c.get("xg") is not None:
+                side_xg = float(c.get("xg") or 0)
+        except (TypeError, ValueError):
+            side_xg = 0.0
+        side_poss_pct = None
+        try:
+            poss_map = {}
+            if isinstance(match_log, dict):
+                poss_map = match_log.get("possession_pct") or match_log.get("possession") or {}
+            if isinstance(poss_map, dict) and poss_map.get(side) is not None:
+                side_poss_pct = float(poss_map[side])
+        except (TypeError, ValueError):
+            side_poss_pct = None
+
+        if goals > conceded:
+            out.append(f"Worked: finishing moments — {name} scored {goals} and came out ahead.")
+        elif goals and goals == conceded:
+            out.append(f"Worked in spells: {name} found the net ({goals}) but could not separate.")
+        elif big >= 2 and goals == 0:
+            out.append(f"Didn't work: big chances ({big}) without a goal — finishing deserted {name}.")
+        elif goals == 0 and conceded:
+            out.append(f"Didn't work: {name} were blanked while conceding {conceded}.")
+
+        if side_xg >= 0.8 and goals == 0:
+            out.append(f"Didn't work: ~{side_xg:.2f} xG without converting.")
+        elif side_xg >= 1.0 and goals > 0:
+            out.append(f"Worked: chance volume (~{side_xg:.2f} xG) backed the attack.")
+
+        if side_poss_pct is not None and side_poss_pct >= 56:
+            out.append(f"Worked: possession control ({side_poss_pct:.0f}%).")
+        elif side_poss_pct is not None and side_poss_pct <= 44:
+            out.append(f"Lived on less of the ball ({side_poss_pct:.0f}%) — transitions mattered more.")
+
+        if broken >= 3:
+            out.append(f"Worked: press / interceptions — {broken} passes broken.")
+        if turnovers >= 3:
+            out.append(f"Didn't work: gave the ball away often ({turnovers} turnovers).")
+        if dribbles >= 2:
+            out.append(f"Worked: carriers beat the press ({dribbles} dribbles won).")
+        if offs >= 2:
+            out.append(f"Didn't work: timing — {offs} offsides killed advanced attacks.")
+        if poss >= 6 and float(u.get("midfield", 0)) >= float(
+            (au if side == "home" else hu).get("midfield", 0)
+        ):
+            out.append(f"Worked: spell control — {poss} possession phases with a midfield edge.")
+        if saves_against >= 2 and goals > 0:
+            out.append(f"Note: opposition keeper still made {saves_against} saves against {name}.")
+        if not out:
+            out.append(f"{name}: no single theme dominated — scoreline and unit stack-up tell most of it.")
+        return out
+
+    bullets = (
+        [f"— {home_name} —"]
+        + _side_bullets(home_name, "home", hu, hc, home_goals, away_goals)
+        + [f"— {away_name} —"]
+        + _side_bullets(away_name, "away", au, ac, away_goals, home_goals)
+    )
+    return {
+        "title": "What worked / didn't",
+        "paragraphs": [
+            "Board events and unit edges, split by team — what stuck and what broke down."
+        ],
+        "bullets": bullets,
+    }
+
+
+def _how_it_unfolded_section(
+    home_name: str,
+    away_name: str,
+    home_goals: int,
+    away_goals: int,
+    events: list[dict[str, Any]],
+    match_log: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Narrative of possession spells, press, chances, goals, momentum."""
+    ml = match_log if isinstance(match_log, dict) else {}
+    poss = ml.get("possession_pct") or ml.get("possession") or {}
+    xg = ml.get("xg") or ml.get("live_xg") or {}
+    counts = ml.get("counts") or {}
+    spells = ml.get("spells") if isinstance(ml.get("spells"), list) else []
+    mom = ml.get("momentum_final")
+    hc = counts.get("home") if isinstance(counts.get("home"), dict) else {}
+    ac = counts.get("away") if isinstance(counts.get("away"), dict) else {}
+
+    def _f(d: dict, key: str, default: float = 0.0) -> float:
+        try:
+            return float(d.get(key) if d.get(key) is not None else default)
+        except (TypeError, ValueError):
+            return default
+
+    hp = _f(poss, "home")
+    ap = _f(poss, "away")
+    hx = _f(xg, "home")
+    ax = _f(xg, "away")
+
+    paragraphs: list[str] = []
+    if hp or ap:
+        leader = home_name if hp >= ap else away_name
+        paragraphs.append(
+            f"Possession: {home_name} {hp:.0f}% – {ap:.0f}% {away_name}. "
+            f"{leader} held the ball more across spells."
+        )
+    if hx or ax:
+        paragraphs.append(
+            f"Chance quality (live xG): {home_name} {hx:.2f} – {ax:.2f} {away_name}."
+        )
+
+    goals = [e for e in events if e.get("type") in ("goal", "score")]
+    if goals:
+        first = goals[0]
+        side = first.get("side")
+        team = home_name if side == "home" else away_name if side == "away" else "?"
+        minute = first.get("minute")
+        min_txt = f"{int(minute)}'" if minute is not None else "early"
+        paragraphs.append(f"First goal at {min_txt} for {team} set the early momentum.")
+        late = [g for g in goals if isinstance(g.get("minute"), (int, float)) and g["minute"] >= 70]
+        if late:
+            paragraphs.append(
+                f"{len(late)} late goal(s) after 70' — the match stretched into the closing spells."
+            )
+
+    turnovers = int((hc.get("turnovers") or 0) + (ac.get("turnovers") or 0))
+    press_wins = int((hc.get("passes_broken") or 0) + (ac.get("passes_broken") or 0))
+    if press_wins or turnovers:
+        paragraphs.append(
+            f"Press and turnovers shaped the middle: {press_wins} broken passes and "
+            f"{turnovers} turnovers across both sides."
+        )
+
+    shots_h = int(hc.get("shots") or 0)
+    shots_a = int(ac.get("shots") or 0)
+    if shots_h or shots_a:
+        paragraphs.append(
+            f"Chances: {home_name} {shots_h} shots ({int(hc.get('big_chances') or 0)} big) vs "
+            f"{away_name} {shots_a} ({int(ac.get('big_chances') or 0)} big)."
+        )
+
+    if home_goals > away_goals and hx + 0.15 < ax:
+        paragraphs.append(
+            f"{home_name} won despite trailing on live xG — clinical finishing or a moment decided it."
+        )
+    elif away_goals > home_goals and ax + 0.15 < hx:
+        paragraphs.append(
+            f"{away_name} won despite trailing on live xG — clinical finishing or a moment decided it."
+        )
+    elif abs(home_goals - away_goals) <= 1 and abs(hx - ax) < 0.25:
+        paragraphs.append("A tight contest on both scoreboard and chance quality.")
+
+    if spells:
+        home_sp = sum(1 for s in spells if isinstance(s, dict) and s.get("side") == "home")
+        away_sp = sum(1 for s in spells if isinstance(s, dict) and s.get("side") == "away")
+        avg_dur = sum(float(s.get("duration") or 0) for s in spells if isinstance(s, dict)) / max(
+            1, len(spells)
+        )
+        paragraphs.append(
+            f"Possession spells: {home_sp} for {home_name}, {away_sp} for {away_name} "
+            f"(avg hold ~{avg_dur:.1f}')."
+        )
+
+    if mom is not None:
+        try:
+            m = float(mom)
+            lean = home_name if m > 0.55 else away_name if m < 0.45 else "neither side"
+            paragraphs.append(f"Closing momentum lean: {lean} (needle {m:.2f}, 0.5 = even).")
+        except (TypeError, ValueError):
+            pass
+
+    if not paragraphs:
+        paragraphs.append(
+            "Board telemetry was thin — unfolding story leans on the pin score and pre-match stack-up."
+        )
+
+    bullets: list[str] = []
+    for e in events:
+        if e.get("type") not in ("goal", "big_chance", "turnover", "offside"):
+            continue
+        side = e.get("side")
+        team = home_name if side == "home" else away_name if side == "away" else ""
+        minute = e.get("minute")
+        min_txt = f"{int(minute)}'" if minute is not None else ""
+        detail = e.get("detail") or e.get("type")
+        player = e.get("player_short") or e.get("player") or ""
+        bits = [b for b in (min_txt, player, team, str(detail)) if b]
+        if bits:
+            bullets.append(" · ".join(bits))
+    return {
+        "title": "How the match unfolded",
+        "paragraphs": paragraphs,
+        "bullets": bullets[:12],
+    }
+
+
+def _pre_match_stackup_section(
+    report: dict[str, Any], home_name: str, away_name: str
+) -> dict[str, Any]:
+    """Attack / defence / mid / GK / transition / press vs press-resist before kick-off."""
+    home_p = report["profiles"]["home"]
+    away_p = report["profiles"]["away"]
+    hu = _units(home_p)
+    au = _units(away_p)
+    he = home_p["extended"]
+    ae = away_p["extended"]
+    press = (report.get("mechanics") or {}).get("press_matchup") or {}
+
+    def _cmp(label: str, hv: float, av: float, *, lower_better: bool = False) -> str:
+        edge = _winner_side(hv, av, higher_is_better=not lower_better)
+        who = _edge_phrase(edge, home_name, away_name)
+        return f"{label}: {home_name} {_fmt(hv)} vs {away_name} {_fmt(av)} — edge: {who}."
+
+    bullets = [
+        _cmp("Attack", float(hu.get("attack", 0)), float(au.get("attack", 0))),
+        _cmp("Finishing", float(hu.get("finishing", 0)), float(au.get("finishing", 0))),
+        _cmp("Chance creation", float(hu.get("chance_creation", 0)), float(au.get("chance_creation", 0))),
+        _cmp("Defence", float(hu.get("defence", 0)), float(au.get("defence", 0))),
+        _cmp("Midfield", float(hu.get("midfield", 0)), float(au.get("midfield", 0))),
+        _cmp("Goalkeeper", float(hu.get("goalkeeper", 0)), float(au.get("goalkeeper", 0))),
+        _cmp(
+            "Transition risk",
+            float(hu.get("transition_risk", 0)),
+            float(au.get("transition_risk", 0)),
+            lower_better=True,
+        ),
+        (
+            f"Press vs resist: {home_name} press {_fmt(float(he.get('pressing_intensity') or 0))} / "
+            f"resist {_fmt(float(he.get('press_resistance') or 0))}; "
+            f"{away_name} press {_fmt(float(ae.get('pressing_intensity') or 0))} / "
+            f"resist {_fmt(float(ae.get('press_resistance') or 0))}."
+        ),
+    ]
+    aerial_h = float(he.get("aerial_defence") or 0)
+    aerial_a = float(ae.get("aerial_defence") or 0)
+    if aerial_h or aerial_a:
+        bullets.append(_cmp("Aerial defence", aerial_h, aerial_a))
+
+    press_note = _press_matchup_narrative(home_name, away_name, press)
+    return {
+        "title": "Pre-match stack-up",
+        "paragraphs": [
+            (
+                f"Unit ratings before kick-off for {home_name} vs {away_name}. "
+                "These are the edges the pin match could lean on."
+            ),
+            press_note,
+        ],
+        "bullets": bullets,
+    }
+
+
+def _what_happened_section(
+    home_name: str,
+    away_name: str,
+    home_goals: int,
+    away_goals: int,
+    events: list[dict[str, Any]],
+) -> dict[str, Any]:
+    score_line = f"Final score: {home_name} {home_goals}–{away_goals} {away_name}."
+    if home_goals > away_goals:
+        outcome = f"{home_name} won on the pin board."
+    elif away_goals > home_goals:
+        outcome = f"{away_name} won on the pin board."
+    else:
+        outcome = "The pin board finished level."
+
+    goals = [e for e in events if e.get("type") in ("goal", "score")]
+    goal_bullets: list[str] = []
+    for g in goals:
+        side = g.get("side")
+        team = home_name if side == "home" else away_name if side == "away" else str(side or "?")
+        minute = g.get("minute")
+        player = g.get("player") or g.get("scorer") or g.get("player_short") or "Unknown"
+        min_txt = f"{int(minute)}'" if minute is not None else "?"
+        xg_bit = g.get("xg")
+        extra = f" (xg {float(xg_bit):.2f})" if xg_bit is not None else ""
+        goal_bullets.append(f"{min_txt} {player} ({team}){extra}")
+
+    counts: dict[str, int] = {}
+    for e in events:
+        t = str(e.get("type") or "")
+        if t in ("goal", "score"):
+            continue
+        counts[t] = counts.get(t, 0) + 1
+
+    key_labels = {
+        "offside": "offsides disallowed",
+        "interception": "passes broken / interceptions",
+        "pass_broken": "passes broken / interceptions",
+        "dribble_success": "successful dribbles",
+        "dribble_beaten": "successful dribbles",
+        "dribble_won": "successful dribbles",
+        "dribble_failed": "failed dribbles / tackles",
+        "dribble_lost": "failed dribbles / tackles",
+        "tackle": "tackles won",
+        "shot": "shots",
+        "save": "saves",
+        "miss": "shots off target",
+        "big_chance": "big chances",
+        "big_chance_missed": "big chances missed",
+        "turnover": "turnovers",
+        "possession": "possession spells started",
+    }
+    event_bullets: list[str] = []
+    # Merge aliases
+    merged: dict[str, int] = {}
+    for t, n in counts.items():
+        label = key_labels.get(t, t.replace("_", " "))
+        merged[label] = merged.get(label, 0) + n
+    for label, n in sorted(merged.items(), key=lambda x: -x[1]):
+        if n > 0:
+            event_bullets.append(f"{n}x {label}")
+
+    paragraphs = [score_line, outcome]
+    if not events:
+        paragraphs.append(
+            "Board event log was sparse — narrative leans on the scoreline and pre-match unit edges."
+        )
+    elif goal_bullets:
+        paragraphs.append(f"Goals ({len(goal_bullets)}): see timeline below.")
+    else:
+        paragraphs.append("No timed goal events were logged; only the final pin score is known.")
+
+    bullets = goal_bullets + event_bullets
+    return {
+        "title": "What happened",
+        "paragraphs": paragraphs,
+        "bullets": bullets,
+    }
+
+
+def _edges_exploited_section(
+    report: dict[str, Any],
+    home_name: str,
+    away_name: str,
+    home_goals: int,
+    away_goals: int,
+    events: list[dict[str, Any]],
+) -> dict[str, Any]:
+    home_p = report["profiles"]["home"]
+    away_p = report["profiles"]["away"]
+    hu = _units(home_p)
+    au = _units(away_p)
+    he = home_p["extended"]
+    ae = away_p["extended"]
+    press = (report.get("mechanics") or {}).get("press_matchup") or {}
+
+    gd = home_goals - away_goals
+    winner_side = "home" if gd > 0 else "away" if gd < 0 else None
+    winner_name = home_name if winner_side == "home" else away_name if winner_side == "away" else None
+
+    bullets: list[str] = []
+
+    # Transition / counters
+    h_tr = float(hu.get("transition_risk", 0))
+    a_tr = float(au.get("transition_risk", 0))
+    if winner_side == "home" and a_tr > h_tr + 0.04:
+        bullets.append(
+            f"{home_name} came out ahead while {away_name} carried higher transition risk "
+            f"({a_tr:.2f} vs {h_tr:.2f}) — counters / open space likely mattered."
+        )
+    elif winner_side == "away" and h_tr > a_tr + 0.04:
+        bullets.append(
+            f"{away_name} punished {home_name}'s higher transition risk "
+            f"({h_tr:.2f} vs {a_tr:.2f})."
+        )
+    elif abs(h_tr - a_tr) > 0.05 and abs(gd) >= 1:
+        riskier = home_name if h_tr > a_tr else away_name
+        bullets.append(
+            f"{riskier} was the riskier transition side; the scoreline "
+            f"({'favoured the more solid side' if (h_tr > a_tr) == (gd < 0) else 'did not clearly punish the risk'})."
+        )
+
+    # Attack vs defence mismatch
+    h_atk, a_atk = float(hu.get("attack", 0)), float(au.get("attack", 0))
+    h_def, a_def = float(hu.get("defence", 0)), float(au.get("defence", 0))
+    if winner_side == "home" and h_atk > a_def + 0.05:
+        bullets.append(
+            f"{home_name}'s attack ({h_atk:.2f}) had a clear edge over {away_name}'s defence ({a_def:.2f})."
+        )
+    elif winner_side == "away" and a_atk > h_def + 0.05:
+        bullets.append(
+            f"{away_name}'s attack ({a_atk:.2f}) had a clear edge over {home_name}'s defence ({h_def:.2f})."
+        )
+
+    # Press vs resist + board interceptions
+    intercepts = sum(
+        1
+        for e in events
+        if e.get("type") in ("interception", "pass_broken", "tackle")
+    )
+    for side_key, team_name, opp_name in (
+        ("home", home_name, away_name),
+        ("away", away_name, home_name),
+    ):
+        row = press.get(side_key) or {}
+        if row.get("active") and float(row.get("suppression") or 0) >= 0.03:
+            bullets.append(
+                f"{team_name}'s press vs {opp_name}'s build-up "
+                f"(~{float(row['suppression']) * 100:.1f}% creation trim) was a live edge"
+                + (f" — board logged {intercepts} broken passes / wins." if intercepts else ".")
+            )
+
+    h_press = float(he.get("pressing_intensity") or 0)
+    a_resist = float(ae.get("press_resistance") or 0)
+    a_press = float(ae.get("pressing_intensity") or 0)
+    h_resist = float(he.get("press_resistance") or 0)
+    if h_press > a_resist + 0.06 and (winner_side == "home" or intercepts >= 3):
+        bullets.append(
+            f"{home_name}'s press ({h_press:.2f}) overmatched {away_name}'s resistance ({a_resist:.2f})."
+        )
+    if a_press > h_resist + 0.06 and (winner_side == "away" or intercepts >= 3):
+        bullets.append(
+            f"{away_name}'s press ({a_press:.2f}) overmatched {home_name}'s resistance ({h_resist:.2f})."
+        )
+
+    # Dribbles / beat the press
+    drib_ok = sum(
+        1 for e in events if e.get("type") in ("dribble_success", "dribble_beaten", "dribble_won")
+    )
+    if drib_ok >= 2:
+        by_side = {"home": 0, "away": 0}
+        for e in events:
+            if e.get("type") in ("dribble_success", "dribble_beaten", "dribble_won") and e.get("side") in by_side:
+                by_side[str(e["side"])] += 1
+        lead = "home" if by_side["home"] >= by_side["away"] else "away"
+        bullets.append(
+            f"Ball carriers beat the press often ({drib_ok} successful dribbles) — "
+            f"{home_name if lead == 'home' else away_name} led that duel."
+        )
+
+    # Offsides
+    offs = sum(1 for e in events if e.get("type") == "offside")
+    if offs:
+        bullets.append(
+            f"{offs} offside whistle(s) killed advanced attacks — high line / timing mattered."
+        )
+
+    # Aerial
+    aerial_h = float(he.get("aerial_defence") or 0)
+    aerial_a = float(ae.get("aerial_defence") or 0)
+    if abs(aerial_h - aerial_a) > 0.06 and abs(gd) >= 1:
+        aerial_edge = home_name if aerial_h > aerial_a else away_name
+        bullets.append(
+            f"Aerial defence edge sat with {aerial_edge} "
+            f"({max(aerial_h, aerial_a):.2f} vs {min(aerial_h, aerial_a):.2f})."
+        )
+
+    # GK
+    if winner_side and abs(float(hu.get("goalkeeper", 0)) - float(au.get("goalkeeper", 0))) > 0.05:
+        gk_edge = _edge_phrase(
+            _winner_side(float(hu["goalkeeper"]), float(au["goalkeeper"])),
+            home_name,
+            away_name,
+        )
+        saves = sum(1 for e in events if e.get("type") == "save")
+        bullets.append(
+            f"GK edge: {gk_edge}"
+            + (f" ({saves} saves logged on the board)." if saves else ".")
+        )
+
+    if not bullets:
+        if winner_name:
+            bullets.append(
+                f"{winner_name} edged the pin score; unit gaps were modest, so finishing moments "
+                "and board variance decided it more than one structural mismatch."
+            )
+        else:
+            bullets.append(
+                "Draw on the board — pre-match edges largely cancelled out in the pin contest."
+            )
+
+    paras = [
+        (
+            f"Tying pre-match edges to the {home_goals}–{away_goals} pin result"
+            + (" and logged board events." if events else " (inferred from score + unit deltas).")
+        )
+    ]
+    if winner_name:
+        paras.append(f"Who came out better: {winner_name}.")
+
+    return {
+        "title": "Edges exploited",
+        "paragraphs": paras,
+        "bullets": bullets[:8],
+    }
+
+
+def enrich_analysis_with_board_result(
+    analysis: dict[str, Any],
+    report: dict[str, Any],
+    *,
+    home_goals: int,
+    away_goals: int,
+    board_events: list[dict[str, Any]] | None = None,
+    match_log: list[dict[str, Any]] | dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """
+    Fold pin-board score + optional event log into a ratings-based matchup analysis.
+    Adds Pre-match stack-up, What happened, What worked, How it unfolded, and Edges exploited.
+    """
+    matchup = report["matchup"]
+    home_name = _side_label(matchup, "home")
+    away_name = _side_label(matchup, "away")
+    events = _normalize_board_events(board_events, match_log)
+    ml = match_log if isinstance(match_log, dict) else None
+
+    out = dict(analysis)
+    sections = list(analysis.get("sections") or [])
+
+    # Drop Monte Carlo interpretation for board-official results — keep ratings sections.
+    sections = [s for s in sections if (s.get("title") or "") != "Monte Carlo interpretation"]
+
+    stack = _pre_match_stackup_section(report, home_name, away_name)
+    happened = _what_happened_section(home_name, away_name, home_goals, away_goals, events)
+    worked = _what_worked_section(
+        report, home_name, away_name, home_goals, away_goals, events, ml
+    )
+    unfolded = _how_it_unfolded_section(
+        home_name, away_name, home_goals, away_goals, events, ml
+    )
+    exploited = _edges_exploited_section(
+        report, home_name, away_name, home_goals, away_goals, events
+    )
+
+    # Insert after Verdict (index 0) when present
+    insert_at = 1 if sections and (sections[0].get("title") or "") == "Verdict" else 0
+    sections[insert_at:insert_at] = [stack, happened, worked, unfolded, exploited]
+
+    # Soften pre-match "favourite" verdict with actual pin outcome
+    if home_goals > away_goals:
+        pin_winner = home_name
+    elif away_goals > home_goals:
+        pin_winner = away_name
+    else:
+        pin_winner = None
+    base_summary = analysis.get("summary") or ""
+    if pin_winner:
+        out["summary"] = (
+            f"Pin board: {home_name} {home_goals}–{away_goals} {away_name} — {pin_winner} won. "
+            f"Pre-match ratings: {base_summary}"
+        )
+    else:
+        out["summary"] = (
+            f"Pin board: {home_name} {home_goals}–{away_goals} {away_name} (draw). "
+            f"Pre-match ratings: {base_summary}"
+        )
+
+    out["sections"] = sections
+    out["board_result"] = {
+        "home_goals": int(home_goals),
+        "away_goals": int(away_goals),
+        "event_count": len(events),
+        "engine": "tactic_board",
+    }
+    return out

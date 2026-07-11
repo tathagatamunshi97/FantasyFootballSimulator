@@ -154,11 +154,16 @@ def refine_defensive_line_positions(stats: dict[str, Any], positions: list[str])
     out = list(positions)
     if centre_back_profile and "CB" not in out:
         out.insert(0, "CB")
-    if fullback_profile and "CB" in out and not midfield_anchors:
-        out = [p for p in out if p != "CB"]
-        if "LB" not in out and "RB" not in out and "WB" not in out:
-            out.extend(["LB", "RB"])
-    elif fullback_profile and pos_set == {"CB"}:
+    # Never strip CB from a high-clearance centre-back — ball-playing CBs still
+    # post elevated key passes / dribbles and must keep CB as their role.
+    # Only demote CB→FB when the volume profile is not centre-back-like.
+    if (
+        fullback_profile
+        and "CB" in out
+        and not centre_back_profile
+        and not midfield_anchors
+        and clearances < 3.0
+    ):
         out = [p for p in out if p != "CB"]
         if "LB" not in out and "RB" not in out and "WB" not in out:
             out.extend(["LB", "RB"])

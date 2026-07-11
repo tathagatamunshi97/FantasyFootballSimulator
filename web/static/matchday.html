@@ -4,13 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Matchday — Match Simulator</title>
-  <link rel="stylesheet" href="/static/styles.css" />
+  <link rel="stylesheet" href="/static/styles.css?v=squad-rf-1" />
 </head>
 <body>
   <header>
     <div>
       <h1>Matchday</h1>
-      <div class="sub">Live tournament fixture broadcast — setup → simulation → result</div>
+      <div class="sub">Live tournament venue — pre-match → tactic board → FT / AET / pens</div>
     </div>
     <div class="header-actions">
       <span id="userLabel" class="muted"></span>
@@ -32,7 +32,8 @@
 
   <footer>Engine v2 · auto-refresh during live fixtures</footer>
 
-  <script src="/static/common.js"></script>
-  <script src="/static/matchday.js"></script>
+  <script src="/static/common.js?v=squad-rf-1"></script>
+  <script src="/static/tactic_board.js?v=ko-et-3"></script>
+  <script src="/static/matchday.js?v=squad-rf-1"></script>
 </body>
 </html>

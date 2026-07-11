@@ -288,10 +288,16 @@ def build_season_stats_dict(
             entry = None
         if not entry:
             from player_names import known_season_context
+            from understat_client import _is_chrome_missing
 
             ctx = known_season_context(pid, season_suffix)
             if ctx:
-                entry = build_fbref_season_entry(pid, display_name, season_suffix, ctx)
+                try:
+                    entry = build_fbref_season_entry(pid, display_name, season_suffix, ctx)
+                except Exception as exc:
+                    if not _is_chrome_missing(exc):
+                        raise
+                    entry = None
         if not entry:
             entry = _load_seed_season_entry(pid, season_suffix)
     if not entry and cache_only:
@@ -307,8 +313,14 @@ def build_season_stats_dict(
 
     data = _season_data_from_local_entry(entry, season_suffix, stat_profile="single_season")
     if not cache_only:
-        merge_understat_for_player_season(canon, data, season_suffix)
-        merge_fbref_for_player_season(canon, data, season_suffix)
+        try:
+            merge_understat_for_player_season(canon, data, season_suffix)
+            merge_fbref_for_player_season(canon, data, season_suffix)
+        except Exception as exc:
+            from understat_client import _is_chrome_missing
+
+            if not _is_chrome_missing(exc):
+                raise
     return canon, data, season_label
 
 
@@ -378,8 +390,14 @@ def build_prime_stats_dict(
         data["stat_profile"] = "prime_season"
         data["prime_season"] = season_label
         data["season_profile"] = season_label
-        merge_understat_for_player_season(canon, data, suffix)
-        merge_fbref_for_player_season(canon, data, suffix)
+        try:
+            merge_understat_for_player_season(canon, data, suffix)
+            merge_fbref_for_player_season(canon, data, suffix)
+        except Exception as exc:
+            from understat_client import _is_chrome_missing
+
+            if not _is_chrome_missing(exc):
+                raise
         return canon, data, season_label
     try:
         canon, data, label = build_season_stats_dict(player_raw, suffix, store)

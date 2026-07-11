@@ -1,0 +1,50 @@
+{
+  "summary": "All 210 sheet players now have manual prime profiles; critical prime lookups hit manual_profiles with cache_only (no Sofascore/FBref Chrome).",
+  "manual_prime_count": 212,
+  "sheet_players": 210,
+  "sheet_missing_prime": 0,
+  "added_this_session": {
+    "sheet_cache_primes": 165,
+    "aliases_wired": [
+      "Ayoub Bouaddi",
+      "Caiomhin Kelleher",
+      "Christian Romero",
+      "Eliott Anderson",
+      "Kim Min Jae",
+      "Mateusz Fernandes",
+      "Matvei Safonov",
+      "Tijjiani Reijnders",
+      "Trent",
+      "Warren Zaire Emery",
+      "Yan Sommer"
+    ],
+    "preexisting_primes_confirmed": [
+      "season-pick clones (Cavani, Neymar, Mahrez, etc.)",
+      "John Stones",
+      "Mesut Özil",
+      "Hakimi/Vardy/Acerbi/KDB and Round-3 known primes"
+    ]
+  },
+  "hardening": {
+    "prepare_match_player_stats_default_cache_only": true,
+    "tournament_preflight_cache_only": true,
+    "hakimi_aerials_patched": true,
+    "hakimi_known_prime_season": "20/21"
+  },
+  "verification": {
+    "sheet_missing_after_aliases": [],
+    "critical_build_prime_stats_dict_failures": [],
+    "anindo_prepare_match_smoke": "OK (Cole Palmer prime -> manual_profiles 23/24)"
+  },
+  "blocked": [],
+  "files_touched": [
+    "data/manual_profiles.json",
+    "data/seed_seasons.json",
+    "player_names.py",
+    "build_sheet_primes_batch.py",
+    "build_missing_primes.py (already present)",
+    "_prime_gap_audit.py",
+    "_verify_primes.py"
+  ],
+  "note": "No commit. Did not touch tournament.js."
+}

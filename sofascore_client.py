@@ -847,9 +847,13 @@ class StatsStore:
             seed_hit = load_seed_player(raw)
             if seed_hit is not None:
                 cache_key, blended = seed_hit
-                from understat_client import merge_understat_into_players
+                from understat_client import _is_chrome_missing, merge_understat_into_players
 
-                merge_understat_into_players({cache_key: blended})
+                try:
+                    merge_understat_into_players({cache_key: blended})
+                except Exception as exc:
+                    if not _is_chrome_missing(exc):
+                        raise
                 self._add_player_to_cache(cache_key, blended)
                 print(f"  Loaded from seed: {cache_key}", flush=True)
                 return cache_key
@@ -866,11 +870,15 @@ class StatsStore:
             except KeyError:
                 blended = None
             except Exception as exc:
-                if "403" not in str(exc):
+                from understat_client import _is_chrome_missing
+
+                if _is_chrome_missing(exc) or "403" in str(exc):
+                    blended = None
+                else:
                     raise
-                blended = None
             if blended is None:
                 from seasonal_stats import fetch_best_historical_stats
+                from understat_client import _is_chrome_missing
 
                 try:
                     _, blended = fetch_best_historical_stats(search_name)
@@ -879,9 +887,10 @@ class StatsStore:
                         flush=True,
                     )
                 except Exception as exc:
-                    if "403" not in str(exc):
+                    if _is_chrome_missing(exc) or "403" in str(exc):
+                        blended = None
+                    else:
                         raise
-                    blended = None
             if blended is None:
                 placeholder = {
                     "primary_position": "MF",
@@ -891,12 +900,16 @@ class StatsStore:
                 self._add_player_to_cache(canon, placeholder)
                 print(f"  No live stats for {raw}; using placeholder profile", flush=True)
                 return canon
-            from understat_client import merge_understat_into_players
+            from understat_client import _is_chrome_missing, merge_understat_into_players
 
             name = blended.get("player_name") or raw
             team = blended.get("team", "")
             cache_key = _cache_key_for_player(name, team, set(self._players.keys()))
-            merge_understat_into_players({cache_key: blended})
+            try:
+                merge_understat_into_players({cache_key: blended})
+            except Exception as exc:
+                if not _is_chrome_missing(exc):
+                    raise
             self._add_player_to_cache(cache_key, blended)
             print(f"  Cached as: {cache_key}", flush=True)
             return cache_key

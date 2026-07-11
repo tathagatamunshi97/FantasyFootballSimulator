@@ -59,12 +59,23 @@ def _build_understat_index(df: pd.DataFrame) -> dict[tuple[str, str], dict[str, 
     return merged
 
 
+def _is_chrome_missing(exc: BaseException) -> bool:
+    msg = str(exc).lower()
+    return "chrome not found" in msg or "install it first" in msg
+
+
 def fetch_understat_season_index(season_suffix: str) -> dict[tuple[str, str], dict[str, float]]:
     code = understat_code_from_suffix(season_suffix)
     if code in _understat_season_cache:
         return _understat_season_cache[code]
-    reader = sd.Understat(leagues=UNDERSTAT_LEAGUES, seasons=[code])
-    df = reader.read_player_season_stats()
+    try:
+        reader = sd.Understat(leagues=UNDERSTAT_LEAGUES, seasons=[code])
+        df = reader.read_player_season_stats()
+    except Exception as exc:
+        if _is_chrome_missing(exc):
+            _understat_season_cache[code] = {}
+            return {}
+        raise
     index = _build_understat_index(df)
     _understat_season_cache[code] = index
     return index
@@ -76,7 +87,13 @@ def merge_understat_for_player_season(
     season_suffix: str,
 ) -> None:
     """Attach Understat fields for one season in-place."""
-    index = fetch_understat_season_index(season_suffix)
+    try:
+        index = fetch_understat_season_index(season_suffix)
+    except Exception as exc:
+        if _is_chrome_missing(exc):
+            data["understat_matched"] = False
+            return
+        raise
     hit = _lookup_understat(index, display_name, str(data.get("team", "")))
     if hit is None:
         data["understat_matched"] = False
@@ -156,8 +173,13 @@ def fetch_understat_blended() -> dict[tuple[str, str], dict[str, float]]:
     """
     Return {(norm_player, norm_team): per90 understat stats} blended 50/50 across seasons.
   """
-    reader = sd.Understat(leagues=UNDERSTAT_LEAGUES, seasons=list(UNDERSTAT_SEASONS))
-    df = reader.read_player_season_stats()
+    try:
+        reader = sd.Understat(leagues=UNDERSTAT_LEAGUES, seasons=list(UNDERSTAT_SEASONS))
+        df = reader.read_player_season_stats()
+    except Exception as exc:
+        if _is_chrome_missing(exc):
+            return {}
+        raise
     if df is None or df.empty:
         return {}
 
@@ -299,7 +321,14 @@ def merge_understat_into_players(
     verbose: bool = True,
 ) -> tuple[int, int]:
     """Attach Understat fields to existing Sofascore player dicts in-place."""
-    index = fetch_understat_blended()
+    try:
+        index = fetch_understat_blended()
+    except Exception as exc:
+        if _is_chrome_missing(exc):
+            if verbose:
+                print("  Understat: skipped (Chrome unavailable)", flush=True)
+            return 0, len(players)
+        raise
     if not index:
         if verbose:
             print("  Understat: no data returned", flush=True)

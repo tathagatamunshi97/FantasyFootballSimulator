@@ -254,10 +254,10 @@ def simulate_match_once(
     rng: random.Random,
 ) -> MatchResult:
     home_fit_info = team_formation_fit(
-        home.formation, [(s.player, s.slot) for s in home.lineup], player_stats
+        home.formation, [(s.player, s.slot, getattr(s, "role_filter", "") or "") for s in home.lineup], player_stats
     )
     away_fit_info = team_formation_fit(
-        away.formation, [(s.player, s.slot) for s in away.lineup], player_stats
+        away.formation, [(s.player, s.slot, getattr(s, "role_filter", "") or "") for s in away.lineup], player_stats
     )
     home_units, _home_bench = _units_with_bench(
         home, player_stats, team_trophy_profile(home, player_stats).multiplier
@@ -345,10 +345,10 @@ def monte_carlo_matches(
         away, player_stats, team_trophy_profile(away, player_stats).multiplier
     )
     home_fit = team_formation_fit(
-        home.formation, [(s.player, s.slot) for s in home.lineup], player_stats
+        home.formation, [(s.player, s.slot, getattr(s, "role_filter", "") or "") for s in home.lineup], player_stats
     )
     away_fit = team_formation_fit(
-        away.formation, [(s.player, s.slot) for s in away.lineup], player_stats
+        away.formation, [(s.player, s.slot, getattr(s, "role_filter", "") or "") for s in away.lineup], player_stats
     )
     h_mid, a_mid = midfield_battle_multiplier(home_units.midfield, away_units.midfield)
     home_composites = compute_team_composites(home, player_stats)

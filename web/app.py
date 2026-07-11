@@ -99,6 +99,14 @@ class TournamentMatchOverrideRequest(BaseModel):
     home_goals: int
     away_goals: int
     winner: str | None = None
+    board_events: list[dict] | None = None
+    match_log: list[dict] | dict | None = None
+    decided_by: str | None = None
+    ft_home_goals: int | None = None
+    ft_away_goals: int | None = None
+    pens_home: int | None = None
+    pens_away: int | None = None
+    score_display: str | None = None
 
 
 def _session_user(x_session_token: str | None) -> str:
@@ -450,9 +458,16 @@ def matchday_session_api(
 def matchday_run_simulation(
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
 ) -> dict:
-    """Admin triggers Monte Carlo run for the active matchday session."""
+    """Admin starts live tactic board (or legacy Monte Carlo if no board payload)."""
     _check_admin(x_admin_token)
     try:
+        session = matchday_session.require_active_session()
+        if session.get("board") or session.get("engine") == "tactic_board":
+            matchday_session.set_board_live()
+            return _enrich_matchday_status(matchday_session.active_status()) | {
+                "status": "live",
+                "engine": "tactic_board",
+            }
         return tournament.execute_matchday_simulation()
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -460,6 +475,67 @@ def matchday_run_simulation(
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Matchday run failed: {exc}") from exc
+
+
+@app.post("/api/matchday/kickoff")
+def matchday_board_kickoff(
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Admin starts the live tactic-board phase on Matchday."""
+    _check_admin(x_admin_token)
+    try:
+        matchday_session.set_board_live()
+        return _enrich_matchday_status(matchday_session.active_status())
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/api/matchday/board-state")
+def matchday_publish_board_state(
+    body: dict,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Host publishes live pitch snapshot for Matchday viewers."""
+    _check_admin(x_admin_token)
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=400, detail="Invalid board state")
+    try:
+        seq = matchday_session.publish_board_state(body)
+        return {"ok": True, "seq": seq}
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/api/matchday/complete")
+def matchday_complete_from_board(
+    body: dict,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Persist FT pin score for the active Matchday fixture."""
+    _check_admin(x_admin_token)
+    try:
+        session = matchday_session.require_active_session()
+        return tournament.complete_from_board(
+            session["tournament_id"],
+            session["fixture_id"],
+            int(body.get("home_goals", 0)),
+            int(body.get("away_goals", 0)),
+            winner=body.get("winner"),
+            board_events=body.get("board_events"),
+            match_log=body.get("match_log"),
+            decided_by=body.get("decided_by"),
+            ft_home_goals=body.get("ft_home_goals"),
+            ft_away_goals=body.get("ft_away_goals"),
+            pens_home=body.get("pens_home"),
+            pens_away=body.get("pens_away"),
+            score_display=body.get("score_display"),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Matchday complete failed: {exc}") from exc
 
 
 @app.post("/api/matchday/dismiss")
@@ -507,11 +583,48 @@ def get_my_lineup(
             "updated_at": None,
         }
 
+    # Live slot fits (current formation_fit) — never serve a cached fit number here.
+    slot_fits: dict[str, float] = {}
+    try:
+        from formation_fit import team_formation_fit
+        from models import FantasyTeam
+        from stats_resolver import prepare_team_player_stats
+
+        draft = {
+            "name": team_name,
+            "formation": lineup_config.get("formation") or DEFAULT_FORMATION,
+            "lineup": lineup_config.get("lineup") or [],
+            "prime_player": lineup_config.get("prime_player") or "",
+            "peak_season": lineup_config.get("peak_season") or {"player": "", "season": ""},
+            "bench": sheet_payload.get("bench") or [],
+            "sheet_meta": sheet_payload.get("sheet_meta") or {},
+        }
+        store = sim_state.get_stats_store()
+        player_stats, name_map = prepare_team_player_stats(draft, store, cache_only=True)
+        resolved = dict(draft)
+        for row in resolved.get("lineup") or []:
+            raw = row.get("player") or ""
+            if raw in name_map:
+                row["player"] = name_map[raw]
+        fantasy = FantasyTeam.from_dict(resolved)
+        fit_info = team_formation_fit(
+            fantasy.formation,
+            [(s.player, s.slot, s.role_filter or "") for s in fantasy.lineup],
+            player_stats,
+        )
+        for row in fit_info.get("players") or []:
+            slot = row.get("slot")
+            if slot:
+                slot_fits[str(slot)] = float(row.get("fit") or 0)
+    except Exception:
+        slot_fits = {}
+
     return {
         "team_name": team_name,
         "roster": roster,
         "saved": bool(saved),
         "lineup": lineup_config,
+        "slot_fits": slot_fits,
         "finalized": status["finalized"],
         "finalized_at": status["finalized_at"],
         "finalized_round": status["finalized_round"],
@@ -1070,7 +1183,37 @@ def get_tournament_api(tournament_id: str) -> dict:
     t = tournament.load_tournament(tournament_id)
     if not t:
         raise HTTPException(status_code=404, detail="Tournament not found")
-    return {"tournament": t}
+    return {"tournament": tournament.tournament_for_api(t)}
+
+
+@app.get("/api/tournament/{tournament_id}/matches/{match_id}/analysis")
+def get_tournament_match_analysis_api(tournament_id: str, match_id: str) -> dict:
+    try:
+        return tournament.get_match_analysis(tournament_id, match_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/api/tournament/{tournament_id}/matches/{match_id}/analysis")
+def generate_tournament_match_analysis_api(
+    tournament_id: str,
+    match_id: str,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Admin backfill: rebuild analysis for a completed match (does not change score)."""
+    _check_admin(x_admin_token)
+    try:
+        return tournament.generate_match_analysis(tournament_id, match_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Analysis generation failed: {exc}") from exc
 
 
 @app.post("/api/tournament")
@@ -1151,6 +1294,37 @@ def run_group_match_api(
         raise HTTPException(status_code=500, detail=f"Match run failed: {exc}") from exc
 
 
+@app.post("/api/tournament/{tournament_id}/matches/{match_id}/complete-from-board")
+def complete_match_from_board_api(
+    tournament_id: str,
+    match_id: str,
+    body: TournamentMatchOverrideRequest,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Save official result from the interactive tactic-board pin score."""
+    _check_admin(x_admin_token)
+    try:
+        return tournament.complete_from_board(
+            tournament_id,
+            match_id,
+            home_goals=body.home_goals,
+            away_goals=body.away_goals,
+            winner=body.winner,
+            board_events=body.board_events,
+            match_log=body.match_log,
+            decided_by=body.decided_by,
+            ft_home_goals=body.ft_home_goals,
+            ft_away_goals=body.ft_away_goals,
+            pens_home=body.pens_home,
+            pens_away=body.pens_away,
+            score_display=body.score_display,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
 @app.post("/api/tournament/{tournament_id}/knockout/generate")
 def generate_knockout_api(
     tournament_id: str,
@@ -1181,6 +1355,37 @@ def run_knockout_match_api(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Match run failed: {exc}") from exc
+
+
+@app.post("/api/tournament/{tournament_id}/knockout/matches/{match_id}/complete-from-board")
+def complete_knockout_from_board_api(
+    tournament_id: str,
+    match_id: str,
+    body: TournamentMatchOverrideRequest,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Save official knockout result from the interactive tactic-board pin score."""
+    _check_admin(x_admin_token)
+    try:
+        return tournament.complete_from_board(
+            tournament_id,
+            match_id,
+            home_goals=body.home_goals,
+            away_goals=body.away_goals,
+            winner=body.winner,
+            board_events=body.board_events,
+            match_log=body.match_log,
+            decided_by=body.decided_by,
+            ft_home_goals=body.ft_home_goals,
+            ft_away_goals=body.ft_away_goals,
+            pens_home=body.pens_home,
+            pens_away=body.pens_away,
+            score_display=body.score_display,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @app.post("/api/tournament/{tournament_id}/matches/{match_id}/accept")

@@ -265,6 +265,7 @@ class LineupSlot:
     slot: str
     is_captain: bool = False
     is_vice_captain: bool = False
+    role_filter: str = ""
 
 
 @dataclass
@@ -282,6 +283,7 @@ class FantasyTeam:
                 slot=row["slot"],
                 is_captain=bool(row.get("captain", False)),
                 is_vice_captain=bool(row.get("vice_captain", False)),
+                role_filter=(row.get("role_filter") or "").strip().upper(),
             )
             for row in data["lineup"]
         ]

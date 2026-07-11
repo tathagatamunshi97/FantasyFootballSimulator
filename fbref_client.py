@@ -342,25 +342,33 @@ def _build_fbref_index_for_leagues(
             continue
 
         league_name = FBREF_TO_LEAGUE[fbref_league]
-        reader = sd.FBref(leagues=[fbref_league], seasons=[season_label])
         try:
-            seasons = reader.read_seasons()
-        except (ValueError, Exception):
-            seasons = pd.DataFrame()
-        frames: list[pd.DataFrame] = []
-        for stat_type in STAT_TYPES:
+            reader = sd.FBref(leagues=[fbref_league], seasons=[season_label])
             try:
-                raw = reader.read_player_season_stats(stat_type=stat_type)
-            except Exception:
+                seasons = reader.read_seasons()
+            except (ValueError, Exception):
+                seasons = pd.DataFrame()
+            frames: list[pd.DataFrame] = []
+            for stat_type in STAT_TYPES:
+                try:
+                    raw = reader.read_player_season_stats(stat_type=stat_type)
+                except Exception:
+                    continue
+                if raw is None or raw.empty:
+                    continue
+                frames.append(_flat_df(raw))
+            for (lkey, skey), season in seasons.iterrows():
+                defense = _read_defense_player_frame(reader, lkey, skey, season)
+                if defense is not None and not defense.empty:
+                    frames.append(defense)
+                    break
+        except Exception as exc:
+            from understat_client import _is_chrome_missing
+
+            if _is_chrome_missing(exc):
+                _fbref_league_cache[cache_key] = {}
                 continue
-            if raw is None or raw.empty:
-                continue
-            frames.append(_flat_df(raw))
-        for (lkey, skey), season in seasons.iterrows():
-            defense = _read_defense_player_frame(reader, lkey, skey, season)
-            if defense is not None and not defense.empty:
-                frames.append(defense)
-                break
+            raise
         league_index: dict[tuple[str, str], dict[str, Any]] = {}
         if frames:
             table = _merge_stat_frames(frames)

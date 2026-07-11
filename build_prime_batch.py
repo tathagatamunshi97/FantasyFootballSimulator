@@ -28,6 +28,7 @@ PRIME_TARGETS: list[tuple[str, str, str | None]] = [
     ("Aymeric Laporte", "20/21", None),
     ("Manuel Neuer", "13/14", None),
     ("David Alaba", "19/20", "Alaba"),
+    ("Kevin De Bruyne", "19/20", None),
 ]
 
 

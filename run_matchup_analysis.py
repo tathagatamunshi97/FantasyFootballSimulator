@@ -41,7 +41,11 @@ def extended_metrics(team: FantasyTeam, stats: dict[str, PlayerStats]) -> dict:
     fwds = [p for p in lineup if p.fpl_position == "FWD"]
     gks = [p for p in lineup if p.fpl_position == "GK"]
     units = compute_unit_ratings(team, stats)
-    fit = team_formation_fit(team.formation, [(s.player, s.slot) for s in team.lineup], stats)
+    fit = team_formation_fit(
+        team.formation,
+        [(s.player, s.slot, getattr(s, "role_filter", "") or "") for s in team.lineup],
+        stats,
+    )
 
     def_line = defs + mids[:0]  # pure def
     mid_line = mids + defs  # include progressive fullbacks in possession

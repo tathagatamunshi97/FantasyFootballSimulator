@@ -1,0 +1,1928 @@
+{
+  "manual_prime_count": 212,
+  "manual_prime_names": [
+    "Abdessamad Ezzalzouli",
+    "Achraf Hakimi",
+    "Adam Wharton",
+    "Ademola Lookman",
+    "Alaba",
+    "Alejandro Balde",
+    "Alejandro Grimaldo",
+    "Aleksandar Pavlović",
+    "Alessandro Bastoni",
+    "Alexander Sørloth",
+    "Alexis Mac Allister",
+    "Alexis Sánchez",
+    "Alisson",
+    "Alphonso Davies",
+    "Amir Rrahmani",
+    "Anthony Gordon",
+    "Antoine Griezmann",
+    "Antoine Semenyo",
+    "Antonee Robinson",
+    "Antonio Rüdiger",
+    "Arda Güler",
+    "Arturo Vidal",
+    "Aurélien Tchouaméni",
+    "Aymeric Laporte",
+    "Ayoub El Kaabi",
+    "Ayyoub Bouaddi",
+    "Benjamin Šeško",
+    "Bernardo Silva",
+    "Bradley Barcola",
+    "Brahim Diaz",
+    "Bruno Fernandes",
+    "Bruno Guimarães",
+    "Bryan Mbeumo",
+    "Bukayo Saka",
+    "Caoimhin Kelleher",
+    "Carvajal",
+    "Casemiro",
+    "Christian Pulišić",
+    "Cole Palmer",
+    "Cristhian Mosquera",
+    "Cristian Romero",
+    "Cristiano Ronaldo",
+    "Dani Alves",
+    "Dani Olmo",
+    "Daniel Muñoz",
+    "David Raum",
+    "David Raya",
+    "Dayot Upamecano",
+    "Dean Huijsen",
+    "Declan Rice",
+    "Denzel Dumfries",
+    "Diego Godín",
+    "Diogo Costa",
+    "Diogo Dalot",
+    "Djed Spence",
+    "Dominic Calvert-Lewin",
+    "Dominik Szoboszlai",
+    "Désiré Doué",
+    "Eberechi Eze",
+    "Edinson Cavani",
+    "Edmond Tapsoba",
+    "Eli Junior Kroupi",
+    "Elliot Anderson",
+    "Emiliano Martínez",
+    "Endrick",
+    "Enzo Fernández",
+    "Eric García",
+    "Erling Haaland",
+    "Fabián Ruiz",
+    "Federico Dimarco",
+    "Federico Valverde",
+    "Felix Nmecha",
+    "Fermín López",
+    "Fernandinho",
+    "Florian Wirtz",
+    "Francesco Acerbi",
+    "Frenkie de Jong",
+    "Gabriel Magalhães",
+    "Gianluigi Donnarumma",
+    "Giovanni Lo Celso",
+    "Gonzalo Higuaín",
+    "Granit Xhaka",
+    "Gregor Kobel",
+    "Guéla Doué",
+    "Hakan Çalhanoğlu",
+    "Harry Kane",
+    "Harry Maguire",
+    "Hugo Ekitiké",
+    "Ibrahima Konaté",
+    "Ismael Saibari",
+    "Jamal Musiala",
+    "Jamie Vardy",
+    "Jan Paul van Hecke",
+    "Joan García",
+    "John Stones",
+    "Jonathan Tah",
+    "Jordan Pickford",
+    "Joshua Kimmich",
+    "Josip Stanišić",
+    "João Neves",
+    "João Palhinha",
+    "João Pedro",
+    "Joško Gvardiol",
+    "Jude Bellingham",
+    "Jules Koundé",
+    "Julián Alvarez",
+    "Jurriën Timber",
+    "Jérémy Doku",
+    "Jérémy Jacquet",
+    "Karim Adeyemi",
+    "Kenan Yıldız",
+    "Kevin De Bruyne",
+    "Khvicha Kvaratskhelia",
+    "Kim Min-jae",
+    "Kingsley Coman",
+    "Kobbie Mainoo",
+    "Konrad Laimer",
+    "Kylian Mbappé",
+    "Lamine Yamal",
+    "Lautaro Martínez",
+    "Leandro Trossard",
+    "Lennart Karl",
+    "Lionel Messi",
+    "Luis Díaz",
+    "Luis Suárez",
+    "Luka Modrić",
+    "Malick Thiaw",
+    "Manuel Locatelli",
+    "Manuel Neuer",
+    "Marc Cucurella",
+    "Marc Guéhi",
+    "Marcelo",
+    "Marco Carnesecchi",
+    "Marcos Llorente",
+    "Marcus Rashford",
+    "Marcus Thuram",
+    "Marquinhos",
+    "Martín Zubimendi",
+    "Mason Greenwood",
+    "Mateus Fernandes",
+    "Matheus Cunha",
+    "Matheus Nunes",
+    "Matthijs de Ligt",
+    "Matvey Safonov",
+    "Matz Sels",
+    "Maxence Lacroix",
+    "Mesut Özil",
+    "Michael Olise",
+    "Micky van de Ven",
+    "Mike Maignan",
+    "Mikel Merino",
+    "Mohamed Salah",
+    "Moisés Caicedo",
+    "Morgan Gibbs-White",
+    "Morgan Rogers",
+    "N'Golo Kanté",
+    "Nathaniel Brown",
+    "Neymar",
+    "Nick Pope",
+    "Nico O'Reilly",
+    "Nico Paz",
+    "Nico Schlotterbeck",
+    "Nico Williams",
+    "Nicolò Barella",
+    "Nordi Mukiele",
+    "Noussair Mazraoui",
+    "Nuno Mendes",
+    "Ousmane Dembélé",
+    "Pape Matar Sarr",
+    "Pau Cubarsí",
+    "Pedri",
+    "Pedro Porro",
+    "Piero Hincapié",
+    "Radamel Falcao",
+    "Rafael Leão",
+    "Raphinha",
+    "Rayan Cherki",
+    "Reece James",
+    "Riccardo Calafiori",
+    "Riyad Mahrez",
+    "Robert Lewandowski",
+    "Roberto Firmino",
+    "Rodri",
+    "Ryan Gravenberch",
+    "Rúben Dias",
+    "Sandro Tonali",
+    "Scott McTominay",
+    "Senne Lammens",
+    "Sergio Ramos",
+    "Serhou Guirassy",
+    "Takefusa Kubo",
+    "Theo Hernández",
+    "Thibaut Courtois",
+    "Tijjani Reijnders",
+    "Trent Alexander-Arnold",
+    "Unai Simón",
+    "Viktor Gyökeres",
+    "Vinícius Júnior",
+    "Virgil van Dijk",
+    "Vitinha (Paris Saint-Germain)",
+    "Warren Zaïre-Emery",
+    "William Saliba",
+    "Willian Pacho",
+    "Yan Diomande",
+    "Yann Sommer",
+    "Yassine Bounou",
+    "Youri Tielemans",
+    "Álvaro Carreras",
+    "Ángel Di María",
+    "Éder Militão",
+    "İlkay Gündoğan"
+  ],
+  "sheet_team_count": 14,
+  "sheet_player_count": 210,
+  "sheet_missing_prime_count": 0,
+  "sheet_missing_prime": [],
+  "sheet_missing_with_known_suffix": [],
+  "current_prime_players": [
+    "Casemiro",
+    "Cole Palmer",
+    "Cristiano Ronaldo",
+    "Mesut Ozil",
+    "N'Golo Kanté",
+    "Rodri"
+  ],
+  "verify": [
+    {
+      "raw": "Abdessamad Ezzalzouli",
+      "ok": true,
+      "canon": "Abdessamad Ezzalzouli",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Achraf Hakimi",
+      "ok": true,
+      "canon": "Achraf Hakimi",
+      "season": "2020-2021",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Adam Wharton",
+      "ok": true,
+      "canon": "Adam Wharton",
+      "season": "2025-2026",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Ademola Lookman",
+      "ok": true,
+      "canon": "Ademola Lookman",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Alaba",
+      "ok": true,
+      "canon": "Alaba",
+      "season": "2019-2020",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Alejandro Balde",
+      "ok": true,
+      "canon": "Alejandro Balde",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Alejandro Grimaldo",
+      "ok": true,
+      "canon": "Alejandro Grimaldo",
+      "season": "2023-2024",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Aleksandar Pavlović",
+      "ok": true,
+      "canon": "Aleksandar Pavlović",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Alessandro Bastoni",
+      "ok": true,
+      "canon": "Alessandro Bastoni",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Alexander Sørloth",
+      "ok": true,
+      "canon": "Alexander Sørloth",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Alexis Mac Allister",
+      "ok": true,
+      "canon": "Alexis Mac Allister",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Alexis Sánchez",
+      "ok": true,
+      "canon": "Alexis Sánchez",
+      "season": "2016-2017",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Alisson",
+      "ok": true,
+      "canon": "Alisson",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Alphonso Davies",
+      "ok": true,
+      "canon": "Alphonso Davies",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Amir Rrahmani",
+      "ok": true,
+      "canon": "Amir Rrahmani",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Anthony Gordon",
+      "ok": true,
+      "canon": "Anthony Gordon",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Antoine Griezmann",
+      "ok": true,
+      "canon": "Antoine Griezmann",
+      "season": "2015-2016",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Antoine Semenyo",
+      "ok": true,
+      "canon": "Antoine Semenyo",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Antonee Robinson",
+      "ok": true,
+      "canon": "Antonee Robinson",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Antonio Rüdiger",
+      "ok": true,
+      "canon": "Antonio Rüdiger",
+      "season": "2021-2022",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Arda Güler",
+      "ok": true,
+      "canon": "Arda Güler",
+      "season": "2025-2026",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Arturo Vidal",
+      "ok": true,
+      "canon": "Arturo Vidal",
+      "season": "2015-2016",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Aurélien Tchouaméni",
+      "ok": true,
+      "canon": "Aurélien Tchouaméni",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Aymeric Laporte",
+      "ok": true,
+      "canon": "Aymeric Laporte",
+      "season": "2021-2022",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Ayoub El Kaabi",
+      "ok": true,
+      "canon": "Ayoub El Kaabi",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Ayyoub Bouaddi",
+      "ok": true,
+      "canon": "Ayyoub Bouaddi",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Benjamin Šeško",
+      "ok": true,
+      "canon": "Benjamin Šeško",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Bernardo Silva",
+      "ok": true,
+      "canon": "Bernardo Silva",
+      "season": "2021-2022",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Bradley Barcola",
+      "ok": true,
+      "canon": "Bradley Barcola",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Brahim Diaz",
+      "ok": true,
+      "canon": "Brahim Diaz",
+      "season": "2023-2024",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Bruno Fernandes",
+      "ok": true,
+      "canon": "Bruno Fernandes",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Bruno Guimarães",
+      "ok": true,
+      "canon": "Bruno Guimarães",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Bryan Mbeumo",
+      "ok": true,
+      "canon": "Bryan Mbeumo",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Bukayo Saka",
+      "ok": true,
+      "canon": "Bukayo Saka",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Caoimhin Kelleher",
+      "ok": true,
+      "canon": "Caoimhin Kelleher",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Carvajal",
+      "ok": true,
+      "canon": "Carvajal",
+      "season": "2016-2017",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Casemiro",
+      "ok": true,
+      "canon": "Casemiro",
+      "season": "2017-2018",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Christian Pulišić",
+      "ok": true,
+      "canon": "Christian Pulišić",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Cole Palmer",
+      "ok": true,
+      "canon": "Cole Palmer",
+      "season": "2023-2024",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Cristhian Mosquera",
+      "ok": true,
+      "canon": "Cristhian Mosquera",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Cristian Romero",
+      "ok": true,
+      "canon": "Cristian Romero",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Cristiano Ronaldo",
+      "ok": true,
+      "canon": "Cristiano Ronaldo",
+      "season": "2014-2015",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Dani Alves",
+      "ok": true,
+      "canon": "Dani Alves",
+      "season": "2017-2018",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Dani Olmo",
+      "ok": true,
+      "canon": "Dani Olmo",
+      "season": "2025-2026",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Daniel Muñoz",
+      "ok": true,
+      "canon": "Daniel Muñoz",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "David Raum",
+      "ok": true,
+      "canon": "David Raum",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "David Raya",
+      "ok": true,
+      "canon": "David Raya",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Dayot Upamecano",
+      "ok": true,
+      "canon": "Dayot Upamecano",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Dean Huijsen",
+      "ok": true,
+      "canon": "Dean Huijsen",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Declan Rice",
+      "ok": true,
+      "canon": "Declan Rice",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Denzel Dumfries",
+      "ok": true,
+      "canon": "Denzel Dumfries",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Diego Godín",
+      "ok": true,
+      "canon": "Diego Godín",
+      "season": "2015-2016",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Diogo Costa",
+      "ok": true,
+      "canon": "Diogo Costa",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Diogo Dalot",
+      "ok": true,
+      "canon": "Diogo Dalot",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Djed Spence",
+      "ok": true,
+      "canon": "Djed Spence",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Dominic Calvert-Lewin",
+      "ok": true,
+      "canon": "Dominic Calvert-Lewin",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Dominik Szoboszlai",
+      "ok": true,
+      "canon": "Dominik Szoboszlai",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Désiré Doué",
+      "ok": true,
+      "canon": "Désiré Doué",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Eberechi Eze",
+      "ok": true,
+      "canon": "Eberechi Eze",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Edinson Cavani",
+      "ok": true,
+      "canon": "Edinson Cavani",
+      "season": "2016-2017",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Edmond Tapsoba",
+      "ok": true,
+      "canon": "Edmond Tapsoba",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Eli Junior Kroupi",
+      "ok": true,
+      "canon": "Eli Junior Kroupi",
+      "season": "2025-2026",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Elliot Anderson",
+      "ok": true,
+      "canon": "Elliot Anderson",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Emiliano Martínez",
+      "ok": true,
+      "canon": "Emiliano Martínez",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Endrick",
+      "ok": true,
+      "canon": "Endrick",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Enzo Fernández",
+      "ok": true,
+      "canon": "Enzo Fernández",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Eric García",
+      "ok": true,
+      "canon": "Eric García",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Erling Haaland",
+      "ok": true,
+      "canon": "Erling Haaland",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Fabián Ruiz",
+      "ok": true,
+      "canon": "Fabián Ruiz",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Federico Dimarco",
+      "ok": true,
+      "canon": "Federico Dimarco",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Federico Valverde",
+      "ok": true,
+      "canon": "Federico Valverde",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Felix Nmecha",
+      "ok": true,
+      "canon": "Felix Nmecha",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Fermín López",
+      "ok": true,
+      "canon": "Fermín López",
+      "season": "2025-2026",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Fernandinho",
+      "ok": true,
+      "canon": "Fernandinho",
+      "season": "2017-2018",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Florian Wirtz",
+      "ok": true,
+      "canon": "Florian Wirtz",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Francesco Acerbi",
+      "ok": true,
+      "canon": "Francesco Acerbi",
+      "season": "2019-2020",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Frenkie de Jong",
+      "ok": true,
+      "canon": "Frenkie de Jong",
+      "season": "2025-2026",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Gabriel Magalhães",
+      "ok": true,
+      "canon": "Gabriel Magalhães",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Gianluigi Donnarumma",
+      "ok": true,
+      "canon": "Gianluigi Donnarumma",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Giovanni Lo Celso",
+      "ok": true,
+      "canon": "Giovani Lo Celso",
+      "season": "2018-2019",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Gonzalo Higuaín",
+      "ok": true,
+      "canon": "Gonzalo Higuaín",
+      "season": "2015-2016",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Granit Xhaka",
+      "ok": true,
+      "canon": "Granit Xhaka",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Gregor Kobel",
+      "ok": true,
+      "canon": "Gregor Kobel",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Guéla Doué",
+      "ok": true,
+      "canon": "Guéla Doué",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Hakan Çalhanoğlu",
+      "ok": true,
+      "canon": "Hakan Çalhanoğlu",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Harry Kane",
+      "ok": true,
+      "canon": "Harry Kane",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Harry Maguire",
+      "ok": true,
+      "canon": "Harry Maguire",
+      "season": "2018-2019",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Hugo Ekitiké",
+      "ok": true,
+      "canon": "Hugo Ekitiké",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Ibrahima Konaté",
+      "ok": true,
+      "canon": "Ibrahima Konaté",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Ismael Saibari",
+      "ok": true,
+      "canon": "Ismael Saibari",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Jamal Musiala",
+      "ok": true,
+      "canon": "Jamal Musiala",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Jamie Vardy",
+      "ok": true,
+      "canon": "Jamie Vardy",
+      "season": "2015-2016",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Jan Paul van Hecke",
+      "ok": true,
+      "canon": "Jan Paul van Hecke",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Joan García",
+      "ok": true,
+      "canon": "Joan García",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "John Stones",
+      "ok": true,
+      "canon": "John Stones",
+      "season": "2022-2023",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Jonathan Tah",
+      "ok": true,
+      "canon": "Jonathan Tah",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Jordan Pickford",
+      "ok": true,
+      "canon": "Jordan Pickford",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Joshua Kimmich",
+      "ok": true,
+      "canon": "Joshua Kimmich",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Josip Stanišić",
+      "ok": true,
+      "canon": "Josip Stanišić",
+      "season": "2025-2026",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "João Neves",
+      "ok": true,
+      "canon": "João Neves",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "João Palhinha",
+      "ok": true,
+      "canon": "João Palhinha",
+      "season": "2025-2026",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "João Pedro",
+      "ok": true,
+      "canon": "João Pedro",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Joško Gvardiol",
+      "ok": true,
+      "canon": "Joško Gvardiol",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Jude Bellingham",
+      "ok": true,
+      "canon": "Jude Bellingham",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Jules Koundé",
+      "ok": true,
+      "canon": "Jules Koundé",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Julián Alvarez",
+      "ok": true,
+      "canon": "Julián Alvarez",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Jurriën Timber",
+      "ok": true,
+      "canon": "Jurriën Timber",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Jérémy Doku",
+      "ok": true,
+      "canon": "Jérémy Doku",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Jérémy Jacquet",
+      "ok": true,
+      "canon": "Jérémy Jacquet",
+      "season": "2025-2026",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Karim Adeyemi",
+      "ok": true,
+      "canon": "Karim Adeyemi",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Kenan Yıldız",
+      "ok": true,
+      "canon": "Kenan Yıldız",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Kevin De Bruyne",
+      "ok": true,
+      "canon": "Kevin De Bruyne",
+      "season": "2019-2020",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Khvicha Kvaratskhelia",
+      "ok": true,
+      "canon": "Khvicha Kvaratskhelia",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Kim Min-jae",
+      "ok": true,
+      "canon": "Kim Min-jae",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Kingsley Coman",
+      "ok": true,
+      "canon": "Kingsley Coman",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Kobbie Mainoo",
+      "ok": true,
+      "canon": "Kobbie Mainoo",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Konrad Laimer",
+      "ok": true,
+      "canon": "Konrad Laimer",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Kylian Mbappé",
+      "ok": true,
+      "canon": "Kylian Mbappé",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Lamine Yamal",
+      "ok": true,
+      "canon": "Lamine Yamal",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Lautaro Martínez",
+      "ok": true,
+      "canon": "Lautaro Martínez",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Leandro Trossard",
+      "ok": true,
+      "canon": "Leandro Trossard",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Lennart Karl",
+      "ok": true,
+      "canon": "Lennart Karl",
+      "season": "2025-2026",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Lionel Messi",
+      "ok": true,
+      "canon": "Lionel Messi",
+      "season": "2014-2015",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Luis Díaz",
+      "ok": true,
+      "canon": "Luis Díaz",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Luis Suárez",
+      "ok": true,
+      "canon": "Luis Suárez",
+      "season": "2015-2016",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Luka Modrić",
+      "ok": true,
+      "canon": "Luka Modrić",
+      "season": "2017-2018",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Malick Thiaw",
+      "ok": true,
+      "canon": "Malick Thiaw",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Manuel Locatelli",
+      "ok": true,
+      "canon": "Manuel Locatelli",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Manuel Neuer",
+      "ok": true,
+      "canon": "Manuel Neuer",
+      "season": "2013-2014",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Marc Cucurella",
+      "ok": true,
+      "canon": "Marc Cucurella",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Marc Guéhi",
+      "ok": true,
+      "canon": "Marc Guéhi",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Marcelo",
+      "ok": true,
+      "canon": "Marcelo",
+      "season": "2016-2017",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Marco Carnesecchi",
+      "ok": true,
+      "canon": "Marco Carnesecchi",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Marcos Llorente",
+      "ok": true,
+      "canon": "Marcos Llorente",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Marcus Rashford",
+      "ok": true,
+      "canon": "Marcus Rashford",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Marcus Thuram",
+      "ok": true,
+      "canon": "Marcus Thuram",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Marquinhos",
+      "ok": true,
+      "canon": "Marquinhos",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Martín Zubimendi",
+      "ok": true,
+      "canon": "Martín Zubimendi",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Mason Greenwood",
+      "ok": true,
+      "canon": "Mason Greenwood",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Mateus Fernandes",
+      "ok": true,
+      "canon": "Mateus Fernandes",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Matheus Cunha",
+      "ok": true,
+      "canon": "Matheus Cunha",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Matheus Nunes",
+      "ok": true,
+      "canon": "Matheus Nunes",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Matthijs de Ligt",
+      "ok": true,
+      "canon": "Matthijs de Ligt",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Matvey Safonov",
+      "ok": true,
+      "canon": "Matvey Safonov",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Matz Sels",
+      "ok": true,
+      "canon": "Matz Sels",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Maxence Lacroix",
+      "ok": true,
+      "canon": "Maxence Lacroix",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Mesut Ozil",
+      "ok": true,
+      "canon": "Mesut Ozil",
+      "season": "2015-2016",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Mesut Özil",
+      "ok": true,
+      "canon": "Mesut Özil",
+      "season": "2015-2016",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Michael Olise",
+      "ok": true,
+      "canon": "Michael Olise",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Micky van de Ven",
+      "ok": true,
+      "canon": "Micky van de Ven",
+      "season": "2025-2026",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Mike Maignan",
+      "ok": true,
+      "canon": "Mike Maignan",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Mikel Merino",
+      "ok": true,
+      "canon": "Mikel Merino",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Mohamed Salah",
+      "ok": true,
+      "canon": "Mohamed Salah",
+      "season": "2017-2018",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Moisés Caicedo",
+      "ok": true,
+      "canon": "Moisés Caicedo",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Morgan Gibbs-White",
+      "ok": true,
+      "canon": "Morgan Gibbs-White",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Morgan Rogers",
+      "ok": true,
+      "canon": "Morgan Rogers",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "N'Golo Kanté",
+      "ok": true,
+      "canon": "N'Golo Kanté",
+      "season": "2016-2017",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Nathaniel Brown",
+      "ok": true,
+      "canon": "Nathaniel Brown",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Neymar",
+      "ok": true,
+      "canon": "Neymar",
+      "season": "2014-2015",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Nick Pope",
+      "ok": true,
+      "canon": "Nick Pope",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Nico O'Reilly",
+      "ok": true,
+      "canon": "Nico O'Reilly",
+      "season": "2025-2026",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Nico Paz",
+      "ok": true,
+      "canon": "Nico Paz",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Nico Schlotterbeck",
+      "ok": true,
+      "canon": "Nico Schlotterbeck",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Nico Williams",
+      "ok": true,
+      "canon": "Nico Williams",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Nicolò Barella",
+      "ok": true,
+      "canon": "Nicolò Barella",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Nordi Mukiele",
+      "ok": true,
+      "canon": "Nordi Mukiele",
+      "season": "2025-2026",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Noussair Mazraoui",
+      "ok": true,
+      "canon": "Noussair Mazraoui",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Nuno Mendes",
+      "ok": true,
+      "canon": "Nuno Mendes",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Ousmane Dembélé",
+      "ok": true,
+      "canon": "Ousmane Dembélé",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Pape Matar Sarr",
+      "ok": true,
+      "canon": "Pape Matar Sarr",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Pau Cubarsí",
+      "ok": true,
+      "canon": "Pau Cubarsí",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Pedri",
+      "ok": true,
+      "canon": "Pedri",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Pedro Porro",
+      "ok": true,
+      "canon": "Pedro Porro",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Piero Hincapié",
+      "ok": true,
+      "canon": "Piero Hincapié",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Radamel Falcao",
+      "ok": true,
+      "canon": "Radamel Falcao",
+      "season": "2016-2017",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Rafael Leão",
+      "ok": true,
+      "canon": "Rafael Leão",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Raphinha",
+      "ok": true,
+      "canon": "Raphinha",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Rayan Cherki",
+      "ok": true,
+      "canon": "Rayan Cherki",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Reece James",
+      "ok": true,
+      "canon": "Reece James",
+      "season": "2025-2026",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Riccardo Calafiori",
+      "ok": true,
+      "canon": "Riccardo Calafiori",
+      "season": "2025-2026",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Riyad Mahrez",
+      "ok": true,
+      "canon": "Riyad Mahrez",
+      "season": "2022-2023",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Robert Lewandowski",
+      "ok": true,
+      "canon": "Robert Lewandowski",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Roberto Firmino",
+      "ok": true,
+      "canon": "Roberto Firmino",
+      "season": "2017-2018",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Rodri",
+      "ok": true,
+      "canon": "Rodri",
+      "season": "2023-2024",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Ryan Gravenberch",
+      "ok": true,
+      "canon": "Ryan Gravenberch",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Rúben Dias",
+      "ok": true,
+      "canon": "Rúben Dias",
+      "season": "2020-2021",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Sandro Tonali",
+      "ok": true,
+      "canon": "Sandro Tonali",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Scott McTominay",
+      "ok": true,
+      "canon": "Scott McTominay",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Senne Lammens",
+      "ok": true,
+      "canon": "Senne Lammens",
+      "season": "2025-2026",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Sergio Ramos",
+      "ok": true,
+      "canon": "Sergio Ramos",
+      "season": "2014-2015",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Serhou Guirassy",
+      "ok": true,
+      "canon": "Serhou Guirassy",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Takefusa Kubo",
+      "ok": true,
+      "canon": "Takefusa Kubo",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Theo Hernández",
+      "ok": true,
+      "canon": "Theo Hernández",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Thibaut Courtois",
+      "ok": true,
+      "canon": "Thibaut Courtois",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Tijjani Reijnders",
+      "ok": true,
+      "canon": "Tijjani Reijnders",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Trent Alexander-Arnold",
+      "ok": true,
+      "canon": "Trent Alexander-Arnold",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Unai Simón",
+      "ok": true,
+      "canon": "Unai Simón",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Viktor Gyökeres",
+      "ok": true,
+      "canon": "Viktor Gyökeres",
+      "season": "2025-2026",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Vinícius Júnior",
+      "ok": true,
+      "canon": "Vinícius Júnior",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Virgil van Dijk",
+      "ok": true,
+      "canon": "Virgil van Dijk",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Vitinha (Paris Saint-Germain)",
+      "ok": true,
+      "canon": "Vitinha (Paris Saint-Germain)",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Warren Zaïre-Emery",
+      "ok": true,
+      "canon": "Warren Zaïre-Emery",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "William Saliba",
+      "ok": true,
+      "canon": "William Saliba",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Willian Pacho",
+      "ok": true,
+      "canon": "Willian Pacho",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Yan Diomande",
+      "ok": true,
+      "canon": "Yan Diomande",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Yann Sommer",
+      "ok": true,
+      "canon": "Yann Sommer",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Yassine Bounou",
+      "ok": true,
+      "canon": "Yassine Bounou",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Youri Tielemans",
+      "ok": true,
+      "canon": "Youri Tielemans",
+      "season": "2024-2025",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Álvaro Carreras",
+      "ok": true,
+      "canon": "Álvaro Carreras",
+      "season": "2025-2026",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Ángel Di María",
+      "ok": true,
+      "canon": "Ángel Di María",
+      "season": "2013-2014",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "Éder Militão",
+      "ok": true,
+      "canon": "Éder Militão",
+      "season": "2021-2022",
+      "source": "manual_profiles",
+      "manual": "prime"
+    },
+    {
+      "raw": "İlkay Gündoğan",
+      "ok": true,
+      "canon": "İlkay Gündoğan",
+      "season": "2023-2024",
+      "source": "manual_profiles",
+      "manual": "prime"
+    }
+  ],
+  "verify_failures": []
+}

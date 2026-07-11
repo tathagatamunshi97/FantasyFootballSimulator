@@ -1,0 +1,2281 @@
+{
+  "id": "d65302bf98d8",
+  "user": "admin",
+  "matchday": true,
+  "created_at": "2026-07-11T10:32:06.263918+00:00",
+  "updated_at": "2026-07-11T10:33:28.292410+00:00",
+  "status": "ready",
+  "message": "Completed 10,000 simulations.",
+  "running": false,
+  "simulations": 10000,
+  "seed": null,
+  "team_a": {
+    "name": "Moga+Sanmitro",
+    "formation": "4-3-3 flat",
+    "lineup": [
+      {
+        "slot": "GK",
+        "player": "Emiliano Martínez",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RB",
+        "player": "Riccardo Calafiori",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB1",
+        "player": "Rúben Dias",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB2",
+        "player": "Joško Gvardiol",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LB",
+        "player": "Jurriën Timber",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "DM",
+        "player": "Rodri",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CM1",
+        "player": "Jude Bellingham",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CM2",
+        "player": "Rayan Cherki",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RW",
+        "player": "Ángel Di María",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "ST",
+        "player": "Khvicha Kvaratskhelia",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LW",
+        "player": "Julián Alvarez",
+        "captain": false,
+        "vice_captain": false
+      }
+    ],
+    "bench": [
+      "Fabián Ruiz",
+      "Anthony Gordon",
+      "John Stones",
+      "Benjamin Šeško"
+    ],
+    "prime_player": "",
+    "peak_season": {
+      "player": "Angel Di Maria",
+      "season": "13/14"
+    },
+    "sheet_meta": {
+      "source": "google_sheets",
+      "player_count": 15,
+      "budgets": [
+        20.0,
+        130.0,
+        20.0,
+        90.0,
+        50.0,
+        60.0,
+        60.0,
+        270.0,
+        170.0,
+        30.0,
+        30.0,
+        30.0,
+        20.0,
+        10.0,
+        10.0
+      ],
+      "ready": true,
+      "full_roster": [
+        "Fabián Ruiz",
+        "Khvicha Kvaratskhelia",
+        "Rodri",
+        "Julián Alvarez",
+        "Emiliano Martínez",
+        "Rúben Dias",
+        "Joško Gvardiol",
+        "Ángel Di María",
+        "Jude Bellingham",
+        "Jurriën Timber",
+        "Riccardo Calafiori",
+        "Rayan Cherki",
+        "Anthony Gordon",
+        "John Stones",
+        "Benjamin Šeško"
+      ],
+      "roster_players": [
+        "Emiliano Martínez",
+        "Riccardo Calafiori",
+        "Rúben Dias",
+        "Joško Gvardiol",
+        "Jurriën Timber",
+        "Rodri",
+        "Jude Bellingham",
+        "Rayan Cherki",
+        "Ángel Di María",
+        "Khvicha Kvaratskhelia",
+        "Julián Alvarez"
+      ],
+      "bench_players": [
+        "Fabián Ruiz",
+        "Anthony Gordon",
+        "John Stones",
+        "Benjamin Šeško"
+      ],
+      "squad_size": 15,
+      "season_pick": {
+        "player": "Angel Di Maria",
+        "season": "13/14"
+      }
+    }
+  },
+  "team_b": {
+    "name": "Ryan",
+    "formation": "4-3-3 flat",
+    "lineup": [
+      {
+        "slot": "GK",
+        "player": "Unai Simón",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RB",
+        "player": "Marcos Llorente",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB1",
+        "player": "Virgil van Dijk",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CB2",
+        "player": "Cristian Romero",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LB",
+        "player": "Alejandro Grimaldo",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "DM",
+        "player": "Granit Xhaka",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CM1",
+        "player": "Dominik Szoboszlai",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "CM2",
+        "player": "Bernardo Silva",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "RW",
+        "player": "Robert Lewandowski",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "ST",
+        "player": "Alexander Sørloth",
+        "captain": false,
+        "vice_captain": false
+      },
+      {
+        "slot": "LW",
+        "player": "Lionel Messi",
+        "captain": false,
+        "vice_captain": false
+      }
+    ],
+    "bench": [
+      "Neymar",
+      "Warren Zaïre-Emery",
+      "Martín Zubimendi",
+      "Piero Hincapié"
+    ],
+    "prime_player": "",
+    "peak_season": {
+      "player": "Neymar",
+      "season": "14/15"
+    },
+    "sheet_meta": {
+      "source": "google_sheets",
+      "player_count": 15,
+      "budgets": [
+        250.0,
+        30.0,
+        60.0,
+        320.0,
+        30.0,
+        30.0,
+        40.0,
+        90.0,
+        10.0,
+        40.0,
+        40.0,
+        10.0,
+        20.0,
+        10.0,
+        10.0
+      ],
+      "ready": true,
+      "full_roster": [
+        "Lionel Messi",
+        "Bernardo Silva",
+        "Virgil van Dijk",
+        "Neymar",
+        "Marcos Llorente",
+        "Dominik Szoboszlai",
+        "Cristian Romero",
+        "Robert Lewandowski",
+        "Warren Zaïre-Emery",
+        "Unai Simón",
+        "Alejandro Grimaldo",
+        "Granit Xhaka",
+        "Martín Zubimendi",
+        "Piero Hincapié",
+        "Alexander Sørloth"
+      ],
+      "roster_players": [
+        "Unai Simón",
+        "Marcos Llorente",
+        "Virgil van Dijk",
+        "Cristian Romero",
+        "Alejandro Grimaldo",
+        "Granit Xhaka",
+        "Dominik Szoboszlai",
+        "Bernardo Silva",
+        "Robert Lewandowski",
+        "Alexander Sørloth",
+        "Lionel Messi"
+      ],
+      "bench_players": [
+        "Neymar",
+        "Warren Zaïre-Emery",
+        "Martín Zubimendi",
+        "Piero Hincapié"
+      ],
+      "squad_size": 15,
+      "season_pick": {
+        "player": "Neymar",
+        "season": "14/15"
+      }
+    }
+  },
+  "report": {
+    "generated_at": "2026-07-11T10:33:28.279781+00:00",
+    "engine_version": "slot-aware-v2",
+    "matchup": {
+      "home": {
+        "name": "Moga+Sanmitro",
+        "formation": "4-3-3 flat",
+        "lineup": [
+          {
+            "player": "Emiliano Martínez",
+            "slot": "GK",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Riccardo Calafiori",
+            "slot": "RB",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Rúben Dias",
+            "slot": "CB1",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Joško Gvardiol",
+            "slot": "CB2",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Jurriën Timber",
+            "slot": "LB",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Rodri",
+            "slot": "DM",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Jude Bellingham",
+            "slot": "CM1",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Rayan Cherki",
+            "slot": "CM2",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Ángel Di María",
+            "slot": "RW",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Khvicha Kvaratskhelia",
+            "slot": "ST",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Julián Alvarez",
+            "slot": "LW",
+            "captain": false,
+            "vice_captain": false
+          }
+        ]
+      },
+      "away": {
+        "name": "Ryan",
+        "formation": "4-3-3 flat",
+        "lineup": [
+          {
+            "player": "Unai Simón",
+            "slot": "GK",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Marcos Llorente",
+            "slot": "RB",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Virgil van Dijk",
+            "slot": "CB1",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Cristian Romero",
+            "slot": "CB2",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Alejandro Grimaldo",
+            "slot": "LB",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Granit Xhaka",
+            "slot": "DM",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Dominik Szoboszlai",
+            "slot": "CM1",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Bernardo Silva",
+            "slot": "CM2",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Robert Lewandowski",
+            "slot": "RW",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Alexander Sørloth",
+            "slot": "ST",
+            "captain": false,
+            "vice_captain": false
+          },
+          {
+            "player": "Lionel Messi",
+            "slot": "LW",
+            "captain": false,
+            "vice_captain": false
+          }
+        ]
+      }
+    },
+    "profiles": {
+      "home": {
+        "extended": {
+          "defensive_unit": 0.555,
+          "possession_control": 0.699,
+          "chance_creation": 0.585,
+          "attacking_effectiveness": 0.561,
+          "midfield_control": 0.627,
+          "finishing_threat": 0.66,
+          "formation_fit": 0.806,
+          "pressing_intensity": 0.452,
+          "press_resistance": 0.178,
+          "transition_threat": 0.622,
+          "aerial_defence": 0.435,
+          "team_composites": {
+            "creativity": 0.585,
+            "midfield_control": 0.627,
+            "possession_control": 0.699,
+            "finishing_threat": 0.66,
+            "defensive_solidity": 0.555,
+            "attacking_effectiveness": 0.561,
+            "pressing_intensity": 0.452,
+            "press_resistance": 0.178,
+            "transition_threat": 0.622,
+            "aerial_defence": 0.435,
+            "overall": 0.64
+          },
+          "units": {
+            "attack": 0.593,
+            "finishing": 0.989,
+            "chance_creation": 0.627,
+            "midfield": 0.689,
+            "defence": 0.473,
+            "midfield_defence": 0.334,
+            "transition_risk": 0.142,
+            "goalkeeper": 0.448,
+            "overall": 0.567,
+            "gk_confidence": 0.95,
+            "gk_is_backup": false
+          },
+          "xga_suppression": 0.723,
+          "xg_split": {
+            "finishing": 2.65,
+            "creation": 0.23,
+            "total_raw": 2.88
+          },
+          "fwd_xg90": 0.37,
+          "avg_pass_pct": 78.3,
+          "formation_fit_players": [
+            {
+              "player": "Emiliano Martínez",
+              "slot": "GK",
+              "fit": 0.761,
+              "position": "GK"
+            },
+            {
+              "player": "Riccardo Calafiori",
+              "slot": "RB",
+              "fit": 0.55,
+              "position": "CB"
+            },
+            {
+              "player": "Rúben Dias",
+              "slot": "CB1",
+              "fit": 0.813,
+              "position": "CB"
+            },
+            {
+              "player": "Joško Gvardiol",
+              "slot": "CB2",
+              "fit": 0.84,
+              "position": "CB"
+            },
+            {
+              "player": "Jurriën Timber",
+              "slot": "LB",
+              "fit": 0.831,
+              "position": "LB"
+            },
+            {
+              "player": "Rodri",
+              "slot": "DM",
+              "fit": 0.85,
+              "position": "DM"
+            },
+            {
+              "player": "Jude Bellingham",
+              "slot": "CM1",
+              "fit": 0.864,
+              "position": "CM"
+            },
+            {
+              "player": "Rayan Cherki",
+              "slot": "CM2",
+              "fit": 0.858,
+              "position": "CM"
+            },
+            {
+              "player": "Ángel Di María",
+              "slot": "RW",
+              "fit": 0.899,
+              "position": "RW"
+            },
+            {
+              "player": "Khvicha Kvaratskhelia",
+              "slot": "ST",
+              "fit": 0.888,
+              "position": "ST"
+            },
+            {
+              "player": "Julián Alvarez",
+              "slot": "LW",
+              "fit": 0.711,
+              "position": "ST"
+            }
+          ]
+        },
+        "fullbacks": {
+          "fullbacks": [
+            {
+              "player": "Riccardo Calafiori",
+              "slot": "RB",
+              "xa90": 0.04,
+              "key_passes90": 0.47,
+              "creation_score": 0.161,
+              "attack_exposure": 0.156,
+              "fit": 0.55
+            },
+            {
+              "player": "Jurriën Timber",
+              "slot": "LB",
+              "xa90": 0.05,
+              "key_passes90": 0.81,
+              "creation_score": 0.221,
+              "attack_exposure": 0.187,
+              "fit": 0.831
+            }
+          ],
+          "transition_risk": 0.142,
+          "xga_suppression_base": 0.813,
+          "xga_suppression_with_transition": 0.819
+        },
+        "trophy_multiplier": 1.0225,
+        "players": [
+          {
+            "player": "Emiliano Martínez",
+            "slot": "GK",
+            "team": "Aston Villa",
+            "xg90": 0.0,
+            "npxg90": 0.0,
+            "xa90": 0.0,
+            "xg_buildup90": 0.16,
+            "rating": 7.02,
+            "minutes": 3015,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Riccardo Calafiori",
+            "slot": "RB",
+            "team": "Arsenal",
+            "xg90": 0.18,
+            "npxg90": 0.12,
+            "xa90": 0.04,
+            "xg_buildup90": 0.34,
+            "rating": 6.87,
+            "minutes": 1707,
+            "trophy_bonus": 0.07,
+            "trophy_notes": [
+              "2025-2026: league winner (Arsenal)",
+              "2025-2026: UCL finalist (Arsenal)"
+            ]
+          },
+          {
+            "player": "Rúben Dias",
+            "slot": "CB1",
+            "team": "Manchester City",
+            "xg90": 0.04,
+            "npxg90": 0.04,
+            "xa90": 0.04,
+            "xg_buildup90": 0.59,
+            "rating": 7.17,
+            "minutes": 2211,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Joško Gvardiol",
+            "slot": "CB2",
+            "team": "Manchester City",
+            "xg90": 0.14,
+            "npxg90": 0.12,
+            "xa90": 0.06,
+            "xg_buildup90": 0.57,
+            "rating": 7.18,
+            "minutes": 2326,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Jurriën Timber",
+            "slot": "LB",
+            "team": "Arsenal",
+            "xg90": 0.11,
+            "npxg90": 0.1,
+            "xa90": 0.05,
+            "xg_buildup90": 0.33,
+            "rating": 6.94,
+            "minutes": 2439,
+            "trophy_bonus": 0.07,
+            "trophy_notes": [
+              "2025-2026: league winner (Arsenal)",
+              "2025-2026: UCL finalist (Arsenal)"
+            ]
+          },
+          {
+            "player": "Rodri",
+            "slot": "DM",
+            "team": "Manchester City",
+            "xg90": 0.07,
+            "npxg90": 0.07,
+            "xa90": 0.15,
+            "xg_buildup90": 0.64,
+            "rating": 7.43,
+            "minutes": 1513,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Jude Bellingham",
+            "slot": "CM1",
+            "team": "Real Madrid",
+            "xg90": 0.38,
+            "npxg90": 0.39,
+            "xa90": 0.13,
+            "xg_buildup90": 0.47,
+            "rating": 7.36,
+            "minutes": 2205,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Rayan Cherki",
+            "slot": "CM2",
+            "team": "Manchester City",
+            "xg90": 0.21,
+            "npxg90": 0.23,
+            "xa90": 0.47,
+            "xg_buildup90": 0.56,
+            "rating": 7.4,
+            "minutes": 1923,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Ángel Di María",
+            "slot": "RW",
+            "team": "Real Madrid",
+            "xg90": 0.29,
+            "npxg90": 0.29,
+            "xa90": 0.73,
+            "xg_buildup90": 0.57,
+            "rating": 6.91,
+            "minutes": 2357,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Khvicha Kvaratskhelia",
+            "slot": "ST",
+            "team": "Paris Saint-Germain",
+            "xg90": 0.4,
+            "npxg90": 0.41,
+            "xa90": 0.26,
+            "xg_buildup90": 0.61,
+            "rating": 7.22,
+            "minutes": 1335,
+            "trophy_bonus": 0.1075,
+            "trophy_notes": [
+              "2024-2025: league winner (SSC Napoli)",
+              "2025-2026: league winner (Paris Saint-Germain)",
+              "2025-2026: UCL winner (Paris Saint-Germain)"
+            ]
+          },
+          {
+            "player": "Julián Alvarez",
+            "slot": "LW",
+            "team": "Atlético Madrid",
+            "xg90": 0.44,
+            "npxg90": 0.35,
+            "xa90": 0.22,
+            "xg_buildup90": 0.35,
+            "rating": 7.1,
+            "minutes": 2210,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          }
+        ]
+      },
+      "away": {
+        "extended": {
+          "defensive_unit": 0.612,
+          "possession_control": 0.677,
+          "chance_creation": 0.491,
+          "attacking_effectiveness": 0.765,
+          "midfield_control": 0.546,
+          "finishing_threat": 0.874,
+          "formation_fit": 0.82,
+          "pressing_intensity": 0.439,
+          "press_resistance": 0.09,
+          "transition_threat": 0.342,
+          "aerial_defence": 0.53,
+          "team_composites": {
+            "creativity": 0.491,
+            "midfield_control": 0.546,
+            "possession_control": 0.677,
+            "finishing_threat": 0.874,
+            "defensive_solidity": 0.612,
+            "attacking_effectiveness": 0.765,
+            "pressing_intensity": 0.439,
+            "press_resistance": 0.09,
+            "transition_threat": 0.342,
+            "aerial_defence": 0.53,
+            "overall": 0.642
+          },
+          "units": {
+            "attack": 0.566,
+            "finishing": 1.0,
+            "chance_creation": 0.488,
+            "midfield": 0.56,
+            "defence": 0.528,
+            "midfield_defence": 0.277,
+            "transition_risk": 0.46,
+            "goalkeeper": 0.333,
+            "overall": 0.508,
+            "gk_confidence": 0.838,
+            "gk_is_backup": false
+          },
+          "xga_suppression": 0.744,
+          "xg_split": {
+            "finishing": 2.67,
+            "creation": 0.18,
+            "total_raw": 2.85
+          },
+          "fwd_xg90": 0.7,
+          "avg_pass_pct": 82.6,
+          "formation_fit_players": [
+            {
+              "player": "Unai Simón",
+              "slot": "GK",
+              "fit": 0.738,
+              "position": "GK"
+            },
+            {
+              "player": "Marcos Llorente",
+              "slot": "RB",
+              "fit": 0.772,
+              "position": "LB"
+            },
+            {
+              "player": "Virgil van Dijk",
+              "slot": "CB1",
+              "fit": 0.858,
+              "position": "CB"
+            },
+            {
+              "player": "Cristian Romero",
+              "slot": "CB2",
+              "fit": 0.875,
+              "position": "CB"
+            },
+            {
+              "player": "Alejandro Grimaldo",
+              "slot": "LB",
+              "fit": 0.882,
+              "position": "LB"
+            },
+            {
+              "player": "Granit Xhaka",
+              "slot": "DM",
+              "fit": 0.804,
+              "position": "CM"
+            },
+            {
+              "player": "Dominik Szoboszlai",
+              "slot": "CM1",
+              "fit": 0.84,
+              "position": "CM"
+            },
+            {
+              "player": "Bernardo Silva",
+              "slot": "CM2",
+              "fit": 0.862,
+              "position": "CM"
+            },
+            {
+              "player": "Robert Lewandowski",
+              "slot": "RW",
+              "fit": 0.6,
+              "position": "ST"
+            },
+            {
+              "player": "Alexander Sørloth",
+              "slot": "ST",
+              "fit": 0.933,
+              "position": "ST"
+            },
+            {
+              "player": "Lionel Messi",
+              "slot": "LW",
+              "fit": 0.852,
+              "position": "ST"
+            }
+          ]
+        },
+        "fullbacks": {
+          "fullbacks": [
+            {
+              "player": "Marcos Llorente",
+              "slot": "RB",
+              "xa90": 0.13,
+              "key_passes90": 0.91,
+              "creation_score": 0.357,
+              "attack_exposure": 0.267,
+              "fit": 0.772
+            },
+            {
+              "player": "Alejandro Grimaldo",
+              "slot": "LB",
+              "xa90": 0.33,
+              "key_passes90": 2.49,
+              "creation_score": 0.483,
+              "attack_exposure": 0.516,
+              "fit": 0.882
+            }
+          ],
+          "transition_risk": 0.46,
+          "xga_suppression_base": 0.821,
+          "xga_suppression_with_transition": 0.843
+        },
+        "trophy_multiplier": 1.0164,
+        "players": [
+          {
+            "player": "Unai Simón",
+            "slot": "GK",
+            "team": "Athletic Club",
+            "xg90": 0.0,
+            "npxg90": 0.0,
+            "xa90": 0.0,
+            "xg_buildup90": 0.08,
+            "rating": 6.97,
+            "minutes": 2610,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Marcos Llorente",
+            "slot": "RB",
+            "team": "Atlético Madrid",
+            "xg90": 0.05,
+            "npxg90": 0.06,
+            "xa90": 0.13,
+            "xg_buildup90": 0.47,
+            "rating": 7.05,
+            "minutes": 2348,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Virgil van Dijk",
+            "slot": "CB1",
+            "team": "Liverpool FC",
+            "xg90": 0.08,
+            "npxg90": 0.1,
+            "xa90": 0.03,
+            "xg_buildup90": 0.44,
+            "rating": 7.27,
+            "minutes": 3375,
+            "trophy_bonus": 0.045,
+            "trophy_notes": [
+              "2024-2025: league winner (Liverpool FC)"
+            ]
+          },
+          {
+            "player": "Cristian Romero",
+            "slot": "CB2",
+            "team": "Tottenham Hotspur",
+            "xg90": 0.08,
+            "npxg90": 0.1,
+            "xa90": 0.06,
+            "xg_buildup90": 0.3,
+            "rating": 7.09,
+            "minutes": 1646,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Alejandro Grimaldo",
+            "slot": "LB",
+            "team": "Bayer 04 Leverkusen",
+            "xg90": 0.16,
+            "npxg90": 0.13,
+            "xa90": 0.33,
+            "xg_buildup90": 0.39,
+            "rating": 7.3,
+            "minutes": 2583,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Granit Xhaka",
+            "slot": "DM",
+            "team": "Sunderland",
+            "xg90": 0.03,
+            "npxg90": 0.03,
+            "xa90": 0.14,
+            "xg_buildup90": 0.28,
+            "rating": 7.37,
+            "minutes": 2897,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Dominik Szoboszlai",
+            "slot": "CM1",
+            "team": "Liverpool FC",
+            "xg90": 0.2,
+            "npxg90": 0.18,
+            "xa90": 0.2,
+            "xg_buildup90": 0.49,
+            "rating": 7.16,
+            "minutes": 2864,
+            "trophy_bonus": 0.045,
+            "trophy_notes": [
+              "2024-2025: league winner (Liverpool FC)"
+            ]
+          },
+          {
+            "player": "Bernardo Silva",
+            "slot": "CM2",
+            "team": "Manchester City",
+            "xg90": 0.11,
+            "npxg90": 0.13,
+            "xa90": 0.14,
+            "xg_buildup90": 0.52,
+            "rating": 7.04,
+            "minutes": 2780,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Robert Lewandowski",
+            "slot": "RW",
+            "team": "FC Barcelona",
+            "xg90": 0.84,
+            "npxg90": 0.82,
+            "xa90": 0.06,
+            "xg_buildup90": 0.28,
+            "rating": 7.01,
+            "minutes": 2168,
+            "trophy_bonus": 0.09,
+            "trophy_notes": [
+              "2024-2025: league winner (FC Barcelona)",
+              "2025-2026: league winner (FC Barcelona)"
+            ]
+          },
+          {
+            "player": "Alexander Sørloth",
+            "slot": "ST",
+            "team": "Atlético Madrid",
+            "xg90": 0.72,
+            "npxg90": 0.9,
+            "xa90": 0.05,
+            "xg_buildup90": 0.13,
+            "rating": 6.9,
+            "minutes": 1770,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          },
+          {
+            "player": "Lionel Messi",
+            "slot": "LW",
+            "team": "Inter Miami CF",
+            "xg90": 0.55,
+            "npxg90": 0.0,
+            "xa90": 0.42,
+            "xg_buildup90": 0.0,
+            "rating": 7.85,
+            "minutes": 2358,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ]
+          }
+        ]
+      }
+    },
+    "mechanics": {
+      "home_attacks_vs_away_defence": 0.843,
+      "away_attacks_vs_home_defence": 0.819,
+      "midfield_battle": {
+        "home_multiplier": 1.004,
+        "away_multiplier": 0.996
+      },
+      "wide_matchup": {
+        "home": {
+          "multiplier": 1.0235,
+          "boost": 0.0235,
+          "winger_threat": 0.604,
+          "transition_risk": 0.46,
+          "active": true
+        },
+        "away": {
+          "multiplier": 1.0,
+          "boost": 0.0,
+          "winger_threat": 0.706,
+          "transition_risk": 0.142,
+          "active": false
+        }
+      },
+      "press_matchup": {
+        "home": {
+          "multiplier": 0.9051,
+          "suppression": 0.0949,
+          "press_edge": 0.362,
+          "pressing_intensity": 0.452,
+          "press_resistance": 0.09,
+          "active": true
+        },
+        "away": {
+          "multiplier": 0.9179,
+          "suppression": 0.0821,
+          "press_edge": 0.261,
+          "pressing_intensity": 0.439,
+          "press_resistance": 0.178,
+          "active": true
+        }
+      }
+    },
+    "monte_carlo": {
+      "simulations": 10000,
+      "expected_xg": {
+        "home": 2.24,
+        "away": 2.13
+      },
+      "home_win_pct": 42.6,
+      "draw_pct": 20.2,
+      "away_win_pct": 37.3,
+      "home_goals_avg": 2.25,
+      "away_goals_avg": 2.12,
+      "total_goals_avg": 4.37,
+      "btts_pct": 79.1,
+      "over_2_5_pct": 81.0,
+      "scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.0
+        },
+        {
+          "score": "2-1",
+          "pct": 6.9
+        },
+        {
+          "score": "1-2",
+          "pct": 6.8
+        },
+        {
+          "score": "1-1",
+          "pct": 6.3
+        },
+        {
+          "score": "3-2",
+          "pct": 5.5
+        },
+        {
+          "score": "2-3",
+          "pct": 5.1
+        },
+        {
+          "score": "3-1",
+          "pct": 4.7
+        },
+        {
+          "score": "1-3",
+          "pct": 4.3
+        }
+      ],
+      "unit_ratings": {
+        "home": {
+          "attack": 0.892,
+          "finishing": 1.0,
+          "chance_creation": 0.702,
+          "midfield": 0.34,
+          "defence": 0.256,
+          "midfield_defence": 0.158,
+          "transition_risk": 0.142,
+          "goalkeeper": 0.46,
+          "overall": 0.507,
+          "gk_confidence": 0.95,
+          "gk_is_backup": false
+        },
+        "away": {
+          "attack": 0.88,
+          "finishing": 1.0,
+          "chance_creation": 0.679,
+          "midfield": 0.295,
+          "defence": 0.258,
+          "midfield_defence": 0.142,
+          "transition_risk": 0.46,
+          "goalkeeper": 0.34,
+          "overall": 0.465,
+          "gk_confidence": 0.838,
+          "gk_is_backup": false
+        }
+      },
+      "home_trophy_multiplier": 1.0225,
+      "away_trophy_multiplier": 1.0164,
+      "midfield_battle": {
+        "home_chance_multiplier": 1.004,
+        "away_chance_multiplier": 0.996
+      },
+      "bench_impact": {
+        "home": {
+          "bench_count": 4,
+          "bench_players": [
+            "Fabián Ruiz",
+            "Anthony Gordon",
+            "John Stones",
+            "Benjamin Šeško"
+          ],
+          "starting_xi": [
+            "Emiliano Martínez",
+            "Riccardo Calafiori",
+            "Rúben Dias",
+            "Joško Gvardiol",
+            "Jurriën Timber",
+            "Rodri",
+            "Jude Bellingham",
+            "Rayan Cherki",
+            "Ángel Di María",
+            "Khvicha Kvaratskhelia",
+            "Julián Alvarez"
+          ],
+          "full_squad_size": 15,
+          "players": [
+            {
+              "player": "Fabián Ruiz",
+              "fpl_position": "MID",
+              "scores": {
+                "attacking": 0.263,
+                "creative": 0.583,
+                "defensive": 0.28
+              },
+              "traits": {
+                "xg90": 0.151,
+                "npxg90": 0.183,
+                "goals90": 0.133,
+                "shots90": 1.76,
+                "xa90": 0.203,
+                "key_passes90": 1.62,
+                "xg_buildup90": 0.724,
+                "big_chances_created90": 0.33,
+                "tackles90": 1.541,
+                "interceptions90": 0.931,
+                "clearances90": 0.862,
+                "goals_prevented90": 0.0
+              },
+              "outstanding": {
+                "attacking": false,
+                "creative": true,
+                "defensive": true
+              }
+            },
+            {
+              "player": "Anthony Gordon",
+              "fpl_position": "FWD",
+              "scores": {
+                "attacking": 0.459,
+                "creative": 0.398,
+                "defensive": 0.132
+              },
+              "traits": {
+                "xg90": 0.367,
+                "npxg90": 0.294,
+                "goals90": 0.259,
+                "shots90": 2.275,
+                "xa90": 0.178,
+                "key_passes90": 1.601,
+                "xg_buildup90": 0.211,
+                "big_chances_created90": 0.234,
+                "tackles90": 1.06,
+                "interceptions90": 0.203,
+                "clearances90": 0.414,
+                "goals_prevented90": 0.0
+              },
+              "outstanding": {
+                "attacking": true,
+                "creative": false,
+                "defensive": false
+              }
+            },
+            {
+              "player": "John Stones",
+              "fpl_position": "DEF",
+              "scores": {
+                "attacking": 0.224,
+                "creative": 0.235,
+                "defensive": 0.121
+              },
+              "traits": {
+                "xg90": 0.111,
+                "npxg90": 0.056,
+                "goals90": 0.33,
+                "shots90": 0.33,
+                "xa90": 0.013,
+                "key_passes90": 0.268,
+                "xg_buildup90": 0.438,
+                "big_chances_created90": 0.0,
+                "tackles90": 0.493,
+                "interceptions90": 0.657,
+                "clearances90": 0.0,
+                "goals_prevented90": 0.0
+              },
+              "outstanding": {
+                "attacking": false,
+                "creative": false,
+                "defensive": false
+              }
+            },
+            {
+              "player": "Benjamin Šeško",
+              "fpl_position": "FWD",
+              "scores": {
+                "attacking": 0.78,
+                "creative": 0.142,
+                "defensive": 0.077
+              },
+              "traits": {
+                "xg90": 0.438,
+                "npxg90": 0.688,
+                "goals90": 0.546,
+                "shots90": 2.95,
+                "xa90": 0.04,
+                "key_passes90": 0.603,
+                "xg_buildup90": 0.09,
+                "big_chances_created90": 0.093,
+                "tackles90": 0.268,
+                "interceptions90": 0.176,
+                "clearances90": 0.787,
+                "goals_prevented90": 0.0
+              },
+              "outstanding": {
+                "attacking": true,
+                "creative": false,
+                "defensive": false
+              }
+            }
+          ],
+          "boosts": {
+            "attack": 0.0186,
+            "creation": 0.0175,
+            "defence": 0.0084,
+            "total_applied_pct": 0.0445
+          },
+          "contributed": true,
+          "summary": "4 on bench; 3 with standout quality (+4.5% squad depth boost).",
+          "team": "Moga+Sanmitro"
+        },
+        "away": {
+          "bench_count": 4,
+          "bench_players": [
+            "Neymar",
+            "Warren Zaïre-Emery",
+            "Martín Zubimendi",
+            "Piero Hincapié"
+          ],
+          "starting_xi": [
+            "Unai Simón",
+            "Marcos Llorente",
+            "Virgil van Dijk",
+            "Cristian Romero",
+            "Alejandro Grimaldo",
+            "Granit Xhaka",
+            "Dominik Szoboszlai",
+            "Bernardo Silva",
+            "Robert Lewandowski",
+            "Alexander Sørloth",
+            "Lionel Messi"
+          ],
+          "full_squad_size": 15,
+          "players": [
+            {
+              "player": "Neymar",
+              "fpl_position": "FWD",
+              "scores": {
+                "attacking": 0.937,
+                "creative": 0.529,
+                "defensive": 0.0
+              },
+              "traits": {
+                "xg90": 0.769,
+                "npxg90": 0.769,
+                "goals90": 0.77,
+                "shots90": 3.323,
+                "xa90": 0.289,
+                "key_passes90": 1.819,
+                "xg_buildup90": 0.408,
+                "big_chances_created90": 0.0,
+                "tackles90": 0.0,
+                "interceptions90": 0.0,
+                "clearances90": 0.0,
+                "goals_prevented90": 0.0
+              },
+              "outstanding": {
+                "attacking": true,
+                "creative": true,
+                "defensive": false
+              }
+            },
+            {
+              "player": "Warren Zaïre-Emery",
+              "fpl_position": "MID",
+              "scores": {
+                "attacking": 0.12,
+                "creative": 0.464,
+                "defensive": 0.292
+              },
+              "traits": {
+                "xg90": 0.059,
+                "npxg90": 0.085,
+                "goals90": 0.077,
+                "shots90": 0.721,
+                "xa90": 0.096,
+                "key_passes90": 1.165,
+                "xg_buildup90": 0.716,
+                "big_chances_created90": 0.234,
+                "tackles90": 1.999,
+                "interceptions90": 0.725,
+                "clearances90": 0.798,
+                "goals_prevented90": 0.0
+              },
+              "outstanding": {
+                "attacking": false,
+                "creative": true,
+                "defensive": false
+              }
+            },
+            {
+              "player": "Martín Zubimendi",
+              "fpl_position": "MID",
+              "scores": {
+                "attacking": 0.145,
+                "creative": 0.244,
+                "defensive": 0.43
+              },
+              "traits": {
+                "xg90": 0.085,
+                "npxg90": 0.087,
+                "goals90": 0.105,
+                "shots90": 0.769,
+                "xa90": 0.053,
+                "key_passes90": 0.574,
+                "xg_buildup90": 0.331,
+                "big_chances_created90": 0.03,
+                "tackles90": 2.129,
+                "interceptions90": 1.253,
+                "clearances90": 2.339,
+                "goals_prevented90": 0.0
+              },
+              "outstanding": {
+                "attacking": false,
+                "creative": false,
+                "defensive": false
+              }
+            },
+            {
+              "player": "Piero Hincapié",
+              "fpl_position": "DEF",
+              "scores": {
+                "attacking": 0.077,
+                "creative": 0.292,
+                "defensive": 0.484
+              },
+              "traits": {
+                "xg90": 0.059,
+                "npxg90": 0.021,
+                "goals90": 0.059,
+                "shots90": 0.446,
+                "xa90": 0.1,
+                "key_passes90": 0.596,
+                "xg_buildup90": 0.347,
+                "big_chances_created90": 0.118,
+                "tackles90": 2.082,
+                "interceptions90": 1.192,
+                "clearances90": 3.895,
+                "goals_prevented90": 0.0
+              },
+              "outstanding": {
+                "attacking": false,
+                "creative": false,
+                "defensive": true
+              }
+            }
+          ],
+          "boosts": {
+            "attack": 0.02,
+            "creation": 0.0149,
+            "defence": 0.0145,
+            "total_applied_pct": 0.0494
+          },
+          "contributed": true,
+          "summary": "4 on bench; 3 with standout quality (+4.9% squad depth boost).",
+          "team": "Ryan"
+        }
+      }
+    },
+    "bench_impact": {
+      "home": {
+        "bench_count": 4,
+        "bench_players": [
+          "Fabián Ruiz",
+          "Anthony Gordon",
+          "John Stones",
+          "Benjamin Šeško"
+        ],
+        "starting_xi": [
+          "Emiliano Martínez",
+          "Riccardo Calafiori",
+          "Rúben Dias",
+          "Joško Gvardiol",
+          "Jurriën Timber",
+          "Rodri",
+          "Jude Bellingham",
+          "Rayan Cherki",
+          "Ángel Di María",
+          "Khvicha Kvaratskhelia",
+          "Julián Alvarez"
+        ],
+        "full_squad_size": 15,
+        "players": [
+          {
+            "player": "Fabián Ruiz",
+            "fpl_position": "MID",
+            "scores": {
+              "attacking": 0.263,
+              "creative": 0.583,
+              "defensive": 0.28
+            },
+            "traits": {
+              "xg90": 0.151,
+              "npxg90": 0.183,
+              "goals90": 0.133,
+              "shots90": 1.76,
+              "xa90": 0.203,
+              "key_passes90": 1.62,
+              "xg_buildup90": 0.724,
+              "big_chances_created90": 0.33,
+              "tackles90": 1.541,
+              "interceptions90": 0.931,
+              "clearances90": 0.862,
+              "goals_prevented90": 0.0
+            },
+            "outstanding": {
+              "attacking": false,
+              "creative": true,
+              "defensive": true
+            }
+          },
+          {
+            "player": "Anthony Gordon",
+            "fpl_position": "FWD",
+            "scores": {
+              "attacking": 0.459,
+              "creative": 0.398,
+              "defensive": 0.132
+            },
+            "traits": {
+              "xg90": 0.367,
+              "npxg90": 0.294,
+              "goals90": 0.259,
+              "shots90": 2.275,
+              "xa90": 0.178,
+              "key_passes90": 1.601,
+              "xg_buildup90": 0.211,
+              "big_chances_created90": 0.234,
+              "tackles90": 1.06,
+              "interceptions90": 0.203,
+              "clearances90": 0.414,
+              "goals_prevented90": 0.0
+            },
+            "outstanding": {
+              "attacking": true,
+              "creative": false,
+              "defensive": false
+            }
+          },
+          {
+            "player": "John Stones",
+            "fpl_position": "DEF",
+            "scores": {
+              "attacking": 0.224,
+              "creative": 0.235,
+              "defensive": 0.121
+            },
+            "traits": {
+              "xg90": 0.111,
+              "npxg90": 0.056,
+              "goals90": 0.33,
+              "shots90": 0.33,
+              "xa90": 0.013,
+              "key_passes90": 0.268,
+              "xg_buildup90": 0.438,
+              "big_chances_created90": 0.0,
+              "tackles90": 0.493,
+              "interceptions90": 0.657,
+              "clearances90": 0.0,
+              "goals_prevented90": 0.0
+            },
+            "outstanding": {
+              "attacking": false,
+              "creative": false,
+              "defensive": false
+            }
+          },
+          {
+            "player": "Benjamin Šeško",
+            "fpl_position": "FWD",
+            "scores": {
+              "attacking": 0.78,
+              "creative": 0.142,
+              "defensive": 0.077
+            },
+            "traits": {
+              "xg90": 0.438,
+              "npxg90": 0.688,
+              "goals90": 0.546,
+              "shots90": 2.95,
+              "xa90": 0.04,
+              "key_passes90": 0.603,
+              "xg_buildup90": 0.09,
+              "big_chances_created90": 0.093,
+              "tackles90": 0.268,
+              "interceptions90": 0.176,
+              "clearances90": 0.787,
+              "goals_prevented90": 0.0
+            },
+            "outstanding": {
+              "attacking": true,
+              "creative": false,
+              "defensive": false
+            }
+          }
+        ],
+        "boosts": {
+          "attack": 0.0186,
+          "creation": 0.0175,
+          "defence": 0.0084,
+          "total_applied_pct": 0.0445
+        },
+        "contributed": true,
+        "summary": "4 on bench; 3 with standout quality (+4.5% squad depth boost).",
+        "team": "Moga+Sanmitro"
+      },
+      "away": {
+        "bench_count": 4,
+        "bench_players": [
+          "Neymar",
+          "Warren Zaïre-Emery",
+          "Martín Zubimendi",
+          "Piero Hincapié"
+        ],
+        "starting_xi": [
+          "Unai Simón",
+          "Marcos Llorente",
+          "Virgil van Dijk",
+          "Cristian Romero",
+          "Alejandro Grimaldo",
+          "Granit Xhaka",
+          "Dominik Szoboszlai",
+          "Bernardo Silva",
+          "Robert Lewandowski",
+          "Alexander Sørloth",
+          "Lionel Messi"
+        ],
+        "full_squad_size": 15,
+        "players": [
+          {
+            "player": "Neymar",
+            "fpl_position": "FWD",
+            "scores": {
+              "attacking": 0.937,
+              "creative": 0.529,
+              "defensive": 0.0
+            },
+            "traits": {
+              "xg90": 0.769,
+              "npxg90": 0.769,
+              "goals90": 0.77,
+              "shots90": 3.323,
+              "xa90": 0.289,
+              "key_passes90": 1.819,
+              "xg_buildup90": 0.408,
+              "big_chances_created90": 0.0,
+              "tackles90": 0.0,
+              "interceptions90": 0.0,
+              "clearances90": 0.0,
+              "goals_prevented90": 0.0
+            },
+            "outstanding": {
+              "attacking": true,
+              "creative": true,
+              "defensive": false
+            }
+          },
+          {
+            "player": "Warren Zaïre-Emery",
+            "fpl_position": "MID",
+            "scores": {
+              "attacking": 0.12,
+              "creative": 0.464,
+              "defensive": 0.292
+            },
+            "traits": {
+              "xg90": 0.059,
+              "npxg90": 0.085,
+              "goals90": 0.077,
+              "shots90": 0.721,
+              "xa90": 0.096,
+              "key_passes90": 1.165,
+              "xg_buildup90": 0.716,
+              "big_chances_created90": 0.234,
+              "tackles90": 1.999,
+              "interceptions90": 0.725,
+              "clearances90": 0.798,
+              "goals_prevented90": 0.0
+            },
+            "outstanding": {
+              "attacking": false,
+              "creative": true,
+              "defensive": false
+            }
+          },
+          {
+            "player": "Martín Zubimendi",
+            "fpl_position": "MID",
+            "scores": {
+              "attacking": 0.145,
+              "creative": 0.244,
+              "defensive": 0.43
+            },
+            "traits": {
+              "xg90": 0.085,
+              "npxg90": 0.087,
+              "goals90": 0.105,
+              "shots90": 0.769,
+              "xa90": 0.053,
+              "key_passes90": 0.574,
+              "xg_buildup90": 0.331,
+              "big_chances_created90": 0.03,
+              "tackles90": 2.129,
+              "interceptions90": 1.253,
+              "clearances90": 2.339,
+              "goals_prevented90": 0.0
+            },
+            "outstanding": {
+              "attacking": false,
+              "creative": false,
+              "defensive": false
+            }
+          },
+          {
+            "player": "Piero Hincapié",
+            "fpl_position": "DEF",
+            "scores": {
+              "attacking": 0.077,
+              "creative": 0.292,
+              "defensive": 0.484
+            },
+            "traits": {
+              "xg90": 0.059,
+              "npxg90": 0.021,
+              "goals90": 0.059,
+              "shots90": 0.446,
+              "xa90": 0.1,
+              "key_passes90": 0.596,
+              "xg_buildup90": 0.347,
+              "big_chances_created90": 0.118,
+              "tackles90": 2.082,
+              "interceptions90": 1.192,
+              "clearances90": 3.895,
+              "goals_prevented90": 0.0
+            },
+            "outstanding": {
+              "attacking": false,
+              "creative": false,
+              "defensive": true
+            }
+          }
+        ],
+        "boosts": {
+          "attack": 0.02,
+          "creation": 0.0149,
+          "defence": 0.0145,
+          "total_applied_pct": 0.0494
+        },
+        "contributed": true,
+        "summary": "4 on bench; 3 with standout quality (+4.9% squad depth boost).",
+        "team": "Ryan"
+      }
+    },
+    "sample_match": {
+      "scoreline": "1-1",
+      "home": {
+        "team": "Moga+Sanmitro",
+        "goals": 1,
+        "xg": 2.24,
+        "scorers": [
+          {
+            "minute": 44,
+            "scorer": "Julián Alvarez",
+            "assister": "Khvicha Kvaratskhelia"
+          }
+        ]
+      },
+      "away": {
+        "team": "Ryan",
+        "goals": 1,
+        "xg": 2.13,
+        "scorers": [
+          {
+            "minute": 48,
+            "scorer": "Alexander Sørloth",
+            "assister": "Alejandro Grimaldo"
+          }
+        ]
+      },
+      "winner": null
+    },
+    "season_overrides": {
+      "team_a": {
+        "peak_season": {
+          "type": "peak_season",
+          "requested": "Angel Di Maria",
+          "season_input": "13/14",
+          "resolved_name": "Ángel Di María",
+          "season": "2013-2014",
+          "source": "manual_profiles",
+          "profile_type": "season_pick"
+        }
+      },
+      "team_b": {
+        "peak_season": {
+          "type": "peak_season",
+          "requested": "Neymar",
+          "season_input": "14/15",
+          "resolved_name": "Neymar",
+          "season": "2014-2015",
+          "source": "manual_profiles",
+          "profile_type": "season_pick"
+        }
+      }
+    },
+    "analysis": {
+      "favorite": "Moga+Sanmitro",
+      "favorite_side": "home",
+      "margin": "slight",
+      "summary": "Moga+Sanmitro is favoured (42.6% win vs 37.3% for Ryan, 20.2% draw). Expected goals: Moga+Sanmitro 2.24 – 2.13 Ryan.",
+      "expected_xg": {
+        "home": 2.24,
+        "away": 2.13,
+        "edge_side": "home",
+        "delta": 0.11
+      },
+      "outcomes": {
+        "home_win_pct": 42.6,
+        "draw_pct": 20.2,
+        "away_win_pct": 37.3
+      },
+      "key_factors": [
+        {
+          "factor": "Transition risk",
+          "edge": "home",
+          "home": 0.142,
+          "away": 0.46,
+          "delta": 0.318,
+          "impact": 0.34980000000000006,
+          "explanation": "Moga+Sanmitro is more exposed on the counter (transition risk 0.14 vs 0.46 — lower is safer)."
+        },
+        {
+          "factor": "Chance creation",
+          "edge": "home",
+          "home": 0.627,
+          "away": 0.488,
+          "delta": -0.139,
+          "impact": 0.18070000000000003,
+          "explanation": "Moga+Sanmitro builds more volume (creation 0.63 vs 0.49)."
+        },
+        {
+          "factor": "Goalkeeper",
+          "edge": "home",
+          "home": 0.448,
+          "away": 0.333,
+          "delta": -0.115,
+          "impact": 0.115,
+          "explanation": "Moga+Sanmitro has the stronger keeper (0.45 vs 0.33), shifting expected goals against."
+        },
+        {
+          "factor": "Press vs build-up",
+          "edge": "home",
+          "home": 0.452,
+          "away": 0.09,
+          "delta": -0.101,
+          "impact": 0.08585000000000001,
+          "explanation": "Moga+Sanmitro can disrupt the other's build-up (press intensity vs press-resistance edge -0.10)."
+        },
+        {
+          "factor": "Back-line defence",
+          "edge": "away",
+          "home": 0.473,
+          "away": 0.528,
+          "delta": 0.055,
+          "impact": 0.055,
+          "explanation": "Ryan defends better in the back line (0.47 vs 0.53)."
+        },
+        {
+          "factor": "Midfield shield",
+          "edge": "home",
+          "home": 0.334,
+          "away": 0.277,
+          "delta": -0.057,
+          "impact": 0.051300000000000005,
+          "explanation": "Moga+Sanmitro shields the defence better (mid-def 0.33 vs 0.28)."
+        }
+      ],
+      "head_to_head": {
+        "finishing": {
+          "home": 0.989,
+          "away": 1.0,
+          "edge": null
+        },
+        "chance_creation": {
+          "home": 0.627,
+          "away": 0.488,
+          "edge": "home"
+        },
+        "goalkeeper": {
+          "home": 0.448,
+          "away": 0.333,
+          "edge": "home"
+        },
+        "defence": {
+          "home": 0.473,
+          "away": 0.528,
+          "edge": "away"
+        },
+        "midfield_defence": {
+          "home": 0.334,
+          "away": 0.277,
+          "edge": "home"
+        },
+        "transition_risk": {
+          "home": 0.142,
+          "away": 0.46,
+          "edge": "home"
+        },
+        "possession": {
+          "home": 0.452,
+          "away": 0.09,
+          "edge": "home"
+        },
+        "formation_fit": {
+          "home": 0.699,
+          "away": 0.677,
+          "edge": null
+        }
+      },
+      "mechanics_summary": {
+        "home_attacks_vs_away_defence": 0.843,
+        "away_attacks_vs_home_defence": 0.819,
+        "midfield_battle": {
+          "home_multiplier": 1.004,
+          "away_multiplier": 0.996
+        },
+        "press_matchup": {
+          "home": {
+            "multiplier": 0.9051,
+            "suppression": 0.0949,
+            "press_edge": 0.362,
+            "pressing_intensity": 0.452,
+            "press_resistance": 0.09,
+            "active": true
+          },
+          "away": {
+            "multiplier": 0.9179,
+            "suppression": 0.0821,
+            "press_edge": 0.261,
+            "pressing_intensity": 0.439,
+            "press_resistance": 0.178,
+            "active": true
+          }
+        }
+      },
+      "sections": [
+        {
+          "title": "Verdict",
+          "paragraphs": [
+            "Moga+Sanmitro is favoured (42.6% win vs 37.3% for Ryan, 20.2% draw). Expected goals: Moga+Sanmitro 2.24 – 2.13 Ryan."
+          ],
+          "bullets": [
+            "Moga+Sanmitro is more exposed on the counter (transition risk 0.14 vs 0.46 — lower is safer).",
+            "Moga+Sanmitro builds more volume (creation 0.63 vs 0.49).",
+            "Moga+Sanmitro has the stronger keeper (0.45 vs 0.33), shifting expected goals against."
+          ]
+        },
+        {
+          "title": "Season profiles (prime / pick-season)",
+          "paragraphs": [
+            "Moga+Sanmitro pick-season: Ángel Di María uses 2013-2014 only (stats fully replaced).",
+            "Ryan pick-season: Neymar uses 2014-2015 only (stats fully replaced)."
+          ],
+          "bullets": [
+            "Prime player: entire stat line replaced by their best top-league season (2014-15+).",
+            "Pick-season player: stats replaced by the chosen season only (not blended with current form)."
+          ]
+        },
+        {
+          "title": "Squad depth (bench impact)",
+          "paragraphs": [
+            "Non-starters with elite per-90 traits add a small squad-depth multiplier to unit ratings (capped at ~5% total; bench cannot dominate outcomes).",
+            "Moga+Sanmitro: 4 on bench; 3 with standout quality (+4.5% squad depth boost). Standouts: Fabián Ruiz, Anthony Gordon, Benjamin Šeško. Boosts — attack +1.9%, creation +1.8%, defence +0.8%.",
+            "Ryan: 4 on bench; 3 with standout quality (+4.9% squad depth boost). Standouts: Neymar, Warren Zaïre-Emery, Piero Hincapié. Boosts — attack +2.0%, creation +1.5%, defence +1.5%."
+          ],
+          "bullets": []
+        },
+        {
+          "title": "Expected goals pipeline",
+          "paragraphs": [
+            "The engine splits attack into finishing and chance-creation channels (xA / xG-buildup / xG-chain credit all outfield positions), then applies opponent suppression (back line 54%, mid shield 32%, GK 14%) and midfield battle modifiers.",
+            "Moga+Sanmitro raw attack xG: 2.65 finishing + 0.23 creation = 2.88 before suppression. When Ryan defends, suppression factor is 0.819 (DEF 0.53, mid-def 0.28, GK 0.33, transition risk 0.46).",
+            "Ryan raw attack xG: 2.67 + 0.18 = 2.85. Moga+Sanmitro suppression when defending: 0.843 (transition risk 0.14).",
+            "Midfield battle multipliers: Moga+Sanmitro ×1.004, Ryan ×0.996. Net xG edge: Moga+Sanmitro by 0.11."
+          ],
+          "bullets": []
+        },
+        {
+          "title": "Defensive structure & transitions",
+          "paragraphs": [
+            "Moga+Sanmitro xGA suppression: 0.723 (base without transition penalty: 0.813). Ryan: 0.744 (base 0.821).",
+            "Moga+Sanmitro fullbacks: Riccardo Calafiori (RB, exposure 0.16), Jurriën Timber (LB, exposure 0.19). Team transition risk 0.142 — high attacking fullbacks increase counter vulnerability when midfield cover is thin.",
+            "Ryan fullbacks: Marcos Llorente (RB, exposure 0.27), Alejandro Grimaldo (LB, exposure 0.52). Team transition risk 0.460 — high attacking fullbacks increase counter vulnerability when midfield cover is thin.",
+            "Opposition wing threat vs leaky fullbacks: Moga+Sanmitro's wide attack gets a +2.4% xG edge (winger threat 0.60, Ryan transition risk 0.46).",
+            "Press vs build-up: Moga+Sanmitro's press trims Ryan's chance creation by ~9.5% (press 0.45 vs resistance 0.09). Press vs build-up: Ryan's press trims Moga+Sanmitro's chance creation by ~8.2% (press 0.44 vs resistance 0.18)."
+          ],
+          "bullets": []
+        },
+        {
+          "title": "Formation & squad fit",
+          "paragraphs": [
+            "Moga+Sanmitro (4-3-3 flat): average formation fit 0.81. Chance creation index 0.58, possession 0.70.",
+            "Ryan (4-3-3 flat): average formation fit 0.82. Chance creation index 0.49, possession 0.68."
+          ],
+          "bullets": []
+        },
+        {
+          "title": "Monte Carlo interpretation",
+          "paragraphs": [
+            "Across 10,000 neutral-venue runs, average scoreline tendency is 2.25–2.12. Both teams score 79.1% of the time; over 2.5 goals 81.0%.",
+            "Most common scoreline: 2-2 (7.0%)."
+          ],
+          "bullets": [
+            "Trophy boost: Moga+Sanmitro ×1.022, Ryan ×1.016 (applied in simulation units)."
+          ]
+        }
+      ]
+    },
+    "squad_analysis": {
+      "home": {
+        "name": "Moga+Sanmitro",
+        "formation": "4-3-3 flat",
+        "summary": "Moga+Sanmitro: Elite defence (0.47).; Team press resistance is a concern (0.18).",
+        "strengths": [
+          "Elite defence (0.47).",
+          "Elite finishing (0.99).",
+          "Elite fit at CB1: Rúben Dias (fit 0.81).",
+          "Elite fit at CB2: Joško Gvardiol (fit 0.84).",
+          "Elite fit at CM1: Jude Bellingham (fit 0.86)."
+        ],
+        "weaknesses": [
+          "Team press resistance is a concern (0.18)."
+        ],
+        "tier_labels": {
+          "strength": [
+            "Elite defence (0.47).",
+            "Elite finishing (0.99).",
+            "Elite fit at CB1: Rúben Dias (fit 0.81).",
+            "Elite fit at CB2: Joško Gvardiol (fit 0.84).",
+            "Elite fit at CM1: Jude Bellingham (fit 0.86)."
+          ],
+          "moderate_strength": [],
+          "balanced": [],
+          "moderate_weakness": [],
+          "weakness": [
+            "Team press resistance is a concern (0.18)."
+          ]
+        },
+        "sections": [
+          {
+            "title": "Attack",
+            "bullets": [
+              "Attacking effectiveness 0.56 (whole XI).",
+              "Unit attack 0.59; finishing 0.99; creation 0.63.",
+              "Raw xG split: finishing 2.65 + creation 0.23."
+            ]
+          },
+          {
+            "title": "Midfield",
+            "bullets": [
+              "Midfield unit (DM/CM/AM slots) 0.69; team midfield control 0.63.",
+              "Possession control 0.70; pass completion avg 78.3%.",
+              "Pressing intensity 0.45; press resistance 0.18."
+            ]
+          },
+          {
+            "title": "Defence",
+            "bullets": [
+              "Back-line unit 0.47; midfield shield 0.33.",
+              "Team defensive solidity 0.56; aerial defence 0.43; xGA suppression 0.723.",
+              "Transition risk 0.14 (lower is safer).",
+              "Wide defenders: Riccardo Calafiori (RB), Jurriën Timber (LB)."
+            ]
+          },
+          {
+            "title": "Formation fit",
+            "bullets": [
+              "Average formation fit 0.81 in 4-3-3 flat.",
+              "No major formation-fit concerns in the starting XI."
+            ]
+          },
+          {
+            "title": "Squad depth",
+            "bullets": [
+              "4 on bench; 3 with standout quality (+4.5% squad depth boost).",
+              "Depth boosts: attack +1.9%, creation +1.8%, defence +0.8%.",
+              "Standout bench options: Fabián Ruiz, Anthony Gordon, Benjamin Šeško."
+            ]
+          },
+          {
+            "title": "Team profile",
+            "bullets": [
+              "Creativity 0.58 · Midfield control 0.63 · Possession 0.70.",
+              "Finishing threat 0.66 · Defensive solidity 0.56.",
+              "Pressing 0.45 · Press resistance 0.18 · Team profile overall 0.64."
+            ]
+          }
+        ],
+        "units": {
+          "attack": 0.593,
+          "finishing": 0.989,
+          "chance_creation": 0.627,
+          "midfield": 0.689,
+          "defence": 0.473,
+          "midfield_defence": 0.334,
+          "transition_risk": 0.142,
+          "goalkeeper": 0.448,
+          "overall": 0.567,
+          "gk_confidence": 0.95,
+          "gk_is_backup": 0.0
+        },
+        "team_composites": {
+          "creativity": 0.585,
+          "midfield_control": 0.627,
+          "possession_control": 0.699,
+          "finishing_threat": 0.66,
+          "defensive_solidity": 0.555,
+          "attacking_effectiveness": 0.561,
+          "pressing_intensity": 0.452,
+          "press_resistance": 0.178,
+          "transition_threat": 0.622,
+          "aerial_defence": 0.435,
+          "overall": 0.64
+        }
+      },
+      "away": {
+        "name": "Ryan",
+        "formation": "4-3-3 flat",
+        "summary": "Ryan: Elite defence (0.53).; High transition risk (0.46) — vulnerable on the counter — elite opposition wingers can exploit wide overloads.",
+        "strengths": [
+          "Elite defence (0.53).",
+          "Elite finishing (1.00).",
+          "Elite fit at CB1: Virgil van Dijk (fit 0.86).",
+          "Elite fit at CB2: Cristian Romero (fit 0.88).",
+          "Elite fit at CM1: Dominik Szoboszlai (fit 0.84)."
+        ],
+        "weaknesses": [
+          "High transition risk (0.46) — vulnerable on the counter — elite opposition wingers can exploit wide overloads.",
+          "Team press resistance is a concern (0.09).",
+          "Thin goalkeeper (0.33)."
+        ],
+        "tier_labels": {
+          "strength": [
+            "Elite defence (0.53).",
+            "Elite finishing (1.00).",
+            "Elite fit at CB1: Virgil van Dijk (fit 0.86).",
+            "Elite fit at CB2: Cristian Romero (fit 0.88).",
+            "Elite fit at CM1: Dominik Szoboszlai (fit 0.84)."
+          ],
+          "moderate_strength": [],
+          "balanced": [],
+          "moderate_weakness": [],
+          "weakness": [
+            "High transition risk (0.46) — vulnerable on the counter — elite opposition wingers can exploit wide overloads.",
+            "Team press resistance is a concern (0.09).",
+            "Thin goalkeeper (0.33)."
+          ]
+        },
+        "sections": [
+          {
+            "title": "Attack",
+            "bullets": [
+              "Attacking effectiveness 0.77 (whole XI).",
+              "Unit attack 0.57; finishing 1.00; creation 0.49.",
+              "Raw xG split: finishing 2.67 + creation 0.18."
+            ]
+          },
+          {
+            "title": "Midfield",
+            "bullets": [
+              "Midfield unit (DM/CM/AM slots) 0.56; team midfield control 0.55.",
+              "Possession control 0.68; pass completion avg 82.6%.",
+              "Pressing intensity 0.44; press resistance 0.09."
+            ]
+          },
+          {
+            "title": "Defence",
+            "bullets": [
+              "Back-line unit 0.53; midfield shield 0.28.",
+              "Team defensive solidity 0.61; aerial defence 0.53; xGA suppression 0.744.",
+              "Transition risk 0.46 (lower is safer).",
+              "Wide defenders: Marcos Llorente (RB), Alejandro Grimaldo (LB)."
+            ]
+          },
+          {
+            "title": "Formation fit",
+            "bullets": [
+              "Average formation fit 0.82 in 4-3-3 flat.",
+              "No major formation-fit concerns in the starting XI."
+            ]
+          },
+          {
+            "title": "Squad depth",
+            "bullets": [
+              "4 on bench; 3 with standout quality (+4.9% squad depth boost).",
+              "Depth boosts: attack +2.0%, creation +1.5%, defence +1.5%.",
+              "Standout bench options: Neymar, Warren Zaïre-Emery, Piero Hincapié."
+            ]
+          },
+          {
+            "title": "Team profile",
+            "bullets": [
+              "Creativity 0.49 · Midfield control 0.55 · Possession 0.68.",
+              "Finishing threat 0.87 · Defensive solidity 0.61.",
+              "Pressing 0.44 · Press resistance 0.09 · Team profile overall 0.64."
+            ]
+          }
+        ],
+        "units": {
+          "attack": 0.566,
+          "finishing": 1.0,
+          "chance_creation": 0.488,
+          "midfield": 0.56,
+          "defence": 0.528,
+          "midfield_defence": 0.277,
+          "transition_risk": 0.46,
+          "goalkeeper": 0.333,
+          "overall": 0.508,
+          "gk_confidence": 0.838,
+          "gk_is_backup": 0.0
+        },
+        "team_composites": {
+          "creativity": 0.491,
+          "midfield_control": 0.546,
+          "possession_control": 0.677,
+          "finishing_threat": 0.874,
+          "defensive_solidity": 0.612,
+          "attacking_effectiveness": 0.765,
+          "pressing_intensity": 0.439,
+          "press_resistance": 0.09,
+          "transition_threat": 0.342,
+          "aerial_defence": 0.53,
+          "overall": 0.642
+        }
+      }
+    }
+  },
+  "tournament_id": "8411a9f6bdae",
+  "tournament_name": "Season Tournament",
+  "match_id": "gA-2",
+  "stage": "group_A"
+}
