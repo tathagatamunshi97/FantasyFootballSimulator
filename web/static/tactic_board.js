@@ -16,6 +16,8 @@
  *     Shallow attack-sequence look-ahead (pass + next 1–2) beats isolated lane-maxing.
  *     Justified switches only; triangles / third-man combos / through balls create chances.
  *     Team matchups (attack–defend, press–resist, flank, aerial) reshape urgency, patterns & marking.
+ *     Possession→chance/xG: lower ball-control soft-starves shot volume; maestros (elite xG/xA/KP/dribbles)
+ *     partially offset; high-poss sides muted vs much stronger opp creation + defence/mid-def shield.
  *
  *   Possession states (depth + box occupation, not timers alone):
  *     BUILD_UP → PROGRESSING → FINAL_THIRD → BOX_OCCUPATION → CHANCE_CREATION → FINISH
@@ -624,6 +626,33 @@
       0.52
     );
 
+    const unitPossHome = softRating(
+      unit01(unitHome.possession_control, teamPossessionQuality(homePins))
+    );
+    const unitPossAway = softRating(
+      unit01(unitAway.possession_control, teamPossessionQuality(awayPins))
+    );
+    const midDefHome = softRating(
+      unit01(
+        unitHome.midfield_defence ??
+          (unitHome.units && unitHome.units.midfield_defence) ??
+          unitHome.midfield,
+        0.45
+      ),
+      0.5,
+      0.4
+    );
+    const midDefAway = softRating(
+      unit01(
+        unitAway.midfield_defence ??
+          (unitAway.units && unitAway.units.midfield_defence) ??
+          unitAway.midfield,
+        0.45
+      ),
+      0.5,
+      0.4
+    );
+
     // Softer blends — player + unit, compressed so favorites win more often but don't steamroll
     const attackHome = clamp(teamAttackPower(homePins) * 0.55 + unitAtkHome * 0.45, 0.25, 0.82);
     const attackAway = clamp(teamAttackPower(awayPins) * 0.55 + unitAtkAway * 0.45, 0.25, 0.82);
@@ -632,8 +661,17 @@
     // Create floor: weak sides still manufacture chances vs strong defences
     const createHome = clamp(teamCreationPower(homePins) * 0.55 + unitCreateHome * 0.45, 0.42, 0.9);
     const createAway = clamp(teamCreationPower(awayPins) * 0.55 + unitCreateAway * 0.45, 0.42, 0.9);
-    const possHome = clamp(teamPossessionQuality(homePins) * 0.6 + resistHome * 0.4, 0.25, 0.85);
-    const possAway = clamp(teamPossessionQuality(awayPins) * 0.6 + resistAway * 0.4, 0.25, 0.85);
+    // Possession control: pin pass quality + press resist + team possession_control composite
+    const possHome = clamp(
+      teamPossessionQuality(homePins) * 0.4 + resistHome * 0.25 + unitPossHome * 0.35,
+      0.25,
+      0.85
+    );
+    const possAway = clamp(
+      teamPossessionQuality(awayPins) * 0.4 + resistAway * 0.25 + unitPossAway * 0.35,
+      0.25,
+      0.85
+    );
     const aerialHome = softRating(unit01(unitHome.aerial_defence, 0.45), 0.45, 0.5);
     const aerialAway = softRating(unit01(unitAway.aerial_defence, 0.45), 0.45, 0.5);
     // Raw finishing unit (0–1); drives day-form mixture, not soft-compressed attack
@@ -657,6 +695,9 @@
     }
     function sidePoss(side) {
       return side === "home" ? possHome : possAway;
+    }
+    function sideMidDef(side) {
+      return side === "home" ? midDefHome : midDefAway;
     }
     function sideAerial(side) {
       return side === "home" ? aerialHome : aerialAway;
@@ -1091,7 +1132,14 @@
       let xg = clamp(Math.max(floor, base + depthBoost + (rng() - 0.5) * 0.02), floor, ceil);
       if (xg > 0.2 && !ready) xg = Math.min(xg, 0.15);
       if (!boxed) xg = Math.min(xg, 0.14);
-      return xg;
+      // Soft possession→xG: low-control sides get slightly worse looks; sterile high-poss muted
+      const volMul = possChanceVolumeMul(carrier.side);
+      const suppMul = possessionSuppressionMul(carrier.side);
+      xg *= lerp(1, volMul, 0.32) * suppMul;
+      if (isMaestroPin(carrier) && volMul < 0.98) {
+        xg *= clamp(1.06 + (1 - volMul) * 0.14, 1, 1.2);
+      }
+      return clamp(xg, Math.min(floor, 0.02), ceil);
     }
 
     function getMatchLogPayload() {
@@ -1547,6 +1595,87 @@
       return role === "ST" || role === "W";
     }
 
+    /**
+     * Elite attacker / creator score (Messi–Neymar calibre).
+     * Uses board player signals: xG, xA, key passes, dribbles, shots.
+     */
+    function maestroScore(pin) {
+      if (!pin || !pin.stats) return 0;
+      const st = pin.stats;
+      return (
+        st.xg90 * 1.15 +
+        st.xa90 * 1.4 +
+        st.key_passes90 * 0.24 +
+        st.dribbles90 * 0.2 +
+        st.shots90 * 0.05
+      );
+    }
+
+    /** True game-changer threshold — partial chance-volume exception on low-poss sides. */
+    function isMaestroPin(pin) {
+      if (!pin) return false;
+      if (!(isFwdRole(pin.role) || pin.role === "AM" || pin.role === "CM")) return false;
+      const st = pin.stats;
+      const score = maestroScore(pin);
+      return (
+        score >= 1.05 ||
+        st.xg90 >= 0.52 ||
+        st.xa90 >= 0.38 ||
+        (st.xg90 >= 0.38 && st.xa90 >= 0.22) ||
+        (st.key_passes90 >= 2.4 && st.xa90 >= 0.28) ||
+        (st.dribbles90 >= 3.2 && (st.xg90 >= 0.28 || st.xa90 >= 0.22))
+      );
+    }
+
+    /** Top 1–2 maestros on a side; returns 0–0.28 partial offset (not full cancel). */
+    function sideMaestroBoost(side) {
+      const pool = pinsOf(side).filter(
+        (p) => isFwdRole(p.role) || p.role === "AM" || p.role === "CM"
+      );
+      const maestros = pool
+        .filter(isMaestroPin)
+        .sort((a, b) => maestroScore(b) - maestroScore(a))
+        .slice(0, 2);
+      if (!maestros.length) return 0;
+      let boost = 0;
+      for (const p of maestros) {
+        boost += clamp(0.1 + (maestroScore(p) - 1.0) * 0.12, 0.08, 0.18);
+      }
+      return clamp(boost, 0, 0.28);
+    }
+
+    /**
+     * Norm: lower possession-control → fewer chance/shot attempts (soft, not absolute).
+     * Exception: 1–2 maestros partially offset the volume penalty.
+     */
+    function possChanceVolumeMul(side) {
+      const delta = sidePoss(side) - sidePoss(oppOf(side));
+      let mul = clamp(1 + delta * 0.55, 0.68, 1.16);
+      if (delta < -0.04) {
+        mul = clamp(mul + sideMaestroBoost(side) * 0.85, 0.68, 1.16);
+      }
+      return mul;
+    }
+
+    /**
+     * High possession ≠ always more xG: mute box conversion when opponent has
+     * much stronger chance creation AND a strong defence / midfield shield.
+     */
+    function possessionSuppressionMul(side) {
+      const possEdge = sidePoss(side) - sidePoss(oppOf(side));
+      const createGap = sideCreate(oppOf(side)) - sideCreate(side);
+      const oppShield = sideDefend(oppOf(side)) * 0.55 + sideMidDef(oppOf(side)) * 0.45;
+      if (possEdge > 0.06 && createGap > 0.08 && oppShield > 0.52) {
+        const strength = clamp(
+          (possEdge - 0.06) * 1.15 + (createGap - 0.08) * 1.75 + (oppShield - 0.52) * 1.35,
+          0,
+          1
+        );
+        return clamp(1 - strength * 0.34, 0.66, 1);
+      }
+      return 1;
+    }
+
     /** ST/W in the final third should progress, dribble, or shoot — not recycle back. */
     function forwardInFinalThird(carrier) {
       return Boolean(carrier && isFwdRole(carrier.role) && possessionDepth(carrier) >= 0.66);
@@ -1554,11 +1683,16 @@
 
     function forwardFinalThirdAction(carrier) {
       if (!carrier) return false;
-      if (inPenaltyBox(carrier) || (nearPenaltyBox(carrier) && (carrier.stats.xg90 > 0.18 || rng() < 0.45))) {
+      const maestro = isMaestroPin(carrier);
+      const shotFloor = maestro ? 0.12 : 0.18;
+      if (
+        inPenaltyBox(carrier) ||
+        (nearPenaltyBox(carrier) && (carrier.stats.xg90 > shotFloor || rng() < (maestro ? 0.62 : 0.45)))
+      ) {
         doShot(carrier, false);
         return true;
       }
-      if (rng() < 0.42 + carrier.stats.dribbles90 * 0.1) {
+      if (rng() < 0.42 + carrier.stats.dribbles90 * 0.1 + (maestro ? 0.12 : 0)) {
         doDribble(carrier);
         return true;
       }
@@ -1929,6 +2063,9 @@
       if (pressD > 0.08) effective += pressD * 3.1;
       // Possession side vs low press → hold patience longer
       if (hold > 0.1 && pressD < 0.06) effective -= Math.min(2.4, hold * 2.6);
+      // Sterile high-poss vs elite create+shield → less forced progression into the box
+      const supp = possessionSuppressionMul(side);
+      if (supp < 0.95) effective -= (1 - supp) * 1.8;
       effective = Math.max(0, effective);
       if (effective <= 3) return 0.1 + effective * 0.06;
       if (effective <= 6) return 0.42 + (effective - 3) * 0.14;
@@ -2843,6 +2980,32 @@
       wRecycle *= clamp(1.15 - urg * 0.55 - Math.max(0, ad) * 0.35 + Math.max(0, -pressD) * 0.1, 0.2, 1.15);
       if (hold > 0.12 && urg < 0.55) wRecycle *= 1.15;
       if (isFwdRole(carrier.role) && depth >= 0.66) wRecycle = 0;
+
+      // Possession-control delta: low-poss sides recycle more / progress less unless a maestro has the ball
+      const possDelta = sidePoss(carrier.side) - sidePoss(oppOf(carrier.side));
+      const maestroOnBall = isMaestroPin(carrier);
+      if (possDelta < -0.05) {
+        if (maestroOnBall) {
+          wCut += 0.38;
+          wCentral += 0.22;
+          wWing += 0.12;
+          wRecycle *= 0.62;
+        } else {
+          const starve = Math.min(0.48, -possDelta * 1.25);
+          wRecycle += starve;
+          wCentral *= 0.9;
+          wCut *= 0.88;
+          wWing *= 0.92;
+        }
+      }
+      // Compact elite defending suppresses progressive entries for sterile high-poss sides
+      const supp = possessionSuppressionMul(carrier.side);
+      if (supp < 0.96) {
+        wCut *= supp;
+        wWing *= lerp(1, supp, 0.55);
+        wCentral *= lerp(1, supp, 0.4);
+        wRecycle += (1 - supp) * 0.6;
+      }
 
       const entries = [
         { id: "central", w: wCentral },
@@ -4522,8 +4685,15 @@
       const create = sideCreate(side);
       const atk = sideAttack(side);
       const def = sideDefend(oppOf(side));
-      // High floor: underdogs still fire often; creatives / attackers pull ahead without zeroing the weak side
-      return clamp(0.58 + create * 0.32 + atk * 0.1 - def * 0.02 + (rng() - 0.5) * 0.05, 0.58, 0.92);
+      const vol = possChanceVolumeMul(side);
+      const supp = possessionSuppressionMul(side);
+      // High floor: underdogs still fire often; possession control soft-scales volume;
+      // sterile high-poss vs elite create+shield is muted via suppression.
+      return clamp(
+        (0.58 + create * 0.32 + atk * 0.1 - def * 0.02 + (rng() - 0.5) * 0.05) * vol * lerp(1, supp, 0.55),
+        0.48,
+        0.92
+      );
     }
 
     function beginSpell(side, reason) {
@@ -4595,7 +4765,14 @@
       } else if (spell.awaitingShot || spell.awaitingBoxShot) {
         next = "CHANCE_CREATION";
       } else if (boxed >= 2 || (boxed >= 1 && arriving >= 1)) {
-        next = spell.willAttemptChance || depth >= 0.75 ? "CHANCE_CREATION" : "BOX_OCCUPATION";
+        const vol = possChanceVolumeMul(spell.side);
+        const supp = possessionSuppressionMul(spell.side);
+        // Low-poss / suppressed sides need more commitment before CHANCE_CREATION
+        const chanceReady =
+          spell.willAttemptChance ||
+          (depth >= 0.75 && vol * supp > 0.78) ||
+          (depth >= 0.82 && isMaestroPin(carrier));
+        next = chanceReady ? "CHANCE_CREATION" : "BOX_OCCUPATION";
       } else if (boxed >= 1 || depth >= 0.72) {
         next = "BOX_OCCUPATION";
       } else if (depth >= 0.58 || frac > 0.5) {
@@ -4685,12 +4862,16 @@
       const pattern = refreshSpellPattern(carrier) || spell.pattern;
       const create = sideCreate(carrier.side);
       const ready = boxOccupationReady(carrier.side);
+      const maestro = isMaestroPin(carrier);
+      const lowPoss = sidePoss(carrier.side) < sidePoss(oppOf(carrier.side)) - 0.04;
+      // Maestro on low-poss side: still force dangerous actions out of nothing
+      const maestroShine = maestro && lowPoss;
 
       // Without box occupation, refuse high-xG path — recycle instead
       if (!ready && !inPenaltyBox(carrier)) {
         if (
-          (carrier.role === "ST" || carrier.role === "AM") &&
-          rng() < 0.55 + carrier.stats.xg90 * 0.2
+          (carrier.role === "ST" || carrier.role === "AM" || maestroShine) &&
+          rng() < 0.55 + carrier.stats.xg90 * 0.2 + (maestroShine ? 0.22 : 0)
         ) {
           spell.awaitingBoxShot = true;
           if (driveIntoBox(carrier)) return;
@@ -4700,8 +4881,8 @@
           return;
         }
         // Probe toward box / recycle
-        if (rng() < 0.45 || forwardInFinalThird(carrier)) {
-          if (forwardInFinalThird(carrier)) {
+        if (rng() < 0.45 + (maestroShine ? 0.2 : 0) || forwardInFinalThird(carrier) || maestroShine) {
+          if (forwardInFinalThird(carrier) || maestroShine) {
             forwardFinalThirdAction(carrier);
             return;
           }
@@ -4715,7 +4896,9 @@
 
       if (
         spell.awaitingBoxShot ||
-        ((carrier.role === "ST" || carrier.role === "AM") && !inPenaltyBox(carrier) && rng() < 0.72 + carrier.stats.xg90 * 0.25)
+        ((carrier.role === "ST" || carrier.role === "AM" || maestroShine) &&
+          !inPenaltyBox(carrier) &&
+          rng() < 0.72 + carrier.stats.xg90 * 0.25 + (maestroShine ? 0.12 : 0))
       ) {
         spell.awaitingBoxShot = true;
         if (driveIntoBox(carrier)) return;
@@ -5531,14 +5714,20 @@
         const create = sideCreate(carrier.side);
         const urg = progressionUrgency(spell);
         const ad = attackDefendDelta(carrier.side);
+        const vol = possChanceVolumeMul(carrier.side);
+        const supp = possessionSuppressionMul(carrier.side);
+        const maestroBoost = isMaestroPin(carrier) ? 0.05 : 0;
         const probeP =
-          (stage === "BOX_OCCUPATION" ? 0.09 : stage === "FINAL_THIRD" ? 0.075 : 0.045) +
-          create * 0.07 +
-          carrier.stats.xa90 * 0.045 +
-          (spell.willAttemptChance ? 0.03 : 0.014) +
-          urg * 0.045 +
-          Math.max(0, ad) * 0.06;
-        if (rng() < clamp(probeP, 0.04, 0.28)) {
+          ((stage === "BOX_OCCUPATION" ? 0.09 : stage === "FINAL_THIRD" ? 0.075 : 0.045) +
+            create * 0.07 +
+            carrier.stats.xa90 * 0.045 +
+            (spell.willAttemptChance ? 0.03 : 0.014) +
+            urg * 0.045 +
+            Math.max(0, ad) * 0.06 +
+            maestroBoost) *
+          vol *
+          lerp(1, supp, 0.7);
+        if (rng() < clamp(probeP, 0.03, 0.28)) {
           if (spell) spell.willAttemptChance = true;
           attemptSpellChance(carrier);
           return;
@@ -6728,11 +6917,13 @@
         defensive_unit: extended.defensive_unit,
         xga_suppression: extended.xga_suppression,
         chance_creation: extended.chance_creation,
+        possession_control: extended.possession_control,
         aerial_defence: extended.aerial_defence,
         creation: extended.creation ?? extended.chance_creation,
         attack: extended.attack ?? (extended.units || {}).attack,
         defence: extended.defence ?? (extended.units || {}).defence,
         midfield: extended.midfield ?? (extended.units || {}).midfield,
+        midfield_defence: (extended.units || {}).midfield_defence,
         finishing: (extended.units || {}).finishing ?? extended.finishing,
       },
     };
