@@ -629,7 +629,7 @@ def _score_from_report(report: dict[str, Any]) -> tuple[int, int, str]:
 _ANALYSIS_RESULT_KEYS = ("analysis", "squad_analysis", "analysis_matchup")
 _BOARD_LOG_KEYS = ("board_events", "match_log")
 # Bump when formation_fit / slot-fit narrative must invalidate persisted match analysis.
-_FIT_FORMULA_VERSION = 2
+_FIT_FORMULA_VERSION = 3
 
 
 def _analysis_payload_from_report(report: dict[str, Any]) -> dict[str, Any]:

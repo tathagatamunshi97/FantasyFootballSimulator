@@ -205,17 +205,24 @@ _CB_POSSESSION_PROFILE: dict[str, float] = {
     "passes_completed90": 0.35,
     "xg_buildup90": 0.25,
 }
-# Predominant CBs at CB slots belong in the ~0.9+ band. Global 0.62/0.38 blend
-# over-weights per-90 profile, and shared STAT_CAPS (tackle/interception ceilings
-# sized for midfielders) systematically depress CB profile scores to ~0.45–0.65 —
-# yielding ~0.79 fits even when position_match is 1.0. Missing FBref passes made
-# it worse by scoring absent fields as zeros.
-_CB_POS_WEIGHT = 0.80
-_CB_PROF_WEIGHT = 0.20
-_CB_NATURAL_FLOOR = 0.90  # pos_match >= this threshold → floor at 0.90
-_CB_NATURAL_POS_THRESHOLD = 0.95
+# Predominant/natural players at their slot belong in the ~0.9+ band.
+# Global 0.62/0.38 blend over-weights per-90 profile_fit: midfielder-biased
+# STAT_CAPS + missing FBref zeros (scored as 0) drag profile to ~0.3–0.65 even
+# when position_match is 1.0 — yielding systemic ~0.62–0.79 fits for natural
+# GK/RW/LW/DM/ST/CB placements. Reweight toward position and floor naturals.
+_NATURAL_POS_WEIGHT = 0.80
+_NATURAL_PROF_WEIGHT = 0.20
+_NATURAL_FLOOR = 0.90  # pos_match >= threshold → floor at 0.90
+_NATURAL_POS_THRESHOLD = 0.95
+# Back-compat aliases (CB-era names used by spot-check scripts).
+_CB_POS_WEIGHT = _NATURAL_POS_WEIGHT
+_CB_PROF_WEIGHT = _NATURAL_PROF_WEIGHT
+_CB_NATURAL_FLOOR = _NATURAL_FLOOR
+_CB_NATURAL_POS_THRESHOLD = _NATURAL_POS_THRESHOLD
 _DEFAULT_POS_WEIGHT = 0.62
 _DEFAULT_PROF_WEIGHT = 0.38
+_GENERIC_POS_TAGS = frozenset({"MF", "FW", "DF", "DEF", "MID", "FWD"})
+_MIDFIELD_BUCKET_TAGS = frozenset({"CM", "MF", "MID", "AM", "CAM"})
 # Natural RB/RWB (right foot) at LB/LWB — and the LB/LWB + left @ RB/RWB mirror.
 # Missing preferred_foot still hurts opposite-flank FBs, but less than when foot
 # confirms they are on their weak side. Never invent a foot.
@@ -269,6 +276,24 @@ def _player_position_tags(player: PlayerStats) -> set[str]:
         tags.update({"RW", "RM", "LW", "LM"})
     elif wide_forward and primary in {"ST", "CF", "FW"} and kp >= 1.5 and clearances < 2.0:
         tags.update({"RW", "RM"})
+
+    # FBref/Sofascore often bucket out-and-out wingers as CM/MF. Promote wing
+    # tags from the per-90 attack profile so RW/LW slots see a natural match.
+    xa = _stat_rate(player, "xa90")
+    xg = _stat_rate(player, "xg90")
+    mid_bucket = (
+        primary in _MIDFIELD_BUCKET_TAGS
+        or fpl == "MID"
+        or bool(tags & _MIDFIELD_BUCKET_TAGS)
+    ) and not bool(tags & {"ST", "CF", "FW", "RW", "LW"})
+    wing_attack_profile = (
+        dribbles >= 1.8
+        and kp >= 1.0
+        and clearances < 1.5
+        and (xg >= 0.15 or assists >= 0.12 or xa >= 0.15)
+    )
+    if mid_bucket and wing_attack_profile:
+        tags.update({"RW", "RM", "LW", "LM", "FW"})
 
     return tags
 
@@ -353,6 +378,14 @@ def _position_match(player: PlayerStats, slot_def: dict[str, Any]) -> float:
 
     if primary in tags:
         return 1.0
+    # Specific role tags (RW/LW/DM/ST/…) beat generic MF/FW/DF buckets — a
+    # winger recovered via profile tags should score as natural on that wing.
+    # Bare WB overlap alone is not sided enough for the natural band (RB≠LB).
+    specific_slot = tags - _GENERIC_POS_TAGS
+    specific_player = player_tags - _GENERIC_POS_TAGS
+    sided_overlap = (specific_slot - {"WB"}) & (specific_player - {"WB"})
+    if sided_overlap:
+        return 0.98
     if tags & player_tags:
         return 0.85
     # Wingback / wide-mid slots: fullbacks and creative forwards still fit wide roles.
@@ -547,17 +580,22 @@ def player_slot_fit(
     pos = _position_match(stats, slot_def)
     base_profile = slot_def.get("profile", {})
     slot_tags = {t.upper() for t in slot_def["tags"]}
+    # Natural GKs at GK are always a perfect fit — never dilute with save volume.
+    if slot_tags <= {"GK"} and (stats.primary_position.upper() == "GK" or stats.fpl_position.upper() == "GK"):
+        return 1.0
     foot = _preferred_foot_bonus(stats, foot_slot) + _weak_side_fullback_penalty(stats, foot_slot)
     if _is_centre_back_slot(slot_tags):
         prof = _centre_back_profile_fit(stats, base_profile)
-        fit = _CB_POS_WEIGHT * pos + _CB_PROF_WEIGHT * prof + foot
-        # Predominant centre-backs are a strong CB fit by role; profile only
-        # differentiates within/above the natural band (never below it).
-        if pos >= _CB_NATURAL_POS_THRESHOLD:
-            fit = max(fit, _CB_NATURAL_FLOOR)
     else:
-        prof = _profile_fit(stats, base_profile)
-        fit = _DEFAULT_POS_WEIGHT * pos + _DEFAULT_PROF_WEIGHT * prof + foot
+        # Skip missing source fields so absent FBref zeros do not drag profile.
+        prof = _profile_fit(stats, base_profile, skip_missing=True)
+    blend = _NATURAL_POS_WEIGHT * pos + _NATURAL_PROF_WEIGHT * prof
+    # Predominant/natural role match: profile only differentiates within/above
+    # the natural band (never below it). Foot / weak-side apply after the floor
+    # so opposite-flank fullbacks stay penalised.
+    if pos >= _NATURAL_POS_THRESHOLD:
+        blend = max(blend, _NATURAL_FLOOR)
+    fit = blend + foot
     return max(0.25, min(1.0, fit))
 
 
