@@ -1,0 +1,48 @@
+﻿[07/10/26 22:00:25] INFO     No custom team name replacements      _config.py:92
+                             found. You can configure these in                  
+                             C:\Users\Admin\soccerdata\config\team              
+                             name_replacements.json.                            
+                    INFO     No custom league dict found. You can _config.py:190
+                             configure additional leagues in                    
+                             C:\Users\Admin\soccerdata\config\lea               
+                             gue_dict.json.                                     
+[07/10/26 22:00:27] INFO     Saving cached data to                _common.py:250
+                             C:\Users\Admin\soccerdata\data\Under               
+                             stat                                               
+python : [2026-07-10 22:00:29] INFO     TLSLibrary:_load_library:397 - Successfully loaded TLS library: C:\Users\Admin\
+AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\tls_requests\bin\tls-client-xgo-1.13.1-windows-amd64.dll
+At C:\Users\Admin\AppData\Local\Temp\ps-script-de7d9954-068b-47ff-955f-bd0e39de773c.ps1:109 char:158
++ ... THONIOENCODING='utf-8'; python _press_resistance_rank.py 2>&1 | Out-F ...
++                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([2026-07-10 22:...ndows-amd64.dll:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[07/10/26 22:00:29] INFO     Successfully loaded TLS library:   libraries.py:397
+                             C:\Users\Admin\AppData\Local\Pytho                 
+                             n\pythoncore-3.14-64\Lib\site-pack                 
+                             ages\tls_requests\bin\tls-client-x                 
+                             go-1.13.1-windows-amd64.dll                        
+## Tournament press resistance ranking (higher = better)
+
+Formula: mean of DEF/MID XI `_player_press_resistance` = `scale(dribbles90, 2.5) * scale(dribble_pct, 100) * (0.55 + 0.45 * slot_fit)` (FWD/GK excluded from the average).
+
+**Lineup source:** Google Sheets roster ΓåÆ auto starting XI + slot assign for formation **4-3-3**; Round-3 peak seasons via `default_peak_season` (same path as `_transition_risk_rank.py`). Not manual lineups.
+
+| Rank | Team | Press resistance | Top contributors (slot score) |
+| ---: | --- | ---: | --- |
+| 1 | DDR | 0.210 | Lamine Yamal (AM 0.54), Felix Nmecha (CM 0.29), Arda G├╝ler (LW 0.25) |
+| 2 | Chintu | 0.202 | J├⌐r├⌐my Doku (AM 0.58), Djed Spence (LB 0.30), Noussair Mazraoui (RB 0.16) |
+| 3 | Rishav | 0.199 | Kingsley Coman (AM 0.53), Alejandro Balde (LB 0.29), Antoine Semenyo (RB 0.25) |
+| 4 | Raktim | 0.191 | Takefusa Kubo (AM 0.48), Eberechi Eze (DM 0.36), Youri Tielemans (CM 0.15) |
+| 5 | Moga+Sanmitro | 0.182 | Rayan Cherki (AM 0.46), Jude Bellingham (CM 0.35), Riccardo Calafiori (RB 0.18) |
+| 6 | Subhadro+Shubhajit | 0.164 | Nuno Mendes (RB 0.34), Vitinha (Paris Saint-Germain) (AM 0.23), Gu├⌐la Dou├⌐ (LB 0.19) |
+| 7 | Sugata | 0.164 | Florian Wirtz (AM 0.45), Scott McTominay (DM 0.18), Theo Hern├índez (LB 0.15) |
+| 8 | KP+SS | 0.163 | Jamal Musiala (AM 0.53), Alphonso Davies (LB 0.34), Luka Modri─ç (DM 0.12) |
+| 9 | Kinjal+Sayan C | 0.127 | Michael Olise (AM 0.50), Jules Kound├⌐ (LB 0.16), Jo├úo Neves (CM 0.15) |
+| 10 | Anindo | 0.110 | Luis D├¡az (AM 0.40), Josip Stani┼íi─ç (LB 0.11), Declan Rice (CM 0.08) |
+| 11 | Dilshad | 0.104 | Elliot Anderson (DM 0.26), Matheus Nunes (RB 0.18), Federico Valverde (CM 0.14) |
+| 12 | Rohan + AnaC | 0.097 | Mateus Fernandes (CM 0.24), Mohamed Salah (AM 0.15), Micky van de Ven (CB2 0.09) |
+| 13 | Ryan | 0.090 | Dominik Szoboszlai (AM 0.15), Bernardo Silva (CM 0.14), Alejandro Grimaldo (LB 0.13) |
+| 14 | Sohom+Mayukh | 0.075 | Pedri (DM 0.35), Joshua Kimmich (CM 0.09), Federico Dimarco (AM 0.03) |
+
+Wrote _press_resistance_rank_out.md and _press_resistance_rank_out.json

@@ -1,0 +1,121 @@
+{
+  "formation": "4-3-3",
+  "lineup_source": "google_sheets auto XI/slots",
+  "metric": "press_resistance",
+  "higher_is_better": true,
+  "teams": [
+    {
+      "team": "DDR",
+      "press_resistance": 0.21,
+      "drivers": "Lamine Yamal (AM 0.54), Felix Nmecha (CM 0.29), Arda Güler (LW 0.25)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Arturo Vidal @ 15/16",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    },
+    {
+      "team": "Chintu",
+      "press_resistance": 0.202,
+      "drivers": "Jérémy Doku (AM 0.58), Djed Spence (LB 0.30), Noussair Mazraoui (RB 0.16)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Fernandinho @ 17/18",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    },
+    {
+      "team": "Rishav",
+      "press_resistance": 0.199,
+      "drivers": "Kingsley Coman (AM 0.53), Alejandro Balde (LB 0.29), Antoine Semenyo (RB 0.25)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Luis Suarez @ 15/16",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    },
+    {
+      "team": "Raktim",
+      "press_resistance": 0.191,
+      "drivers": "Takefusa Kubo (AM 0.48), Eberechi Eze (DM 0.36), Youri Tielemans (CM 0.15)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Alexis Sanchez @ 16/17",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    },
+    {
+      "team": "Moga+Sanmitro",
+      "press_resistance": 0.182,
+      "drivers": "Rayan Cherki (AM 0.46), Jude Bellingham (CM 0.35), Riccardo Calafiori (RB 0.18)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Angel Di Maria @ 13/14",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    },
+    {
+      "team": "Subhadro+Shubhajit",
+      "press_resistance": 0.164,
+      "drivers": "Nuno Mendes (RB 0.34), Vitinha (Paris Saint-Germain) (AM 0.23), Guéla Doué (LB 0.19)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Edinson Cavani @ 16/17",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    },
+    {
+      "team": "Sugata",
+      "press_resistance": 0.164,
+      "drivers": "Florian Wirtz (AM 0.45), Scott McTominay (DM 0.18), Theo Hernández (LB 0.15)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Radamel Falcao @ 16/17",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    },
+    {
+      "team": "KP+SS",
+      "press_resistance": 0.163,
+      "drivers": "Jamal Musiala (AM 0.53), Alphonso Davies (LB 0.34), Luka Modrić (DM 0.12)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Giovanni Lo Celso @ 18/19",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    },
+    {
+      "team": "Kinjal+Sayan C",
+      "press_resistance": 0.127,
+      "drivers": "Michael Olise (AM 0.50), Jules Koundé (LB 0.16), João Neves (CM 0.15)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Diego Godin @ 15/16",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    },
+    {
+      "team": "Anindo",
+      "press_resistance": 0.11,
+      "drivers": "Luis Díaz (AM 0.40), Josip Stanišić (LB 0.11), Declan Rice (CM 0.08)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Gonzalo Higuain @ 15/16",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    },
+    {
+      "team": "Dilshad",
+      "press_resistance": 0.104,
+      "drivers": "Elliot Anderson (DM 0.26), Matheus Nunes (RB 0.18), Federico Valverde (CM 0.14)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Marcelo @ 16/17",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    },
+    {
+      "team": "Rohan + AnaC",
+      "press_resistance": 0.097,
+      "drivers": "Mateus Fernandes (CM 0.24), Mohamed Salah (AM 0.15), Micky van de Ven (CB2 0.09)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Roberto Firmino @ 17/18",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    },
+    {
+      "team": "Ryan",
+      "press_resistance": 0.09,
+      "drivers": "Dominik Szoboszlai (AM 0.15), Bernardo Silva (CM 0.14), Alejandro Grimaldo (LB 0.13)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Neymar @ 14/15",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    },
+    {
+      "team": "Sohom+Mayukh",
+      "press_resistance": 0.075,
+      "drivers": "Pedri (DM 0.35), Joshua Kimmich (CM 0.09), Federico Dimarco (AM 0.03)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Dani Alves @ 17/18",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    }
+  ],
+  "errors": []
+}

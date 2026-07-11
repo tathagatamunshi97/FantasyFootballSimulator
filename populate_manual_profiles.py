@@ -62,6 +62,8 @@ PRIME_PLAYERS: list[str] = [
     "Aymeric Laporte",
     "Manuel Neuer",
     "Alaba",
+    "Jamie Vardy",
+    "Francesco Acerbi",
 ]
 
 

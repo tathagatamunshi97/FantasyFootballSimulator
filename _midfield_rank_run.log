@@ -1,0 +1,69 @@
+﻿[07/10/26 22:56:07] INFO     No custom team name replacements      _config.py:92
+                             found. You can configure these in                  
+                             C:\Users\Admin\soccerdata\config\team              
+                             name_replacements.json.                            
+                    INFO     No custom league dict found. You can _config.py:190
+                             configure additional leagues in                    
+                             C:\Users\Admin\soccerdata\config\lea               
+                             gue_dict.json.                                     
+[07/10/26 22:56:10] INFO     Saving cached data to                _common.py:250
+                             C:\Users\Admin\soccerdata\data\Under               
+                             stat                                               
+python : [2026-07-10 22:56:10] INFO     TLSLibrary:_load_library:397 - Successfully loaded TLS library: C:\Users\Admin\
+AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\tls_requests\bin\tls-client-xgo-1.13.1-windows-amd64.dll
+At C:\Users\Admin\AppData\Local\Temp\ps-script-38fa2599-bd77-47ea-9b23-e9ccbc7751ad.ps1:277 char:83
++ ...  $env:PYTHONIOENCODING='utf-8'; python _midfield_rank.py 2>&1 | Out-F ...
++                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([2026-07-10 22:...ndows-amd64.dll:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+                    INFO     Successfully loaded TLS library:   libraries.py:397
+                             C:\Users\Admin\AppData\Local\Pytho                 
+                             n\pythoncore-3.14-64\Lib\site-pack                 
+                             ages\tls_requests\bin\tls-client-x                 
+                             go-1.13.1-windows-amd64.dll                        
+## Tournament midfield ranking (higher = better)
+
+**Primary sort key:** `UnitRatings.midfield` ΓÇö mean across non-GK XI of `_player_midfield_contrib ├ù slot midfield weight` (progression + creation + defensive mid work ΓêÆ turnover penalty, ├ù slot fit). This is the engine's midfield unit used in overall strength / midfield battle.
+
+**Secondary columns:** `midfield_defence` (ball-winning shield unit), `midfield_control` (TeamComposites blend of midfield + possession + mid-def).
+
+**Lineup source:** Google Sheets roster ΓåÆ auto starting XI + slot assign for formation **4-3-3** (normalizes to attacking 4-3-3: DM/CM/AM); Round-3 peak seasons via `default_peak_season` (same path as press resistance / pressing intensity). Not manual lineups.
+
+| Rank | Team | Midfield | Mid-def | Mid control | Midfield trio |
+| ---: | --- | ---: | ---: | ---: | --- |
+| 1 | Sohom+Mayukh | 0.725 | 0.343 | 0.651 | DM: Pedri; CM: Joshua Kimmich; AM: Federico Dimarco |
+| 2 | Moga+Sanmitro | 0.702 | 0.411 | 0.644 | DM: Rodri; CM: Jude Bellingham; AM: Rayan Cherki |
+| 3 | Kinjal+Sayan C | 0.687 | 0.457 | 0.656 | DM: Casemiro; CM: Jo├úo Neves; AM: Michael Olise |
+| 4 | Subhadro+Shubhajit | 0.679 | 0.548 | 0.692 | DM: N'Golo Kant├⌐; CM: Frenkie de Jong; AM: Vitinha (Paris Saint-Germain) |
+| 5 | Rishav | 0.643 | 0.291 | 0.587 | DM: Aleksandar Pavlovi─ç; CM: Kevin De Bruyne; AM: Kingsley Coman |
+| 6 | Dilshad | 0.635 | 0.434 | 0.631 | DM: Elliot Anderson; CM: Federico Valverde; AM: Hakan ├çalhano─ƒlu |
+| 7 | Chintu | 0.620 | 0.297 | 0.544 | DM: Nicol├▓ Barella; CM: Bruno Fernandes; AM: J├⌐r├⌐my Doku |
+| 8 | Anindo | 0.615 | 0.416 | 0.620 | DM: Manuel Locatelli; CM: Declan Rice; AM: Luis D├¡az |
+| 9 | DDR | 0.609 | 0.442 | 0.600 | DM: Ryan Gravenberch; CM: Felix Nmecha; AM: Lamine Yamal |
+| 10 | Ryan | 0.558 | 0.299 | 0.549 | DM: Granit Xhaka; CM: Bernardo Silva; AM: Dominik Szoboszlai |
+| 11 | Sugata | 0.539 | 0.276 | 0.490 | DM: Scott McTominay; CM: ─░lkay G├╝ndo─ƒan; AM: Florian Wirtz |
+| 12 | KP+SS | 0.533 | 0.317 | 0.535 | DM: Luka Modri─ç; CM: Giovani Lo Celso; AM: Jamal Musiala |
+| 13 | Rohan + AnaC | 0.506 | 0.480 | 0.540 | DM: Aur├⌐lien Tchouam├⌐ni; CM: Mateus Fernandes; AM: Mohamed Salah |
+| 14 | Raktim | 0.438 | 0.292 | 0.487 | DM: Eberechi Eze; CM: Youri Tielemans; AM: Takefusa Kubo |
+
+### Per-slot midfield contrib (trio)
+
+| Team | DM / CM / AM scores |
+| --- | --- |
+| Sohom+Mayukh | Pedri (DM 0.79), Joshua Kimmich (CM 0.82), Federico Dimarco (AM 0.57) |
+| Moga+Sanmitro | Rodri (DM 0.72), Jude Bellingham (CM 0.63), Rayan Cherki (AM 0.76) |
+| Kinjal+Sayan C | Casemiro (DM 0.53), Jo├úo Neves (CM 0.74), Michael Olise (AM 0.79) |
+| Subhadro+Shubhajit | N'Golo Kant├⌐ (DM 0.47), Frenkie de Jong (CM 0.87), Vitinha (Paris Saint-Germain) (AM 0.70) |
+| Rishav | Aleksandar Pavlovi─ç (DM 0.69), Kevin De Bruyne (CM 0.60), Kingsley Coman (AM 0.64) |
+| Dilshad | Elliot Anderson (DM 0.50), Federico Valverde (CM 0.71), Hakan ├çalhano─ƒlu (AM 0.70) |
+| Chintu | Nicol├▓ Barella (DM 0.59), Bruno Fernandes (CM 0.65), J├⌐r├⌐my Doku (AM 0.62) |
+| Anindo | Manuel Locatelli (DM 0.66), Declan Rice (CM 0.56), Luis D├¡az (AM 0.62) |
+| DDR | Ryan Gravenberch (DM 0.56), Felix Nmecha (CM 0.55), Lamine Yamal (AM 0.72) |
+| Ryan | Granit Xhaka (DM 0.49), Bernardo Silva (CM 0.58), Dominik Szoboszlai (AM 0.60) |
+| Sugata | Scott McTominay (DM 0.35), ─░lkay G├╝ndo─ƒan (CM 0.67), Florian Wirtz (AM 0.60) |
+| KP+SS | Luka Modri─ç (DM 0.71), Giovani Lo Celso (CM 0.25), Jamal Musiala (AM 0.64) |
+| Rohan + AnaC | Aur├⌐lien Tchouam├⌐ni (DM 0.66), Mateus Fernandes (CM 0.44), Mohamed Salah (AM 0.42) |
+| Raktim | Eberechi Eze (DM 0.30), Youri Tielemans (CM 0.61), Takefusa Kubo (AM 0.40) |
+
+Wrote _midfield_rank_out.md and _midfield_rank_out.json

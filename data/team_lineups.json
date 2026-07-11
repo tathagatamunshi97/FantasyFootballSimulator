@@ -1,35 +1,35 @@
 {
   "Anindo": {
     "team_name": "Anindo",
-    "formation": "4-3-3 attacking",
+    "formation": "4-3-3 flat",
     "lineup": [
       {
         "slot": "GK",
-        "player": "MUTATED_PLAYER_XYZ",
+        "player": "Mike Maignan",
         "captain": false,
         "vice_captain": false
       },
       {
         "slot": "RB",
-        "player": "Dayot Upamecano",
+        "player": "Josip Stanišić",
         "captain": false,
         "vice_captain": false
       },
       {
         "slot": "CB1",
-        "player": "Pau Cubarsí",
+        "player": "Dayot Upamecano",
         "captain": false,
         "vice_captain": false
       },
       {
         "slot": "CB2",
-        "player": "Edmond Tapsoba",
+        "player": "Pau Cubarsí",
         "captain": false,
         "vice_captain": false
       },
       {
         "slot": "LB",
-        "player": "Josip Stanišić",
+        "player": "Marc Cucurella",
         "captain": false,
         "vice_captain": false
       },
@@ -40,20 +40,20 @@
         "vice_captain": false
       },
       {
-        "slot": "CM",
+        "slot": "CM1",
         "player": "Declan Rice",
         "captain": false,
         "vice_captain": false
       },
       {
-        "slot": "AM",
+        "slot": "CM2",
         "player": "Enzo Fernández",
         "captain": false,
         "vice_captain": false
       },
       {
         "slot": "RW",
-        "player": "Antoine Griezmann",
+        "player": "Cole Palmer",
         "captain": false,
         "vice_captain": false
       },
@@ -65,21 +65,21 @@
       },
       {
         "slot": "LW",
-        "player": "Matheus Cunha",
+        "player": "Luis Díaz",
         "captain": false,
         "vice_captain": false
       }
     ],
-    "prime_player": "",
+    "prime_player": "Cole Palmer",
     "peak_season": {
-      "player": "",
-      "season": ""
+      "player": "Gonzalo Higuaín",
+      "season": "2015-2016"
     },
-    "updated_at": "2026-07-06T18:04:16.749695+00:00",
+    "updated_at": "2026-07-11T07:55:57.326831+00:00",
     "finalized": false,
     "finalized_at": null,
     "finalized_round": null,
-    "finalized_snapshot": null,
-    "finalized_round_label": null
+    "finalized_round_label": null,
+    "finalized_snapshot": null
   }
 }

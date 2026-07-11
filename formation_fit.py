@@ -9,6 +9,7 @@ DEFAULT_FORMATION = "4-3-3 flat"
 
 _LEGACY_FORMATION_ALIASES: dict[str, str] = {
     "4-3-3": "4-3-3 attacking",
+    "3-4-3": "3-4-3(2)",  # legacy LM/RM variant
 }
 
 _BACK_FOUR: list[dict[str, Any]] = [
@@ -112,15 +113,30 @@ FORMATION_SLOTS: dict[str, list[dict[str, Any]]] = {
         {"slot": "LW", "tags": ["LW", "LM", "FW", "MF"], "profile": {"dribbles90": 0.8, "key_passes90": 0.6, "xa90": 0.6}},
         {"slot": "ST", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 1.0, "shots90": 0.9, "shots_on_target90": 0.7}},
     ],
-    "3-4-3": [
+    # Balanced wingbacks: help defend and attack; less forward than LM/RM.
+    "3-4-3(1)": [
         {"slot": "GK", "tags": ["GK"], "profile": {"saves90": 1.0, "goals_prevented90": 0.8, "clean_sheet_pct": 0.6}},
         {"slot": "CB1", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9}},
         {"slot": "CB2", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9}},
         {"slot": "CB3", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9}},
-        {"slot": "RM", "tags": ["RW", "RM", "WB", "RB", "MF"], "profile": {"key_passes90": 0.6, "dribbles90": 0.6, "xa90": 0.5}},
+        {"slot": "RWB", "tags": ["RB", "WB", "RM", "RW", "DF"], "profile": {"key_passes90": 0.55, "tackles90": 0.65, "dribbles90": 0.45, "xa90": 0.4}},
         {"slot": "CM1", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6}},
         {"slot": "CM2", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6}},
-        {"slot": "LM", "tags": ["LW", "LM", "WB", "LB", "MF"], "profile": {"key_passes90": 0.6, "dribbles90": 0.6, "xa90": 0.5}},
+        {"slot": "LWB", "tags": ["LB", "WB", "LM", "LW", "DF"], "profile": {"key_passes90": 0.55, "tackles90": 0.65, "dribbles90": 0.45, "xa90": 0.4}},
+        {"slot": "RW", "tags": ["RW", "FW", "MF"], "profile": {"xg90": 0.7, "dribbles90": 0.8, "key_passes90": 0.6}},
+        {"slot": "ST", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 1.0, "shots90": 0.9}},
+        {"slot": "LW", "tags": ["LW", "FW", "MF"], "profile": {"xg90": 0.7, "dribbles90": 0.8, "key_passes90": 0.6}},
+    ],
+    # Attacking wide mids: push higher, defend less → more attack, higher transition risk.
+    "3-4-3(2)": [
+        {"slot": "GK", "tags": ["GK"], "profile": {"saves90": 1.0, "goals_prevented90": 0.8, "clean_sheet_pct": 0.6}},
+        {"slot": "CB1", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9}},
+        {"slot": "CB2", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9}},
+        {"slot": "CB3", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9}},
+        {"slot": "RM", "tags": ["RW", "RM", "WB", "RB", "MF"], "profile": {"key_passes90": 0.65, "dribbles90": 0.7, "xa90": 0.55, "shots90": 0.35, "tackles90": 0.35}},
+        {"slot": "CM1", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6}},
+        {"slot": "CM2", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6}},
+        {"slot": "LM", "tags": ["LW", "LM", "WB", "LB", "MF"], "profile": {"key_passes90": 0.65, "dribbles90": 0.7, "xa90": 0.55, "shots90": 0.35, "tackles90": 0.35}},
         {"slot": "RW", "tags": ["RW", "FW", "MF"], "profile": {"xg90": 0.7, "dribbles90": 0.8, "key_passes90": 0.6}},
         {"slot": "ST", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 1.0, "shots90": 0.9}},
         {"slot": "LW", "tags": ["LW", "FW", "MF"], "profile": {"xg90": 0.7, "dribbles90": 0.8, "key_passes90": 0.6}},
@@ -377,9 +393,9 @@ def _preferred_foot_bonus(stats: PlayerStats, slot_name: str) -> float:
     if not foot:
         return 0.0
     slot = slot_name.upper()
-    if slot in {"LW", "LM"} and foot == "left":
+    if slot in {"LW", "LM", "LWB"} and foot == "left":
         return 0.04
-    if slot in {"RW", "RM"} and foot == "right":
+    if slot in {"RW", "RM", "RWB"} and foot == "right":
         return 0.04
     if foot == "both":
         return 0.02

@@ -1,0 +1,121 @@
+{
+  "formation": "4-3-3",
+  "lineup_source": "google_sheets auto XI/slots",
+  "metric": "pressing_intensity",
+  "higher_is_better": true,
+  "teams": [
+    {
+      "team": "Subhadro+Shubhajit",
+      "pressing_intensity": 0.558,
+      "drivers": "N'Golo Kanté (DM T+I 5.7, duel% 56), Frenkie de Jong (CM T+I 3.4, duel% 67), Guéla Doué (LB T+I 3.3, duel% 56)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Edinson Cavani @ 16/17",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    },
+    {
+      "team": "Kinjal+Sayan C",
+      "pressing_intensity": 0.536,
+      "drivers": "Diego Godín (CB2 T+I 5.1), Casemiro (DM T+I 4.2, duel% 53), Willian Pacho (RB T+I 3.5, duel% 62)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Diego Godin @ 15/16",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    },
+    {
+      "team": "DDR",
+      "pressing_intensity": 0.516,
+      "drivers": "Ryan Gravenberch (DM T+I 3.4, duel% 57), Álvaro Carreras (LB T+I 3.1, duel% 54), Felix Nmecha (CM T+I 3.0, duel% 57)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Arturo Vidal @ 15/16",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    },
+    {
+      "team": "Dilshad",
+      "pressing_intensity": 0.498,
+      "drivers": "Elliot Anderson (DM T+I 4.0, duel% 54), Nordi Mukiele (LB T+I 3.5, duel% 58), Kim Min-jae (CB2 T+I 3.1)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Marcelo @ 16/17",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    },
+    {
+      "team": "Chintu",
+      "pressing_intensity": 0.492,
+      "drivers": "Noussair Mazraoui (RB T+I 4.7, duel% 62), Maxence Lacroix (CB1 T+I 3.3, duel% 60), Djed Spence (LB T+I 3.0, duel% 51)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Fernandinho @ 17/18",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    },
+    {
+      "team": "Rohan + AnaC",
+      "pressing_intensity": 0.488,
+      "drivers": "Mateus Fernandes (CM T+I 3.9, duel% 55), Nathaniel Brown (RB T+I 3.8, duel% 58), Aurélien Tchouaméni (DM T+I 3.5, duel% 67)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Roberto Firmino @ 17/18",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    },
+    {
+      "team": "Sohom+Mayukh",
+      "pressing_intensity": 0.473,
+      "drivers": "Dani Alves (RB T+I 3.5), Pedri (DM T+I 2.9, duel% 59), Harry Maguire (CB2 T+I 2.7, duel% 68)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Dani Alves @ 17/18",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    },
+    {
+      "team": "KP+SS",
+      "pressing_intensity": 0.472,
+      "drivers": "Reece James (RB T+I 3.7, duel% 59), Luka Modrić (DM T+I 2.9, duel% 53), Dean Huijsen (CB1 T+I 2.7, duel% 59)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Giovanni Lo Celso @ 18/19",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    },
+    {
+      "team": "Raktim",
+      "pressing_intensity": 0.472,
+      "drivers": "Trent Alexander-Arnold (LB T+I 3.9, duel% 47), Mikel Merino (LW T+I 3.4, duel% 48), Youri Tielemans (CM T+I 3.4, duel% 59)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Alexis Sanchez @ 16/17",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    },
+    {
+      "team": "Anindo",
+      "pressing_intensity": 0.457,
+      "drivers": "Manuel Locatelli (DM T+I 3.6, duel% 58), Dayot Upamecano (CB2 T+I 3.4, duel% 57), Declan Rice (CM T+I 2.8, duel% 56)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Gonzalo Higuain @ 15/16",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    },
+    {
+      "team": "Sugata",
+      "pressing_intensity": 0.456,
+      "drivers": "Pedro Porro (RB T+I 3.5, duel% 51), Diogo Dalot (CB2 T+I 3.1, duel% 57), Matthijs de Ligt (CB1 T+I 2.7, duel% 64)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Radamel Falcao @ 16/17",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    },
+    {
+      "team": "Moga+Sanmitro",
+      "pressing_intensity": 0.452,
+      "drivers": "Rodri (DM T+I 3.3, duel% 67), Jurriën Timber (LB T+I 3.1, duel% 56), Jude Bellingham (CM T+I 3.1, duel% 57)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Angel Di Maria @ 13/14",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    },
+    {
+      "team": "Ryan",
+      "pressing_intensity": 0.439,
+      "drivers": "Cristian Romero (CB2 T+I 3.9, duel% 64), Marcos Llorente (RB T+I 3.2, duel% 57), Bernardo Silva (CM T+I 2.5)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Neymar @ 14/15",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    },
+    {
+      "team": "Rishav",
+      "pressing_intensity": 0.382,
+      "drivers": "Aleksandar Pavlović (DM T+I 2.6, duel% 55), William Saliba (CB2 T+I 2.1, duel% 61), Marquinhos (CB1 T+I 2.1, duel% 61)",
+      "formation": "4-3-3 attacking",
+      "peak_season": "Luis Suarez @ 15/16",
+      "lineup_source": "sheet roster + auto XI/slots (4-3-3)"
+    }
+  ],
+  "errors": []
+}

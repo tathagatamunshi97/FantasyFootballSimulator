@@ -1,0 +1,48 @@
+﻿[07/10/26 22:08:24] INFO     No custom team name replacements      _config.py:92
+                             found. You can configure these in                  
+                             C:\Users\Admin\soccerdata\config\team              
+                             name_replacements.json.                            
+                    INFO     No custom league dict found. You can _config.py:190
+                             configure additional leagues in                    
+                             C:\Users\Admin\soccerdata\config\lea               
+                             gue_dict.json.                                     
+[07/10/26 22:08:26] INFO     Saving cached data to                _common.py:250
+                             C:\Users\Admin\soccerdata\data\Under               
+                             stat                                               
+python : [2026-07-10 22:08:26] INFO     TLSLibrary:_load_library:397 - Successfully loaded TLS library: C:\Users\Admin\
+AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\tls_requests\bin\tls-client-xgo-1.13.1-windows-amd64.dll
+At C:\Users\Admin\AppData\Local\Temp\ps-script-204e4571-d633-42d5-b87b-36b83a4e8ab8.ps1:237 char:93
++ ... ONIOENCODING='utf-8'; python _pressing_intensity_rank.py 2>&1 | Out-F ...
++                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([2026-07-10 22:...ndows-amd64.dll:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+                    INFO     Successfully loaded TLS library:   libraries.py:397
+                             C:\Users\Admin\AppData\Local\Pytho                 
+                             n\pythoncore-3.14-64\Lib\site-pack                 
+                             ages\tls_requests\bin\tls-client-x                 
+                             go-1.13.1-windows-amd64.dll                        
+## Tournament pressing intensity ranking (higher = more intense)
+
+Formula: `pressing_base = scale(avg(tackles90+interceptions90), 4.5)` then `pressing_intensity = clamp(pressing_base * 0.72 + scale(avg_duel_won_pct, 100) * 0.28)` when duel% available (else full weight on pressing_base). Full XI average.
+
+**Lineup source:** Google Sheets roster ΓåÆ auto starting XI + slot assign for formation **4-3-3**; Round-3 peak seasons via `default_peak_season` (same path as `_press_resistance_rank.py` / `_transition_risk_rank.py`). Not manual lineups.
+
+| Rank | Team | Pressing intensity | Top contributors (T+I) |
+| ---: | --- | ---: | --- |
+| 1 | Subhadro+Shubhajit | 0.558 | N'Golo Kant├⌐ (DM T+I 5.7, duel% 56), Frenkie de Jong (CM T+I 3.4, duel% 67), Gu├⌐la Dou├⌐ (LB T+I 3.3, duel% 56) |
+| 2 | Kinjal+Sayan C | 0.536 | Diego God├¡n (CB2 T+I 5.1), Casemiro (DM T+I 4.2, duel% 53), Willian Pacho (RB T+I 3.5, duel% 62) |
+| 3 | DDR | 0.516 | Ryan Gravenberch (DM T+I 3.4, duel% 57), ├ülvaro Carreras (LB T+I 3.1, duel% 54), Felix Nmecha (CM T+I 3.0, duel% 57) |
+| 4 | Dilshad | 0.498 | Elliot Anderson (DM T+I 4.0, duel% 54), Nordi Mukiele (LB T+I 3.5, duel% 58), Kim Min-jae (CB2 T+I 3.1) |
+| 5 | Chintu | 0.492 | Noussair Mazraoui (RB T+I 4.7, duel% 62), Maxence Lacroix (CB1 T+I 3.3, duel% 60), Djed Spence (LB T+I 3.0, duel% 51) |
+| 6 | Rohan + AnaC | 0.488 | Mateus Fernandes (CM T+I 3.9, duel% 55), Nathaniel Brown (RB T+I 3.8, duel% 58), Aur├⌐lien Tchouam├⌐ni (DM T+I 3.5, duel% 67) |
+| 7 | Sohom+Mayukh | 0.473 | Dani Alves (RB T+I 3.5), Pedri (DM T+I 2.9, duel% 59), Harry Maguire (CB2 T+I 2.7, duel% 68) |
+| 8 | KP+SS | 0.472 | Reece James (RB T+I 3.7, duel% 59), Luka Modri─ç (DM T+I 2.9, duel% 53), Dean Huijsen (CB1 T+I 2.7, duel% 59) |
+| 9 | Raktim | 0.472 | Trent Alexander-Arnold (LB T+I 3.9, duel% 47), Mikel Merino (LW T+I 3.4, duel% 48), Youri Tielemans (CM T+I 3.4, duel% 59) |
+| 10 | Anindo | 0.457 | Manuel Locatelli (DM T+I 3.6, duel% 58), Dayot Upamecano (CB2 T+I 3.4, duel% 57), Declan Rice (CM T+I 2.8, duel% 56) |
+| 11 | Sugata | 0.456 | Pedro Porro (RB T+I 3.5, duel% 51), Diogo Dalot (CB2 T+I 3.1, duel% 57), Matthijs de Ligt (CB1 T+I 2.7, duel% 64) |
+| 12 | Moga+Sanmitro | 0.452 | Rodri (DM T+I 3.3, duel% 67), Jurri├½n Timber (LB T+I 3.1, duel% 56), Jude Bellingham (CM T+I 3.1, duel% 57) |
+| 13 | Ryan | 0.439 | Cristian Romero (CB2 T+I 3.9, duel% 64), Marcos Llorente (RB T+I 3.2, duel% 57), Bernardo Silva (CM T+I 2.5) |
+| 14 | Rishav | 0.382 | Aleksandar Pavlovi─ç (DM T+I 2.6, duel% 55), William Saliba (CB2 T+I 2.1, duel% 61), Marquinhos (CB1 T+I 2.1, duel% 61) |
+
+Wrote _pressing_intensity_rank_out.md and _pressing_intensity_rank_out.json

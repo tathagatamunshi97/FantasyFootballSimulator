@@ -48,7 +48,13 @@ def slot_role(slot: str) -> str:
 
 def slot_unit_weights(slot: str, fpl_position: FplPosition) -> SlotUnitWeights:
     role = slot_role(slot)
+    su = slot.upper()
     if role == "fullback":
+        if su in {"LWB", "RWB"}:
+            # Balanced wingbacks: defend and attack, less forward than LM/RM.
+            return SlotUnitWeights(
+                attack=0.68, creation=0.92, midfield=0.55, defence=0.78, midfield_defence=0.34
+            )
         return SlotUnitWeights(
             attack=0.72, creation=1.0, midfield=0.52, defence=0.72, midfield_defence=0.28
         )
@@ -61,6 +67,11 @@ def slot_unit_weights(slot: str, fpl_position: FplPosition) -> SlotUnitWeights:
     if role == "am":
         return SlotUnitWeights(attack=0.64, creation=0.95, midfield=1.0, defence=0.26, midfield_defence=0.38)
     if role == "winger":
+        if su in {"LM", "RM"}:
+            # Attacking wide mids: push higher, create more, defend less than wingbacks.
+            return SlotUnitWeights(
+                attack=0.95, creation=1.05, midfield=0.45, defence=0.14, midfield_defence=0.18
+            )
         return SlotUnitWeights(attack=0.90, creation=0.88, midfield=0.42, defence=0.16, midfield_defence=0.22)
     if role == "striker":
         return SlotUnitWeights(attack=1.0, creation=0.52, midfield=0.22, defence=0.08, midfield_defence=0.10)

@@ -231,6 +231,11 @@ ALIASES: dict[str, str] = {
     "alexander sorloth": "Alexander Sørloth",
     "sorloth": "Alexander Sørloth",
     "diogo costa": "Diogo Costa",
+    "jamie vardy": "Jamie Vardy",
+    "vardy": "Jamie Vardy",
+    "francesco acerbi": "Francesco Acerbi",
+    "fran acerbi": "Francesco Acerbi",
+    "acerbi": "Francesco Acerbi",
 }
 
 # Bypass Sofascore search when rate-limited or names are ambiguous.
@@ -318,6 +323,13 @@ KNOWN_SOFASCORE_IDS: dict[str, int] = {
     "laporte": 149734,
     "aymeric laporte": 149734,
     "cr7": 750,
+    "hakimi": 814594,
+    "achraf hakimi": 814594,
+    "jamie vardy": 173827,
+    "vardy": 173827,
+    "francesco acerbi": 126816,
+    "fran acerbi": 126816,
+    "acerbi": 126816,
 }
 
 # Bypass FotMob search when names are ambiguous or search terms fail.
@@ -332,6 +344,13 @@ KNOWN_FOTMOB_IDS: dict[str, int] = {
     "pape sarr": 1107280,
     "eli junior kroupi": 1460534,
     "junior kroupi": 1460534,
+    "hakimi": 770881,
+    "achraf hakimi": 770881,
+    "jamie vardy": 286119,
+    "vardy": 286119,
+    "francesco acerbi": 73024,
+    "fran acerbi": 73024,
+    "acerbi": 73024,
 }
 
 # Primary slot codes when FBref/Sofascore bucket wingers as ST or generic MF/F.
@@ -385,6 +404,21 @@ KNOWN_PLAYER_PRIMARY: dict[int, dict[str, Any]] = {
         "primary_position": "LB",
         "fpl_position": "DEF",
         "positions": ["LB", "LM", "LW", "CM"],
+    },
+    814594: {
+        "primary_position": "RB",
+        "fpl_position": "DEF",
+        "positions": ["RB", "RWB", "RM"],
+    },
+    173827: {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": ["ST"],
+    },
+    126816: {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB"],
     },
     331209: {
         "primary_position": "CM",
@@ -448,6 +482,9 @@ KNOWN_PLAYER_POSITIONS: dict[int, str] = {
     614446: "D",
     159665: "F",
     8574: "F",
+    814594: "D",
+    173827: "F",
+    126816: "D",
     86202: "D",
     14992: "D",
     15466: "M",
@@ -473,6 +510,9 @@ KNOWN_DISPLAY_NAMES: dict[int, str] = {
     149734: "Aymeric Laporte",
     138572: "Carvajal",
     982780: "Cole Palmer",
+    814594: "Achraf Hakimi",
+    173827: "Jamie Vardy",
+    126816: "Francesco Acerbi",
 }
 
 KNOWN_PRIME_SEASON_SUFFIX: dict[int, str] = {
@@ -497,6 +537,9 @@ KNOWN_PRIME_SEASON_SUFFIX: dict[int, str] = {
     149734: "21/22",
     75407: "13/14",
     66492: "19/20",
+    814594: "19/20",  # Dortmund loan peak (5G/10A Bundesliga)
+    173827: "15/16",  # Leicester title season (24 PL goals)
+    126816: "19/20",  # Lazio Serie A peak (36 apps, 3162', rating 7.25)
 }
 
 # Expected club for historical season picks / primes (Understat fallback when Sofascore blocked).
@@ -538,6 +581,9 @@ KNOWN_SEASON_CONTEXT: dict[int, dict[str, dict[str, str]]] = {
     },
     75407: {"13/14": {"team": "Bayern Munich", "league": "Bundesliga"}},
     66492: {"19/20": {"team": "Bayern Munich", "league": "Bundesliga"}},
+    814594: {"19/20": {"team": "Borussia Dortmund", "league": "Bundesliga"}},
+    173827: {"15/16": {"team": "Leicester City", "league": "Premier League"}},
+    126816: {"19/20": {"team": "Lazio", "league": "Serie A"}},
 }
 
 

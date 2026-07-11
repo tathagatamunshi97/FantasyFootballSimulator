@@ -388,12 +388,18 @@ def _player_gk_contrib(stats: PlayerStats, fit: float) -> tuple[float, float, bo
 
 
 TWO_DM_FORMATIONS = frozenset({"3-4-1-2 (flat)", "4-2-3-1"})
-THREE_BACK_FORMATIONS = frozenset({"3-4-1-2 (flat)", "3-4-1-2 (normal)", "3-5-2", "3-4-3"})
+THREE_BACK_FORMATIONS = frozenset(
+    {"3-4-1-2 (flat)", "3-4-1-2 (normal)", "3-5-2", "3-4-3(1)", "3-4-3(2)"}
+)
 # Wingbacks push higher than fullbacks, but a third centre-back holds the line behind them.
 THREE_AT_BACK_EXPOSURE_SCALE = 0.66
 THREE_AT_BACK_CB_COVER_BLEND = 0.28
 THREE_AT_BACK_CB_SCREEN_WEIGHT = 0.48
 THREE_AT_BACK_NON_DEF_WIDE_SCALE = 0.62
+# LM/RM (attacking wide) push higher than LWB/RWB (balanced wingbacks).
+ATTACKING_WIDE_MID_TRANSITION_SCALE = 1.18
+BALANCED_WINGBACK_TRANSITION_SCALE = 0.95
+_NO_DM_THREE_BACK = frozenset({"3-5-2", "3-4-3(1)", "3-4-3(2)"})
 
 
 def _count_centre_backs(team: FantasyTeam) -> int:
@@ -502,7 +508,7 @@ def _transition_mid_cover(
         # 3-at-the-back with a DM pivot: same DM-heavy shield as 4-3-3 attacking.
         return 0.68 * dm_avg + 0.32 * cm_avg + 0.14 * am_avg
 
-    if formation in {"3-5-2", "3-4-3"} and not dm_cover and cm_cover:
+    if formation in _NO_DM_THREE_BACK and not dm_cover and cm_cover:
         # No dedicated DM: lean on the best central screener in the midfield three/four.
         best = max(cm_cover)
         avg = sum(cm_cover) / len(cm_cover)
@@ -561,6 +567,13 @@ def _compute_transition_risk(
 
         if _counts_as_transition_exposure(formation, slot.slot, role):
             exp = _fullback_attack_exposure(stats, fit)
+            su = slot.slot.upper()
+            if su in {"LM", "RM"}:
+                # Attacking wide mids get forward more → higher transition risk.
+                exp *= ATTACKING_WIDE_MID_TRANSITION_SCALE
+            elif su in {"LWB", "RWB"}:
+                # Balanced wingbacks: contribute both ways, less aggressive push.
+                exp *= BALANCED_WINGBACK_TRANSITION_SCALE
             if cb_count >= 3 and stats.fpl_position != "DEF":
                 exp *= THREE_AT_BACK_NON_DEF_WIDE_SCALE
             fb_exposure.append(exp)
