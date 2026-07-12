@@ -1287,8 +1287,17 @@ def _how_it_unfolded_section(
         )
     if hx or ax:
         paragraphs.append(
-            f"Chance quality (live xG): {home_name} {hx:.2f} – {ax:.2f} {away_name}."
+            f"Pin-board live xG (official chance volume): {home_name} {hx:.2f} – {ax:.2f} {away_name}."
         )
+        if abs(hx - ax) >= 0.75:
+            leader = home_name if hx > ax else away_name
+            trailer = away_name if hx > ax else home_name
+            paragraphs.append(
+                f"{leader} created the clearer chances on the board. "
+                f"Similar attack units do not guarantee similar xG — chance creation, "
+                f"press/resist, box occupation, and spell variance drive volume. "
+                f"{trailer}'s lower live xG is the board story, not a scripted score."
+            )
 
     goals = [e for e in events if e.get("type") in ("goal", "score")]
     if goals:
@@ -1423,7 +1432,9 @@ def _pre_match_stackup_section(
         "paragraphs": [
             (
                 f"Unit ratings before kick-off for {home_name} vs {away_name}. "
-                "These are the edges the pin match could lean on."
+                "Attack unit ≈ finishing + chance creation blend — similar attack scores can still "
+                "produce very different board xG when creation, press/resist, or box occupation diverge. "
+                "Finishing near 1.00 for both sides means little on its own."
             ),
             press_note,
         ],
@@ -1729,10 +1740,45 @@ def enrich_analysis_with_board_result(
         )
 
     out["sections"] = sections
+    board_xg = None
+    if isinstance(ml, dict):
+        raw_xg = ml.get("xg") or ml.get("live_xg") or {}
+        if isinstance(raw_xg, dict) and (
+            raw_xg.get("home") is not None or raw_xg.get("away") is not None
+        ):
+            try:
+                board_xg = {
+                    "home": round(float(raw_xg.get("home") or 0), 2),
+                    "away": round(float(raw_xg.get("away") or 0), 2),
+                }
+            except (TypeError, ValueError):
+                board_xg = None
     out["board_result"] = {
         "home_goals": int(home_goals),
         "away_goals": int(away_goals),
         "event_count": len(events),
         "engine": "tactic_board",
+        "xg": board_xg,
     }
+    # Prefer pin-board xG in key factors over Monte Carlo expected_xg (often ~even).
+    if board_xg and isinstance(out.get("key_factors"), list):
+        out["key_factors"] = [
+            f
+            for f in out["key_factors"]
+            if "expected" not in str(f.get("factor") or "").lower()
+            and "xg" not in str(f.get("factor") or "").lower()
+        ]
+        out["key_factors"].insert(
+            0,
+            {
+                "factor": "Pin-board live xG",
+                "explanation": (
+                    f"Official chance volume from the tactic board "
+                    f"({home_name} {board_xg['home']:.2f} – {board_xg['away']:.2f} {away_name}). "
+                    "Pre-match Monte Carlo xG is ratings-only and can look even when the board did not."
+                ),
+                "home": board_xg["home"],
+                "away": board_xg["away"],
+            },
+        )
     return out

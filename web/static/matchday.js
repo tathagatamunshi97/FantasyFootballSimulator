@@ -108,7 +108,7 @@ function wireMatchdayActions(session) {
       panel.hidden = false;
       panel.innerHTML = `<p class="muted">Generating analysis…</p>`;
       try {
-        const data = await api(`/api/tournament/${tid}/matches/${mid}/analysis`);
+        const data = await fetchTournamentMatchAnalysis(tid, mid);
         if (session.result) {
           session.result.has_analysis = Boolean(data?.analysis);
           session.result.analysis = data.analysis;

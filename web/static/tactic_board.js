@@ -16,7 +16,8 @@
  *     Shallow attack-sequence look-ahead (pass + next 1–2) beats isolated lane-maxing.
  *     Justified switches only; triangles / third-man combos / through balls create chances.
  *     Team matchups (attack–defend, press–resist, flank, aerial) reshape urgency, patterns & marking.
- *     Possession→chance/xG: lower ball-control soft-starves shot volume; maestros (elite xG/xA/KP/dribbles)
+ *     Possession→chance/xG: lower ball-control soft-scales shot volume (floored so a solid attack
+ *     unit cannot be starved to ~half the opponent's xG without an extreme mismatch); maestros
  *     partially offset; high-poss sides muted vs much stronger opp creation + defence/mid-def shield.
  *
  *   Possession states (depth + box occupation, not timers alone):
@@ -1635,13 +1636,22 @@
 
     /**
      * Norm: lower possession-control → fewer chance/shot attempts (soft, not absolute).
+     * Floor stays high enough that a solid attack (~0.55+) still manufactures volume;
+     * extreme possession mismatches no longer half-starve xG on their own.
      * Exception: 1–2 maestros partially offset the volume penalty.
      */
     function possChanceVolumeMul(side) {
       const delta = sidePoss(side) - sidePoss(oppOf(side));
-      let mul = clamp(1 + delta * 0.55, 0.68, 1.16);
+      // Milder slope + higher floor (was 0.55× / 0.68) — avoid 2× xG gaps from poss alone.
+      let mul = clamp(1 + delta * 0.38, 0.82, 1.12);
       if (delta < -0.04) {
-        mul = clamp(mul + sideMaestroBoost(side) * 0.85, 0.68, 1.16);
+        mul = clamp(mul + sideMaestroBoost(side) * 0.85, 0.82, 1.12);
+      }
+      // Solid attack / creation soft-lifts a low-poss side (not a maestro-only escape hatch).
+      if (delta < -0.03) {
+        const atkLift = clamp((sideAttack(side) - 0.48) * 0.22, 0, 0.08);
+        const createLift = clamp((sideCreate(side) - 0.48) * 0.16, 0, 0.05);
+        mul = clamp(mul + atkLift + createLift, 0.82, 1.12);
       }
       return mul;
     }
@@ -3014,7 +3024,8 @@
       if (hold > 0.12 && urg < 0.55) wRecycle *= 1.15;
       if (isFwdRole(carrier.role) && depth >= 0.66) wRecycle = 0;
 
-      // Possession-control delta: low-poss sides recycle more / progress less unless a maestro has the ball
+      // Possession-control delta: low-poss sides recycle more / progress less unless a maestro has the ball.
+      // Starve is capped gently — solid attack units still progress (was min(0.48, ×1.25)).
       const possDelta = sidePoss(carrier.side) - sidePoss(oppOf(carrier.side));
       const maestroOnBall = isMaestroPin(carrier);
       if (possDelta < -0.05) {
@@ -3024,11 +3035,13 @@
           wWing += 0.12;
           wRecycle *= 0.62;
         } else {
-          const starve = Math.min(0.48, -possDelta * 1.25);
+          const atk = sideAttack(carrier.side);
+          const starveCap = atk >= 0.55 ? 0.22 : atk >= 0.48 ? 0.3 : 0.38;
+          const starve = Math.min(starveCap, -possDelta * 0.85);
           wRecycle += starve;
-          wCentral *= 0.9;
-          wCut *= 0.88;
-          wWing *= 0.92;
+          wCentral *= 0.94;
+          wCut *= 0.92;
+          wWing *= 0.95;
         }
       }
       // Compact elite defending suppresses progressive entries for sterile high-poss sides
@@ -4819,10 +4832,10 @@
       const vol = possChanceVolumeMul(side);
       const supp = possessionSuppressionMul(side);
       // High floor: underdogs still fire often; possession control soft-scales volume;
-      // sterile high-poss vs elite create+shield is muted via suppression.
+      // attack weight raised so ~0.59 attack isn't ignored when creation is mediocre.
       return clamp(
-        (0.58 + create * 0.32 + atk * 0.1 - def * 0.02 + (rng() - 0.5) * 0.05) * vol * lerp(1, supp, 0.55),
-        0.48,
+        (0.56 + create * 0.26 + atk * 0.2 - def * 0.02 + (rng() - 0.5) * 0.05) * vol * lerp(1, supp, 0.45),
+        0.52,
         0.92
       );
     }
@@ -4954,8 +4967,11 @@
         ? clamp(1.2 - closest.d / 13, 0.32, 1.22) * (near.length > 1 && near[1].d < 9 ? 1.1 : 1)
         : 0.26;
       const presserBonus = closest && (closest.pin.role === "DM" || closest.pin.role === "CM") ? 1.06 : 1;
-      const pressWin = Math.max(0, 0.032 + edge * 0.16 - possQ * 0.045 - resist * 0.04);
-      return clamp((0.02 + pressWin * stageMul * nearMul * presserBonus + (rng() - 0.5) * 0.022), 0.014, 0.2);
+      // Cap press-edge contribution so rock-bottom resist (~0.08) isn't double-punished
+      // into constant turnovers before the final third.
+      const edgeTerm = Math.min(0.11, Math.max(0, edge) * 0.12);
+      const pressWin = Math.max(0, 0.028 + edgeTerm - possQ * 0.045 - resist * 0.035);
+      return clamp((0.018 + pressWin * stageMul * nearMul * presserBonus + (rng() - 0.5) * 0.022), 0.012, 0.16);
     }
 
     function doTurnover(carrier, detail) {
@@ -5198,17 +5214,17 @@
           0.035 +
           def.stats.interceptions90 * 0.05 +
           def.stats.tackles90 * 0.03 +
-          Math.max(0, edge) * 0.12 * closePress +
-          press * 0.03 * closePress +
+          Math.min(0.08, Math.max(0, edge) * 0.1) * closePress +
+          press * 0.025 * closePress +
           defU * 0.07 -
-          resist * 0.1 -
+          resist * 0.09 -
           possQ * 0.055 -
           atkU * 0.04 -
           from.stats.pass_pct * 0.0015 -
           from.stats.key_passes90 * 0.008 +
           longPen +
           lanePen;
-        const cap = passKind === "long" ? 0.52 : 0.34;
+        const cap = passKind === "long" ? 0.48 : 0.3;
         if (rng() < clamp(pIntercept, 0.025, cap)) {
           outcome = "intercept";
           interceptor = def;
@@ -5486,8 +5502,8 @@
       const pHot = clamp(0.12 + bias * 0.16, 0.04, 0.28);
       const u = rng();
       if (u < pCold) {
-        // Cold day — goals << xG (e.g. 0 from ~3): factor ~0.22–0.62
-        return clamp(0.22 + rng() * 0.4, 0.2, 0.65);
+        // Cold day — goals << xG: factor ~0.35–0.72 (was 0.22–0.65; less blank-night extreme)
+        return clamp(0.35 + rng() * 0.37, 0.32, 0.72);
       }
       if (u < pCold + pHot) {
         // Hot day — goals > xG (e.g. 4–5 from ~3): factor ~1.35–1.95

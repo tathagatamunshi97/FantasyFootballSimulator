@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import random
+import threading
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -637,6 +638,14 @@ _BOARD_LOG_KEYS = ("board_events", "match_log")
 # Bump when formation_fit / slot-fit narrative must invalidate persisted match analysis.
 _FIT_FORMULA_VERSION = 3
 
+# Background analysis builds — avoid holding HTTP past Render's proxy timeout (~30s).
+_analysis_jobs: dict[str, dict[str, Any]] = {}
+_analysis_jobs_lock = threading.Lock()
+
+
+def _analysis_job_key(tournament_id: str, match_id: str) -> str:
+    return f"{tournament_id}:{match_id}"
+
 
 def _analysis_payload_from_report(report: dict[str, Any]) -> dict[str, Any]:
     """Persistable analysis fields — same payloads lab experiments store on the report."""
@@ -650,6 +659,12 @@ def _analysis_payload_from_report(report: dict[str, Any]) -> dict[str, Any]:
 
 def _result_has_analysis(result: dict[str, Any] | None) -> bool:
     return bool(result and isinstance(result.get("analysis"), dict) and result["analysis"])
+
+
+def _analysis_needs_rebuild(result: dict[str, Any] | None) -> bool:
+    if not _result_has_analysis(result):
+        return True
+    return int((result or {}).get("fit_formula_version") or 0) < _FIT_FORMULA_VERSION
 
 
 def match_result_for_api(result: dict[str, Any]) -> dict[str, Any]:
@@ -1761,11 +1776,57 @@ def _analysis_response(result: dict[str, Any], match_id: str) -> dict[str, Any]:
         "matchup": result.get("analysis_matchup"),
         "has_analysis": _result_has_analysis(result),
         "experiment_id": result.get("experiment_id"),
+        "status": "ready",
     }
 
 
-def get_match_analysis(tournament_id: str, match_id: str) -> dict[str, Any]:
-    """Return persisted match analysis; build on first request if missing."""
+def _generating_analysis_response(
+    result: dict[str, Any],
+    match_id: str,
+    *,
+    message: str = "Generating analysis…",
+) -> dict[str, Any]:
+    return {
+        "match_id": match_id,
+        "home": result.get("home"),
+        "away": result.get("away"),
+        "score": result.get("score"),
+        "winner": result.get("winner"),
+        "analysis": None,
+        "squad_analysis": None,
+        "matchup": None,
+        "has_analysis": False,
+        "experiment_id": result.get("experiment_id"),
+        "status": "generating",
+        "message": message,
+    }
+
+
+def _error_analysis_response(
+    result: dict[str, Any] | None,
+    match_id: str,
+    message: str,
+) -> dict[str, Any]:
+    return {
+        "match_id": match_id,
+        "home": (result or {}).get("home"),
+        "away": (result or {}).get("away"),
+        "score": (result or {}).get("score"),
+        "winner": (result or {}).get("winner"),
+        "analysis": None,
+        "squad_analysis": None,
+        "matchup": None,
+        "has_analysis": False,
+        "experiment_id": (result or {}).get("experiment_id"),
+        "status": "error",
+        "message": message,
+    }
+
+
+def _load_played_match_result(
+    tournament_id: str, match_id: str
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
+    """Return (tournament, fixture, result) for a completed match."""
     t = load_tournament(tournament_id)
     if not t:
         raise KeyError("Tournament not found")
@@ -1779,81 +1840,37 @@ def get_match_analysis(tournament_id: str, match_id: str) -> dict[str, Any]:
     result = (t.get("match_results") or {}).get(result_id)
     if not result:
         raise KeyError(f"Result for '{match_id}' not found")
+    return t, fx, result
 
-    if not _result_has_analysis(result):
-        if _import_analysis_from_experiment(result):
-            save_tournament(t)
 
-    if not _result_has_analysis(result):
-        # First "See analysis" click — build once and persist (does not change score).
-        return generate_match_analysis(tournament_id, match_id)
+def _build_and_persist_match_analysis(
+    tournament_id: str,
+    match_id: str,
+    *,
+    force: bool = False,
+) -> dict[str, Any]:
+    """CPU-heavy build + disk persist. Run only from a background thread."""
+    t, fx, result = _load_played_match_result(tournament_id, match_id)
 
-    # Stale CB/slot-fit narratives (e.g. Ramos 0.79) — rebuild when formula version lags.
-    if int(result.get("fit_formula_version") or 0) < _FIT_FORMULA_VERSION:
-        try:
-            if result.get("engine") == "tactic_board":
-                _build_and_attach_board_analysis(
-                    t, result, tournament_id=tournament_id, match_id=match_id
-                )
-            else:
-                # Non-board: rebuild squad + matchup ratings with current formation_fit.
-                home = result.get("home") or fx.get("home")
-                away = result.get("away") or fx.get("away")
-                if home and away:
-                    n_sims = int(
-                        result.get("simulations")
-                        or (t.get("settings") or {}).get("simulations_per_match")
-                        or 10000
-                    )
-                    team_a, team_b = _load_teams_for_match(
-                        home, away, tournament_id=tournament_id, match_id=match_id
-                    )
-                    report, _snapshot = _run_simulation(
-                        home, away, match_id, n_sims, team_a=team_a, team_b=team_b
-                    )
-                    result.update(_analysis_payload_from_report(report))
+    # Board-official matches: always (re)build ratings + board narrative when forced
+    # or when missing/stale.
+    if result.get("engine") == "tactic_board":
+        if force or _analysis_needs_rebuild(result):
+            _build_and_attach_board_analysis(
+                t, result, tournament_id=tournament_id, match_id=match_id
+            )
             result["fit_formula_version"] = _FIT_FORMULA_VERSION
             save_tournament(t)
-        except Exception:
-            # Prefer serving stale analysis over failing the view.
-            pass
-
-    return _analysis_response(result, match_id)
-
-
-def generate_match_analysis(tournament_id: str, match_id: str) -> dict[str, Any]:
-    """Rebuild and persist analysis for a completed match without changing the score."""
-    t = load_tournament(tournament_id)
-    if not t:
-        raise KeyError("Tournament not found")
-    found = _find_fixture(t, match_id)
-    if not found:
-        raise KeyError(f"Fixture '{match_id}' not found")
-    _, fx = found
-    if not fx.get("played"):
-        raise ValueError(f"Match {match_id} has not been played yet")
-    result_id = fx.get("result_id") or match_id
-    result = (t.get("match_results") or {}).get(result_id)
-    if not result:
-        raise KeyError(f"Result for '{match_id}' not found")
-
-    # Board-official matches: always (re)build ratings + board narrative
-    if result.get("engine") == "tactic_board":
-        _build_and_attach_board_analysis(
-            t, result, tournament_id=tournament_id, match_id=match_id
-        )
-        result["fit_formula_version"] = _FIT_FORMULA_VERSION
-        save_tournament(t)
         return _analysis_response(result, match_id)
 
     if not _result_has_analysis(result) and _import_analysis_from_experiment(result):
         save_tournament(t)
         return _analysis_response(result, match_id)
 
-    # Rebuild when fit formula is stale (even if narrative already exists).
     if (
-        _result_has_analysis(result)
-        and int(result.get("fit_formula_version") or 0) >= _FIT_FORMULA_VERSION
+        not force
+        and _result_has_analysis(result)
+        and not _analysis_needs_rebuild(result)
     ):
         return _analysis_response(result, match_id)
 
@@ -1876,6 +1893,104 @@ def generate_match_analysis(tournament_id: str, match_id: str) -> dict[str, Any]
     result.update(_analysis_payload_from_report(report))
     save_tournament(t)
     return _analysis_response(result, match_id)
+
+
+def _start_analysis_job(
+    tournament_id: str,
+    match_id: str,
+    result: dict[str, Any],
+    *,
+    force: bool = False,
+) -> dict[str, Any]:
+    """Start (or join) a background analysis build; return generating/error payload."""
+    key = _analysis_job_key(tournament_id, match_id)
+    with _analysis_jobs_lock:
+        job = _analysis_jobs.get(key)
+        if job and job.get("status") == "generating":
+            return _generating_analysis_response(result, match_id)
+        if job and job.get("status") == "error" and not force:
+            # Surface once, then clear so the next click can retry.
+            message = str(job.get("error") or "Analysis generation failed")
+            _analysis_jobs.pop(key, None)
+            return _error_analysis_response(result, match_id, message)
+        _analysis_jobs[key] = {
+            "status": "generating",
+            "force": force,
+            "started_at": _now(),
+            "error": None,
+        }
+
+    def _job() -> None:
+        try:
+            _build_and_persist_match_analysis(
+                tournament_id, match_id, force=force
+            )
+            with _analysis_jobs_lock:
+                _analysis_jobs[key] = {
+                    "status": "ready",
+                    "finished_at": _now(),
+                    "error": None,
+                }
+        except Exception as exc:
+            with _analysis_jobs_lock:
+                _analysis_jobs[key] = {
+                    "status": "error",
+                    "finished_at": _now(),
+                    "error": str(exc),
+                }
+
+    threading.Thread(target=_job, daemon=True, name=f"analysis-{key}").start()
+    return _generating_analysis_response(result, match_id)
+
+
+def get_match_analysis(tournament_id: str, match_id: str) -> dict[str, Any]:
+    """Return persisted analysis, or start a background build (status=generating)."""
+    t, _fx, result = _load_played_match_result(tournament_id, match_id)
+
+    if not _result_has_analysis(result):
+        if _import_analysis_from_experiment(result):
+            save_tournament(t)
+
+    key = _analysis_job_key(tournament_id, match_id)
+    with _analysis_jobs_lock:
+        job = dict(_analysis_jobs.get(key) or {})
+
+    if job.get("status") == "generating":
+        # If we already have text (stale refresh in flight), keep serving it.
+        if _result_has_analysis(result):
+            return _analysis_response(result, match_id)
+        return _generating_analysis_response(result, match_id)
+
+    if job.get("status") == "error":
+        message = str(job.get("error") or "Analysis generation failed")
+        with _analysis_jobs_lock:
+            _analysis_jobs.pop(key, None)
+        if _result_has_analysis(result):
+            # Prefer stale narrative over failing the view after a failed refresh.
+            return _analysis_response(result, match_id)
+        return _error_analysis_response(result, match_id, message)
+
+    if job.get("status") == "ready":
+        with _analysis_jobs_lock:
+            _analysis_jobs.pop(key, None)
+        # Reload — worker persisted to disk after the in-memory snapshot above.
+        t, _fx, result = _load_played_match_result(tournament_id, match_id)
+
+    if _result_has_analysis(result) and not _analysis_needs_rebuild(result):
+        return _analysis_response(result, match_id)
+
+    if _result_has_analysis(result) and _analysis_needs_rebuild(result):
+        # Serve current text immediately; refresh fit formula in the background.
+        _start_analysis_job(tournament_id, match_id, result, force=False)
+        return _analysis_response(result, match_id)
+
+    return _start_analysis_job(tournament_id, match_id, result, force=False)
+
+
+def generate_match_analysis(tournament_id: str, match_id: str) -> dict[str, Any]:
+    """Admin backfill: start a background rebuild (does not change the score)."""
+    _t, _fx, result = _load_played_match_result(tournament_id, match_id)
+    return _start_analysis_job(tournament_id, match_id, result, force=True)
 
 
 def accept_match_result(tournament_id: str, match_id: str) -> dict[str, Any]:

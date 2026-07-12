@@ -64,6 +64,31 @@ async function api(path, options = {}) {
   return data;
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** Poll tournament match analysis until ready (202 generating → 200 ready). */
+async function fetchTournamentMatchAnalysis(tournamentId, matchId, { force = false } = {}) {
+  const path = `/api/tournament/${tournamentId}/matches/${matchId}/analysis`;
+  const maxAttempts = 90;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const data =
+      force && attempt === 0
+        ? await api(path, { method: "POST" })
+        : await api(path);
+    if (data?.status === "error") {
+      throw new Error(data.message || "Analysis generation failed");
+    }
+    if (data?.analysis || data?.status === "ready" || data?.has_analysis) {
+      return data;
+    }
+    // status === "generating" (HTTP 202) or missing payload — keep polling
+    await sleep(2000);
+  }
+  throw new Error("Analysis is still generating — try again in a moment.");
+}
+
 function getAdminToken() {
   return localStorage.getItem("sim_admin_token") || "";
 }
@@ -408,10 +433,18 @@ function renderAnalysis(analysis) {
     .join("");
 
   const heading = analysis.board_result ? "Match analysis" : "Why this result?";
+  const boardXg = analysis.board_result?.xg;
+  const boardXgHtml =
+    boardXg && (boardXg.home != null || boardXg.away != null)
+      ? `<p class="muted" style="margin:0.35rem 0 0">Pin-board live xG: <strong>${esc(
+          String(boardXg.home ?? "—")
+        )} – ${esc(String(boardXg.away ?? "—"))}</strong> (official chance volume — not Monte Carlo)</p>`
+      : "";
   return `
     <section class="card analysis-card" style="margin-top:1rem">
       <h2>${heading}</h2>
       <p class="analysis-verdict">${esc(analysis.summary)}</p>
+      ${boardXgHtml}
       ${factors ? `<h3 style="font-size:0.9rem;margin-top:1rem">Key factors</h3><ul class="analysis-bullets">${factors}</ul>` : ""}
       <div class="analysis-sections" style="margin-top:1rem">${sections}</div>
     </section>`;

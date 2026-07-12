@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, Header, HTTPException
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -1211,16 +1211,28 @@ def get_tournament_api(tournament_id: str) -> dict:
 
 
 @app.get("/api/tournament/{tournament_id}/matches/{match_id}/analysis")
-def get_tournament_match_analysis_api(tournament_id: str, match_id: str) -> dict:
-    """Return match analysis; builds and persists on first request if missing."""
+def get_tournament_match_analysis_api(tournament_id: str, match_id: str):
+    """Return match analysis, or 202 while a background build is in progress.
+
+    First click starts the job (does not hold the HTTP request for Monte Carlo).
+    Poll this endpoint until ``status`` is ``ready``.
+    """
     try:
-        return tournament.get_match_analysis(tournament_id, match_id)
+        payload = tournament.get_match_analysis(tournament_id, match_id)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if payload.get("status") == "generating":
+        return JSONResponse(payload, status_code=202)
+    if payload.get("status") == "error":
+        raise HTTPException(
+            status_code=500,
+            detail=payload.get("message") or "Analysis generation failed",
+        )
+    return payload
 
 
 @app.post("/api/tournament/{tournament_id}/matches/{match_id}/analysis")
@@ -1228,17 +1240,25 @@ def generate_tournament_match_analysis_api(
     tournament_id: str,
     match_id: str,
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
-) -> dict:
-    """Admin backfill: rebuild analysis for a completed match (does not change score)."""
+):
+    """Admin backfill: start a background rebuild (does not change score)."""
     _check_admin(x_admin_token)
     try:
-        return tournament.generate_match_analysis(tournament_id, match_id)
+        payload = tournament.generate_match_analysis(tournament_id, match_id)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Analysis generation failed: {exc}") from exc
+    if payload.get("status") == "generating":
+        return JSONResponse(payload, status_code=202)
+    if payload.get("status") == "error":
+        raise HTTPException(
+            status_code=500,
+            detail=payload.get("message") or "Analysis generation failed",
+        )
+    return payload
 
 
 @app.post("/api/tournament")

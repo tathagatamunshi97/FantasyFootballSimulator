@@ -483,9 +483,7 @@ function analysisButtonLabel(matchId) {
 }
 
 async function fetchMatchAnalysis(matchId, { force = false } = {}) {
-  const path = `/api/tournament/${tournamentId}/matches/${matchId}/analysis`;
-  // GET builds once if missing; POST (admin) force-rebuilds.
-  const data = force ? await api(path, { method: "POST" }) : await api(path);
+  const data = await fetchTournamentMatchAnalysis(tournamentId, matchId, { force });
   analysisCache[matchId] = data;
   if (currentTournament?.match_results?.[matchId]) {
     currentTournament.match_results[matchId].has_analysis = Boolean(data?.analysis);

@@ -711,7 +711,8 @@ def compute_unit_ratings(
 
     creation_top = sorted(creation_scores, reverse=True)[:5]
 
-    finishing = _clamp(sum(finishing_top) / 2.0 if finishing_top else 0.0)
+    # Average top finishers (not /2) — /2 saturated almost every squad at 1.00 after atk-fin.
+    finishing = _clamp(sum(finishing_top) / 3.0 if finishing_top else 0.0)
 
     chance_creation = _clamp(sum(creation_top) / 3.0 if creation_top else 0.0)
 
@@ -828,7 +829,8 @@ def compute_unit_ratings_by_slot(
             w = 1.0 if role == "dm" else 0.72
             midfield_defence_scores.append(_player_midfield_defence_contrib(stats, fit) * w)
 
-    finishing = _top_n_avg(finishing_scores, 3, divisor=2.0)
+    # Top-3 mean (divisor=3): keeps elite above mid-table without everyone at 1.00.
+    finishing = _top_n_avg(finishing_scores, 3, divisor=3.0)
     chance_creation = _top_n_avg(creation_scores, 3, divisor=3.0)
     attack = _clamp(_avg(attack_scores) if attack_scores else 0.56 * finishing + 0.44 * chance_creation)
     midfield = _avg(midfield_scores, default=0.28)
