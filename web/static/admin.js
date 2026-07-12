@@ -87,11 +87,15 @@ function showTab(name) {
   document.getElementById("panel-simulations").hidden = name !== "simulations";
   document.getElementById("panel-tournament").hidden = name !== "tournament";
   document.getElementById("panel-teams").hidden = name !== "teams";
+  document.getElementById("panel-lineups").hidden = name !== "lineups";
   if (name === "tournament" && getAdminTokenFromUI()) {
     loadTournamentPanel().catch((e) => tLog(e.message));
   }
   if (name === "teams" && getAdminTokenFromUI()) {
     loadTeamPasswords().catch((e) => pwLog(e.message));
+  }
+  if (name === "lineups" && getAdminTokenFromUI()) {
+    loadTeamLineups().catch((e) => lineupsLog(e.message));
   }
   if (location.hash !== `#${name}`) {
     history.replaceState(null, "", `#${name}`);
@@ -664,6 +668,81 @@ async function resetTeamPassword(teamName) {
   }
 }
 
+// --- Squad lineups / finalize locks ---
+
+function lineupsLog(msg) {
+  const el = document.getElementById("lineupsLog");
+  if (el) el.textContent = msg;
+}
+
+function renderLineupsTable(teams) {
+  if (!teams.length) return "<p class='muted'>No saved lineups yet.</p>";
+  const rows = teams
+    .map((t) => {
+      const lockBadge = t.locked
+        ? "<span class='badge ready'>Locked</span>"
+        : t.finalized
+          ? "<span class='badge muted'>Prior round</span>"
+          : "<span class='badge'>Open</span>";
+      const roundLabel = t.finalized_round_label || t.finalized_round || "—";
+      const unfinalizeBtn = t.finalized
+        ? `<button type="button" class="btn-ghost unfinalize-team" data-team="${esc(t.team_name)}">Unfinalize</button>`
+        : "—";
+      return `<tr>
+        <td>${esc(t.team_name)}</td>
+        <td class="muted">${esc(t.formation || "—")}</td>
+        <td>${lockBadge}</td>
+        <td class="muted">${esc(roundLabel)}</td>
+        <td>${unfinalizeBtn}</td>
+      </tr>`;
+    })
+    .join("");
+  return `<table>
+    <thead><tr><th>Team</th><th>Formation</th><th>Status</th><th>Finalized for</th><th>Actions</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+async function loadTeamLineups() {
+  const data = await adminApi("/api/admin/team-lineups");
+  const teams = data.teams || [];
+  document.getElementById("lineupsTable").innerHTML = renderLineupsTable(teams);
+  document.getElementById("lineupsTable").querySelectorAll(".unfinalize-team").forEach((btn) => {
+    btn.addEventListener("click", () => unfinalizeTeam(btn.dataset.team));
+  });
+  const locked = teams.filter((t) => t.locked).length;
+  const finalized = teams.filter((t) => t.finalized).length;
+  lineupsLog(`Loaded ${teams.length} lineup(s); ${finalized} finalized (${locked} locked for current round).`);
+}
+
+async function unfinalizeTeam(teamName) {
+  if (!confirm(`Unfinalize "${teamName}"? They will be able to edit their squad again.`)) return;
+  try {
+    lineupsLog(`Unfinalizing ${teamName}…`);
+    await adminApi(`/api/admin/team-lineups/${encodeURIComponent(teamName)}/unfinalize`, {
+      method: "POST",
+    });
+    lineupsLog(`Unfinalized ${teamName}.`);
+    await loadTeamLineups();
+  } catch (err) {
+    lineupsLog(`Error: ${err.message}`);
+  }
+}
+
+async function unfinalizeAllTeams() {
+  if (!confirm("Unfinalize all teams? Every squad lock will be cleared (saved lineups are kept).")) {
+    return;
+  }
+  try {
+    lineupsLog("Unfinalizing all teams…");
+    const res = await adminApi("/api/admin/team-lineups/unfinalize-all", { method: "POST" });
+    lineupsLog(res.message || "Done.");
+    await loadTeamLineups();
+  } catch (err) {
+    lineupsLog(`Error: ${err.message}`);
+  }
+}
+
 // --- Init ---
 
 document.getElementById("token").value = getAdminToken() || "";
@@ -676,6 +755,8 @@ document.getElementById("testRunBtn").addEventListener("click", runTestSimulatio
 
 document.getElementById("createBtn").addEventListener("click", () => createTournament().catch((e) => tLog(e.message)));
 document.getElementById("refreshPwBtn").addEventListener("click", () => loadTeamPasswords().catch((e) => pwLog(e.message)));
+document.getElementById("refreshLineupsBtn").addEventListener("click", () => loadTeamLineups().catch((e) => lineupsLog(e.message)));
+document.getElementById("unfinalizeAllBtn").addEventListener("click", () => unfinalizeAllTeams().catch((e) => lineupsLog(e.message)));
 document.getElementById("tSelect").addEventListener("change", (e) => {
   currentId = e.target.value || null;
   if (currentId) loadCurrent().catch((err) => tLog(err.message));
@@ -704,7 +785,9 @@ const initialTab =
     ? "tournament"
     : location.hash === "#teams"
       ? "teams"
-      : "simulations";
+      : location.hash === "#lineups"
+        ? "lineups"
+        : "simulations";
 showTab(initialTab);
 
 if (getAdminToken()) {

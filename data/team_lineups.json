@@ -76,86 +76,11 @@
       "season": "13/14"
     },
     "updated_at": "2026-07-11T21:53:20.806377+00:00",
-    "finalized": true,
-    "finalized_at": "2026-07-11T21:53:20.806346+00:00",
-    "finalized_round": "group:B:2",
-    "finalized_round_label": "Group B · Matchday 2",
-    "finalized_snapshot": {
-      "formation": "4-3-3 flat",
-      "lineup": [
-        {
-          "slot": "GK",
-          "player": "Mike Maignan",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "RB",
-          "player": "Josip Stanišić",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB1",
-          "player": "Dayot Upamecano",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB2",
-          "player": "Pau Cubarsí",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "LB",
-          "player": "Marc Cucurella",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "DM",
-          "player": "Manuel Locatelli",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CM1",
-          "player": "Declan Rice",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CM2",
-          "player": "Enzo Fernández",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "RW",
-          "player": "Cole Palmer",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "ST",
-          "player": "Gonzalo Higuaín",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "LW",
-          "player": "Luis Díaz",
-          "captain": false,
-          "vice_captain": false
-        }
-      ],
-      "prime_player": "Cole Palmer",
-      "peak_season": {
-        "player": "Gonzalo Higuaín",
-        "season": "13/14"
-      }
-    }
+    "finalized": false,
+    "finalized_at": null,
+    "finalized_round": null,
+    "finalized_round_label": null,
+    "finalized_snapshot": null
   },
   "Chintu": {
     "team_name": "Chintu",
@@ -234,86 +159,11 @@
       "season": "17/18"
     },
     "updated_at": "2026-07-11T21:55:06.202718+00:00",
-    "finalized": true,
-    "finalized_at": "2026-07-11T21:55:06.202699+00:00",
-    "finalized_round": "group:A:2",
-    "finalized_round_label": "Group A · Matchday 2",
-    "finalized_snapshot": {
-      "formation": "4-3-3 attacking",
-      "lineup": [
-        {
-          "slot": "GK",
-          "player": "Jordan Pickford",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "RB",
-          "player": "Djed Spence",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB1",
-          "player": "Sergio Ramos",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB2",
-          "player": "Malick Thiaw",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "LB",
-          "player": "Noussair Mazraoui",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "DM",
-          "player": "Fernandinho",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CM",
-          "player": "Nicolò Barella",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "AM",
-          "player": "Bruno Fernandes",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "RW",
-          "player": "Jérémy Doku",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "ST",
-          "player": "Erling Haaland",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "LW",
-          "player": "Leandro Trossard",
-          "captain": false,
-          "vice_captain": false
-        }
-      ],
-      "prime_player": "Sergio Ramos",
-      "peak_season": {
-        "player": "Fernandinho",
-        "season": "17/18"
-      }
-    }
+    "finalized": false,
+    "finalized_at": null,
+    "finalized_round": null,
+    "finalized_round_label": null,
+    "finalized_snapshot": null
   },
   "DDR": {
     "team_name": "DDR",
@@ -392,86 +242,11 @@
       "season": "15/16"
     },
     "updated_at": "2026-07-11T18:20:10.265435+00:00",
-    "finalized": true,
-    "finalized_at": "2026-07-11T18:20:10.265420+00:00",
-    "finalized_round": "group:A:1",
-    "finalized_round_label": "Group A · Matchday 1",
-    "finalized_snapshot": {
-      "formation": "4-2-3-1",
-      "lineup": [
-        {
-          "slot": "GK",
-          "player": "Gregor Kobel",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "RB",
-          "player": "Carvajal",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB1",
-          "player": "Marc Guéhi",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB2",
-          "player": "Jan Paul van Hecke",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "LB",
-          "player": "Konrad Laimer",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "DM1",
-          "player": "Ryan Gravenberch",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "DM2",
-          "player": "Arturo Vidal",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "RW",
-          "player": "Lamine Yamal",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "AM",
-          "player": "Arda Güler",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "LW",
-          "player": "Yan Diomande",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "ST",
-          "player": "Cristiano Ronaldo",
-          "captain": false,
-          "vice_captain": false
-        }
-      ],
-      "prime_player": "Cristiano Ronaldo",
-      "peak_season": {
-        "player": "Arturo Vidal",
-        "season": "15/16"
-      }
-    }
+    "finalized": false,
+    "finalized_at": null,
+    "finalized_round": null,
+    "finalized_round_label": null,
+    "finalized_snapshot": null
   },
   "Dilshad": {
     "team_name": "Dilshad",
@@ -550,86 +325,11 @@
       "season": "16/17"
     },
     "updated_at": "2026-07-11T18:22:43.653781+00:00",
-    "finalized": true,
-    "finalized_at": "2026-07-11T18:22:43.653759+00:00",
-    "finalized_round": "group:B:1",
-    "finalized_round_label": "Group B · Matchday 1",
-    "finalized_snapshot": {
-      "formation": "4-3-3 flat",
-      "lineup": [
-        {
-          "slot": "GK",
-          "player": "Manuel Neuer",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "RB",
-          "player": "Nordi Mukiele",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB1",
-          "player": "Amir Rrahmani",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB2",
-          "player": "Kim Min-jae",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "LB",
-          "player": "Marcelo",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "DM",
-          "player": "Elliot Anderson",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CM1",
-          "player": "Federico Valverde",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CM2",
-          "player": "Dani Olmo",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "RW",
-          "player": "Christian Pulišić",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "ST",
-          "player": "Hugo Ekitiké",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "LW",
-          "player": "Kylian Mbappé",
-          "captain": false,
-          "vice_captain": false
-        }
-      ],
-      "prime_player": "Manuel Neuer",
-      "peak_season": {
-        "player": "Marcelo",
-        "season": "16/17"
-      }
-    }
+    "finalized": false,
+    "finalized_at": null,
+    "finalized_round": null,
+    "finalized_round_label": null,
+    "finalized_snapshot": null
   },
   "Kinjal+Sayan C": {
     "team_name": "Kinjal+Sayan C",
@@ -708,86 +408,11 @@
       "season": "15/16"
     },
     "updated_at": "2026-07-11T18:25:26.280725+00:00",
-    "finalized": true,
-    "finalized_at": "2026-07-11T18:25:26.280713+00:00",
-    "finalized_round": "group:A:1",
-    "finalized_round_label": "Group A · Matchday 1",
-    "finalized_snapshot": {
-      "formation": "4-3-3 flat",
-      "lineup": [
-        {
-          "slot": "GK",
-          "player": "Marco Carnesecchi",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "RB",
-          "player": "Jules Koundé",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB1",
-          "player": "Willian Pacho",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB2",
-          "player": "Diego Godín",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "LB",
-          "player": "Nico O'Reilly",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "DM",
-          "player": "Casemiro",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CM1",
-          "player": "Bruno Guimarães",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CM2",
-          "player": "João Neves",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "RW",
-          "player": "Michael Olise",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "ST",
-          "player": "Harry Kane",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "LW",
-          "player": "Rafael Leão",
-          "captain": false,
-          "vice_captain": false
-        }
-      ],
-      "prime_player": "Casemiro",
-      "peak_season": {
-        "player": "Diego Godín",
-        "season": "15/16"
-      }
-    }
+    "finalized": false,
+    "finalized_at": null,
+    "finalized_round": null,
+    "finalized_round_label": null,
+    "finalized_snapshot": null
   },
   "KP+SS": {
     "team_name": "KP+SS",
@@ -866,86 +491,11 @@
       "season": "18/19"
     },
     "updated_at": "2026-07-11T18:27:24.721041+00:00",
-    "finalized": true,
-    "finalized_at": "2026-07-11T18:27:24.721023+00:00",
-    "finalized_round": "group:B:1",
-    "finalized_round_label": "Group B · Matchday 1",
-    "finalized_snapshot": {
-      "formation": "4-3-3 flat",
-      "lineup": [
-        {
-          "slot": "GK",
-          "player": "David Raya",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "RB",
-          "player": "Reece James",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB1",
-          "player": "Dean Huijsen",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB2",
-          "player": "Aymeric Laporte",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "LB",
-          "player": "Alphonso Davies",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "DM",
-          "player": "Moisés Caicedo",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CM1",
-          "player": "Sandro Tonali",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CM2",
-          "player": "Giovani Lo Celso",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "RW",
-          "player": "Ousmane Dembélé",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "ST",
-          "player": "Lautaro Martínez",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "LW",
-          "player": "Jamal Musiala",
-          "captain": false,
-          "vice_captain": false
-        }
-      ],
-      "prime_player": "Aymeric Laporte",
-      "peak_season": {
-        "player": "Giovani Lo Celso",
-        "season": "18/19"
-      }
-    }
+    "finalized": false,
+    "finalized_at": null,
+    "finalized_round": null,
+    "finalized_round_label": null,
+    "finalized_snapshot": null
   },
   "Moga+Sanmitro": {
     "team_name": "Moga+Sanmitro",
@@ -1024,86 +574,11 @@
       "season": "13/14"
     },
     "updated_at": "2026-07-11T18:30:14.472538+00:00",
-    "finalized": true,
-    "finalized_at": "2026-07-11T18:30:14.472517+00:00",
-    "finalized_round": "group:B:2",
-    "finalized_round_label": "Group B · Matchday 2",
-    "finalized_snapshot": {
-      "formation": "4-3-3 attacking",
-      "lineup": [
-        {
-          "slot": "GK",
-          "player": "Emiliano Martínez",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "RB",
-          "player": "Jurriën Timber",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB1",
-          "player": "Rúben Dias",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB2",
-          "player": "Joško Gvardiol",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "LB",
-          "player": "Riccardo Calafiori",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "DM",
-          "player": "Rodri",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CM",
-          "player": "Fabián Ruiz",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "AM",
-          "player": "Jude Bellingham",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "RW",
-          "player": "Ángel Di María",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "ST",
-          "player": "Julián Alvarez",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "LW",
-          "player": "Khvicha Kvaratskhelia",
-          "captain": false,
-          "vice_captain": false
-        }
-      ],
-      "prime_player": "Rodri",
-      "peak_season": {
-        "player": "Ángel Di María",
-        "season": "13/14"
-      }
-    }
+    "finalized": false,
+    "finalized_at": null,
+    "finalized_round": null,
+    "finalized_round_label": null,
+    "finalized_snapshot": null
   },
   "Raktim": {
     "team_name": "Raktim",
@@ -1182,86 +657,11 @@
       "season": "16/17"
     },
     "updated_at": "2026-07-11T18:34:39.124219+00:00",
-    "finalized": true,
-    "finalized_at": "2026-07-11T18:34:39.124206+00:00",
-    "finalized_round": "group:A:1",
-    "finalized_round_label": "Group A · Matchday 1",
-    "finalized_snapshot": {
-      "formation": "4-3-3 flat",
-      "lineup": [
-        {
-          "slot": "GK",
-          "player": "Nick Pope",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "RB",
-          "player": "Achraf Hakimi",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB1",
-          "player": "Jonathan Tah",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB2",
-          "player": "Éder Militão",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "LB",
-          "player": "Antonee Robinson",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "DM",
-          "player": "Youri Tielemans",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CM1",
-          "player": "Mikel Merino",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CM2",
-          "player": "Eberechi Eze",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "RW",
-          "player": "Takefusa Kubo",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "ST",
-          "player": "Viktor Gyökeres",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "LW",
-          "player": "Alexis Sánchez",
-          "captain": false,
-          "vice_captain": false
-        }
-      ],
-      "prime_player": "Achraf Hakimi",
-      "peak_season": {
-        "player": "Alexis Sánchez",
-        "season": "16/17"
-      }
-    }
+    "finalized": false,
+    "finalized_at": null,
+    "finalized_round": null,
+    "finalized_round_label": null,
+    "finalized_snapshot": null
   },
   "Rishav": {
     "team_name": "Rishav",
@@ -1340,86 +740,11 @@
       "season": "15/16"
     },
     "updated_at": "2026-07-11T18:41:09.258694+00:00",
-    "finalized": true,
-    "finalized_at": "2026-07-11T18:41:09.258679+00:00",
-    "finalized_round": "group:B:1",
-    "finalized_round_label": "Group B · Matchday 1",
-    "finalized_snapshot": {
-      "formation": "4-3-3 attacking",
-      "lineup": [
-        {
-          "slot": "GK",
-          "player": "Thibaut Courtois",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "RB",
-          "player": "Denzel Dumfries",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB1",
-          "player": "Marquinhos",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB2",
-          "player": "William Saliba",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "LB",
-          "player": "Alejandro Balde",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "DM",
-          "player": "Aleksandar Pavlović",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CM",
-          "player": "Tijjani Reijnders",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "AM",
-          "player": "Kevin De Bruyne",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "RW",
-          "player": "Antoine Semenyo",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "ST",
-          "player": "Luis Suárez",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "LW",
-          "player": "Kenan Yıldız",
-          "captain": false,
-          "vice_captain": false
-        }
-      ],
-      "prime_player": "Kevin De Bruyne",
-      "peak_season": {
-        "player": "Luis Suárez",
-        "season": "15/16"
-      }
-    }
+    "finalized": false,
+    "finalized_at": null,
+    "finalized_round": null,
+    "finalized_round_label": null,
+    "finalized_snapshot": null
   },
   "Rohan + AnaC": {
     "team_name": "Rohan + AnaC",
@@ -1498,86 +823,11 @@
       "season": "17/18"
     },
     "updated_at": "2026-07-11T18:47:20.796527+00:00",
-    "finalized": true,
-    "finalized_at": "2026-07-11T18:47:20.796462+00:00",
-    "finalized_round": "group:A:1",
-    "finalized_round_label": "Group A · Matchday 1",
-    "finalized_snapshot": {
-      "formation": "3-4-3(1)",
-      "lineup": [
-        {
-          "slot": "GK",
-          "player": "Matz Sels",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB1",
-          "player": "Micky van de Ven",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB2",
-          "player": "Gabriel Magalhães",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB3",
-          "player": "Alessandro Bastoni",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "RWB",
-          "player": "Daniel Muñoz",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "DM",
-          "player": "Aurélien Tchouaméni",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CM",
-          "player": "Alexis Mac Allister",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "LWB",
-          "player": "Nathaniel Brown",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "RW",
-          "player": "Mohamed Salah",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "ST",
-          "player": "Roberto Firmino",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "LW",
-          "player": "Vinícius Júnior",
-          "captain": false,
-          "vice_captain": false
-        }
-      ],
-      "prime_player": "Mohamed Salah",
-      "peak_season": {
-        "player": "Roberto Firmino",
-        "season": "17/18"
-      }
-    }
+    "finalized": false,
+    "finalized_at": null,
+    "finalized_round": null,
+    "finalized_round_label": null,
+    "finalized_snapshot": null
   },
   "Ryan": {
     "team_name": "Ryan",
@@ -1656,86 +906,11 @@
       "season": "14/15"
     },
     "updated_at": "2026-07-11T18:51:33.137883+00:00",
-    "finalized": true,
-    "finalized_at": "2026-07-11T18:51:33.137865+00:00",
-    "finalized_round": "group:B:1",
-    "finalized_round_label": "Group B · Matchday 1",
-    "finalized_snapshot": {
-      "formation": "3-4-3(2)",
-      "lineup": [
-        {
-          "slot": "GK",
-          "player": "Unai Simón",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB1",
-          "player": "Cristian Romero",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB2",
-          "player": "Virgil van Dijk",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB3",
-          "player": "Piero Hincapié",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "RM",
-          "player": "Marcos Llorente",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "DM",
-          "player": "Martín Zubimendi",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CM",
-          "player": "Dominik Szoboszlai",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "LM",
-          "player": "Alejandro Grimaldo",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "RW",
-          "player": "Lionel Messi",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "ST",
-          "player": "Robert Lewandowski",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "LW",
-          "player": "Neymar",
-          "captain": false,
-          "vice_captain": false
-        }
-      ],
-      "prime_player": "Lionel Messi",
-      "peak_season": {
-        "player": "Neymar",
-        "season": "14/15"
-      }
-    }
+    "finalized": false,
+    "finalized_at": null,
+    "finalized_round": null,
+    "finalized_round_label": null,
+    "finalized_snapshot": null
   },
   "Sohom+Mayukh": {
     "team_name": "Sohom+Mayukh",
@@ -1814,86 +989,11 @@
       "season": "17/18"
     },
     "updated_at": "2026-07-11T19:25:17.851751+00:00",
-    "finalized": true,
-    "finalized_at": "2026-07-11T19:25:17.851721+00:00",
-    "finalized_round": "group:B:1",
-    "finalized_round_label": "Group B · Matchday 1",
-    "finalized_snapshot": {
-      "formation": "3-4-3(1)",
-      "lineup": [
-        {
-          "slot": "GK",
-          "player": "Senne Lammens",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB1",
-          "player": "Francesco Acerbi",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB2",
-          "player": "Harry Maguire",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB3",
-          "player": "Antonio Rüdiger",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "RWB",
-          "player": "Dani Alves",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "DM",
-          "player": "Joshua Kimmich",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CM",
-          "player": "Pedri",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "LWB",
-          "player": "Federico Dimarco",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "RW",
-          "player": "Bryan Mbeumo",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "ST",
-          "player": "Jamie Vardy",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "LW",
-          "player": "Raphinha",
-          "captain": false,
-          "vice_captain": false
-        }
-      ],
-      "prime_player": "Jamie Vardy",
-      "peak_season": {
-        "player": "Dani Alves",
-        "season": "17/18"
-      }
-    }
+    "finalized": false,
+    "finalized_at": null,
+    "finalized_round": null,
+    "finalized_round_label": null,
+    "finalized_snapshot": null
   },
   "Subhadro+Shubhajit": {
     "team_name": "Subhadro+Shubhajit",
@@ -1972,86 +1072,11 @@
       "season": "16/17"
     },
     "updated_at": "2026-07-11T19:34:30.203308+00:00",
-    "finalized": true,
-    "finalized_at": "2026-07-11T19:34:30.203279+00:00",
-    "finalized_round": "group:A:1",
-    "finalized_round_label": "Group A · Matchday 1",
-    "finalized_snapshot": {
-      "formation": "3-4-1-2 (normal)",
-      "lineup": [
-        {
-          "slot": "GK",
-          "player": "Joan García",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB1",
-          "player": "Cristhian Mosquera",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB2",
-          "player": "Ibrahima Konaté",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB3",
-          "player": "Nico Schlotterbeck",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "LM",
-          "player": "Nuno Mendes",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "DM",
-          "player": "N'Golo Kanté",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CM",
-          "player": "Vitinha (Paris Saint-Germain)",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "RM",
-          "player": "Nico Williams",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "AM",
-          "player": "Désiré Doué",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CF1",
-          "player": "Edinson Cavani",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CF2",
-          "player": "Serhou Guirassy",
-          "captain": false,
-          "vice_captain": false
-        }
-      ],
-      "prime_player": "N'Golo Kanté",
-      "peak_season": {
-        "player": "Edinson Cavani",
-        "season": "16/17"
-      }
-    }
+    "finalized": false,
+    "finalized_at": null,
+    "finalized_round": null,
+    "finalized_round_label": null,
+    "finalized_snapshot": null
   },
   "Sugata": {
     "team_name": "Sugata",
@@ -2130,85 +1155,10 @@
       "season": "16/17"
     },
     "updated_at": "2026-07-11T19:51:29.687030+00:00",
-    "finalized": true,
-    "finalized_at": "2026-07-11T19:51:29.687001+00:00",
-    "finalized_round": "group:A:2",
-    "finalized_round_label": "Group A · Matchday 2",
-    "finalized_snapshot": {
-      "formation": "4-2-3-1",
-      "lineup": [
-        {
-          "slot": "GK",
-          "player": "Gianluigi Donnarumma",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "RB",
-          "player": "Pedro Porro",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB1",
-          "player": "Matthijs de Ligt",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "CB2",
-          "player": "Alaba",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "LB",
-          "player": "Theo Hernández",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "DM1",
-          "player": "İlkay Gündoğan",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "DM2",
-          "player": "Scott McTominay",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "RW",
-          "player": "Bukayo Saka",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "AM",
-          "player": "Florian Wirtz",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "LW",
-          "player": "Bradley Barcola",
-          "captain": false,
-          "vice_captain": false
-        },
-        {
-          "slot": "ST",
-          "player": "Radamel Falcao",
-          "captain": false,
-          "vice_captain": false
-        }
-      ],
-      "prime_player": "Alaba",
-      "peak_season": {
-        "player": "Radamel Falcao",
-        "season": "16/17"
-      }
-    }
+    "finalized": false,
+    "finalized_at": null,
+    "finalized_round": null,
+    "finalized_round_label": null,
+    "finalized_snapshot": null
   }
 }

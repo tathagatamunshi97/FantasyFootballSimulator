@@ -1012,12 +1012,27 @@ def admin_team_lineups(
     return {"teams": team_lineups.list_team_lineups()}
 
 
+@app.post("/api/admin/team-lineups/unfinalize-all")
+def admin_unfinalize_all_lineups(
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+) -> dict:
+    _require_admin_session_or_token(x_session_token, x_admin_token)
+    cleared = team_lineups.clear_all_finalize_locks()
+    return {
+        "ok": True,
+        "cleared": cleared,
+        "message": f"Unfinalized {cleared} team lineup(s).",
+    }
+
+
 @app.post("/api/admin/team-lineups/{team_name}/unfinalize")
 def admin_unfinalize_lineup(
     team_name: str,
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
-    _check_admin(x_admin_token)
+    _require_admin_session_or_token(x_session_token, x_admin_token)
     record = team_lineups.admin_unfinalize_team_lineup(team_name)
     if not record:
         raise HTTPException(status_code=404, detail="No saved lineup for that team.")

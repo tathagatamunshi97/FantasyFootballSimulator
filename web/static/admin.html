@@ -29,6 +29,7 @@
       <button type="button" class="tab-btn active" data-tab="simulations" role="tab">Simulations</button>
       <button type="button" class="tab-btn" data-tab="tournament" role="tab">Tournament</button>
       <button type="button" class="tab-btn" data-tab="teams" role="tab">Team access</button>
+      <button type="button" class="tab-btn" data-tab="lineups" role="tab">Squad lineups</button>
     </nav>
 
     <div id="panel-simulations" class="tab-panel" role="tabpanel">
@@ -105,6 +106,19 @@
         <button type="button" id="refreshPwBtn" class="btn-ghost" style="margin-bottom:0.75rem">Refresh status</button>
         <div id="pwTable" class="table-wrap"><p class="muted">Enter token and refresh.</p></div>
         <div id="pwLog" class="log" style="margin-top:0.75rem">Ready.</div>
+      </div>
+    </div>
+
+    <div id="panel-lineups" class="tab-panel" role="tabpanel" hidden>
+      <div class="card" style="margin-top:0">
+        <h2>Squad finalize locks</h2>
+        <p class="muted">Finalizing locks a team’s XI for the current matchday. Unfinalize to let them edit again. Creating a tournament or regenerating fixtures also clears all locks automatically.</p>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.75rem">
+          <button type="button" id="refreshLineupsBtn" class="btn-ghost">Refresh</button>
+          <button type="button" id="unfinalizeAllBtn" class="btn-primary">Unfinalize all</button>
+        </div>
+        <div id="lineupsTable" class="table-wrap"><p class="muted">Enter token and refresh.</p></div>
+        <div id="lineupsLog" class="log" style="margin-top:0.75rem">Ready.</div>
       </div>
     </div>
   </main>

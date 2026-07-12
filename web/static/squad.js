@@ -94,6 +94,11 @@ function renderLineupBuilder(data) {
         <button type="button" id="saveLineupBtn" class="btn-primary" ${disabled}>Save lineup</button>
         <button type="button" id="testSquadBtn" class="btn-ghost">Test squad</button>
         <button type="button" id="finalizeSquadBtn" class="btn-ghost" ${locked ? "disabled" : ""}>Finalize squad</button>
+        ${
+          (isAdminUser() || getAdminToken()) && data.finalized
+            ? `<button type="button" id="unfinalizeSquadBtn" class="btn-ghost">Unfinalize</button>`
+            : ""
+        }
       </div>
       <p id="lineupStatus" class="muted" style="margin-top:0.5rem"></p>
     </div>`;
@@ -308,6 +313,24 @@ async function finalizeSquad() {
   }
 }
 
+async function unfinalizeSquad() {
+  const team = currentTeam || lineupData?.team_name;
+  if (!team) return;
+  if (!confirm(`Unfinalize "${team}"? They will be able to edit their squad again.`)) return;
+  const status = document.getElementById("lineupStatus");
+  try {
+    await api(`/api/admin/team-lineups/${encodeURIComponent(team)}/unfinalize`, {
+      method: "POST",
+    });
+    if (status) status.textContent = "Squad unfinalized — editing unlocked.";
+    lineupData = await loadLineup(currentTeam);
+    document.getElementById("lineupSection").innerHTML = renderLineupBuilder(lineupData);
+    wireLineupBuilder();
+  } catch (e) {
+    if (status) status.textContent = `Unfinalize failed: ${e.message}`;
+  }
+}
+
 async function loadLineup(teamName) {
   const q = teamName ? `?team=${encodeURIComponent(teamName)}` : "";
   return (await api(`/api/my-lineup${q}`));
@@ -378,6 +401,7 @@ function wireLineupBuilder() {
   }
   document.getElementById("testSquadBtn")?.addEventListener("click", testSquad);
   document.getElementById("finalizeSquadBtn")?.addEventListener("click", finalizeSquad);
+  document.getElementById("unfinalizeSquadBtn")?.addEventListener("click", unfinalizeSquad);
 }
 
 async function reloadTeam(teamName) {

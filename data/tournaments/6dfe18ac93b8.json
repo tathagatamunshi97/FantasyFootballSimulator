@@ -1,0 +1,546 @@
+{
+  "id": "6dfe18ac93b8",
+  "name": "Fantasy Cup",
+  "status": "group_stage",
+  "created_at": "2026-07-12T07:24:03.660798+00:00",
+  "updated_at": "2026-07-12T07:24:03.663809+00:00",
+  "team_names": [
+    "Sohom+Mayukh",
+    "Rishav",
+    "Subhadro+Shubhajit",
+    "DDR",
+    "Chintu",
+    "Dilshad",
+    "Rohan + AnaC",
+    "Raktim",
+    "Sugata",
+    "Anindo",
+    "KP+SS",
+    "Kinjal+Sayan C",
+    "Ryan",
+    "Moga+Sanmitro"
+  ],
+  "settings": {
+    "group_count": 2,
+    "teams_per_group": 7,
+    "advance_per_group": 4,
+    "knockout_format": "single_elim",
+    "simulations_per_match": 10000
+  },
+  "groups": {
+    "A": {
+      "teams": [
+        "Sohom+Mayukh",
+        "Rishav",
+        "Subhadro+Shubhajit",
+        "DDR",
+        "Chintu",
+        "Dilshad",
+        "Rohan + AnaC"
+      ],
+      "fixtures": [
+        {
+          "id": "gA-1",
+          "home": "Rishav",
+          "away": "Rohan + AnaC",
+          "round": 1,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gA-2",
+          "home": "Subhadro+Shubhajit",
+          "away": "Dilshad",
+          "round": 1,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gA-3",
+          "home": "DDR",
+          "away": "Chintu",
+          "round": 1,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gA-4",
+          "home": "Sohom+Mayukh",
+          "away": "Rohan + AnaC",
+          "round": 2,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gA-5",
+          "home": "Rishav",
+          "away": "Chintu",
+          "round": 2,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gA-6",
+          "home": "Subhadro+Shubhajit",
+          "away": "DDR",
+          "round": 2,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gA-7",
+          "home": "Sohom+Mayukh",
+          "away": "Dilshad",
+          "round": 3,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gA-8",
+          "home": "Rohan + AnaC",
+          "away": "Chintu",
+          "round": 3,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gA-9",
+          "home": "Rishav",
+          "away": "Subhadro+Shubhajit",
+          "round": 3,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gA-10",
+          "home": "Sohom+Mayukh",
+          "away": "Chintu",
+          "round": 4,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gA-11",
+          "home": "Dilshad",
+          "away": "DDR",
+          "round": 4,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gA-12",
+          "home": "Rohan + AnaC",
+          "away": "Subhadro+Shubhajit",
+          "round": 4,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gA-13",
+          "home": "Sohom+Mayukh",
+          "away": "DDR",
+          "round": 5,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gA-14",
+          "home": "Chintu",
+          "away": "Subhadro+Shubhajit",
+          "round": 5,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gA-15",
+          "home": "Dilshad",
+          "away": "Rishav",
+          "round": 5,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gA-16",
+          "home": "Sohom+Mayukh",
+          "away": "Subhadro+Shubhajit",
+          "round": 6,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gA-17",
+          "home": "DDR",
+          "away": "Rishav",
+          "round": 6,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gA-18",
+          "home": "Dilshad",
+          "away": "Rohan + AnaC",
+          "round": 6,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gA-19",
+          "home": "Sohom+Mayukh",
+          "away": "Rishav",
+          "round": 7,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gA-20",
+          "home": "DDR",
+          "away": "Rohan + AnaC",
+          "round": 7,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gA-21",
+          "home": "Chintu",
+          "away": "Dilshad",
+          "round": 7,
+          "played": false,
+          "result_id": null
+        }
+      ],
+      "table": {
+        "Sohom+Mayukh": {
+          "played": 0,
+          "w": 0,
+          "d": 0,
+          "l": 0,
+          "gf": 0,
+          "ga": 0,
+          "gd": 0,
+          "pts": 0
+        },
+        "Rishav": {
+          "played": 0,
+          "w": 0,
+          "d": 0,
+          "l": 0,
+          "gf": 0,
+          "ga": 0,
+          "gd": 0,
+          "pts": 0
+        },
+        "Subhadro+Shubhajit": {
+          "played": 0,
+          "w": 0,
+          "d": 0,
+          "l": 0,
+          "gf": 0,
+          "ga": 0,
+          "gd": 0,
+          "pts": 0
+        },
+        "DDR": {
+          "played": 0,
+          "w": 0,
+          "d": 0,
+          "l": 0,
+          "gf": 0,
+          "ga": 0,
+          "gd": 0,
+          "pts": 0
+        },
+        "Chintu": {
+          "played": 0,
+          "w": 0,
+          "d": 0,
+          "l": 0,
+          "gf": 0,
+          "ga": 0,
+          "gd": 0,
+          "pts": 0
+        },
+        "Dilshad": {
+          "played": 0,
+          "w": 0,
+          "d": 0,
+          "l": 0,
+          "gf": 0,
+          "ga": 0,
+          "gd": 0,
+          "pts": 0
+        },
+        "Rohan + AnaC": {
+          "played": 0,
+          "w": 0,
+          "d": 0,
+          "l": 0,
+          "gf": 0,
+          "ga": 0,
+          "gd": 0,
+          "pts": 0
+        }
+      }
+    },
+    "B": {
+      "teams": [
+        "Raktim",
+        "Sugata",
+        "Anindo",
+        "KP+SS",
+        "Kinjal+Sayan C",
+        "Ryan",
+        "Moga+Sanmitro"
+      ],
+      "fixtures": [
+        {
+          "id": "gB-1",
+          "home": "Sugata",
+          "away": "Moga+Sanmitro",
+          "round": 1,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gB-2",
+          "home": "Anindo",
+          "away": "Ryan",
+          "round": 1,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gB-3",
+          "home": "KP+SS",
+          "away": "Kinjal+Sayan C",
+          "round": 1,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gB-4",
+          "home": "Raktim",
+          "away": "Moga+Sanmitro",
+          "round": 2,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gB-5",
+          "home": "Sugata",
+          "away": "Kinjal+Sayan C",
+          "round": 2,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gB-6",
+          "home": "Anindo",
+          "away": "KP+SS",
+          "round": 2,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gB-7",
+          "home": "Raktim",
+          "away": "Ryan",
+          "round": 3,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gB-8",
+          "home": "Moga+Sanmitro",
+          "away": "Kinjal+Sayan C",
+          "round": 3,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gB-9",
+          "home": "Sugata",
+          "away": "Anindo",
+          "round": 3,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gB-10",
+          "home": "Raktim",
+          "away": "Kinjal+Sayan C",
+          "round": 4,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gB-11",
+          "home": "Ryan",
+          "away": "KP+SS",
+          "round": 4,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gB-12",
+          "home": "Moga+Sanmitro",
+          "away": "Anindo",
+          "round": 4,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gB-13",
+          "home": "Raktim",
+          "away": "KP+SS",
+          "round": 5,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gB-14",
+          "home": "Kinjal+Sayan C",
+          "away": "Anindo",
+          "round": 5,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gB-15",
+          "home": "Ryan",
+          "away": "Sugata",
+          "round": 5,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gB-16",
+          "home": "Raktim",
+          "away": "Anindo",
+          "round": 6,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gB-17",
+          "home": "KP+SS",
+          "away": "Sugata",
+          "round": 6,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gB-18",
+          "home": "Ryan",
+          "away": "Moga+Sanmitro",
+          "round": 6,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gB-19",
+          "home": "Raktim",
+          "away": "Sugata",
+          "round": 7,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gB-20",
+          "home": "KP+SS",
+          "away": "Moga+Sanmitro",
+          "round": 7,
+          "played": false,
+          "result_id": null
+        },
+        {
+          "id": "gB-21",
+          "home": "Kinjal+Sayan C",
+          "away": "Ryan",
+          "round": 7,
+          "played": false,
+          "result_id": null
+        }
+      ],
+      "table": {
+        "Raktim": {
+          "played": 0,
+          "w": 0,
+          "d": 0,
+          "l": 0,
+          "gf": 0,
+          "ga": 0,
+          "gd": 0,
+          "pts": 0
+        },
+        "Sugata": {
+          "played": 0,
+          "w": 0,
+          "d": 0,
+          "l": 0,
+          "gf": 0,
+          "ga": 0,
+          "gd": 0,
+          "pts": 0
+        },
+        "Anindo": {
+          "played": 0,
+          "w": 0,
+          "d": 0,
+          "l": 0,
+          "gf": 0,
+          "ga": 0,
+          "gd": 0,
+          "pts": 0
+        },
+        "KP+SS": {
+          "played": 0,
+          "w": 0,
+          "d": 0,
+          "l": 0,
+          "gf": 0,
+          "ga": 0,
+          "gd": 0,
+          "pts": 0
+        },
+        "Kinjal+Sayan C": {
+          "played": 0,
+          "w": 0,
+          "d": 0,
+          "l": 0,
+          "gf": 0,
+          "ga": 0,
+          "gd": 0,
+          "pts": 0
+        },
+        "Ryan": {
+          "played": 0,
+          "w": 0,
+          "d": 0,
+          "l": 0,
+          "gf": 0,
+          "ga": 0,
+          "gd": 0,
+          "pts": 0
+        },
+        "Moga+Sanmitro": {
+          "played": 0,
+          "w": 0,
+          "d": 0,
+          "l": 0,
+          "gf": 0,
+          "ga": 0,
+          "gd": 0,
+          "pts": 0
+        }
+      }
+    }
+  },
+  "knockout": {
+    "format": "single_elim",
+    "rounds": []
+  },
+  "match_results": {},
+  "player_tallies": [],
+  "top_goalscorers": [],
+  "top_assisters": []
+}

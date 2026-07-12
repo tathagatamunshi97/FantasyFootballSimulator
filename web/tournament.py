@@ -16,7 +16,7 @@ from team_profile import build_team_profile
 from web.experiments import _apply_name_map, validate_team_payload
 from web import matchday_session
 from web.state import get_stats_store
-from web.team_lineups import apply_team_lineup
+from web.team_lineups import apply_team_lineup, clear_all_finalize_locks
 
 ROOT = Path(__file__).resolve().parent.parent
 TOURNAMENTS_DIR = ROOT / "data" / "tournaments"
@@ -292,6 +292,9 @@ def create_tournament(
 ) -> dict[str, Any]:
     t = _default_tournament(name, team_names or [], settings)
     save_tournament(t)
+    # Round keys reuse group:X:N across tournaments — clear old finalize locks
+    # so squads are editable for the new competition.
+    clear_all_finalize_locks()
     return t
 
 
@@ -368,6 +371,9 @@ def generate_group_fixtures(tournament_id: str) -> dict[str, Any]:
         group["table"] = _empty_table(group["teams"])
     t["status"] = "group_stage"
     save_tournament(t)
+    # Regenerated fixtures restart at matchday 1 with the same round_key shape
+    # (group:A:1, …). Clear finalize locks so prior-tournament locks do not stick.
+    clear_all_finalize_locks()
     return t
 
 

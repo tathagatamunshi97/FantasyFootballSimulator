@@ -205,6 +205,19 @@ def finalize_team_lineup(
     return copy.deepcopy(record)
 
 
+def _clear_finalize_fields(record: dict[str, Any]) -> bool:
+    """Clear finalize lock fields on a record. Returns True if anything changed."""
+    if not record.get("finalized") and not record.get("finalized_round"):
+        return False
+    record["finalized"] = False
+    record["finalized_at"] = None
+    record["finalized_round"] = None
+    record["finalized_round_label"] = None
+    record["finalized_snapshot"] = None
+    record["updated_at"] = _now()
+    return True
+
+
 def admin_unfinalize_team_lineup(team_name: str) -> dict[str, Any] | None:
     """Admin clears finalized lock (keeps saved lineup)."""
     name = team_name.strip()
@@ -214,15 +227,24 @@ def admin_unfinalize_team_lineup(team_name: str) -> dict[str, Any] | None:
         if not key:
             return None
         record = store[key]
-        record["finalized"] = False
-        record["finalized_at"] = None
-        record["finalized_round"] = None
-        record["finalized_round_label"] = None
-        record["finalized_snapshot"] = None
-        record["updated_at"] = _now()
+        _clear_finalize_fields(record)
         store[key] = record
         _save_all(store)
         return copy.deepcopy(record)
+
+
+def clear_all_finalize_locks() -> int:
+    """Clear finalize locks for every team (keeps saved lineups). Returns count cleared."""
+    with _lock:
+        store = _load_all()
+        cleared = 0
+        for key, record in store.items():
+            if _clear_finalize_fields(record):
+                store[key] = record
+                cleared += 1
+        if cleared:
+            _save_all(store)
+        return cleared
 
 
 def apply_team_lineup(
