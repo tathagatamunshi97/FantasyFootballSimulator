@@ -231,6 +231,11 @@ def _normalize_stat_gaps(data: dict[str, Any]) -> None:
         data["xa90"] = data["understat_xa90"]
     if not data.get("shots90") and data.get("understat_shots90"):
         data["shots90"] = data["understat_shots90"]
+    # FBref stubs sometimes leave shots90=0 while SOT is present (e.g. CR7 14/15).
+    if not data.get("shots90") and data.get("shots_on_target90"):
+        sot = float(data.get("shots_on_target90") or 0)
+        if sot > 0:
+            data["shots90"] = round(sot / 0.42, 3)
     if not data.get("xg90") and data.get("understat_xg90"):
         data["xg90"] = data["understat_xg90"]
 
@@ -252,6 +257,20 @@ def _normalize_stat_gaps(data: dict[str, Any]) -> None:
     if is_winger and not data.get("dribbles90"):
         data["dribbles90"] = min(3.0, kp * 0.32 + ast * 0.55)
 
+    # Sparse FBref primes often ship pass_pct/dribble_pct as literal 0. Board intercept
+    # / dribble math treat that as "never completes a pass / never beats a man", which
+    # unfairly starves finishing volume for players who only lack the % fields.
+    _PASS_PCT = {"GK": 72.0, "DEF": 84.0, "MID": 85.0, "FWD": 78.0}
+    _DRIBBLE_PCT = {"GK": 40.0, "DEF": 58.0, "MID": 62.0, "FWD": 48.0}
+    minutes = float(data.get("minutes") or 0)
+    if minutes > 0 and fpl != "GK":
+        if not float(data.get("pass_pct") or 0):
+            data["pass_pct"] = _PASS_PCT.get(fpl, 80.0)
+            data.setdefault("pass_pct_source", "role_default")
+        if float(data.get("dribbles90") or 0) > 0 and not float(data.get("dribble_pct") or 0):
+            data["dribble_pct"] = _DRIBBLE_PCT.get(fpl, 55.0)
+            data.setdefault("dribble_pct_source", "role_default")
+
     if not data.get("aerials_won90") and data.get("aerials_source") != "fotmob":
         clearances = float(data.get("clearances90", 0) or 0)
         if clearances > 0:
@@ -264,6 +283,19 @@ def _normalize_stat_gaps(data: dict[str, Any]) -> None:
                 data["aerials_lost90"] = lost90
                 data["aerials_won_pct"] = pct
                 data.setdefault("aerials_source", "estimated")
+        elif fpl == "FWD" and (
+            float(data.get("shots90") or 0) >= 3.0
+            or float(data.get("xg90") or data.get("npxg90") or 0) >= 0.35
+        ):
+            # Box strikers without FotMob aerial rows still contest crosses; keep modest.
+            sot = float(data.get("shots_on_target90") or 0)
+            won90 = min(2.35, 0.85 + sot * 0.28)
+            pct = 52.0
+            lost90 = won90 * (100.0 - pct) / pct if pct > 0 else won90 * 0.9
+            data["aerials_won90"] = round(won90, 3)
+            data["aerials_lost90"] = round(lost90, 3)
+            data["aerials_won_pct"] = pct
+            data.setdefault("aerials_source", "estimated_fwd")
 
 
 @dataclass
