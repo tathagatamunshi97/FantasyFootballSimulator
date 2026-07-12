@@ -420,6 +420,7 @@
       xg90: numPos(s.xg90 ?? s.npxg90, g.xg90),
       shots90: shots,
       shots_on_target90: num(s.shots_on_target90, Math.max(0.4, shots * 0.4)),
+      goals90: num(s.goals90, 0),
       aerials_won90: num(s.aerials_won90, 0),
       aerials_won_pct: numPos(s.aerials_won_pct, role === "ST" ? 48 : 45),
       tackles90: num(s.tackles90, g.tackles90),
@@ -741,12 +742,6 @@
             <span class="tactic-hud-label">xG</span>
             <span class="tactic-hud-value"><span data-tb-xg-h>0.00</span> – <span data-tb-xg-a>0.00</span></span>
           </div>
-          <div class="tactic-hud-cell" title="Match momentum">
-            <span class="tactic-hud-label">Momentum</span>
-            <div class="tactic-momentum-bar">
-              <div class="tactic-momentum-needle" data-tb-mom-fill style="left:50%"></div>
-            </div>
-          </div>
         </div>
         <div class="tactic-meta">
           <span data-tb-clock>0'</span>
@@ -838,7 +833,6 @@
     const possAEl = container.querySelector("[data-tb-poss-a]");
     const xgHEl = container.querySelector("[data-tb-xg-h]");
     const xgAEl = container.querySelector("[data-tb-xg-a]");
-    const momFillEl = container.querySelector("[data-tb-mom-fill]");
     const htOverlay = container.querySelector("[data-tb-ht]");
     const htScoreEl = container.querySelector("[data-tb-ht-score]");
     const htStatsEl = container.querySelector("[data-tb-ht-stats]");
@@ -939,8 +933,6 @@
      * Mixture biased by unit finishing (avg ≈ cold 8% / hot 12% / normal 80%).
      */
     let finishingForm = { home: 1, away: 1 };
-    /** Rolling samples: { minute, side, kind: 'poss'|'chance'|'goal', weight } */
-    let momentumSamples = [];
     let commentaryLines = [];
 
     let instrHome = 0;
@@ -1080,35 +1072,12 @@
       return { home: h, away: 100 - h };
     }
 
-    function momentumScore() {
-      const windowStart = matchMinute - 12;
-      let homeW = 0;
-      let awayW = 0;
-      for (const s of momentumSamples) {
-        if (s.minute < windowStart) continue;
-        if (s.side === "home") homeW += s.weight;
-        else awayW += s.weight;
-      }
-      const sum = homeW + awayW;
-      if (sum < 0.01) return 0.5;
-      return clamp(homeW / sum, 0.08, 0.92);
-    }
-
-    function pushMomentum(side, kind, weight = 1) {
-      momentumSamples.push({ minute: matchMinute, side, kind, weight });
-      if (momentumSamples.length > 80) momentumSamples.shift();
-    }
-
     function updateHud() {
       const poss = possessionPct();
       if (possHEl) possHEl.textContent = String(poss.home);
       if (possAEl) possAEl.textContent = String(poss.away);
       if (xgHEl) xgHEl.textContent = liveXg.home.toFixed(2);
       if (xgAEl) xgAEl.textContent = liveXg.away.toFixed(2);
-      const mom = momentumScore();
-      if (momFillEl) {
-        momFillEl.style.left = `${mom * 100}%`;
-      }
     }
 
     function estimateChanceXg(carrier, chanceType) {
@@ -1154,6 +1123,12 @@
       if (isMaestroPin(carrier) && volMul < 0.98) {
         xg *= clamp(1.06 + (1 - volMul) * 0.14, 1, 1.2);
       }
+      // Elite ST/W/AM big looks: nudge chance xG toward their season shot quality
+      if (isAttackFinisher(carrier) && boxed && ready) {
+        const fq = finisherQuality(carrier);
+        xg *= clamp(1 + (fq - 0.5) * 0.12, 0.94, 1.14);
+        ceil = Math.min(0.75, ceil + (fq >= 0.7 ? 0.04 : 0));
+      }
       return clamp(xg, Math.min(floor, 0.02), ceil);
     }
 
@@ -1181,7 +1156,6 @@
           home: Math.round(liveXg.home * 1000) / 1000,
           away: Math.round(liveXg.away * 1000) / 1000,
         },
-        momentum_final: Math.round(momentumScore() * 100) / 100,
         home_goals: homeScore,
         away_goals: awayScore,
       };
@@ -1205,7 +1179,7 @@
       commentaryHold = hold;
       const min = Math.max(0, Math.floor(matchMinute));
       commentaryLines.push({ minute: min, text: String(text || "") });
-      if (commentaryLines.length > 48) commentaryLines.shift();
+      if (commentaryLines.length > 12) commentaryLines.shift();
       if (feedEl) {
         const item = document.createElement("div");
         item.className = "tactic-commentary-item";
@@ -1844,6 +1818,19 @@
       }).length;
     }
 
+    /** 0–1.35 finishing threat from board signals (xg / shots / SOT / goals). */
+    function finisherQuality(pin) {
+      if (!pin || !pin.stats) return 0;
+      const st = pin.stats;
+      const sot = st.shots_on_target90 || st.shots90 * 0.4;
+      const goals = st.goals90 || 0;
+      return clamp(st.xg90 * 0.82 + st.shots90 * 0.055 + sot * 0.07 + goals * 0.12, 0, 1.35);
+    }
+
+    function isAttackFinisher(pin) {
+      return Boolean(pin && (pin.role === "ST" || pin.role === "W" || pin.role === "AM"));
+    }
+
     /** Quality chance gate: ≥2 in box OR 1 in box + arriving runner; urgency/matchup can soften. */
     function boxOccupationReady(side) {
       const boxed = countBoxAttackers(side);
@@ -1854,6 +1841,19 @@
       if (urg >= 1.05 && boxed >= 1) return true;
       if (urg >= 1.2 && arriving >= 1 && ad > 0.08) return true;
       if (ad > 0.18 && boxed >= 1) return true;
+      // Focal #9 / elite finisher alone in the box — don't starve big chances
+      if (boxed >= 1) {
+        const finishers = pinsOf(side).filter(
+          (p) => isAttackFinisher(p) && inPenaltyBox(p) && finisherQuality(p) >= 0.55
+        );
+        if (finishers.length) {
+          const elite = finishers.some((p) => finisherQuality(p) >= 0.72 || p.role === "ST");
+          if (elite && (urg >= 0.55 || ad > 0.05 || arriving >= 1 || finishers.some((p) => p.role === "ST" && finisherQuality(p) >= 0.65))) {
+            return true;
+          }
+          if (finishers.some((p) => p.role === "ST" && finisherQuality(p) >= 0.78)) return true;
+        }
+      }
       return false;
     }
 
@@ -2490,21 +2490,34 @@
       const mates = teammates(carrier).filter((m) => m.role === "ST" || m.role === "AM" || m.role === "W");
       if (!mates.length) return carrier;
       mates.sort((a, b) => {
-        const fa = a.id === favoredId ? 0.3 : 0;
-        const fb = b.id === favoredId ? 0.3 : 0;
+        const fa = a.id === favoredId ? 0.35 : 0;
+        const fb = b.id === favoredId ? 0.35 : 0;
         const boxA = inPenaltyBox(a) ? 1.4 : nearPenaltyBox(a) ? 0.45 : 0;
         const boxB = inPenaltyBox(b) ? 1.4 : nearPenaltyBox(b) ? 0.45 : 0;
+        const roleA = a.role === "ST" ? 0.55 : a.role === "AM" ? 0.18 : 0.05;
+        const roleB = b.role === "ST" ? 0.55 : b.role === "AM" ? 0.18 : 0.05;
+        const fqA = finisherQuality(a) * 0.55;
+        const fqB = finisherQuality(b) * 0.55;
         return (
-          b.stats.xg90 * 1.45 +
-          b.stats.shots90 * 0.14 +
+          b.stats.xg90 * 1.55 +
+          b.stats.shots90 * 0.16 +
           boxB +
-          fb -
-          (a.stats.xg90 * 1.45 + a.stats.shots90 * 0.14 + boxA + fa)
+          fb +
+          roleB +
+          fqB -
+          (a.stats.xg90 * 1.55 + a.stats.shots90 * 0.16 + boxA + fa + roleA + fqA)
         );
       });
       const best = mates[0];
       if (inPenaltyBox(carrier) && carrier.stats.xg90 >= best.stats.xg90 * 0.7) return carrier;
-      return rng() < 0.55 ? best : carrier;
+      // Focal #9 with real shot volume should receive the ball more often
+      const feedP =
+        best.role === "ST" && finisherQuality(best) >= 0.55
+          ? 0.72
+          : best.role === "ST" || finisherQuality(best) >= 0.7
+            ? 0.64
+            : 0.55;
+      return rng() < feedP ? best : carrier;
     }
 
     function weightedPick(entries) {
@@ -4839,7 +4852,6 @@
       };
       phase = "BUILD_UP";
       pushMatchEvent("possession", side, { detail: reason || "builds" });
-      pushMomentum(side, "poss", 0.35);
       if (commentaryHold <= 0.4) {
         const name = side === "home" ? homeTeam.name : awayTeam.name;
         say(`${name} in possession`, 1.4);
@@ -4956,7 +4968,6 @@
         against: opp.side,
         detail: detail || "loses possession",
       });
-      pushMomentum(opp.side, "poss", 1.1);
       archiveSpell("turnover");
       say(`${opp.short} wins it — ${detail || "turnover"}`, 1.5);
       spell = null;
@@ -5149,7 +5160,6 @@
         ...assistExtra,
       });
       clearLastPasser();
-      pushMomentum(side, "goal", 3.2);
       archiveSpell("goal");
       const assistNote = assistExtra.assist_short ? ` (assist ${assistExtra.assist_short})` : "";
       say(`GOAL! ${scorerName}${assistNote} — ${homeScore}–${awayScore}`, 2.2);
@@ -5496,7 +5506,6 @@
     function organicWillScore(carrier) {
       const atk = sideAttack(carrier.side);
       const def = sideDefend(oppOf(carrier.side));
-      const d = possessionDepth(carrier);
       const drought = matchMinute - lastGoalMinute;
       const droughtBoost = drought > 28 ? 0.05 : drought > 18 ? 0.025 : 0;
       const totalGoals = homeScore + awayScore;
@@ -5507,25 +5516,36 @@
       const urg = progressionUrgency(spell);
       const ad = attackDefendDelta(carrier.side);
       const form = clamp(finishingForm[carrier.side] ?? 1, 0.2, 1.95);
-      // Soft gap + noise; conversion heavily favors box occupation; matchup/urgency raise shot bite.
-      // Day-form scales conversion vs accumulated xG (hot overperforms, cold underperforms).
+      const roleFin = isAttackFinisher(carrier);
+      const fq = finisherQuality(carrier);
+      // Elite ST/W/AM (high xG/shots) convert much harder; old 0.3×xg + hi=0.40
+      // compressed Kane (~0.89 xG) down to average-ST conversion.
+      const xgW = boxed ? (roleFin ? 0.42 : 0.3) : roleFin ? 0.18 : 0.12;
+      const shW = roleFin ? 0.035 : 0.02;
+      const eliteBoost = roleFin ? clamp((fq - 0.42) * 0.24, 0, 0.2) : 0;
+      const roleBox = roleFin && boxed ? 0.045 : 0;
       const p =
         (0.05 +
-          carrier.stats.xg90 * (boxed ? 0.3 : 0.12) +
-          carrier.stats.shots90 * 0.02 +
+          carrier.stats.xg90 * xgW +
+          carrier.stats.shots90 * shW +
           atk * 0.16 -
           def * 0.14 +
           skillGap * 0.14 +
           box +
+          roleBox +
+          eliteBoost +
           droughtBoost +
           Math.max(0, ad) * 0.06 +
           (boxed ? urg * 0.025 : 0) +
           (rng() - 0.5) * 0.1) *
         fatigue *
         form;
-      // Floors drop on cold days so blanks from solid xG are possible; ceilings rise on hot days.
+      // Floors drop on cold days; ceilings rise with finisher quality for ST/W/AM.
       const lo = boxed ? (form < 0.7 ? 0.012 : 0.04) : form < 0.7 ? 0.006 : 0.015;
-      const hi = boxed ? clamp(0.4 * Math.min(form, 1.55), 0.32, 0.58) : clamp(0.15 * Math.min(form, 1.55), 0.11, 0.26);
+      const hiElite = roleFin ? clamp((fq - 0.38) * 0.42, 0, 0.24) : 0;
+      const hi = boxed
+        ? clamp((0.4 + hiElite) * Math.min(form, 1.55), 0.32, roleFin ? 0.72 : 0.58)
+        : clamp((0.15 + hiElite * 0.4) * Math.min(form, 1.55), 0.11, roleFin ? 0.34 : 0.26);
       return rng() < clamp(p, lo, hi);
     }
 
@@ -5553,7 +5573,6 @@
       const chanceXg = estimateChanceXg(carrier, chanceType);
       liveXg[carrier.side] += chanceXg;
       matchLog.counts[carrier.side].xg = Math.round(liveXg[carrier.side] * 1000) / 1000;
-      pushMomentum(carrier.side, "chance", chanceType === "big_chance" ? 2.0 : 1.2);
       pushMatchEvent(chanceType, carrier.side, {
         player: carrier.player,
         player_short: carrier.short,
@@ -5588,16 +5607,19 @@
         const form = clamp(finishingForm[carrier.side] ?? 1, 0.2, 1.95);
         // Hot finishing → fewer denied shots; cold → more saves/misses after an on-target look
         const saveScale = clamp(1.05 - (form - 1) * 0.55, 0.52, 1.7);
+        const roleFin = isAttackFinisher(carrier);
+        const fq = finisherQuality(carrier);
         const saveP =
           (0.1 +
             def * 0.22 -
             atk * 0.08 -
-            carrier.stats.xg90 * (boxed ? 0.14 : 0.05) -
-            carrier.stats.shots90 * 0.012 +
+            carrier.stats.xg90 * (boxed ? (roleFin ? 0.2 : 0.14) : 0.05) -
+            carrier.stats.shots90 * (roleFin ? 0.018 : 0.012) -
+            (roleFin ? fq * 0.06 : 0) +
             (boxed ? 0 : 0.12) +
             (rng() - 0.5) * 0.06) *
           saveScale;
-        if (rng() < clamp(saveP, 0.05, 0.55)) willScore = false;
+        if (rng() < clamp(saveP, 0.04, roleFin && boxed && fq >= 0.7 ? 0.42 : 0.55)) willScore = false;
       }
 
       if (willScore) {
@@ -6060,8 +6082,7 @@
           home: Math.round(liveXg.home * 100) / 100,
           away: Math.round(liveXg.away * 100) / 100,
         },
-        momentum: momentumNeedlePct(),
-        commentary: commentaryLines.slice(-8).map((c) =>
+        commentary: commentaryLines.slice(-5).map((c) =>
           typeof c === "string" ? c : `${c.minute}' ${c.text}`
         ),
         playing: Boolean(playing),
@@ -6069,13 +6090,6 @@
         halfTime: Boolean(halfTimePaused || breakKind === "ht"),
         knockout: Boolean(isKnockout),
       };
-    }
-
-    function momentumNeedlePct() {
-      if (!momFillEl) return 50;
-      const left = String(momFillEl.style.left || "50%");
-      const n = parseFloat(left);
-      return Number.isFinite(n) ? n : 50;
     }
 
     function renderPensList(rows) {
@@ -6277,9 +6291,6 @@
         liveXg.away = Number(state.xg.away) || 0;
         if (xgHEl) xgHEl.textContent = liveXg.home.toFixed(2);
         if (xgAEl) xgAEl.textContent = liveXg.away.toFixed(2);
-      }
-      if (momFillEl && state.momentum != null) {
-        momFillEl.style.left = `${clamp(Number(state.momentum) || 50, 4, 96)}%`;
       }
       if (Array.isArray(state.commentary) && feedEl) {
         feedEl.innerHTML = state.commentary
@@ -6735,9 +6746,6 @@
 
       if (possession === "home" || possession === "away") {
         possSeconds[possession] += dt;
-        if (Math.floor(matchMinute) !== Math.floor(prevMinute)) {
-          pushMomentum(possession, "poss", 0.25);
-        }
       }
       if (Math.floor(matchMinute * 2) !== Math.floor(prevMinute * 2)) {
         updateHud();
@@ -6869,7 +6877,6 @@
       possSeconds = { home: 0, away: 0 };
       liveXg = { home: 0, away: 0 };
       redrawFinishingForm();
-      momentumSamples = [];
       commentaryLines = [];
       if (feedEl) feedEl.innerHTML = "";
       instrHome = 0;

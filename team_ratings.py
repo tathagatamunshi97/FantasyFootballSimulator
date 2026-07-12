@@ -153,15 +153,20 @@ def _player_progressive_raw(stats: PlayerStats) -> float:
 
 def _player_attack_contrib(stats: PlayerStats, fit: float) -> float:
     """Finishing / shooting threat plus progressive involvement in attack chains."""
+    # Caps slightly below elite season rates so dampened Kane/Díaz/Yamal still
+    # saturate finishing (0.70–0.75 xG90 / ~3.6 shots) rather than looking mid-table.
+    xg = stats.npxg90 or stats.xg90
     finisher = (
-        _scale(stats.npxg90 or stats.xg90, 0.85) * 0.35
-        + _scale(stats.xg90, 0.85) * 0.15
-        + _scale(stats.shots90, 4.0) * 0.12
-        + _scale(stats.shots_on_target90, 2.5) * 0.08
-        + _scale(stats.big_chances_created90, 1.2) * 0.08
-        + _scale(max(0.0, stats.big_chances_created90 - stats.big_chances_missed90), 1.0) * 0.05
+        _scale(xg, 0.72) * 0.36
+        + _scale(stats.xg90, 0.72) * 0.16
+        + _scale(stats.shots90, 3.6) * 0.13
+        + _scale(stats.shots_on_target90, 2.2) * 0.09
+        + _scale(stats.big_chances_created90, 1.2) * 0.07
+        + _scale(max(0.0, stats.big_chances_created90 - stats.big_chances_missed90), 1.0) * 0.04
     )
-    carry = _scale(stats.dribbles90, 3.0) * 0.10 * _scale(stats.dribble_pct, 100.0)
+    # Missing dribble% used to zero the carry term for sparse primes.
+    drib_pct = stats.dribble_pct if stats.dribble_pct > 0 else 50.0
+    carry = _scale(stats.dribbles90, 3.0) * 0.10 * _scale(drib_pct, 100.0)
     progressive = _player_progressive_raw(stats) * PROGRESSIVE_ATTACK_SHARE
     return (finisher + carry + progressive) * (0.55 + 0.45 * fit)
 
@@ -908,9 +913,9 @@ def compute_team_composites(
         + 0.10 * _scale(_avg([p.tackles90 + p.interceptions90 for p in mids]), 4.5)
     )
     finishing_threat = _clamp(
-        _scale(_avg([p.xg90 for p in fwds]), 0.85) * 0.30
-        + _scale(_avg([p.npxg90 for p in fwds]), 0.75) * 0.20
-        + _scale(_avg([p.shots90 for p in fwds]), 4.0) * 0.15
+        _scale(_avg([p.xg90 for p in fwds]), 0.72) * 0.30
+        + _scale(_avg([p.npxg90 for p in fwds]), 0.65) * 0.20
+        + _scale(_avg([p.shots90 for p in fwds]), 3.6) * 0.15
         + _scale(_avg([p.shots_on_target90 for p in fwds]), 2.0) * 0.10
         + units.finishing * 0.25
     )

@@ -185,8 +185,13 @@ def _session_user_or_admin(
 
 
 @app.get("/api/health")
-def health() -> dict:
-    return {"ok": True, "version": "2.1", "sheets_api": True}
+async def health() -> dict:
+    """Render health probe — must stay on the event loop and answer in ms.
+
+    Never touch Matchday locks, deepcopy, disk, or enrich. Sync Matchday work
+    runs in the threadpool; this async route is not starved by that queue.
+    """
+    return {"ok": True}
 
 
 @app.post("/api/login")
@@ -409,6 +414,10 @@ def ensure_players(
 def _enrich_matchday_status(status: dict[str, Any]) -> dict[str, Any]:
     session = status.get("session")
     if not session:
+        return status
+    # Live board polls: skip tournament file + lineup I/O — frames are what matter.
+    phase = session.get("phase")
+    if phase in ("live", "running"):
         return status
     out = dict(status)
     sess = dict(session)
@@ -1203,6 +1212,7 @@ def get_tournament_api(tournament_id: str) -> dict:
 
 @app.get("/api/tournament/{tournament_id}/matches/{match_id}/analysis")
 def get_tournament_match_analysis_api(tournament_id: str, match_id: str) -> dict:
+    """Return match analysis; builds and persists on first request if missing."""
     try:
         return tournament.get_match_analysis(tournament_id, match_id)
     except KeyError as exc:
@@ -1485,11 +1495,13 @@ def patch_tournament_settings_api(
 
 
 @app.on_event("startup")
-def _clear_sessions_on_startup() -> None:
-    """Revoke all sessions on server start so deploys force re-login."""
+def _startup() -> None:
+    """Revoke login sessions on start; restore Matchday snapshot if one was mid-match."""
     cleared = auth.clear_all_sessions()
     if cleared:
         print(f"Sessions: cleared {cleared} active session(s) on startup.")
+    if matchday_session.restore_from_disk():
+        print("Matchday: active session restored from data/matchday_session.json")
 
 
 app.mount("/static", StaticFiles(directory=STATIC), name="static")

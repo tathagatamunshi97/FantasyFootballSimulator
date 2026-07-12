@@ -10285,9 +10285,10 @@
     },
     "Luis D\u00edaz": {
       "team": "FC Bayern M\u00fcnchen",
-      "primary_position": "CM",
+      "primary_position": "LW",
       "fpl_position": "MID",
       "positions": [
+        "LW",
         "CM"
       ],
       "minutes": 2430.0,

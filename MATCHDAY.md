@@ -48,6 +48,20 @@ Empty state: *"Admin hasn't started a match yet."*
 
 ---
 
+## Persistence & Render caveats
+
+Matchday keeps the live board in **memory** and also writes a snapshot to **`data/matchday_session.json`** (about every 2s while frames publish, and immediately on kickoff / HT / FT / clear). After a **process restart**, the server reloads that snapshot so viewers still see the last score/events.
+
+That does **not** fully replay the pin engine from scratch — it restores the last published frame. Tournament table scores are only permanent after **complete-from-board** saves the tournament JSON.
+
+On **Render free tier**:
+- Idle spin-down, OOM, health-check kills, and redeploys can still interrupt a live match.
+- Redeploy **wipes** runtime `data/` (including the snapshot and tournaments).
+- Prefer **paid always-on** (and a persistent disk) or **local hosting** for important matchdays.
+- See [DEPLOY.md](DEPLOY.md) for the full memory vs disk table.
+
+---
+
 ## URLs
 
 | Page | URL | Who |

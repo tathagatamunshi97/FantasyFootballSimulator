@@ -75,10 +75,10 @@ function analysisControls(fx, result) {
   if (!fx?.played) return "";
   const mid = esc(fx.id);
   const has = Boolean(result?.has_analysis || analysisCache[fx.id]?.analysis);
-  if (!has) return "";
+  const label = has ? "See analysis" : "Generate analysis";
   return `<div class="analysis-controls" style="margin-top:0.35rem">
     <div class="btn-stack">
-      <button type="button" class="btn-ghost btn-sm view-analysis-btn" data-match-id="${mid}">See analysis</button>
+      <button type="button" class="btn-ghost btn-sm view-analysis-btn" data-match-id="${mid}">${label}</button>
     </div>
     <div class="match-analysis-panel" data-match-id="${mid}" hidden style="margin-top:0.5rem"></div>
   </div>`;
@@ -407,7 +407,7 @@ function renderResults(t) {
     })
     .join("");
   return `<div class="card"><h2>Match results</h2>
-    <p class="muted" style="margin:0 0 0.75rem">Official scores come from the tactic-board pin match. Watch replays a board toward the saved scoreline. See analysis after full time.</p>
+    <p class="muted" style="margin:0 0 0.75rem">Official scores come from the tactic-board pin match. Watch replays a board toward the saved scoreline. Generate analysis when you want it — it is not built at full time.</p>
     <table><thead><tr><th>ID</th><th>Stage</th><th>Match</th><th>Score</th><th>Winner</th><th>xG</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
@@ -475,14 +475,20 @@ function fillAnalysisPanel(matchId, data) {
   if (btn) btn.textContent = "Hide analysis";
 }
 
-async function fetchMatchAnalysis(matchId, { generate = false } = {}) {
+function analysisButtonLabel(matchId) {
+  const has = Boolean(
+    currentTournament?.match_results?.[matchId]?.has_analysis || analysisCache[matchId]?.analysis
+  );
+  return has ? "See analysis" : "Generate analysis";
+}
+
+async function fetchMatchAnalysis(matchId, { force = false } = {}) {
   const path = `/api/tournament/${tournamentId}/matches/${matchId}/analysis`;
-  const data = generate
-    ? await api(path, { method: "POST" })
-    : await api(path);
+  // GET builds once if missing; POST (admin) force-rebuilds.
+  const data = force ? await api(path, { method: "POST" }) : await api(path);
   analysisCache[matchId] = data;
   if (currentTournament?.match_results?.[matchId]) {
-    currentTournament.match_results[matchId].has_analysis = true;
+    currentTournament.match_results[matchId].has_analysis = Boolean(data?.analysis);
   }
   return data;
 }
@@ -493,12 +499,7 @@ async function toggleAnalysis(matchId) {
   if (openAnalysisMatchId === matchId && panel && !panel.hidden) {
     panel.hidden = true;
     openAnalysisMatchId = null;
-    if (btn) {
-      const has = Boolean(
-        currentTournament?.match_results?.[matchId]?.has_analysis || analysisCache[matchId]?.analysis
-      );
-      btn.textContent = has ? "See analysis" : "See analysis";
-    }
+    if (btn) btn.textContent = analysisButtonLabel(matchId);
     return;
   }
   // Close any other open panel in-place (keeps Watch dock alive).
@@ -506,15 +507,15 @@ async function toggleAnalysis(matchId) {
     const prev = document.querySelector(`.match-analysis-panel[data-match-id="${openAnalysisMatchId}"]`);
     const prevBtn = document.querySelector(`.view-analysis-btn[data-match-id="${openAnalysisMatchId}"]`);
     if (prev) prev.hidden = true;
-    if (prevBtn) {
-      prevBtn.textContent = "See analysis";
-    }
+    if (prevBtn) prevBtn.textContent = analysisButtonLabel(openAnalysisMatchId);
   }
   openAnalysisMatchId = matchId;
+  const hadCached = Boolean(analysisCache[matchId]?.analysis);
   if (panel) {
     panel.hidden = false;
-    panel.innerHTML = `<p class="muted">Loading analysis…</p>`;
+    panel.innerHTML = `<p class="muted">${hadCached ? "Loading analysis…" : "Generating analysis…"}</p>`;
   }
+  if (btn && !hadCached) btn.textContent = "Generating…";
   try {
     let data = analysisCache[matchId];
     if (!data?.analysis) {
@@ -524,12 +525,14 @@ async function toggleAnalysis(matchId) {
         if (panel) {
           panel.innerHTML = `<p class="muted">${esc(err.message)}</p>`;
         }
+        if (btn) btn.textContent = analysisButtonLabel(matchId);
         return;
       }
     }
     fillAnalysisPanel(matchId, data);
   } catch (e) {
     if (panel) panel.innerHTML = `<p class="error-msg">${esc(e.message)}</p>`;
+    if (btn) btn.textContent = analysisButtonLabel(matchId);
   }
 }
 
@@ -537,15 +540,18 @@ async function generateAnalysis(matchId) {
   if (!tournamentId || !getAdminToken()) return;
   openAnalysisMatchId = matchId;
   const panel = document.querySelector(`.match-analysis-panel[data-match-id="${matchId}"]`);
+  const btn = document.querySelector(`.view-analysis-btn[data-match-id="${matchId}"]`);
   if (panel) {
     panel.hidden = false;
     panel.innerHTML = `<p class="muted">Generating analysis…</p>`;
   }
+  if (btn) btn.textContent = "Generating…";
   try {
-    const data = await fetchMatchAnalysis(matchId, { generate: true });
+    const data = await fetchMatchAnalysis(matchId, { force: true });
     fillAnalysisPanel(matchId, data);
   } catch (e) {
     alert(e.message);
+    if (btn) btn.textContent = analysisButtonLabel(matchId);
   }
 }
 

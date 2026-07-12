@@ -118,6 +118,8 @@ ALIASES: dict[str, str] = {
     "godin": "Diego Godín",
     "luis suarez": "Luis Suárez",
     "suarez": "Luis Suárez",
+    "luis diaz": "Luis Díaz",
+    "luis díaz": "Luis Díaz",
     "arturo vidal": "Arturo Vidal",
     "vidal": "Arturo Vidal",
     "angel di maria": "Ángel Di María",
@@ -493,6 +495,12 @@ KNOWN_PLAYER_POSITIONS_BY_NAME: dict[str, dict[str, Any]] = {
         "primary_position": "CB",
         "fpl_position": "DEF",
         "positions": ["CB", "CM"],
+    },
+    # FBref/Sofascore often label Díaz as CM; he is a natural wide forward.
+    "Luis Díaz": {
+        "primary_position": "LW",
+        "fpl_position": "MID",
+        "positions": ["LW", "RW", "LM"],
     },
 }
 

@@ -260,6 +260,8 @@ def _normalize_stat_gaps(data: dict[str, Any]) -> None:
     # Sparse FBref primes often ship pass_pct/dribble_pct as literal 0. Board intercept
     # / dribble math treat that as "never completes a pass / never beats a man", which
     # unfairly starves finishing volume for players who only lack the % fields.
+    # Pure #9 primes (Cavani/Falcao) can also have dribbles90=0 with dribble_pct=0 —
+    # still fill a role default so carry/press-resist terms and board on-ball play work.
     _PASS_PCT = {"GK": 72.0, "DEF": 84.0, "MID": 85.0, "FWD": 78.0}
     _DRIBBLE_PCT = {"GK": 40.0, "DEF": 58.0, "MID": 62.0, "FWD": 48.0}
     minutes = float(data.get("minutes") or 0)
@@ -267,7 +269,7 @@ def _normalize_stat_gaps(data: dict[str, Any]) -> None:
         if not float(data.get("pass_pct") or 0):
             data["pass_pct"] = _PASS_PCT.get(fpl, 80.0)
             data.setdefault("pass_pct_source", "role_default")
-        if float(data.get("dribbles90") or 0) > 0 and not float(data.get("dribble_pct") or 0):
+        if not float(data.get("dribble_pct") or 0):
             data["dribble_pct"] = _DRIBBLE_PCT.get(fpl, 55.0)
             data.setdefault("dribble_pct_source", "role_default")
 

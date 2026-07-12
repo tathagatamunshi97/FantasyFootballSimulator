@@ -59,26 +59,73 @@ function wireMatchdayActions(session) {
   }
   const analysisBtn = document.getElementById("matchdaySeeAnalysisBtn");
   if (analysisBtn && session?.result) {
-    analysisBtn.addEventListener("click", () => {
+    analysisBtn.addEventListener("click", async () => {
       const panel = document.getElementById("matchdayAnalysisPanel");
       if (!panel) return;
       const r = session.result;
-      const report = r.report || {
+      const tid = session.tournament_id || r.tournament_id;
+      const mid = r.match_id || session.fixture_id;
+
+      const showReport = (report) => {
+        const analysis = report?.analysis || r.analysis;
+        const squad = report?.squad_analysis || r.squad_analysis;
+        panel.hidden = false;
+        let html = "";
+        if (typeof renderAnalysis === "function" && analysis) {
+          html += renderAnalysis(analysis);
+        }
+        if (typeof renderSquadAnalysis === "function" && squad) {
+          html += renderSquadAnalysis(squad);
+        }
+        if (!html && analysis) {
+          html = `<div class="card"><pre style="white-space:pre-wrap;font-size:0.85rem">${esc(
+            JSON.stringify(analysis, null, 2)
+          )}</pre></div>`;
+        }
+        panel.innerHTML = html || `<p class="muted">No analysis text.</p>`;
+        analysisBtn.textContent = "See analysis";
+        panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      };
+
+      const existing = r.report || {
         analysis: r.analysis,
         squad_analysis: r.squad_analysis,
         matchup: r.matchup,
       };
-      if (report.analysis || r.analysis) {
-        panel.hidden = false;
-        panel.innerHTML =
-          typeof renderAnalysis === "function"
-            ? renderAnalysis(report.analysis || r.analysis)
-            : `<div class="card"><pre style="white-space:pre-wrap;font-size:0.85rem">${esc(
-                JSON.stringify(report.analysis || r.analysis, null, 2)
-              )}</pre></div>`;
-        panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      } else {
+      if (existing.analysis || r.analysis) {
+        showReport(existing);
+        return;
+      }
+
+      if (!tid || !mid) {
         alert("Analysis is not available yet.");
+        return;
+      }
+
+      analysisBtn.disabled = true;
+      const prevLabel = analysisBtn.textContent;
+      analysisBtn.textContent = "Generating…";
+      panel.hidden = false;
+      panel.innerHTML = `<p class="muted">Generating analysis…</p>`;
+      try {
+        const data = await api(`/api/tournament/${tid}/matches/${mid}/analysis`);
+        if (session.result) {
+          session.result.has_analysis = Boolean(data?.analysis);
+          session.result.analysis = data.analysis;
+          session.result.squad_analysis = data.squad_analysis;
+          session.result.matchup = data.matchup;
+          session.result.report = {
+            analysis: data.analysis,
+            squad_analysis: data.squad_analysis,
+            matchup: data.matchup,
+          };
+        }
+        showReport(data);
+      } catch (e) {
+        panel.innerHTML = `<p class="error-msg">${esc(e.message)}</p>`;
+        analysisBtn.textContent = prevLabel;
+      } finally {
+        analysisBtn.disabled = false;
       }
     });
   }

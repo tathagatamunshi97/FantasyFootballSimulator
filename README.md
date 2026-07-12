@@ -113,9 +113,11 @@ Uses Cloudflare quick tunnel (`*.trycloudflare.com`). The link is printed and sa
 | `data/player_stats_cache.json` | Player stats (Sofascore + Understat) |
 | `data/web_state.json` | Latest simulation on the dashboard |
 | `data/sessions.json` | Viewer sessions |
+| `data/matchday_session.json` | Live Matchday snapshot (score/events; restored after restart) |
+| `data/team_passwords.json` | Team password hashes |
 | `data/public_url.txt` | Last public URL (when tunnel runs) |
 
-Nothing in `data/` is wiped when you restart the server or tunnel.
+Nothing in `data/` is wiped when you restart the server or tunnel **on your laptop**. On **Render free tier**, runtime `data/` is wiped on **redeploy**; see [DEPLOY.md](DEPLOY.md).
 
 ### Cloud hosting summary
 

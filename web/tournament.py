@@ -1153,6 +1153,7 @@ def _board_side_payload(team: FantasyTeam, player_stats: dict[str, Any]) -> dict
                     "xa90": st.get("xa90", 0),
                     "xg90": st.get("xg90", 0),
                     "npxg90": st.get("npxg90", 0),
+                    "goals90": st.get("goals90", 0),
                     "shots90": st.get("shots90", 0),
                     "shots_on_target90": st.get("shots_on_target90", 0),
                     "understat_shots90": st.get("understat_shots90", 0),
@@ -1464,15 +1465,7 @@ def complete_from_board(
         if t.get("status") == "group_draw":
             t["status"] = "group_stage"
 
-    analysis_payload: dict[str, Any] | None = None
-    try:
-        analysis_payload = _build_and_attach_board_analysis(
-            t, result, tournament_id=tournament_id, match_id=match_id
-        )
-    except Exception:
-        # Never block official score save if analysis fails
-        analysis_payload = None
-
+    # Analysis is deferred — built on first "See analysis" / Generate click, not at FT.
     _refresh_player_tallies(t)
     save_tournament(t)
 
@@ -1488,7 +1481,7 @@ def complete_from_board(
         "tournament_id": tournament_id,
         "expected_xg": result.get("expected_xg"),
         "possession_pct": result.get("possession_pct"),
-        "has_analysis": _result_has_analysis(result),
+        "has_analysis": False,
     }
     if decided:
         md_result["decided_by"] = decided
@@ -1498,32 +1491,19 @@ def complete_from_board(
     if decided == "pens" and ph is not None and pa is not None:
         md_result["pens_home"] = ph
         md_result["pens_away"] = pa
-    if analysis_payload:
-        for key in ("analysis", "squad_analysis", "matchup", "report"):
-            if key in analysis_payload:
-                md_result[key] = analysis_payload[key]
-        if analysis_payload.get("analysis"):
-            md_result["report"] = analysis_payload.get("report") or {
-                "analysis": analysis_payload["analysis"],
-                "squad_analysis": analysis_payload.get("squad_analysis"),
-                "matchup": analysis_payload.get("matchup"),
-            }
     matchday_session.set_result(md_result)
 
-    out: dict[str, Any] = {
+    return {
         "tournament": tournament_for_api(t),
         "match": fx,
         "result": match_result_for_api(result),
         "stage": stage_key,
         "status": "complete",
         "engine": "tactic_board",
-        "has_analysis": _result_has_analysis(result),
-        "analysis_ready": _result_has_analysis(result),
+        "has_analysis": False,
+        "analysis_ready": False,
         "matchday": matchday_session.active_status(),
     }
-    if analysis_payload:
-        out.update(analysis_payload)
-    return out
 
 
 def _build_and_attach_board_analysis(
@@ -1785,7 +1765,7 @@ def _analysis_response(result: dict[str, Any], match_id: str) -> dict[str, Any]:
 
 
 def get_match_analysis(tournament_id: str, match_id: str) -> dict[str, Any]:
-    """Return persisted match analysis; backfill from linked experiment when possible."""
+    """Return persisted match analysis; build on first request if missing."""
     t = load_tournament(tournament_id)
     if not t:
         raise KeyError("Tournament not found")
@@ -1805,11 +1785,8 @@ def get_match_analysis(tournament_id: str, match_id: str) -> dict[str, Any]:
             save_tournament(t)
 
     if not _result_has_analysis(result):
-        raise FileNotFoundError(
-            f"No analysis saved for '{match_id}'. "
-            "Finish the pin-board match (See analysis appears after full time) "
-            "or ask an admin to rebuild via POST /analysis."
-        )
+        # First "See analysis" click — build once and persist (does not change score).
+        return generate_match_analysis(tournament_id, match_id)
 
     # Stale CB/slot-fit narratives (e.g. Ramos 0.79) — rebuild when formula version lags.
     if int(result.get("fit_formula_version") or 0) < _FIT_FORMULA_VERSION:

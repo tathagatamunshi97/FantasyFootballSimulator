@@ -526,6 +526,40 @@ def role_bucket(primary_position: str, fpl_position: str = "") -> str:
     return "CM"
 
 
+def role_bucket_for_stats(data: dict[str, Any]) -> str:
+    """
+    Role bucket for credibility priors.
+
+    Sofascore often tags AMs/wingers as CM/MF. Shrinking their xG/shots toward
+    CM priors (xg≈0.10) makes sheet attackers look like non-finishers. Promote
+    the prior bucket from the attack profile when the tag is a midfield bucket.
+    """
+    primary = str(data.get("primary_position") or "MF")
+    fpl = str(data.get("fpl_position") or "")
+    base = role_bucket(primary, fpl)
+    if base != "CM":
+        return base
+
+    xg = float(data.get("xg90") or data.get("npxg90") or data.get("understat_xg90") or 0)
+    shots = float(data.get("shots90") or data.get("understat_shots90") or 0)
+    sot = float(data.get("shots_on_target90") or 0)
+    xa = float(data.get("xa90") or data.get("understat_xa90") or 0)
+    kp = float(data.get("key_passes90") or data.get("understat_key_passes90") or 0)
+    dribbles = float(data.get("dribbles90") or 0)
+    goals = float(data.get("goals90") or 0)
+
+    # Out-and-out finisher profile stuck in midfield tag
+    if xg >= 0.28 or goals >= 0.28 or (shots >= 2.5 and (xg >= 0.18 or sot >= 1.0)):
+        return "ST"
+    # Wide attacker / carrier
+    if dribbles >= 1.35 and shots >= 1.4 and (xg >= 0.12 or xa >= 0.12 or goals >= 0.12):
+        return "W"
+    # Creator / CAM
+    if (kp >= 1.35 or xa >= 0.16) and (xg >= 0.10 or shots >= 1.3 or dribbles >= 1.0):
+        return "AM"
+    return "CM"
+
+
 def role_priors(primary_position: str, fpl_position: str = "") -> dict[str, float]:
     return _ROLE_PER90_PRIORS[role_bucket(primary_position, fpl_position)]
 
@@ -557,7 +591,8 @@ def apply_credibility_dampening(data: dict[str, Any]) -> dict[str, Any]:
     c = credibility_weight(minutes)
     primary = str(data.get("primary_position") or "MF")
     fpl = str(data.get("fpl_position") or "")
-    priors = role_priors(primary, fpl)
+    bucket = role_bucket_for_stats(data)
+    priors = _ROLE_PER90_PRIORS[bucket]
 
     for field in RATE_STAT_FIELDS:
         if field not in data or data[field] in (None, ""):
@@ -569,5 +604,6 @@ def apply_credibility_dampening(data: dict[str, Any]) -> dict[str, Any]:
     data["credibility_damped"] = True
     data["credibility_weight"] = round(c, 4)
     data["credibility_m0"] = CREDIBILITY_M0
-    data["credibility_role"] = role_bucket(primary, fpl)
+    data["credibility_role"] = bucket
+    data["credibility_role_declared"] = role_bucket(primary, fpl)
     return data

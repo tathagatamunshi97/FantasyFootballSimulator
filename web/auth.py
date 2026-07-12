@@ -16,7 +16,9 @@ SESSIONS_FILE = ROOT / "data" / "sessions.json"
 PASSWORDS_FILE = ROOT / "data" / "team_passwords.json"
 
 ADMIN_USER = "admin"
-MAX_TEAM_SESSIONS = 2
+# Shared team accounts: allow a few devices; over-cap logins drop the oldest
+# session instead of returning 429 (two people on the same credentials).
+MAX_TEAM_SESSIONS = 3
 SESSION_TTL_HOURS = 24
 MIN_PASSWORD_LEN = 6
 _PBKDF2_ITERATIONS = 260_000
@@ -24,6 +26,8 @@ _PBKDF2_ITERATIONS = 260_000
 _lock = threading.Lock()
 _sessions: dict[str, dict[str, Any]] = {}
 _passwords: dict[str, dict[str, Any]] = {}
+_passwords_mtime: float | None = None
+_sessions_mtime: float | None = None
 
 
 def _now() -> str:
@@ -61,31 +65,87 @@ def _normalize_name(name: str) -> str:
 
 
 def _load_sessions() -> None:
-    global _sessions
+    global _sessions, _sessions_mtime
     if SESSIONS_FILE.exists():
         try:
             _sessions = json.loads(SESSIONS_FILE.read_text(encoding="utf-8"))
+            _sessions_mtime = SESSIONS_FILE.stat().st_mtime
         except (json.JSONDecodeError, OSError):
             _sessions = {}
+            _sessions_mtime = None
+    else:
+        _sessions = {}
+        _sessions_mtime = None
+
+
+def _maybe_reload_sessions() -> None:
+    """Pick up external edits to sessions.json without a process restart."""
+    global _sessions, _sessions_mtime
+    try:
+        if not SESSIONS_FILE.exists():
+            if _sessions:
+                _sessions = {}
+                _sessions_mtime = None
+            return
+        mtime = SESSIONS_FILE.stat().st_mtime
+        if _sessions_mtime is not None and mtime <= _sessions_mtime:
+            return
+        _sessions = json.loads(SESSIONS_FILE.read_text(encoding="utf-8"))
+        _sessions_mtime = mtime
+    except (json.JSONDecodeError, OSError):
+        return
 
 
 def _save_sessions() -> None:
+    global _sessions_mtime
     SESSIONS_FILE.parent.mkdir(parents=True, exist_ok=True)
     SESSIONS_FILE.write_text(json.dumps(_sessions, indent=2), encoding="utf-8")
+    try:
+        _sessions_mtime = SESSIONS_FILE.stat().st_mtime
+    except OSError:
+        _sessions_mtime = None
 
 
 def _load_passwords() -> None:
-    global _passwords
+    global _passwords, _passwords_mtime
     if PASSWORDS_FILE.exists():
         try:
             _passwords = json.loads(PASSWORDS_FILE.read_text(encoding="utf-8"))
+            _passwords_mtime = PASSWORDS_FILE.stat().st_mtime
         except (json.JSONDecodeError, OSError):
             _passwords = {}
+            _passwords_mtime = None
+    else:
+        _passwords = {}
+        _passwords_mtime = None
+
+
+def _maybe_reload_passwords() -> None:
+    """Pick up external edits to team_passwords.json without a process restart."""
+    global _passwords, _passwords_mtime
+    try:
+        if not PASSWORDS_FILE.exists():
+            if _passwords:
+                _passwords = {}
+                _passwords_mtime = None
+            return
+        mtime = PASSWORDS_FILE.stat().st_mtime
+        if _passwords_mtime is not None and mtime <= _passwords_mtime:
+            return
+        _passwords = json.loads(PASSWORDS_FILE.read_text(encoding="utf-8"))
+        _passwords_mtime = mtime
+    except (json.JSONDecodeError, OSError):
+        return
 
 
 def _save_passwords() -> None:
+    global _passwords_mtime
     PASSWORDS_FILE.parent.mkdir(parents=True, exist_ok=True)
     PASSWORDS_FILE.write_text(json.dumps(_passwords, indent=2), encoding="utf-8")
+    try:
+        _passwords_mtime = PASSWORDS_FILE.stat().st_mtime
+    except OSError:
+        _passwords_mtime = None
 
 
 _load_sessions()
@@ -135,6 +195,7 @@ def resolve_sheet_team(name: str) -> str | None:
 
 def team_has_password(team: str) -> bool:
     with _lock:
+        _maybe_reload_passwords()
         return team in _passwords
 
 
@@ -147,6 +208,7 @@ def set_team_password(team: str, new_password: str, confirm_password: str) -> No
     if pwd != confirm:
         raise ValueError("Passwords do not match.")
     with _lock:
+        _maybe_reload_passwords()
         if team in _passwords:
             raise ValueError("Password already set. Contact admin to reset.")
         _passwords[team] = _hash_password(pwd)
@@ -156,11 +218,23 @@ def set_team_password(team: str, new_password: str, confirm_password: str) -> No
 def reset_team_password(team: str) -> bool:
     """Clear stored password so the team must set a new one on next login."""
     with _lock:
+        _maybe_reload_passwords()
         if team not in _passwords:
             return False
         del _passwords[team]
         _save_passwords()
         return True
+
+
+def force_set_team_password(team: str, new_password: str) -> None:
+    """Admin/ops: set or replace a team password hash (does not create a session)."""
+    pwd = new_password.strip()
+    if len(pwd) < MIN_PASSWORD_LEN:
+        raise ValueError(f"Password must be at least {MIN_PASSWORD_LEN} characters.")
+    with _lock:
+        _maybe_reload_passwords()
+        _passwords[team] = _hash_password(pwd)
+        _save_passwords()
 
 
 def list_team_password_status() -> list[dict[str, Any]]:
@@ -169,6 +243,7 @@ def list_team_password_status() -> list[dict[str, Any]]:
 
     teams = list_sheet_teams()
     with _lock:
+        _maybe_reload_passwords()
         configured = set(_passwords.keys())
     return [
         {
@@ -210,6 +285,7 @@ def attempt_login(name: str, password: str) -> dict[str, Any]:
         return {"status": "needs_password_setup", "user": sheet_name}
 
     with _lock:
+        _maybe_reload_passwords()
         stored = _passwords.get(sheet_name)
     if stored and _verify_password(pwd, stored):
         return {"status": "ok", "user": sheet_name}
@@ -237,34 +313,39 @@ def _prune_expired_locked() -> None:
 def _active_sessions_for_user(user: str) -> list[str]:
     """Token ids for non-expired sessions belonging to user."""
     with _lock:
+        _maybe_reload_sessions()
         _prune_expired_locked()
         return [tok for tok, row in _sessions.items() if row.get("user") == user]
 
 
 def session_limit_error(user: str) -> str | None:
-    """Return error message if user cannot open another session."""
-    if is_admin_user(user):
-        return None
-    active = _active_sessions_for_user(user)
-    if len(active) >= MAX_TEAM_SESSIONS:
-        return (
-            f"Maximum {MAX_TEAM_SESSIONS} concurrent logins for this team. "
-            "Log out on another device or browser, or wait for inactive sessions to expire "
-            f"({SESSION_TTL_HOURS}h)."
-        )
+    """Deprecated: logins no longer hard-reject at the per-team cap.
+
+    Kept for API compatibility; always returns None. New logins succeed and
+    ``create_session`` evicts the oldest session(s) when over ``MAX_TEAM_SESSIONS``.
+    """
     return None
 
 
-def create_session(user: str) -> str:
-    limit_err = session_limit_error(user)
-    if limit_err:
-        raise ValueError(limit_err)
+def _session_created_sort_key(row: dict[str, Any]) -> datetime:
+    return _parse_ts(row.get("created_at")) or datetime.min.replace(tzinfo=timezone.utc)
 
+
+def create_session(user: str) -> str:
+    """Create a session. For team users, evict oldest sessions when at/over cap."""
     token = secrets.token_urlsafe(24)
     created = _now()
     expires = _expires_at(created).isoformat()
     with _lock:
+        _maybe_reload_sessions()
         _prune_expired_locked()
+        if not is_admin_user(user):
+            owned = [(tok, row) for tok, row in _sessions.items() if row.get("user") == user]
+            owned.sort(key=lambda item: _session_created_sort_key(item[1]))
+            # Leave room for this login: at most MAX_TEAM_SESSIONS active after insert.
+            while len(owned) >= MAX_TEAM_SESSIONS:
+                old_tok, _ = owned.pop(0)
+                del _sessions[old_tok]
         _sessions[token] = {
             "user": user,
             "created_at": created,
@@ -278,6 +359,7 @@ def get_user(token: str | None) -> str | None:
     if not token:
         return None
     with _lock:
+        _maybe_reload_sessions()
         row = _sessions.get(token)
         if not row:
             return None
@@ -292,6 +374,7 @@ def revoke_session(token: str | None) -> None:
     if not token:
         return
     with _lock:
+        _maybe_reload_sessions()
         if token in _sessions:
             del _sessions[token]
             _save_sessions()
@@ -300,6 +383,7 @@ def revoke_session(token: str | None) -> None:
 def clear_all_sessions() -> int:
     """Revoke every active session token. Returns count cleared."""
     with _lock:
+        _maybe_reload_sessions()
         count = len(_sessions)
         _sessions.clear()
         _save_sessions()

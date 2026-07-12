@@ -137,18 +137,39 @@ Google Sheets must be **"Anyone with the link can view"** (public CSV export). N
 
 | Limitation | Impact |
 |------------|--------|
-| **Sleeps after ~15 min idle** | First visitor after sleep waits **30–60 s** |
-| **Ephemeral filesystem** | Runtime `data/` writes vanish on redeploy |
+| **Sleeps after ~15 min idle** | First visitor after sleep waits **30–60 s**. A quiet Matchday tab may not count as traffic if nobody hits the API — keep `/matchday` open and refreshing. |
+| **~512 MB RAM** | Live pin matches + many viewers are OK; **do not** run Chrome/`soccerdata` live fetches on Render during matchday (OOM → instant restart). |
+| **Process restarts** | Health-check failures, OOM, deploys, or platform blips **wipe in-memory Matchday** and force re-login. Bandwidth spikes on the graph often line up with a crash/restart, not “reset by itself.” |
+| **Ephemeral filesystem** | Runtime `data/` writes vanish on **redeploy**. Within one deploy, disk files usually survive a process restart. |
 | **750 free instance hours/month** | One service fits comfortably |
 | **No custom domain on free** | URL stays `*.onrender.com` |
+
+### What survives a Render stop vs what does not
+
+| State | Where it lives | Survive process restart (same deploy)? | Survive redeploy / free rebuild? |
+|-------|----------------|----------------------------------------|----------------------------------|
+| **Live Matchday board** (minute, score, events) | Memory + `data/matchday_session.json` snapshot | **Yes** (restored from snapshot on startup) | **No** (disk wiped) |
+| **Login sessions** | `data/sessions.json` (cleared on every startup by design) | **No** — everyone must log in again | **No** |
+| **Tournament brackets / completed scores** | `data/tournaments/*.json` | Yes, if already saved | **No** unless committed or on a paid disk |
+| **Team lineups** | `data/team_lineups.json` | Yes | **No** unless committed |
+| **Team passwords** | `data/team_passwords.json` | Yes | **No** unless committed |
+| **Player stats cache** | Baked into Docker image | Yes | Yes (from git) |
+
+**Root cause of “reset everything” mid-match on free Render:** the service process stopped (sleep, OOM, health check, or deploy). Matchday used to be **memory-only**, so the live board vanished; startup also **clears all logins**. Completed tournament scores are only safe if `complete-from-board` finished writing the tournament JSON *before* the crash.
+
+**Honest options for reliable live matchdays:**
+1. **Paid Render** (always-on) + optional **persistent disk** for `data/`
+2. **Host on your PC** (local + tunnel) during tournament days — full disk persistence
+3. Stay on free: expect cold starts; avoid Chrome/stats fetches during matches; redeploy only between matchdays; commit passwords/tournaments if you must survive rebuilds
 
 ### Persistent data on Render
 
 | Data | On free Render | Workaround |
 |------|----------------|------------|
 | **Player stats cache** | ✅ Persists (in image) | Commit `data/player_stats_cache.json`; re-push after `fetch_stats.py` |
+| **Matchday mid-match snapshot** | ⚠️ Survives process restart; lost on redeploy | Auto-written to `data/matchday_session.json` |
 | **Latest simulation** | ⚠️ Lost on redeploy | Re-run from admin |
-| **Tournaments / experiments** | ⚠️ Lost on redeploy | Re-create, or add [Render persistent disk](https://render.com/docs/disks) (paid) |
+| **Tournaments / experiments / passwords** | ⚠️ Lost on redeploy | Re-create, commit hashes carefully, or add [Render persistent disk](https://render.com/docs/disks) (paid) |
 
 ---
 
@@ -162,6 +183,8 @@ Google Sheets must be **"Anyone with the link can view"** (public CSV export). N
 | Google Sheets error | Sheet must be publicly viewable |
 | Port binding error | Remove `SIM_PORT` env var; let Render set `PORT` |
 | Push rejected (large file) | Only if a single file exceeds 100 MB — current cache is ~3.8 MB, OK |
+| Mid-match “everything reset” | Process restarted (sleep/OOM/deploy). Check Render **Events** + **Logs**. Matchday snapshot restores score/events after process restart; redeploy still wipes `data/`. |
+| “Invalid login” after redeploy | Passwords on ephemeral disk were wiped — teams must set passwords again (or bake `team_passwords.json` into the image) |
 
 ---
 

@@ -279,19 +279,28 @@ def _player_position_tags(player: PlayerStats) -> set[str]:
 
     # FBref/Sofascore often bucket out-and-out wingers as CM/MF. Promote wing
     # tags from the per-90 attack profile so RW/LW slots see a natural match.
+    # Thresholds tolerate minutes-credibility shrink toward CM priors (m0=1000):
+    # e.g. Luis Díaz raw dribbles ~2.1 → ~1.70 after dampening, which failed the
+    # old 1.8 cut and left him CM-only (~0.60 LW fit).
     xa = _stat_rate(player, "xa90")
     xg = _stat_rate(player, "xg90")
+    goals = _stat_rate(player, "goals90")
+    shots = _stat_rate(player, "shots90")
     mid_bucket = (
         primary in _MIDFIELD_BUCKET_TAGS
         or fpl == "MID"
         or bool(tags & _MIDFIELD_BUCKET_TAGS)
     ) and not bool(tags & {"ST", "CF", "FW", "RW", "LW"})
-    wing_attack_profile = (
-        dribbles >= 1.8
-        and kp >= 1.0
-        and clearances < 1.5
-        and (xg >= 0.15 or assists >= 0.12 or xa >= 0.15)
+    creative_carry = dribbles >= 1.45 and kp >= 0.9 and (
+        xg >= 0.12 or assists >= 0.10 or xa >= 0.12
     )
+    goal_threat_wide = (
+        clearances < 1.2
+        and shots >= 1.8
+        and (xg >= 0.22 or goals >= 0.22)
+        and (dribbles >= 1.2 or kp >= 0.9)
+    )
+    wing_attack_profile = clearances < 1.5 and (creative_carry or goal_threat_wide)
     if mid_bucket and wing_attack_profile:
         tags.update({"RW", "RM", "LW", "LM", "FW"})
 

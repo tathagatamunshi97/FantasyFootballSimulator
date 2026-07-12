@@ -4062,9 +4062,10 @@
       "season_suffix": "24/25",
       "stats": {
         "team": "FC Bayern München",
-        "primary_position": "CM",
+        "primary_position": "LW",
         "fpl_position": "MID",
         "positions": [
+          "LW",
           "CM"
         ],
         "minutes": 2430.0,

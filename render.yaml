@@ -5,8 +5,12 @@
 #
 # Limitations (free tier):
 # - Service sleeps after ~15 min inactivity; first request may take 30–60s.
-# - Ephemeral disk: data/ written at runtime (tournaments, experiments) resets on redeploy.
+# - ~512MB RAM — avoid Chrome/soccerdata live fetches during Matchday (OOM restarts wipe live state).
+# - Ephemeral disk: data/ written at runtime (tournaments, experiments, passwords, matchday snapshots)
+#   survives process restart within a deploy, but resets on redeploy.
+# - Matchday now snapshots to data/matchday_session.json for mid-match recovery after OOM/health restarts.
 # - Commit data/player_stats_cache.json to the repo (bundled in Docker image).
+# - For reliable live tournaments: paid always-on plan + optional persistent disk, or host locally.
 
 services:
   - type: web

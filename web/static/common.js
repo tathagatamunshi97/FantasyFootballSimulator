@@ -623,7 +623,7 @@ function renderMatchdaySession(status, { isAdmin = false } = {}) {
   } else if (phase === "live" || phase === "running") {
     const waiting =
       session.engine === "tactic_board" || session.board
-        ? `<p class="muted" style="margin:0 0 0.75rem">Shared live tactic board — possession, xG and momentum update for everyone.</p>`
+        ? `<p class="muted" style="margin:0 0 0.75rem">Shared live tactic board — possession and xG update for everyone.</p>`
         : `<p class="muted" style="margin:0 0 0.75rem">Monte Carlo in progress…</p>`;
     phaseBody = `
       <div>
@@ -638,10 +638,9 @@ function renderMatchdaySession(status, { isAdmin = false } = {}) {
     const expLink = r.experiment_id
       ? `<p><a href="/experiment/${esc(r.experiment_id)}?from=matchday">Full match analysis</a></p>`
       : "";
-    const analysisBtn =
-      r.has_analysis || r.analysis || r.report
-        ? `<button type="button" class="btn-primary" id="matchdaySeeAnalysisBtn" style="margin-top:0.75rem">See analysis</button>`
-        : "";
+    const analysisBtn = `<button type="button" class="btn-primary" id="matchdaySeeAnalysisBtn" style="margin-top:0.75rem">${
+      r.has_analysis || r.analysis || r.report ? "See analysis" : "Generate analysis"
+    }</button>`;
     const dismissBtn =
       isAdmin || getAdminToken()
         ? `<button type="button" id="matchdayDismissBtn" class="btn-ghost" style="margin-top:1rem">Dismiss</button>`
