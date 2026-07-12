@@ -55,6 +55,8 @@ def _apply_override(
     canon, data, season_label = builder(raw_name, store)
     # Estimate aerials from clearances when manual/FBref override has gaps.
     _normalize_stat_gaps(data)
+    # Prime / peak-season picks keep raw per-90s (no minutes credibility shrink).
+    data["skip_credibility_dampening"] = True
     player_stats[canon] = PlayerStats.from_dict(canon, data)
     meta["resolved_name"] = canon
     meta["season"] = season_label

@@ -93,6 +93,13 @@ class PlayerStats:
         _normalize_stat_gaps(payload)
         pos = payload.get("primary_position", "MF")
         fpl = payload.get("fpl_position") or _infer_fpl_position(pos)
+        payload["primary_position"] = pos
+        payload["fpl_position"] = fpl
+        # Minutes-credibility shrink for normal cache/seasonal profiles only.
+        # Primes and peak-season picks are detected via stat_profile / manual_profile_type.
+        from sample_confidence import apply_credibility_dampening
+
+        apply_credibility_dampening(payload)
         seasons = list(payload.get("seasons_used", []))
         teams_by_season = dict(payload.get("teams_by_season", {}))
         if not teams_by_season and payload.get("team") and seasons:
