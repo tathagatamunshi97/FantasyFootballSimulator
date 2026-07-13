@@ -958,32 +958,18 @@ async function updatePlayerDropdown(teamName, selectElement) {
   try {
     const res = await adminApi(`/api/sheets/team?name=${encodeURIComponent(teamName)}`);
     const team = res.team;
-    let roster = [];
 
-    // Try different possible field names for roster
-    if (team.sheet_meta?.full_roster) {
-      roster = team.sheet_meta.full_roster;
-    } else if (team.sheet_meta?.roster_players) {
-      roster = team.sheet_meta.roster_players;
-    } else if (team.roster) {
-      roster = team.roster;
-    } else if (team.lineup) {
-      roster = team.lineup;
-    }
+    // Roster is just an array of player name strings (used in squad hub)
+    const roster = team.roster || [];
 
+    // Filter empty strings and sort
     const playerNames = roster
-      .filter((p) => {
-        if (!p) return false;
-        // Handle both {player: "name"} and {name: "name"} formats
-        return p.player || p.name;
-      })
-      .map((p) => p.player || p.name)
-      .filter(Boolean)
+      .filter((p) => p && typeof p === "string" && p.trim())
+      .map((p) => p.trim())
       .sort();
 
     if (playerNames.length === 0) {
       selectElement.innerHTML = `<option value="">— No players found —</option>`;
-      console.warn(`No players found for team "${teamName}". Roster data:`, roster);
       return;
     }
 
