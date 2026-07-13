@@ -3131,7 +3131,19 @@
         }
       }
 
-      if (isWideFinalThird(carrier) && stage !== "BUILD_UP") {
+      // NOTE: this used to fire unconditionally whenever a winger/FB was simply out
+      // wide and deep — which is their normal position — so it pre-empted the
+      // "cut_inside" pattern's box drives and the "wing_carry" pattern's fullback/
+      // winger overlap-underlap-decoy-onetwo combination play (decideFbWingLink)
+      // almost every time either was selected, leaving cross/cutback/recycle as
+      // the only outcome a wide player ever reached. Exempt those two patterns so
+      // they actually get to run when chosen.
+      if (
+        isWideFinalThird(carrier) &&
+        stage !== "BUILD_UP" &&
+        pattern !== "cut_inside" &&
+        pattern !== "wing_carry"
+      ) {
         return decideWideFinalThird(carrier);
       }
 
@@ -3198,7 +3210,10 @@
 
       if (pattern === "wing_carry") {
         if (carrier.role === "W" || carrier.role === "FB") {
-          if (depth >= 0.68 && isWideChannel(carrier)) return decideWideFinalThird(carrier);
+          // Used to reroute straight back to decideWideFinalThird (cross/cutback/
+          // recycle only) once deep+wide — exactly the situation this pattern
+          // exists for, so it silently killed fullback/winger combination play
+          // (decideFbWingLink below) whenever it would have mattered most.
           const flankEdge = flankMatchupEdge(carrier.side, pinFlank(carrier));
           if (
             (sameFlankPartners(carrier, carrier.role === "FB" ? "W" : "FB").length || spell?.patternHint === "fb_to_w") &&
