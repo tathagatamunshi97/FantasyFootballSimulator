@@ -103,7 +103,7 @@
     <div id="panel-match-recording" class="tab-panel" role="tabpanel" hidden>
       <div class="card" style="margin-top:0">
         <h2>Record match result</h2>
-        <p class="muted">Manually record a match result with scorers and assisters. Stores in database, survives redeploys.</p>
+        <p class="muted">Manually record a match result with scorers and assisters — same path as the live tactic board. Updates the fixture, group table / knockout bracket, and top scorers/assisters immediately.</p>
 
         <div class="form-row">
           <label for="mrTournament">Tournament</label>
@@ -133,6 +133,13 @@
           </div>
         </div>
 
+        <div id="mrWinnerRow" class="form-row" style="display:none">
+          <label for="mrWinner">Winner (level scores — knockout tie decided on penalties/extra time)</label>
+          <select id="mrWinner" style="max-width:300px">
+            <option value="">— Select winner —</option>
+          </select>
+        </div>
+
         <div class="card" style="background:#f5f5f5;margin:1rem 0">
           <h3 style="margin-top:0">Goals & assists</h3>
           <p class="muted">Add each goal with scorers and optional assists.</p>
@@ -145,19 +152,7 @@
           <button type="button" id="mrClearBtn" class="btn-ghost">Clear form</button>
         </div>
         <div id="mrLog" class="log" style="margin-top:0.75rem">Ready.</div>
-      </div>
-
-      <div class="card" style="margin-top:1rem">
-        <h2>Recorded matches</h2>
-        <p class="muted">View all manually recorded matches for the selected tournament.</p>
-        <div class="form-row">
-          <label for="mrListTournament">Tournament</label>
-          <select id="mrListTournament" style="max-width:300px">
-            <option value="">— Select tournament —</option>
-          </select>
-        </div>
-        <div id="mrRecordedTable" class="table-wrap" style="margin-top:0.75rem"><p class="muted">Select a tournament to view recorded matches.</p></div>
-        <div id="mrListLog" class="log" style="margin-top:0.75rem">Ready.</div>
+        <p class="muted" style="margin-top:0.5rem">Recorded results appear immediately on the <a href="/tournament" target="_blank">Tournament viewer</a> — fixtures, table, bracket, and top scorers/assisters.</p>
       </div>
     </div>
 

@@ -789,16 +789,16 @@ document.getElementById("runBtn")?.addEventListener("click", async () => {
 // ============================================================================
 
 const mrLog = (msg) => (document.getElementById("mrLog").textContent = msg);
-const mrListLog = (msg) => (document.getElementById("mrListLog").textContent = msg);
+
+// matchId -> { isKnockout, home, away, groupKey, roundName, played }
+let mrMatchIndex = {};
 
 async function loadMatchRecordingTournaments() {
   try {
     const res = await adminApi("/api/tournament");
     const sel = document.getElementById("mrTournament");
-    const sel2 = document.getElementById("mrListTournament");
     const opts = res.tournaments.map((t) => `<option value="${t.id}">${t.name} (${t.team_count} teams)</option>`).join("");
     sel.innerHTML = `<option value="">— Select tournament —</option>${opts}`;
-    sel2.innerHTML = `<option value="">— Select tournament —</option>${opts}`;
     mrLog("Tournaments loaded.");
   } catch (e) {
     mrLog(`Error loading tournaments: ${e.message}`);
@@ -806,6 +806,7 @@ async function loadMatchRecordingTournaments() {
 }
 
 async function loadMatches(tournamentId) {
+  mrMatchIndex = {};
   if (!tournamentId) {
     document.getElementById("mrMatch").innerHTML = `<option value="">— Select match —</option>`;
     return;
@@ -815,295 +816,155 @@ async function loadMatches(tournamentId) {
     const t = res.tournament;
     const matchOptions = [];
 
-    // Group stage matches
+    // Group stage: t.groups[groupKey].fixtures[] = {id, home, away, played, result_id, ...}
     const groups = t.groups || {};
     for (const [groupKey, group] of Object.entries(groups)) {
       const fixtures = group.fixtures || [];
       for (const fx of fixtures) {
-        const matchId = fx.id || `${groupKey}_${fx.match_number}`;
-        const home = fx.home || "?";
-        const away = fx.away || "?";
-        const score = fx.result_id ? "✓ Done" : "⊝ Pending";
-        matchOptions.push(`<option value="${matchId}">${home} vs ${away} (${groupKey}) ${score}</option>`);
+        if (!fx.home || !fx.away) continue;
+        mrMatchIndex[fx.id] = {
+          isKnockout: false,
+          home: fx.home,
+          away: fx.away,
+          groupKey,
+          played: Boolean(fx.played),
+        };
+        const status = fx.played ? "✓ Done" : "⊝ Pending";
+        matchOptions.push(`<option value="${fx.id}">${fx.home} vs ${fx.away} (Group ${groupKey}) ${status}</option>`);
       }
     }
 
-    // Knockout matches
-    const knockout = t.knockout || {};
-    for (const [stage, matches] of Object.entries(knockout)) {
-      for (const m of matches) {
-        const matchId = m.id || `${stage}_${m.match_number}`;
-        const home = m.home || "?";
-        const away = m.away || "?";
-        const score = m.result_id ? "✓ Done" : "⊝ Pending";
-        matchOptions.push(`<option value="${matchId}">${home} vs ${away} (${stage}) ${score}</option>`);
+    // Knockout: t.knockout.rounds[] = {name, label, ties: [{id, home, away, played, result_id, ...}]}
+    const rounds = (t.knockout || {}).rounds || [];
+    for (const rnd of rounds) {
+      const roundName = rnd.label || rnd.name || "Knockout";
+      for (const tie of rnd.ties || []) {
+        if (!tie.home || !tie.away) continue; // not yet seeded from a prior round
+        mrMatchIndex[tie.id] = {
+          isKnockout: true,
+          home: tie.home,
+          away: tie.away,
+          roundName: rnd.name,
+          played: Boolean(tie.played),
+        };
+        const status = tie.played ? "✓ Done" : "⊝ Pending";
+        matchOptions.push(`<option value="${tie.id}">${tie.home} vs ${tie.away} (${roundName}) ${status}</option>`);
       }
     }
 
     const sel = document.getElementById("mrMatch");
     sel.innerHTML = `<option value="">— Select match —</option>${matchOptions.join("")}`;
-    mrLog(`${matchOptions.length} matches found.`);
+    mrLog(`${matchOptions.length} match(es) found.`);
   } catch (e) {
     mrLog(`Error loading matches: ${e.message}`);
   }
 }
 
-function addEventRow(team = "", player = "", assisters = [], minute = "") {
-  const id = `event_${Date.now()}`;
+// Cache of team name -> player name list, so switching goal rows doesn't re-fetch.
+const _mrRosterCache = {};
+
+async function rosterForTeam(teamName) {
+  if (!teamName) return [];
+  if (_mrRosterCache[teamName]) return _mrRosterCache[teamName];
+  const res = await adminApi(`/api/sheets/team?name=${encodeURIComponent(teamName)}`);
+  // Full roster (array of player name strings) lives at sheet_meta.full_roster
+  // (see google_sheets_teams.team_payload_from_roster)
+  const roster = res.team.sheet_meta?.full_roster || [];
+  const names = roster.filter((p) => p && typeof p === "string" && p.trim()).map((p) => p.trim()).sort();
+  _mrRosterCache[teamName] = names;
+  return names;
+}
+
+function addEventRow() {
+  const matchId = document.getElementById("mrMatch").value;
+  const match = mrMatchIndex[matchId];
+  if (!match) {
+    mrLog("Select a match before adding goals.");
+    return;
+  }
+
+  const id = `event_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
   const eventsDiv = document.getElementById("mrEvents");
   const row = document.createElement("div");
   row.id = id;
   row.className = "goal-event";
   row.style.cssText = "padding:1rem;background:white;border-radius:4px;border-left:3px solid #007bff;margin-bottom:0.5rem";
 
-  // Parse assisters if it's a string
-  const assistersList = typeof assisters === "string" && assisters ? [assisters] : (Array.isArray(assisters) ? assisters : []);
-
   row.innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:0.5rem;margin-bottom:0.75rem">
       <div>
         <label class="muted" style="font-size:0.85rem">Team</label>
         <select class="event-team" style="width:100%">
-          <option value="">—</option>
+          <option value="${esc(match.home)}">${esc(match.home)}</option>
+          <option value="${esc(match.away)}">${esc(match.away)}</option>
         </select>
       </div>
       <div>
         <label class="muted" style="font-size:0.85rem">Scorer</label>
         <select class="event-player" style="width:100%">
-          <option value="">— Select scorer —</option>
+          <option value="">Loading...</option>
         </select>
       </div>
       <div>
         <label class="muted" style="font-size:0.85rem">Minute (optional)</label>
         <input class="event-minute" type="number" min="1" max="120" placeholder="45" style="width:100%" />
       </div>
-      <button type="button" class="btn-ghost" style="padding:0.5rem;align-self:flex-end" onclick="document.getElementById('${id}').remove()">✕</button>
+      <button type="button" class="btn-ghost" style="padding:0.5rem;align-self:flex-end">✕</button>
     </div>
-    <div class="assisters-list" style="background:#f9f9f9;padding:0.75rem;border-radius:3px;margin-bottom:0.75rem"></div>
-    <button type="button" class="btn-ghost btn-small" style="font-size:0.9rem">+ Add assister</button>
+    <div>
+      <label class="muted" style="font-size:0.85rem">Assister (optional)</label>
+      <select class="event-assister" style="width:100%">
+        <option value="">Loading...</option>
+      </select>
+    </div>
   `;
 
   eventsDiv.appendChild(row);
+  row.querySelector("button.btn-ghost").addEventListener("click", () => row.remove());
 
-  // Set values
   const teamSel = row.querySelector(".event-team");
   const playerSel = row.querySelector(".event-player");
-  const minuteInput = row.querySelector(".event-minute");
+  const assisterSel = row.querySelector(".event-assister");
 
-  if (team) teamSel.value = team;
-  if (player) playerSel.value = player;
-  if (minute) minuteInput.value = minute;
+  const refreshRosterSelects = async () => {
+    const names = await rosterForTeam(teamSel.value);
+    const opts = (placeholder) =>
+      `<option value="">${placeholder}</option>${names.map((n) => `<option value="${esc(n)}">${esc(n)}</option>`).join("")}`;
+    playerSel.innerHTML = opts("— Select scorer —");
+    assisterSel.innerHTML = opts("— None —");
+  };
 
-  // Render existing assisters
-  const assistersList_div = row.querySelector(".assisters-list");
-  renderAssisters(assistersList_div, assistersList, id);
-
-  // Add assister button
-  row.querySelector("button.btn-small").addEventListener("click", (e) => {
-    e.preventDefault();
-    const selectedTeam = teamSel.value;
-    if (!selectedTeam) {
-      alert("Please select a team first");
-      return;
-    }
-    addAssisterRow(assistersList_div, selectedTeam);
-  });
-
-  // Update scorers when team changes
-  teamSel.addEventListener("change", async () => {
-    await updatePlayerDropdown(teamSel.value, playerSel);
-  });
-
-  updateTeamSelects();
-  // Load initial team's players if team already selected
-  if (team) {
-    updatePlayerDropdown(team, playerSel);
-  }
+  teamSel.addEventListener("change", refreshRosterSelects);
+  refreshRosterSelects();
 }
 
-function addAssisterRow(container, teamName) {
-  const id = `assister_${Date.now()}`;
-  const div = document.createElement("div");
-  div.id = id;
-  div.style.cssText = "display:flex;gap:0.5rem;margin-bottom:0.5rem";
-
-  const select = document.createElement("select");
-  select.className = "assister-select";
-  select.style.cssText = "flex:1;padding:0.5rem;border:1px solid #e0e0e0;border-radius:3px";
-  select.innerHTML = `<option value="">— Select assister —</option>`;
-
-  const removeBtn = document.createElement("button");
-  removeBtn.type = "button";
-  removeBtn.className = "btn-ghost";
-  removeBtn.style.cssText = "padding:0.25rem 0.5rem;font-size:0.9rem";
-  removeBtn.textContent = "Remove";
-  removeBtn.onclick = () => div.remove();
-
-  div.appendChild(select);
-  div.appendChild(removeBtn);
-  container.appendChild(div);
-
-  // Populate assister dropdown with team's players
-  updatePlayerDropdown(teamName, select).catch(console.error);
+function updateScore() {
+  const home = Number(document.getElementById("mrHomeGoals").value) || 0;
+  const away = Number(document.getElementById("mrAwayGoals").value) || 0;
+  document.getElementById("mrScore").textContent = `${home}–${away}`;
+  updateWinnerRow();
 }
 
-async function updatePlayerDropdown(teamName, selectElement) {
-  if (!teamName) {
-    selectElement.innerHTML = `<option value="">— Select player —</option>`;
-    return;
-  }
-
-  selectElement.innerHTML = `<option value="">Loading...</option>`;
-
-  try {
-    const res = await adminApi(`/api/sheets/team?name=${encodeURIComponent(teamName)}`);
-    const team = res.team;
-
-    // Full roster (array of player name strings) lives at sheet_meta.full_roster
-    // (see google_sheets_teams.team_payload_from_roster)
-    const roster = team.sheet_meta?.full_roster || [];
-
-    // Filter empty strings and sort
-    const playerNames = roster
-      .filter((p) => p && typeof p === "string" && p.trim())
-      .map((p) => p.trim())
-      .sort();
-
-    if (playerNames.length === 0) {
-      selectElement.innerHTML = `<option value="">— No players found —</option>`;
-      return;
-    }
-
-    selectElement.innerHTML = `<option value="">— Select player —</option>${playerNames
-      .map((name) => `<option value="${name}">${name}</option>`)
-      .join("")}`;
-  } catch (err) {
-    console.error(`Failed to load players for team "${teamName}":`, err);
-    selectElement.innerHTML = `<option value="">— Error loading players —</option>`;
-  }
-}
-
-function renderAssisters(container, assisters, eventId) {
-  container.innerHTML = "";
-  if (!assisters || assisters.length === 0) {
-    return;
-  }
-  assisters.forEach((assister, idx) => {
-    const div = document.createElement("div");
-    div.style.cssText = "display:flex;gap:0.5rem;margin-bottom:0.5rem;align-items:center";
-    const select = document.createElement("select");
-    select.className = "assister-select";
-    select.style.cssText = "flex:1;padding:0.5rem;border:1px solid #e0e0e0;border-radius:3px";
-    select.innerHTML = `<option value="${assister}">${assister}</option>`;
-
-    const removeBtn = document.createElement("button");
-    removeBtn.type = "button";
-    removeBtn.className = "btn-ghost";
-    removeBtn.style.cssText = "padding:0.25rem 0.5rem;font-size:0.9rem";
-    removeBtn.textContent = "Remove";
-    removeBtn.onclick = () => div.remove();
-
-    div.appendChild(select);
-    div.appendChild(removeBtn);
-    container.appendChild(div);
-  });
-}
-
-function updateTeamSelects() {
-  const tourneyId = document.getElementById("mrTournament").value;
-  if (!tourneyId) return;
-
-  adminApi(`/api/tournament/${tourneyId}`).then((res) => {
-    const teams = res.tournament.team_names || [];
-    const selects = document.querySelectorAll(".goal-event .event-team");
-    selects.forEach((sel) => {
-      const current = sel.value;
-      sel.innerHTML = `<option value="">—</option>${teams.map((t) => `<option value="${t}">${t}</option>`).join("")}`;
-      if (current) sel.value = current;
-
-      // Set up change listener if not already set
-      if (!sel.dataset.listenerSet) {
-        sel.addEventListener("change", async function() {
-          const playerSel = this.closest(".goal-event").querySelector(".event-player");
-          await updatePlayerDropdown(this.value, playerSel);
-        });
-        sel.dataset.listenerSet = "true";
-      }
-    });
-  }).catch(() => {
-    // Silently ignore errors when updating team selects
-  });
-}
-
-function getFormData() {
-  const tourneyId = document.getElementById("mrTournament").value;
+function updateWinnerRow() {
   const matchId = document.getElementById("mrMatch").value;
-  const homeGoals = Number(document.getElementById("mrHomeGoals").value) || 0;
-  const awayGoals = Number(document.getElementById("mrAwayGoals").value) || 0;
+  const match = mrMatchIndex[matchId];
+  const row = document.getElementById("mrWinnerRow");
+  const sel = document.getElementById("mrWinner");
+  const home = Number(document.getElementById("mrHomeGoals").value) || 0;
+  const away = Number(document.getElementById("mrAwayGoals").value) || 0;
 
-  const events = [];
-  document.querySelectorAll("#mrEvents > .goal-event").forEach((row) => {
-    const team = row.querySelector(".event-team").value;
-    const player = row.querySelector(".event-player").value.trim();
-    const minute = row.querySelector(".event-minute").value;
-
-    if (team && player) {
-      // Get all assisters from the assister select dropdowns
-      const assisterSelects = row.querySelectorAll(".assister-select");
-      const assisters = Array.from(assisterSelects)
-        .map((select) => select.value.trim())
-        .filter((name) => name);
-
-      // Record goal
-      events.push({
-        team,
-        player,
-        event_type: "goal",
-        minute: minute ? Number(minute) : undefined,
-        assister: assisters.length > 0 ? assisters[0] : undefined, // Primary assister
-      });
-
-      // Record additional assisters
-      for (let i = 1; i < assisters.length; i++) {
-        events.push({
-          team,
-          player: assisters[i],
-          event_type: "assist",
-          minute: minute ? Number(minute) : undefined,
-        });
-      }
-    }
-  });
-
-  return { tourneyId, matchId, homeGoals, awayGoals, events };
-}
-
-async function recordMatch() {
-  const { tourneyId, matchId, homeGoals, awayGoals, events } = getFormData();
-  if (!tourneyId || !matchId) {
-    mrLog("Please select tournament and match.");
-    return;
-  }
-
-  const btn = document.getElementById("mrRecordBtn");
-  btn.disabled = true;
-  try {
-    const res = await adminApi(`/api/admin/tournament/${tourneyId}/matches/${matchId}/record-result`, {
-      method: "POST",
-      json: { home_goals: homeGoals, away_goals: awayGoals, events },
-    });
-    mrLog(`✓ ${res.message}`);
-    clearMatchForm();
-    loadRecordedMatches(tourneyId);
-  } catch (e) {
-    mrLog(`Error: ${e.message}`);
-  } finally {
-    btn.disabled = false;
+  if (match && match.isKnockout && home === away) {
+    sel.innerHTML = `<option value="">— Select winner —</option>
+      <option value="${esc(match.home)}">${esc(match.home)}</option>
+      <option value="${esc(match.away)}">${esc(match.away)}</option>`;
+    row.style.display = "";
+  } else {
+    row.style.display = "none";
+    sel.value = "";
   }
 }
 
 function clearMatchForm() {
-  document.getElementById("mrTournament").value = "";
   document.getElementById("mrMatch").value = "";
   document.getElementById("mrHomeGoals").value = "0";
   document.getElementById("mrAwayGoals").value = "0";
@@ -1111,62 +972,83 @@ function clearMatchForm() {
   updateScore();
 }
 
-function updateScore() {
-  const home = Number(document.getElementById("mrHomeGoals").value) || 0;
-  const away = Number(document.getElementById("mrAwayGoals").value) || 0;
-  document.getElementById("mrScore").textContent = `${home}–${away}`;
+function getFormData() {
+  const tourneyId = document.getElementById("mrTournament").value;
+  const matchId = document.getElementById("mrMatch").value;
+  const homeGoals = Number(document.getElementById("mrHomeGoals").value) || 0;
+  const awayGoals = Number(document.getElementById("mrAwayGoals").value) || 0;
+  const winner = document.getElementById("mrWinner").value || undefined;
+
+  const match = mrMatchIndex[matchId];
+  const boardEvents = [];
+  document.querySelectorAll("#mrEvents > .goal-event").forEach((row) => {
+    const team = row.querySelector(".event-team").value;
+    const player = row.querySelector(".event-player").value.trim();
+    const assister = row.querySelector(".event-assister").value.trim();
+    const minute = row.querySelector(".event-minute").value;
+
+    if (team && player && match) {
+      const side = team === match.home ? "home" : "away";
+      const ev = { type: "goal", side, player };
+      if (minute) ev.minute = Number(minute);
+      if (assister) ev.assist = assister;
+      boardEvents.push(ev);
+    }
+  });
+
+  return { tourneyId, matchId, homeGoals, awayGoals, winner, boardEvents, match };
 }
 
-async function loadRecordedMatches(tourneyId) {
-  if (!tourneyId) {
-    document.getElementById("mrRecordedTable").innerHTML = `<p class="muted">Select a tournament to view recorded matches.</p>`;
+async function recordMatch() {
+  const { tourneyId, matchId, homeGoals, awayGoals, winner, boardEvents, match } = getFormData();
+  if (!tourneyId || !matchId) {
+    mrLog("Please select tournament and match.");
     return;
   }
+  if (!match) {
+    mrLog("Match data not loaded — reselect the tournament.");
+    return;
+  }
+  if (match.played) {
+    mrLog("This match is already marked played. Use the tournament page's override tool to correct a played result.");
+    return;
+  }
+  if (match.isKnockout && homeGoals === awayGoals && !winner) {
+    mrLog("Scores are level — select who won the tie (penalties/extra time) above.");
+    return;
+  }
+
+  const path = match.isKnockout
+    ? `/api/tournament/${tourneyId}/knockout/matches/${matchId}/complete-from-board`
+    : `/api/tournament/${tourneyId}/matches/${matchId}/complete-from-board`;
+
+  const body = {
+    home_goals: homeGoals,
+    away_goals: awayGoals,
+    board_events: boardEvents,
+  };
+  if (winner) body.winner = winner;
+
+  const btn = document.getElementById("mrRecordBtn");
+  btn.disabled = true;
   try {
-    const res = await adminApi(`/api/admin/tournament/${tourneyId}/recorded-results`);
-    const results = res.results || [];
-    if (results.length === 0) {
-      document.getElementById("mrRecordedTable").innerHTML = `<p class="muted">No recorded matches yet.</p>`;
-      return;
-    }
-
-    const rows = results
-      .map(
-        (r) => `
-      <tr>
-        <td>${r.home_team}</td>
-        <td style="text-align:center;font-weight:600">${r.home_goals}–${r.away_goals}</td>
-        <td>${r.away_team}</td>
-        <td style="text-align:center;font-size:0.9rem;color:#999">${r.stage || "—"}</td>
-        <td style="text-align:center;font-size:0.85rem;color:#999">${r.updated_at ? new Date(r.updated_at).toLocaleDateString() : "—"}</td>
-      </tr>
-    `
-      )
-      .join("");
-
-    document.getElementById("mrRecordedTable").innerHTML = `
-      <table style="width:100%">
-        <thead>
-          <tr>
-            <th>Home</th>
-            <th style="width:80px">Score</th>
-            <th>Away</th>
-            <th>Stage</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
-    `;
-    mrListLog(`${results.length} match(es) recorded.`);
+    const res = await adminApi(path, { method: "POST", json: body });
+    mrLog(`✓ Recorded ${match.home} ${homeGoals}-${awayGoals} ${match.away}. Table, bracket, and stats updated.`);
+    clearMatchForm();
+    loadMatches(tourneyId);
   } catch (e) {
-    mrListLog(`Error: ${e.message}`);
+    mrLog(`Error: ${e.message}`);
+  } finally {
+    btn.disabled = false;
   }
 }
 
 // Event listeners for match recording
 document.getElementById("mrTournament").addEventListener("change", (e) => loadMatches(e.target.value));
-document.getElementById("mrListTournament").addEventListener("change", (e) => loadRecordedMatches(e.target.value));
+document.getElementById("mrMatch").addEventListener("change", () => {
+  document.getElementById("mrEvents").innerHTML = "";
+  updateWinnerRow();
+});
 document.getElementById("mrAddEventBtn").addEventListener("click", () => addEventRow());
 document.getElementById("mrRecordBtn").addEventListener("click", recordMatch);
 document.getElementById("mrClearBtn").addEventListener("click", clearMatchForm);
