@@ -1,0 +1,2595 @@
+[
+  {
+    "player": "Edinson Cavani",
+    "type": "season_pick",
+    "season": "16/17",
+    "fpl": "FWD",
+    "pos": "ST",
+    "raw_gaps": [
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "key_passes90": [
+        0.0,
+        0.7542742205833054
+      ],
+      "pass_pct": [
+        0.0,
+        78.0
+      ],
+      "dribble_pct": [
+        null,
+        48.0
+      ],
+      "aerials_won90": [
+        null,
+        1.427
+      ]
+    },
+    "still_after_norm": [
+      "dribbles90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Dani Alves",
+    "type": "season_pick",
+    "season": "17/18",
+    "fpl": "DEF",
+    "pos": "RB",
+    "raw_gaps": [
+      "pass_pct",
+      "dribble_pct"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "pass_pct": [
+        0.0,
+        84.0
+      ],
+      "dribble_pct": [
+        null,
+        58.0
+      ]
+    },
+    "still_after_norm": [],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Marcelo",
+    "type": "season_pick",
+    "season": "16/17",
+    "fpl": "DEF",
+    "pos": "LB",
+    "raw_gaps": [
+      "pass_pct",
+      "dribble_pct"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "pass_pct": [
+        0.0,
+        84.0
+      ],
+      "dribble_pct": [
+        null,
+        58.0
+      ]
+    },
+    "still_after_norm": [],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Giovanni Lo Celso",
+    "type": "season_pick",
+    "season": "18/19",
+    "fpl": "MID",
+    "pos": "CAM",
+    "raw_gaps": [
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "key_passes90": [
+        0.0,
+        1.0120783007080383
+      ],
+      "pass_pct": [
+        0.0,
+        85.0
+      ],
+      "dribble_pct": [
+        null,
+        62.0
+      ]
+    },
+    "still_after_norm": [
+      "dribbles90",
+      "aerials_won90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Gonzalo Higuaín",
+    "type": "season_pick",
+    "season": "15/16",
+    "fpl": "FWD",
+    "pos": "ST",
+    "raw_gaps": [
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "key_passes90": [
+        0.0,
+        1.5356306457009032
+      ],
+      "pass_pct": [
+        0.0,
+        78.0
+      ],
+      "dribble_pct": [
+        null,
+        48.0
+      ],
+      "aerials_won90": [
+        null,
+        1.494
+      ]
+    },
+    "still_after_norm": [
+      "dribbles90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Diego Godín",
+    "type": "season_pick",
+    "season": "15/16",
+    "fpl": "DEF",
+    "pos": "CB",
+    "raw_gaps": [
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "pass_pct": [
+        0.0,
+        84.0
+      ],
+      "dribble_pct": [
+        null,
+        58.0
+      ]
+    },
+    "still_after_norm": [
+      "dribbles90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Luis Suárez",
+    "type": "season_pick",
+    "season": "15/16",
+    "fpl": "FWD",
+    "pos": "ST",
+    "raw_gaps": [
+      "xa90",
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "xa90": [
+        null,
+        0.37931313323123117
+      ],
+      "key_passes90": [
+        0.0,
+        1.6
+      ],
+      "dribbles90": [
+        0.0,
+        0.7815000000000001
+      ],
+      "pass_pct": [
+        0.0,
+        78.0
+      ],
+      "dribble_pct": [
+        null,
+        48.0
+      ],
+      "aerials_won90": [
+        null,
+        1.41
+      ]
+    },
+    "still_after_norm": [],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Arturo Vidal",
+    "type": "season_pick",
+    "season": "15/16",
+    "fpl": "MID",
+    "pos": "CM",
+    "raw_gaps": [
+      "shots90",
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": true,
+    "normalize_would_change": {
+      "shots90": [
+        0.0,
+        2.2885085574572126
+      ],
+      "key_passes90": [
+        0.0,
+        2.1124694376528117
+      ],
+      "pass_pct": [
+        0.0,
+        85.0
+      ],
+      "dribble_pct": [
+        null,
+        62.0
+      ]
+    },
+    "still_after_norm": [
+      "dribbles90",
+      "aerials_won90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Fernandinho",
+    "type": "season_pick",
+    "season": "17/18",
+    "fpl": "MID",
+    "pos": "CM",
+    "raw_gaps": [
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "key_passes90": [
+        0.0,
+        0.6539792387543253
+      ],
+      "pass_pct": [
+        0.0,
+        85.0
+      ],
+      "dribble_pct": [
+        null,
+        62.0
+      ]
+    },
+    "still_after_norm": [
+      "dribbles90",
+      "aerials_won90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Roberto Firmino",
+    "type": "season_pick",
+    "season": "17/18",
+    "fpl": "FWD",
+    "pos": "ST",
+    "raw_gaps": [
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "key_passes90": [
+        0.0,
+        1.791044776119403
+      ],
+      "dribbles90": [
+        0.0,
+        0.699634328358209
+      ],
+      "pass_pct": [
+        0.0,
+        78.0
+      ],
+      "dribble_pct": [
+        null,
+        48.0
+      ]
+    },
+    "still_after_norm": [
+      "aerials_won90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Neymar",
+    "type": "season_pick",
+    "season": "14/15",
+    "fpl": "FWD",
+    "pos": "ST",
+    "raw_gaps": [
+      "shots90",
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": true,
+    "normalize_would_change": {
+      "shots90": [
+        0.0,
+        3.322969296541003
+      ],
+      "key_passes90": [
+        0.0,
+        1.8188884570540225
+      ],
+      "dribbles90": [
+        0.0,
+        0.7195443062572873
+      ],
+      "pass_pct": [
+        0.0,
+        78.0
+      ],
+      "dribble_pct": [
+        null,
+        48.0
+      ],
+      "aerials_won90": [
+        null,
+        1.312
+      ]
+    },
+    "still_after_norm": [],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Alexis Sánchez",
+    "type": "season_pick",
+    "season": "16/17",
+    "fpl": "FWD",
+    "pos": "ST",
+    "raw_gaps": [
+      "xa90",
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "xa90": [
+        null,
+        0.2502104310169609
+      ],
+      "key_passes90": [
+        0.0,
+        2.1713578719455615
+      ],
+      "dribbles90": [
+        0.0,
+        0.8488345190225797
+      ],
+      "pass_pct": [
+        0.0,
+        78.0
+      ],
+      "dribble_pct": [
+        null,
+        48.0
+      ],
+      "aerials_won90": [
+        null,
+        1.234
+      ]
+    },
+    "still_after_norm": [],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Radamel Falcao",
+    "type": "season_pick",
+    "season": "16/17",
+    "fpl": "FWD",
+    "pos": "ST",
+    "raw_gaps": [
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "key_passes90": [
+        0.0,
+        1.0512950736414424
+      ],
+      "pass_pct": [
+        0.0,
+        78.0
+      ],
+      "dribble_pct": [
+        null,
+        48.0
+      ],
+      "aerials_won90": [
+        null,
+        1.346
+      ]
+    },
+    "still_after_norm": [
+      "dribbles90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Cristiano Ronaldo",
+    "type": "prime",
+    "season": "14/15",
+    "fpl": "FWD",
+    "pos": "ST",
+    "raw_gaps": [
+      "dribbles90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "dribbles90": [
+        0.0,
+        0.9583818884950048
+      ]
+    },
+    "still_after_norm": [],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "N'Golo Kanté",
+    "type": "prime",
+    "season": "16/17",
+    "fpl": "MID",
+    "pos": "CM",
+    "raw_gaps": [
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "key_passes90": [
+        0.0,
+        0.6303724928366762
+      ],
+      "pass_pct": [
+        0.0,
+        85.0
+      ]
+    },
+    "still_after_norm": [
+      "dribbles90",
+      "aerials_won90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Lionel Messi",
+    "type": "prime",
+    "season": "14/15",
+    "fpl": "FWD",
+    "pos": "ST",
+    "raw_gaps": [
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "key_passes90": [
+        0.0,
+        2.5340841730883223
+      ],
+      "dribbles90": [
+        0.0,
+        1.0749069353882632
+      ],
+      "pass_pct": [
+        0.0,
+        78.0
+      ],
+      "dribble_pct": [
+        null,
+        48.0
+      ],
+      "aerials_won90": [
+        null,
+        1.626
+      ]
+    },
+    "still_after_norm": [],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Ángel Di María",
+    "type": "season_pick",
+    "season": "13/14",
+    "fpl": "FWD",
+    "pos": "RW",
+    "raw_gaps": [
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "pass_pct": [
+        0.0,
+        78.0
+      ],
+      "dribble_pct": [
+        null,
+        48.0
+      ]
+    },
+    "still_after_norm": [
+      "aerials_won90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Riyad Mahrez",
+    "type": "season_pick",
+    "season": "22/23",
+    "fpl": "MID",
+    "pos": "RW",
+    "raw_gaps": [
+      "xa90",
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "xa90": [
+        null,
+        0.2855097144911241
+      ],
+      "key_passes90": [
+        0.0,
+        2.364760432766615
+      ],
+      "dribbles90": [
+        0.0,
+        1.0152233384853169
+      ],
+      "pass_pct": [
+        0.0,
+        85.0
+      ],
+      "dribble_pct": [
+        null,
+        62.0
+      ]
+    },
+    "still_after_norm": [
+      "aerials_won90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Rúben Dias",
+    "type": "prime",
+    "season": "20/21",
+    "fpl": "DEF",
+    "pos": "CB",
+    "raw_gaps": [
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "pass_pct": [
+        0.0,
+        84.0
+      ],
+      "dribble_pct": [
+        null,
+        58.0
+      ]
+    },
+    "still_after_norm": [
+      "dribbles90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Rodri",
+    "type": "prime",
+    "season": "23/24",
+    "fpl": "MID",
+    "pos": "DM",
+    "raw_gaps": [
+      "dribbles90",
+      "pass_pct"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "pass_pct": [
+        0.0,
+        85.0
+      ]
+    },
+    "still_after_norm": [
+      "dribbles90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Cole Palmer",
+    "type": "prime",
+    "season": "23/24",
+    "fpl": "FWD",
+    "pos": "ST",
+    "raw_gaps": [
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "key_passes90": [
+        0.0,
+        2.4545454545454546
+      ],
+      "dribbles90": [
+        0.0,
+        0.9944545454545455
+      ],
+      "pass_pct": [
+        0.0,
+        78.0
+      ],
+      "aerials_won90": [
+        null,
+        1.295
+      ]
+    },
+    "still_after_norm": [],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Carvajal",
+    "type": "prime",
+    "season": "16/17",
+    "fpl": "DEF",
+    "pos": "RB",
+    "raw_gaps": [
+      "goals90",
+      "pass_pct"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "pass_pct": [
+        0.0,
+        84.0
+      ]
+    },
+    "still_after_norm": [
+      "goals90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Casemiro",
+    "type": "prime",
+    "season": "17/18",
+    "fpl": "MID",
+    "pos": "CM",
+    "raw_gaps": [
+      "xa90",
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "xa90": [
+        0.0,
+        0.10109512783635526
+      ],
+      "key_passes90": [
+        0.0,
+        0.7934074357991567
+      ],
+      "pass_pct": [
+        0.0,
+        85.0
+      ]
+    },
+    "still_after_norm": [
+      "dribbles90",
+      "aerials_won90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Mohamed Salah",
+    "type": "prime",
+    "season": "17/18",
+    "fpl": "FWD",
+    "pos": "ST",
+    "raw_gaps": [
+      "xa90",
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "xa90": [
+        0.0,
+        0.25423260036157286
+      ],
+      "key_passes90": [
+        0.0,
+        1.8889641164522681
+      ],
+      "dribbles90": [
+        0.0,
+        0.7749685172647258
+      ],
+      "pass_pct": [
+        0.0,
+        78.0
+      ],
+      "aerials_won90": [
+        null,
+        1.43
+      ]
+    },
+    "still_after_norm": [],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Sergio Ramos",
+    "type": "prime",
+    "season": "14/15",
+    "fpl": "DEF",
+    "pos": "CB",
+    "raw_gaps": [
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "pass_pct": [
+        0.0,
+        84.0
+      ],
+      "dribble_pct": [
+        null,
+        58.0
+      ]
+    },
+    "still_after_norm": [
+      "dribbles90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Antoine Griezmann",
+    "type": "prime",
+    "season": "15/16",
+    "fpl": "FWD",
+    "pos": "ST",
+    "raw_gaps": [
+      "xa90",
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "xa90": [
+        null,
+        0.19024386677577537
+      ],
+      "key_passes90": [
+        0.0,
+        1.5557729941291585
+      ],
+      "dribbles90": [
+        0.0,
+        0.5638473581213308
+      ],
+      "pass_pct": [
+        0.0,
+        78.0
+      ],
+      "dribble_pct": [
+        null,
+        48.0
+      ],
+      "aerials_won90": [
+        null,
+        1.206
+      ]
+    },
+    "still_after_norm": [],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Antonio Rüdiger",
+    "type": "prime",
+    "season": "21/22",
+    "fpl": "DEF",
+    "pos": "CB",
+    "raw_gaps": [
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "pass_pct": [
+        0.0,
+        84.0
+      ],
+      "dribble_pct": [
+        null,
+        58.0
+      ]
+    },
+    "still_after_norm": [
+      "dribbles90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Harry Maguire",
+    "type": "prime",
+    "season": "18/19",
+    "fpl": "DEF",
+    "pos": "CB",
+    "raw_gaps": [
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "pass_pct": [
+        0.0,
+        84.0
+      ],
+      "dribble_pct": [
+        null,
+        58.0
+      ]
+    },
+    "still_after_norm": [
+      "dribbles90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Luka Modrić",
+    "type": "prime",
+    "season": "17/18",
+    "fpl": "MID",
+    "pos": "CM",
+    "raw_gaps": [
+      "xa90",
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "xa90": [
+        0.0,
+        0.21314048373477817
+      ],
+      "key_passes90": [
+        0.0,
+        1.773623041940374
+      ],
+      "pass_pct": [
+        0.0,
+        85.0
+      ]
+    },
+    "still_after_norm": [
+      "dribbles90",
+      "aerials_won90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Aymeric Laporte",
+    "type": "prime",
+    "season": "21/22",
+    "fpl": "DEF",
+    "pos": "CB",
+    "raw_gaps": [
+      "dribbles90",
+      "pass_pct"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "pass_pct": [
+        0.0,
+        84.0
+      ]
+    },
+    "still_after_norm": [
+      "dribbles90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Manuel Neuer",
+    "type": "prime",
+    "season": "13/14",
+    "fpl": "GK",
+    "pos": "GK",
+    "raw_gaps": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "xa90",
+      "key_passes90",
+      "dribbles90",
+      "dribble_pct",
+      "aerials_won90",
+      "understat_shots90",
+      "understat_key_passes90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "understat_shots90": [
+        null,
+        0.0
+      ],
+      "understat_key_passes90": [
+        null,
+        0.0
+      ]
+    },
+    "still_after_norm": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "xa90",
+      "key_passes90",
+      "dribbles90",
+      "dribble_pct"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Alaba",
+    "type": "prime",
+    "season": "19/20",
+    "fpl": "DEF",
+    "pos": "CB",
+    "raw_gaps": [
+      "xg90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {},
+    "still_after_norm": [
+      "xg90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Francesco Acerbi",
+    "type": "prime",
+    "season": "19/20",
+    "fpl": "DEF",
+    "pos": "CB",
+    "raw_gaps": [
+      "dribbles90",
+      "dribble_pct"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "dribble_pct": [
+        null,
+        58.0
+      ]
+    },
+    "still_after_norm": [
+      "dribbles90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Jamie Vardy",
+    "type": "prime",
+    "season": "15/16",
+    "fpl": "FWD",
+    "pos": "ST",
+    "raw_gaps": [
+      "xa90",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "xa90": [
+        0.0,
+        0.17883443604320873
+      ],
+      "aerials_won90": [
+        null,
+        0.024084103217585216
+      ]
+    },
+    "still_after_norm": [],
+    "source": "sofascore"
+  },
+  {
+    "player": "Kevin De Bruyne",
+    "type": "prime",
+    "season": "19/20",
+    "fpl": "MID",
+    "pos": "CM",
+    "raw_gaps": [
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "pass_pct": [
+        0.0,
+        85.0
+      ],
+      "dribble_pct": [
+        null,
+        62.0
+      ]
+    },
+    "still_after_norm": [
+      "dribbles90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Edinson Cavani",
+    "type": "prime",
+    "season": "16/17",
+    "fpl": "FWD",
+    "pos": "ST",
+    "raw_gaps": [
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "key_passes90": [
+        0.0,
+        0.7542742205833054
+      ],
+      "pass_pct": [
+        0.0,
+        78.0
+      ],
+      "dribble_pct": [
+        null,
+        48.0
+      ],
+      "aerials_won90": [
+        null,
+        1.427
+      ]
+    },
+    "still_after_norm": [
+      "dribbles90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Dani Alves",
+    "type": "prime",
+    "season": "17/18",
+    "fpl": "DEF",
+    "pos": "RB",
+    "raw_gaps": [
+      "pass_pct",
+      "dribble_pct"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "pass_pct": [
+        0.0,
+        84.0
+      ],
+      "dribble_pct": [
+        null,
+        58.0
+      ]
+    },
+    "still_after_norm": [],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Marcelo",
+    "type": "prime",
+    "season": "16/17",
+    "fpl": "DEF",
+    "pos": "LB",
+    "raw_gaps": [
+      "pass_pct",
+      "dribble_pct"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "pass_pct": [
+        0.0,
+        84.0
+      ],
+      "dribble_pct": [
+        null,
+        58.0
+      ]
+    },
+    "still_after_norm": [],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Giovanni Lo Celso",
+    "type": "prime",
+    "season": "18/19",
+    "fpl": "MID",
+    "pos": "CAM",
+    "raw_gaps": [
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "key_passes90": [
+        0.0,
+        1.0120783007080383
+      ],
+      "pass_pct": [
+        0.0,
+        85.0
+      ],
+      "dribble_pct": [
+        null,
+        62.0
+      ]
+    },
+    "still_after_norm": [
+      "dribbles90",
+      "aerials_won90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Gonzalo Higuaín",
+    "type": "prime",
+    "season": "15/16",
+    "fpl": "FWD",
+    "pos": "ST",
+    "raw_gaps": [
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "key_passes90": [
+        0.0,
+        1.5356306457009032
+      ],
+      "pass_pct": [
+        0.0,
+        78.0
+      ],
+      "dribble_pct": [
+        null,
+        48.0
+      ],
+      "aerials_won90": [
+        null,
+        1.494
+      ]
+    },
+    "still_after_norm": [
+      "dribbles90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Diego Godín",
+    "type": "prime",
+    "season": "15/16",
+    "fpl": "DEF",
+    "pos": "CB",
+    "raw_gaps": [
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "pass_pct": [
+        0.0,
+        84.0
+      ],
+      "dribble_pct": [
+        null,
+        58.0
+      ]
+    },
+    "still_after_norm": [
+      "dribbles90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Luis Suárez",
+    "type": "prime",
+    "season": "15/16",
+    "fpl": "FWD",
+    "pos": "ST",
+    "raw_gaps": [
+      "xa90",
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "xa90": [
+        null,
+        0.37931313323123117
+      ],
+      "key_passes90": [
+        0.0,
+        1.6
+      ],
+      "dribbles90": [
+        0.0,
+        0.7815000000000001
+      ],
+      "pass_pct": [
+        0.0,
+        78.0
+      ],
+      "dribble_pct": [
+        null,
+        48.0
+      ],
+      "aerials_won90": [
+        null,
+        1.41
+      ]
+    },
+    "still_after_norm": [],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Arturo Vidal",
+    "type": "prime",
+    "season": "15/16",
+    "fpl": "MID",
+    "pos": "CM",
+    "raw_gaps": [
+      "shots90",
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": true,
+    "normalize_would_change": {
+      "shots90": [
+        0.0,
+        2.2885085574572126
+      ],
+      "key_passes90": [
+        0.0,
+        2.1124694376528117
+      ],
+      "pass_pct": [
+        0.0,
+        85.0
+      ],
+      "dribble_pct": [
+        null,
+        62.0
+      ]
+    },
+    "still_after_norm": [
+      "dribbles90",
+      "aerials_won90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Fernandinho",
+    "type": "prime",
+    "season": "17/18",
+    "fpl": "MID",
+    "pos": "CM",
+    "raw_gaps": [
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "key_passes90": [
+        0.0,
+        0.6539792387543253
+      ],
+      "pass_pct": [
+        0.0,
+        85.0
+      ],
+      "dribble_pct": [
+        null,
+        62.0
+      ]
+    },
+    "still_after_norm": [
+      "dribbles90",
+      "aerials_won90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Roberto Firmino",
+    "type": "prime",
+    "season": "17/18",
+    "fpl": "FWD",
+    "pos": "ST",
+    "raw_gaps": [
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "key_passes90": [
+        0.0,
+        1.791044776119403
+      ],
+      "dribbles90": [
+        0.0,
+        0.699634328358209
+      ],
+      "pass_pct": [
+        0.0,
+        78.0
+      ],
+      "dribble_pct": [
+        null,
+        48.0
+      ]
+    },
+    "still_after_norm": [
+      "aerials_won90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Neymar",
+    "type": "prime",
+    "season": "14/15",
+    "fpl": "FWD",
+    "pos": "ST",
+    "raw_gaps": [
+      "shots90",
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": true,
+    "normalize_would_change": {
+      "shots90": [
+        0.0,
+        3.322969296541003
+      ],
+      "key_passes90": [
+        0.0,
+        1.8188884570540225
+      ],
+      "dribbles90": [
+        0.0,
+        0.7195443062572873
+      ],
+      "pass_pct": [
+        0.0,
+        78.0
+      ],
+      "dribble_pct": [
+        null,
+        48.0
+      ],
+      "aerials_won90": [
+        null,
+        1.312
+      ]
+    },
+    "still_after_norm": [],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Alexis Sánchez",
+    "type": "prime",
+    "season": "16/17",
+    "fpl": "FWD",
+    "pos": "ST",
+    "raw_gaps": [
+      "xa90",
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "xa90": [
+        null,
+        0.2502104310169609
+      ],
+      "key_passes90": [
+        0.0,
+        2.1713578719455615
+      ],
+      "dribbles90": [
+        0.0,
+        0.8488345190225797
+      ],
+      "pass_pct": [
+        0.0,
+        78.0
+      ],
+      "dribble_pct": [
+        null,
+        48.0
+      ],
+      "aerials_won90": [
+        null,
+        1.234
+      ]
+    },
+    "still_after_norm": [],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Radamel Falcao",
+    "type": "prime",
+    "season": "16/17",
+    "fpl": "FWD",
+    "pos": "ST",
+    "raw_gaps": [
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "key_passes90": [
+        0.0,
+        1.0512950736414424
+      ],
+      "pass_pct": [
+        0.0,
+        78.0
+      ],
+      "dribble_pct": [
+        null,
+        48.0
+      ],
+      "aerials_won90": [
+        null,
+        1.346
+      ]
+    },
+    "still_after_norm": [
+      "dribbles90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Ángel Di María",
+    "type": "prime",
+    "season": "13/14",
+    "fpl": "FWD",
+    "pos": "RW",
+    "raw_gaps": [
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "pass_pct": [
+        0.0,
+        78.0
+      ],
+      "dribble_pct": [
+        null,
+        48.0
+      ]
+    },
+    "still_after_norm": [
+      "aerials_won90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Riyad Mahrez",
+    "type": "prime",
+    "season": "22/23",
+    "fpl": "MID",
+    "pos": "RW",
+    "raw_gaps": [
+      "xa90",
+      "key_passes90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "xa90": [
+        null,
+        0.2855097144911241
+      ],
+      "key_passes90": [
+        0.0,
+        2.364760432766615
+      ],
+      "dribbles90": [
+        0.0,
+        1.0152233384853169
+      ],
+      "pass_pct": [
+        0.0,
+        85.0
+      ],
+      "dribble_pct": [
+        null,
+        62.0
+      ]
+    },
+    "still_after_norm": [
+      "aerials_won90"
+    ],
+    "source": "fbref+verified"
+  },
+  {
+    "player": "Mesut Özil",
+    "type": "prime",
+    "season": "15/16",
+    "fpl": "MID",
+    "pos": "CAM",
+    "raw_gaps": [
+      "shots_on_target90",
+      "dribbles90",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "dribbles90": [
+        0.0,
+        1.6817606983237974
+      ],
+      "dribble_pct": [
+        null,
+        62.0
+      ]
+    },
+    "still_after_norm": [
+      "shots_on_target90",
+      "aerials_won90"
+    ],
+    "source": "fbref_verified_manual"
+  },
+  {
+    "player": "John Stones",
+    "type": "prime",
+    "season": "22/23",
+    "fpl": "DEF",
+    "pos": "CB",
+    "raw_gaps": [
+      "shots_on_target90",
+      "goals90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "pass_pct": [
+        null,
+        84.0
+      ],
+      "dribble_pct": [
+        null,
+        58.0
+      ]
+    },
+    "still_after_norm": [
+      "shots_on_target90",
+      "goals90",
+      "dribbles90"
+    ],
+    "source": "understat_stub"
+  },
+  {
+    "player": "Alejandro Grimaldo",
+    "type": "prime",
+    "season": "23/24",
+    "fpl": "DEF",
+    "pos": "LB",
+    "raw_gaps": [
+      "shots_on_target90",
+      "goals90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "dribbles90": [
+        0.0,
+        0.8060279870828849
+      ],
+      "pass_pct": [
+        null,
+        84.0
+      ],
+      "dribble_pct": [
+        null,
+        58.0
+      ]
+    },
+    "still_after_norm": [
+      "shots_on_target90",
+      "goals90"
+    ],
+    "source": "understat_stub"
+  },
+  {
+    "player": "Bernardo Silva",
+    "type": "prime",
+    "season": "21/22",
+    "fpl": "MID",
+    "pos": "CM",
+    "raw_gaps": [
+      "shots_on_target90",
+      "goals90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "dribbles90": [
+        0.0,
+        0.5930890052356022
+      ],
+      "pass_pct": [
+        null,
+        85.0
+      ],
+      "dribble_pct": [
+        null,
+        62.0
+      ]
+    },
+    "still_after_norm": [
+      "shots_on_target90",
+      "goals90",
+      "aerials_won90"
+    ],
+    "source": "understat_stub"
+  },
+  {
+    "player": "İlkay Gündoğan",
+    "type": "prime",
+    "season": "23/24",
+    "fpl": "MID",
+    "pos": "CM",
+    "raw_gaps": [
+      "shots_on_target90",
+      "goals90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct",
+      "aerials_won90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "pass_pct": [
+        null,
+        85.0
+      ],
+      "dribble_pct": [
+        null,
+        62.0
+      ]
+    },
+    "still_after_norm": [
+      "shots_on_target90",
+      "goals90",
+      "dribbles90",
+      "aerials_won90"
+    ],
+    "source": "understat_stub"
+  },
+  {
+    "player": "Éder Militão",
+    "type": "prime",
+    "season": "21/22",
+    "fpl": "DEF",
+    "pos": "CB",
+    "raw_gaps": [
+      "shots_on_target90",
+      "goals90",
+      "dribbles90",
+      "pass_pct",
+      "dribble_pct"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "pass_pct": [
+        null,
+        84.0
+      ],
+      "dribble_pct": [
+        null,
+        58.0
+      ]
+    },
+    "still_after_norm": [
+      "shots_on_target90",
+      "goals90",
+      "dribbles90"
+    ],
+    "source": "understat_stub"
+  },
+  {
+    "player": "Alexander Sørloth",
+    "type": "prime",
+    "season": "24/25",
+    "fpl": "FWD",
+    "pos": "ST",
+    "raw_gaps": [
+      "understat_shots90",
+      "understat_key_passes90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "understat_shots90": [
+        null,
+        3.819697040150662
+      ],
+      "understat_key_passes90": [
+        null,
+        0.6009536850075718
+      ]
+    },
+    "still_after_norm": [],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "Diogo Costa",
+    "type": "prime",
+    "season": "24/25",
+    "fpl": "GKP",
+    "pos": "GK",
+    "raw_gaps": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "key_passes90",
+      "dribbles90",
+      "dribble_pct",
+      "understat_shots90",
+      "understat_key_passes90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "dribble_pct": [
+        0.0,
+        55.0
+      ]
+    },
+    "still_after_norm": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "key_passes90",
+      "dribbles90"
+    ],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "Ayoub El Kaabi",
+    "type": "prime",
+    "season": "24/25",
+    "fpl": "FWD",
+    "pos": "ST",
+    "raw_gaps": [
+      "dribble_pct",
+      "understat_shots90",
+      "understat_key_passes90"
+    ],
+    "impossible_sot": true,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "dribble_pct": [
+        null,
+        48.0
+      ],
+      "understat_shots90": [
+        null,
+        2.8871100000000003
+      ],
+      "understat_key_passes90": [
+        null,
+        0.499
+      ]
+    },
+    "still_after_norm": [],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "Ismael Saibari",
+    "type": "prime",
+    "season": "24/25",
+    "fpl": "MID",
+    "pos": "CM",
+    "raw_gaps": [
+      "understat_shots90",
+      "understat_key_passes90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "understat_shots90": [
+        null,
+        4.03596
+      ],
+      "understat_key_passes90": [
+        null,
+        1.3972
+      ]
+    },
+    "still_after_norm": [],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "Mike Maignan",
+    "type": "prime",
+    "season": "24/25",
+    "fpl": "GK",
+    "pos": "GK",
+    "raw_gaps": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "understat_shots90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {},
+    "still_after_norm": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90"
+    ],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "Yassine Bounou",
+    "type": "prime",
+    "season": "24/25",
+    "fpl": "GK",
+    "pos": "GK",
+    "raw_gaps": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "dribbles90",
+      "dribble_pct",
+      "understat_shots90",
+      "understat_key_passes90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {},
+    "still_after_norm": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "dribbles90",
+      "dribble_pct"
+    ],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "Jordan Pickford",
+    "type": "prime",
+    "season": "24/25",
+    "fpl": "GK",
+    "pos": "GK",
+    "raw_gaps": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "dribbles90",
+      "dribble_pct",
+      "understat_shots90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {},
+    "still_after_norm": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "dribbles90",
+      "dribble_pct"
+    ],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "Noussair Mazraoui",
+    "type": "prime",
+    "season": "24/25",
+    "fpl": "DEF",
+    "pos": "CB",
+    "raw_gaps": [
+      "goals90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {},
+    "still_after_norm": [
+      "goals90"
+    ],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "Matvey Safonov",
+    "type": "prime",
+    "season": "24/25",
+    "fpl": "GK",
+    "pos": "GK",
+    "raw_gaps": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "dribbles90",
+      "dribble_pct",
+      "understat_shots90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {},
+    "still_after_norm": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "dribbles90",
+      "dribble_pct"
+    ],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "Gregor Kobel",
+    "type": "prime",
+    "season": "24/25",
+    "fpl": "GK",
+    "pos": "GK",
+    "raw_gaps": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "understat_shots90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {},
+    "still_after_norm": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90"
+    ],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "Willian Pacho",
+    "type": "prime",
+    "season": "24/25",
+    "fpl": "DEF",
+    "pos": "CB",
+    "raw_gaps": [
+      "goals90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {},
+    "still_after_norm": [
+      "goals90"
+    ],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "Marco Carnesecchi",
+    "type": "prime",
+    "season": "24/25",
+    "fpl": "GK",
+    "pos": "GK",
+    "raw_gaps": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "understat_shots90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {},
+    "still_after_norm": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90"
+    ],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "Jérémy Jacquet",
+    "type": "prime",
+    "season": "25/26",
+    "fpl": "DEF",
+    "pos": "CB",
+    "raw_gaps": [
+      "goals90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {},
+    "still_after_norm": [
+      "goals90"
+    ],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "David Raya",
+    "type": "prime",
+    "season": "24/25",
+    "fpl": "GK",
+    "pos": "GK",
+    "raw_gaps": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "understat_shots90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {},
+    "still_after_norm": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90"
+    ],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "Emiliano Martínez",
+    "type": "prime",
+    "season": "24/25",
+    "fpl": "GK",
+    "pos": "GK",
+    "raw_gaps": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "understat_shots90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {},
+    "still_after_norm": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90"
+    ],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "Alisson",
+    "type": "prime",
+    "season": "24/25",
+    "fpl": "GK",
+    "pos": "GK",
+    "raw_gaps": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "understat_shots90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {},
+    "still_after_norm": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90"
+    ],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "Nick Pope",
+    "type": "prime",
+    "season": "24/25",
+    "fpl": "GK",
+    "pos": "GK",
+    "raw_gaps": [
+      "goals90",
+      "dribbles90",
+      "dribble_pct"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {},
+    "still_after_norm": [
+      "goals90",
+      "dribbles90",
+      "dribble_pct"
+    ],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "Thibaut Courtois",
+    "type": "prime",
+    "season": "24/25",
+    "fpl": "GK",
+    "pos": "GK",
+    "raw_gaps": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "dribbles90",
+      "dribble_pct",
+      "understat_shots90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {},
+    "still_after_norm": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "dribbles90",
+      "dribble_pct"
+    ],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "Alejandro Balde",
+    "type": "prime",
+    "season": "24/25",
+    "fpl": "DEF",
+    "pos": "LB",
+    "raw_gaps": [
+      "goals90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {},
+    "still_after_norm": [
+      "goals90"
+    ],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "Ayyoub Bouaddi",
+    "type": "prime",
+    "season": "24/25",
+    "fpl": "MID",
+    "pos": "CM",
+    "raw_gaps": [
+      "goals90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {},
+    "still_after_norm": [
+      "goals90"
+    ],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "Matz Sels",
+    "type": "prime",
+    "season": "24/25",
+    "fpl": "GK",
+    "pos": "GK",
+    "raw_gaps": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "dribbles90",
+      "dribble_pct",
+      "understat_shots90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {},
+    "still_after_norm": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "dribbles90",
+      "dribble_pct"
+    ],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "Caoimhin Kelleher",
+    "type": "prime",
+    "season": "24/25",
+    "fpl": "GK",
+    "pos": "GK",
+    "raw_gaps": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "understat_shots90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {},
+    "still_after_norm": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90"
+    ],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "Unai Simón",
+    "type": "prime",
+    "season": "24/25",
+    "fpl": "GK",
+    "pos": "GK",
+    "raw_gaps": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "dribbles90",
+      "dribble_pct",
+      "understat_shots90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {},
+    "still_after_norm": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "dribbles90",
+      "dribble_pct"
+    ],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "Yann Sommer",
+    "type": "prime",
+    "season": "24/25",
+    "fpl": "GK",
+    "pos": "GK",
+    "raw_gaps": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "key_passes90",
+      "dribbles90",
+      "dribble_pct",
+      "understat_shots90",
+      "understat_key_passes90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {},
+    "still_after_norm": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "key_passes90",
+      "dribbles90",
+      "dribble_pct"
+    ],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "Senne Lammens",
+    "type": "prime",
+    "season": "25/26",
+    "fpl": "GK",
+    "pos": "GK",
+    "raw_gaps": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "key_passes90",
+      "dribbles90",
+      "dribble_pct",
+      "understat_shots90",
+      "understat_key_passes90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {},
+    "still_after_norm": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "key_passes90",
+      "dribbles90",
+      "dribble_pct"
+    ],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "Joan García",
+    "type": "prime",
+    "season": "24/25",
+    "fpl": "GK",
+    "pos": "GK",
+    "raw_gaps": [
+      "goals90",
+      "key_passes90",
+      "understat_shots90",
+      "understat_key_passes90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {},
+    "still_after_norm": [
+      "goals90",
+      "key_passes90"
+    ],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "Cristhian Mosquera",
+    "type": "prime",
+    "season": "24/25",
+    "fpl": "DEF",
+    "pos": "CB",
+    "raw_gaps": [
+      "key_passes90",
+      "understat_key_passes90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {},
+    "still_after_norm": [
+      "key_passes90"
+    ],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "Brahim Diaz",
+    "type": "prime",
+    "season": "23/24",
+    "fpl": "FWD",
+    "pos": "ST",
+    "raw_gaps": [
+      "pass_pct"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {
+      "pass_pct": [
+        0.0,
+        78.0
+      ]
+    },
+    "still_after_norm": [],
+    "source": "player_stats_cache"
+  },
+  {
+    "player": "Gianluigi Donnarumma",
+    "type": "prime",
+    "season": "24/25",
+    "fpl": "GK",
+    "pos": "GK",
+    "raw_gaps": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90",
+      "understat_shots90",
+      "understat_key_passes90"
+    ],
+    "impossible_sot": false,
+    "shots_miss": false,
+    "normalize_would_change": {},
+    "still_after_norm": [
+      "shots90",
+      "shots_on_target90",
+      "goals90",
+      "xg90"
+    ],
+    "source": "player_stats_cache"
+  }
+]

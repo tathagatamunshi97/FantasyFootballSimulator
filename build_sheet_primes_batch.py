@@ -150,7 +150,9 @@ def build() -> dict[str, Any]:
         entry["data_source"] = "player_stats_cache"
         entry["auto_populate_source"] = "player_stats_cache"
 
+        # Write repaired gap fills into the stored prime (not runtime-only).
         _normalize_stat_gaps(entry)
+        entry["stat_gaps_backfilled"] = True
 
         key = (normalize_key(canonical_name(display)), "prime", suffix)
         if key in index or lookup_manual_prime(display, cache_only=True):

@@ -244,12 +244,33 @@ def _default_tournament(name: str, team_names: list[str], settings: dict[str, An
 def save_tournament(t: dict[str, Any]) -> None:
     TOURNAMENTS_DIR.mkdir(parents=True, exist_ok=True)
     t["updated_at"] = _now()
+
+    # Save to R2 if enabled (primary storage on Render)
+    try:
+        import r2_storage
+        if r2_storage.is_r2_enabled():
+            r2_storage.save_tournament_metadata(t["id"], t)
+    except (ImportError, Exception):
+        pass
+
+    # Always save to JSON as fallback
     _tournament_path(t["id"]).write_text(
         json.dumps(t, indent=2, ensure_ascii=False), encoding="utf-8"
     )
 
 
 def load_tournament(tournament_id: str) -> dict[str, Any] | None:
+    # Try R2 first (if enabled)
+    try:
+        import r2_storage
+        if r2_storage.is_r2_enabled():
+            data = r2_storage.load_tournament_metadata(tournament_id)
+            if data:
+                return data
+    except (ImportError, Exception):
+        pass
+
+    # Fall back to JSON
     path = _tournament_path(tournament_id)
     if not path.exists():
         return None
@@ -273,9 +294,26 @@ def _summary(t: dict[str, Any]) -> dict[str, Any]:
 
 
 def list_tournaments() -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+
+    # Try R2 first (if enabled)
+    try:
+        import r2_storage
+        if r2_storage.is_r2_enabled():
+            tournament_ids = r2_storage.list_tournament_ids()
+            for tournament_id in tournament_ids:
+                t = load_tournament(tournament_id)
+                if t:
+                    rows.append(_summary(t))
+            if rows:
+                rows.sort(key=lambda r: r.get("updated_at") or "", reverse=True)
+                return rows
+    except (ImportError, Exception):
+        pass
+
+    # Fall back to JSON directory
     if not TOURNAMENTS_DIR.exists():
         return []
-    rows: list[dict[str, Any]] = []
     for path in TOURNAMENTS_DIR.glob("*.json"):
         try:
             t = json.loads(path.read_text(encoding="utf-8"))
@@ -2213,6 +2251,16 @@ def delete_tournament(tournament_id: str) -> dict[str, Any]:
     t = load_tournament(tournament_id)
     if not t:
         raise KeyError("Tournament not found")
+
+    # Delete from R2 if enabled
+    try:
+        import r2_storage
+        if r2_storage.is_r2_enabled():
+            r2_storage.delete_tournament_metadata(tournament_id)
+    except (ImportError, Exception):
+        pass
+
+    # Delete from JSON
     _tournament_path(tournament_id).unlink(missing_ok=True)
     matchday_session.clear_if_references(tournament_id=tournament_id)
     return {"id": tournament_id, "name": t.get("name")}

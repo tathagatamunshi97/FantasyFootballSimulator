@@ -6,7 +6,7 @@ import time
 from typing import Any
 
 from manual_profiles import MANUAL_PROFILES_FILE, reload_manual_profiles
-from models import SOFASCORE_POSITION_TO_FPL, SOFASCORE_POSITION_TO_PRIMARY
+from models import SOFASCORE_POSITION_TO_FPL, SOFASCORE_POSITION_TO_PRIMARY, _normalize_stat_gaps
 from player_names import (
     KNOWN_PLAYER_POSITIONS,
     KNOWN_PRIME_SEASON_SUFFIX,
@@ -225,6 +225,7 @@ def _fetch_season(
         merge_fbref_for_player_season(display_name, stats, season_suffix)
     stats["data_source"] = source
     stats["auto_populate_source"] = source
+    _normalize_stat_gaps(stats)
     return display_name, stats, source
 
 

@@ -748,6 +748,10 @@ async function unfinalizeAllTeams() {
 document.getElementById("token").value = getAdminToken() || "";
 document.getElementById("token").addEventListener("input", (e) => {
   setAdminToken(e.target.value.trim());
+  if (e.target.value.trim()) {
+    loadExperiments();
+    loadMatchRecordingTournaments();
+  }
 });
 
 document.getElementById("refreshBtn").addEventListener("click", loadExperiments);
@@ -780,18 +784,321 @@ document.getElementById("runBtn")?.addEventListener("click", async () => {
   }
 });
 
+// ============================================================================
+// Match Recording UI
+// ============================================================================
+
+const mrLog = (msg) => (document.getElementById("mrLog").textContent = msg);
+const mrListLog = (msg) => (document.getElementById("mrListLog").textContent = msg);
+
+async function loadMatchRecordingTournaments() {
+  try {
+    const res = await adminApi("/api/tournament");
+    const sel = document.getElementById("mrTournament");
+    const sel2 = document.getElementById("mrListTournament");
+    const opts = res.tournaments.map((t) => `<option value="${t.id}">${t.name} (${t.team_count} teams)</option>`).join("");
+    sel.innerHTML = `<option value="">— Select tournament —</option>${opts}`;
+    sel2.innerHTML = `<option value="">— Select tournament —</option>${opts}`;
+    mrLog("Tournaments loaded.");
+  } catch (e) {
+    mrLog(`Error loading tournaments: ${e.message}`);
+  }
+}
+
+async function loadMatches(tournamentId) {
+  if (!tournamentId) {
+    document.getElementById("mrMatch").innerHTML = `<option value="">— Select match —</option>`;
+    return;
+  }
+  try {
+    const res = await adminApi(`/api/tournament/${tournamentId}`);
+    const t = res.tournament;
+    const matchOptions = [];
+
+    // Group stage matches
+    const groups = t.groups || {};
+    for (const [groupKey, group] of Object.entries(groups)) {
+      const fixtures = group.fixtures || [];
+      for (const fx of fixtures) {
+        const matchId = fx.id || `${groupKey}_${fx.match_number}`;
+        const home = fx.home || "?";
+        const away = fx.away || "?";
+        const score = fx.result_id ? "✓ Done" : "⊝ Pending";
+        matchOptions.push(`<option value="${matchId}">${home} vs ${away} (${groupKey}) ${score}</option>`);
+      }
+    }
+
+    // Knockout matches
+    const knockout = t.knockout || {};
+    for (const [stage, matches] of Object.entries(knockout)) {
+      for (const m of matches) {
+        const matchId = m.id || `${stage}_${m.match_number}`;
+        const home = m.home || "?";
+        const away = m.away || "?";
+        const score = m.result_id ? "✓ Done" : "⊝ Pending";
+        matchOptions.push(`<option value="${matchId}">${home} vs ${away} (${stage}) ${score}</option>`);
+      }
+    }
+
+    const sel = document.getElementById("mrMatch");
+    sel.innerHTML = `<option value="">— Select match —</option>${matchOptions.join("")}`;
+    mrLog(`${matchOptions.length} matches found.`);
+  } catch (e) {
+    mrLog(`Error loading matches: ${e.message}`);
+  }
+}
+
+function addEventRow(team = "", player = "", assisters = [], minute = "") {
+  const id = `event_${Date.now()}`;
+  const eventsDiv = document.getElementById("mrEvents");
+  const row = document.createElement("div");
+  row.id = id;
+  row.className = "goal-event";
+  row.style.cssText = "padding:1rem;background:white;border-radius:4px;border-left:3px solid #007bff;margin-bottom:0.5rem";
+
+  // Parse assisters if it's a string
+  const assistersList = typeof assisters === "string" && assisters ? [assisters] : (Array.isArray(assisters) ? assisters : []);
+
+  row.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:0.5rem;margin-bottom:0.75rem">
+      <div>
+        <label class="muted" style="font-size:0.85rem">Team</label>
+        <select class="event-team" style="width:100%">
+          <option value="">—</option>
+        </select>
+      </div>
+      <div>
+        <label class="muted" style="font-size:0.85rem">Scorer</label>
+        <input class="event-player" type="text" placeholder="Player name" style="width:100%" />
+      </div>
+      <div>
+        <label class="muted" style="font-size:0.85rem">Minute</label>
+        <input class="event-minute" type="number" min="1" max="120" placeholder="45" style="width:100%" />
+      </div>
+      <button type="button" class="btn-ghost" style="padding:0.5rem;align-self:flex-end" onclick="document.getElementById('${id}').remove()">✕</button>
+    </div>
+    <div class="assisters-list" style="background:#f9f9f9;padding:0.75rem;border-radius:3px;margin-bottom:0.75rem"></div>
+    <button type="button" class="btn-ghost btn-small" style="font-size:0.9rem">+ Add assister</button>
+  `;
+
+  eventsDiv.appendChild(row);
+
+  // Set values
+  const teamSel = row.querySelector(".event-team");
+  const playerInput = row.querySelector(".event-player");
+  const minuteInput = row.querySelector(".event-minute");
+
+  if (team) teamSel.value = team;
+  if (player) playerInput.value = player;
+  if (minute) minuteInput.value = minute;
+
+  // Render existing assisters
+  const assistersList_div = row.querySelector(".assisters-list");
+  renderAssisters(assistersList_div, assistersList, id);
+
+  // Add assister button
+  row.querySelector("button.btn-small").addEventListener("click", (e) => {
+    e.preventDefault();
+    const newAssisterDiv = document.createElement("div");
+    newAssisterDiv.style.cssText = "display:flex;gap:0.5rem;margin-bottom:0.5rem";
+    newAssisterDiv.innerHTML = `
+      <input type="text" placeholder="Assister name" class="new-assister" style="flex:1;padding:0.5rem;border:1px solid #ddd;border-radius:3px" />
+      <button type="button" class="btn-ghost" style="padding:0.25rem 0.5rem;font-size:0.9rem" onclick="this.parentElement.remove()">Remove</button>
+    `;
+    assistersList_div.appendChild(newAssisterDiv);
+  });
+
+  updateTeamSelects();
+}
+
+function renderAssisters(container, assisters, eventId) {
+  container.innerHTML = "";
+  assisters.forEach((assister, idx) => {
+    const div = document.createElement("div");
+    div.style.cssText = "display:flex;gap:0.5rem;margin-bottom:0.5rem;align-items:center";
+    div.innerHTML = `
+      <span style="flex:1;padding:0.5rem;background:white;border-radius:3px;border:1px solid #e0e0e0">${assister}</span>
+      <button type="button" class="btn-ghost" style="padding:0.25rem 0.5rem;font-size:0.9rem" onclick="this.parentElement.remove()">Remove</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function updateTeamSelects() {
+  const tourneyId = document.getElementById("mrTournament").value;
+  if (!tourneyId) return;
+
+  adminApi(`/api/tournament/${tourneyId}`).then((res) => {
+    const teams = res.tournament.team_names || [];
+    const selects = document.querySelectorAll(".goal-event .event-team");
+    selects.forEach((sel) => {
+      const current = sel.value;
+      sel.innerHTML = `<option value="">—</option>${teams.map((t) => `<option value="${t}">${t}</option>`).join("")}`;
+      if (current) sel.value = current;
+    });
+  }).catch(() => {
+    // Silently ignore errors when updating team selects
+  });
+}
+
+function getFormData() {
+  const tourneyId = document.getElementById("mrTournament").value;
+  const matchId = document.getElementById("mrMatch").value;
+  const homeGoals = Number(document.getElementById("mrHomeGoals").value) || 0;
+  const awayGoals = Number(document.getElementById("mrAwayGoals").value) || 0;
+
+  const events = [];
+  document.querySelectorAll("#mrEvents > .goal-event").forEach((row) => {
+    const team = row.querySelector(".event-team").value;
+    const player = row.querySelector(".event-player").value.trim();
+    const minute = row.querySelector(".event-minute").value;
+
+    if (team && player) {
+      // Get all assisters from the assisters list
+      const assisterDivs = row.querySelectorAll(".assisters-list span");
+      const assisters = Array.from(assisterDivs).map((div) => div.textContent.trim());
+
+      // Also check for new unsaved assisters
+      const newAssisters = row.querySelectorAll(".new-assister");
+      newAssisters.forEach((input) => {
+        const name = input.value.trim();
+        if (name) assisters.push(name);
+      });
+
+      // Record goal
+      events.push({
+        team,
+        player,
+        event_type: "goal",
+        minute: minute ? Number(minute) : undefined,
+        assister: assisters.length > 0 ? assisters[0] : undefined, // Primary assister
+      });
+
+      // Record additional assisters (if API supports it)
+      for (let i = 1; i < assisters.length; i++) {
+        events.push({
+          team,
+          player: assisters[i],
+          event_type: "assist",
+          minute: minute ? Number(minute) : undefined,
+        });
+      }
+    }
+  });
+
+  return { tourneyId, matchId, homeGoals, awayGoals, events };
+}
+
+async function recordMatch() {
+  const { tourneyId, matchId, homeGoals, awayGoals, events } = getFormData();
+  if (!tourneyId || !matchId) {
+    mrLog("Please select tournament and match.");
+    return;
+  }
+
+  const btn = document.getElementById("mrRecordBtn");
+  btn.disabled = true;
+  try {
+    const res = await adminApi(`/api/admin/tournament/${tourneyId}/matches/${matchId}/record-result`, {
+      method: "POST",
+      json: { home_goals: homeGoals, away_goals: awayGoals, events },
+    });
+    mrLog(`✓ ${res.message}`);
+    clearMatchForm();
+    loadRecordedMatches(tourneyId);
+  } catch (e) {
+    mrLog(`Error: ${e.message}`);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function clearMatchForm() {
+  document.getElementById("mrTournament").value = "";
+  document.getElementById("mrMatch").value = "";
+  document.getElementById("mrHomeGoals").value = "0";
+  document.getElementById("mrAwayGoals").value = "0";
+  document.getElementById("mrEvents").innerHTML = "";
+  updateScore();
+}
+
+function updateScore() {
+  const home = Number(document.getElementById("mrHomeGoals").value) || 0;
+  const away = Number(document.getElementById("mrAwayGoals").value) || 0;
+  document.getElementById("mrScore").textContent = `${home}–${away}`;
+}
+
+async function loadRecordedMatches(tourneyId) {
+  if (!tourneyId) {
+    document.getElementById("mrRecordedTable").innerHTML = `<p class="muted">Select a tournament to view recorded matches.</p>`;
+    return;
+  }
+  try {
+    const res = await adminApi(`/api/admin/tournament/${tourneyId}/recorded-results`);
+    const results = res.results || [];
+    if (results.length === 0) {
+      document.getElementById("mrRecordedTable").innerHTML = `<p class="muted">No recorded matches yet.</p>`;
+      return;
+    }
+
+    const rows = results
+      .map(
+        (r) => `
+      <tr>
+        <td>${r.home_team}</td>
+        <td style="text-align:center;font-weight:600">${r.home_goals}–${r.away_goals}</td>
+        <td>${r.away_team}</td>
+        <td style="text-align:center;font-size:0.9rem;color:#999">${r.stage || "—"}</td>
+        <td style="text-align:center;font-size:0.85rem;color:#999">${r.updated_at ? new Date(r.updated_at).toLocaleDateString() : "—"}</td>
+      </tr>
+    `
+      )
+      .join("");
+
+    document.getElementById("mrRecordedTable").innerHTML = `
+      <table style="width:100%">
+        <thead>
+          <tr>
+            <th>Home</th>
+            <th style="width:80px">Score</th>
+            <th>Away</th>
+            <th>Stage</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+    mrListLog(`${results.length} match(es) recorded.`);
+  } catch (e) {
+    mrListLog(`Error: ${e.message}`);
+  }
+}
+
+// Event listeners for match recording
+document.getElementById("mrTournament").addEventListener("change", (e) => loadMatches(e.target.value));
+document.getElementById("mrListTournament").addEventListener("change", (e) => loadRecordedMatches(e.target.value));
+document.getElementById("mrAddEventBtn").addEventListener("click", () => addEventRow());
+document.getElementById("mrRecordBtn").addEventListener("click", recordMatch);
+document.getElementById("mrClearBtn").addEventListener("click", clearMatchForm);
+document.getElementById("mrHomeGoals").addEventListener("change", updateScore);
+document.getElementById("mrAwayGoals").addEventListener("change", updateScore);
+
 const initialTab =
   location.hash === "#tournament"
     ? "tournament"
-    : location.hash === "#teams"
-      ? "teams"
-      : location.hash === "#lineups"
-        ? "lineups"
-        : "simulations";
+    : location.hash === "#match-recording"
+      ? "match-recording"
+      : location.hash === "#teams"
+        ? "teams"
+        : location.hash === "#lineups"
+          ? "lineups"
+          : "simulations";
 showTab(initialTab);
 
 if (getAdminToken()) {
   loadExperiments();
+  loadMatchRecordingTournaments();
   setInterval(loadExperiments, 8000);
 } else {
   simLog("Enter your admin token to run simulations and manage tournaments.");

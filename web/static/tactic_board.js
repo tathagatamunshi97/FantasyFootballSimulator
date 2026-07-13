@@ -5534,16 +5534,25 @@
       const form = clamp(finishingForm[carrier.side] ?? 1, 0.2, 1.95);
       const roleFin = isAttackFinisher(carrier);
       const fq = finisherQuality(carrier);
+      const goals = carrier.stats.goals90 || 0;
       // Elite ST/W/AM (high xG/shots) convert much harder; old 0.3×xg + hi=0.40
       // compressed Kane (~0.89 xG) down to average-ST conversion.
+      // Fox-in-box overperformers (goals90 >> xg90, e.g. Higuaín 1.1 vs 0.75)
+      // were still converted at their xG floor — credit clinical finishing directly.
       const xgW = boxed ? (roleFin ? 0.42 : 0.3) : roleFin ? 0.18 : 0.12;
       const shW = roleFin ? 0.035 : 0.02;
+      const goalsW = roleFin ? (boxed ? 0.09 : 0.04) : 0;
+      const clinical = roleFin
+        ? clamp((goals - carrier.stats.xg90) * (boxed ? 0.28 : 0.12), 0, boxed ? 0.14 : 0.06)
+        : 0;
       const eliteBoost = roleFin ? clamp((fq - 0.42) * 0.24, 0, 0.2) : 0;
       const roleBox = roleFin && boxed ? 0.045 : 0;
       const p =
         (0.05 +
           carrier.stats.xg90 * xgW +
           carrier.stats.shots90 * shW +
+          goals * goalsW +
+          clinical +
           atk * 0.16 -
           def * 0.14 +
           skillGap * 0.14 +

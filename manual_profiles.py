@@ -168,6 +168,22 @@ def _normalize_profile_entry(raw: dict[str, Any]) -> dict[str, Any] | None:
 def _load_profiles_list() -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
 
+    # Try loading from database first (only on Render with DATABASE_URL set)
+    try:
+        import db
+        if db.is_db_enabled():
+            db_profiles = db.load_all_manual_profiles()
+            for db_row in db_profiles:
+                built = _normalize_profile_entry(db_row)
+                if built:
+                    rows.append(built)
+            if rows:
+                return rows  # If database has data, use it exclusively
+    except (ImportError, Exception):
+        # Database not available, fall back to JSON/XLSX
+        pass
+
+    # Fallback to JSON file
     if MANUAL_PROFILES_FILE.exists():
         try:
             payload = json.loads(MANUAL_PROFILES_FILE.read_text(encoding="utf-8"))
@@ -179,6 +195,7 @@ def _load_profiles_list() -> list[dict[str, Any]]:
         except (json.JSONDecodeError, OSError):
             pass
 
+    # Fallback to XLSX file
     if MANUAL_PROFILES_XLSX.exists():
         try:
             import pandas as pd

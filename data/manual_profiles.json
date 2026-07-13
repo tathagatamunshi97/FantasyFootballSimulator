@@ -22,11 +22,11 @@
         "xa90": 0.06638958121041423,
         "shots90": 4.31,
         "shots_on_target90": 2.06,
-        "key_passes90": 0.0,
+        "key_passes90": 0.7542742205833054,
         "tackles90": 0.5463743676222597,
         "interceptions90": 0.45531197301854975,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "dribbles90": 0.75,
         "passes_completed90": 0.0,
         "rating": 7.39,
         "data_source": "fbref+verified",
@@ -47,10 +47,19 @@
         "understat_shots90": 4.314448541736507,
         "auto_populate_source": "understat_stub",
         "fbref_matched": true,
-        "pass_pct": 0.0,
+        "pass_pct": 78.0,
         "yellow_cards90": 0.15177065767284992,
         "red_cards90": 0.0,
-        "pos_raw": "FW"
+        "pos_raw": "FW",
+        "dribble_pct": 48.0,
+        "aerials_won90": 1.277,
+        "aerials_lost90": 1.179,
+        "aerials_won_pct": 52.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "role_default",
+        "aerials_source": "estimated_fwd",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -101,7 +110,7 @@
         "understat_shots90": 1.177325581395349,
         "auto_populate_source": "understat_stub",
         "fbref_matched": true,
-        "pass_pct": 0.0,
+        "pass_pct": 84.0,
         "yellow_cards90": 0.3053805138148328,
         "red_cards90": 0.043625787687833255,
         "pos_raw": "DF",
@@ -110,7 +119,11 @@
         "aerials_won90": 3.5179835191468736,
         "aerials_lost90": 2.8783501520292605,
         "aerials_won_pct": 55.0,
-        "aerials_source": "estimated"
+        "aerials_source": "estimated",
+        "dribble_pct": 58.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -161,7 +174,7 @@
         "understat_shots90": 0.9894459102902374,
         "auto_populate_source": "understat_stub",
         "fbref_matched": true,
-        "pass_pct": 0.0,
+        "pass_pct": 84.0,
         "yellow_cards90": 0.07898200965335674,
         "red_cards90": 0.0,
         "pos_raw": "DF",
@@ -170,7 +183,11 @@
         "aerials_won90": 2.1040807371654235,
         "aerials_lost90": 1.7215206031353465,
         "aerials_won_pct": 55.0,
-        "aerials_source": "estimated"
+        "aerials_source": "estimated",
+        "dribble_pct": 58.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -196,11 +213,11 @@
         "xa90": 0.15888720912946508,
         "shots90": 2.4,
         "shots_on_target90": 1.09,
-        "key_passes90": 0.0,
+        "key_passes90": 1.0120783007080383,
         "tackles90": 1.1639549436795995,
         "interceptions90": 0.6382978723404256,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "dribbles90": 0.85,
         "passes_completed90": 0.0,
         "rating": 6.92,
         "data_source": "fbref+verified",
@@ -221,10 +238,15 @@
         "understat_shots90": 2.399000416493128,
         "auto_populate_source": "understat_stub",
         "fbref_matched": true,
-        "pass_pct": 0.0,
+        "pass_pct": 85.0,
         "yellow_cards90": 0.18773466833541927,
         "red_cards90": 0.0,
-        "pos_raw": "MF,FW"
+        "pos_raw": "MF,FW",
+        "dribble_pct": 62.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "creator_estimate",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -245,15 +267,15 @@
         "starts": 35,
         "goals90": 1.1,
         "assists90": 0.06,
-        "shots90": 2.53,
-        "shots_on_target90": 0.4,
+        "shots90": 5.48,
+        "shots_on_target90": 2.3,
         "tackles90": 0.0,
         "interceptions90": 0.0,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
-        "key_passes90": 0.0,
+        "dribbles90": 0.75,
+        "key_passes90": 1.536,
         "passes_completed90": 0.0,
-        "pass_pct": 0.0,
+        "pass_pct": 78.0,
         "yellow_cards90": 0.03042596348951995,
         "red_cards90": 0.0,
         "penalty_goals90": 0.0912778891142664,
@@ -275,10 +297,19 @@
         "understat_xa90": 0.08142748921137465,
         "understat_key_passes90": 1.5356306457009032,
         "understat_shots90": 5.480093676814988,
-        "xg90": 0.7531087685783957,
-        "xa90": 0.08142748921137465,
+        "xg90": 0.753,
+        "xa90": 0.081,
         "auto_populate_source": "fbref",
-        "pos_raw": "FW,MF"
+        "pos_raw": "FW,MF",
+        "dribble_pct": 48.0,
+        "aerials_won90": 1.344,
+        "aerials_lost90": 1.241,
+        "aerials_won_pct": 52.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "creator_estimate",
+        "aerials_source": "estimated_fwd",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -303,10 +334,10 @@
         "tackles90": 1.6993957703927491,
         "interceptions90": 3.4327794561933533,
         "clearances90": 5.098187311178247,
-        "dribbles90": 0.0,
+        "dribbles90": 0.35,
         "key_passes90": 0.23773584905660378,
         "passes_completed90": 0.0,
-        "pass_pct": 0.0,
+        "pass_pct": 84.0,
         "yellow_cards90": 0.23791540785498488,
         "red_cards90": 0.033987915407854986,
         "rating": 6.67,
@@ -336,7 +367,11 @@
         "aerials_lost90": 1.2,
         "aerials_won_pct": 68.4,
         "aerials_source": "fbref+verified",
-        "xa90": 0.04426335163836209
+        "xa90": 0.04426335163836209,
+        "dribble_pct": 58.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "role_default"
       }
     },
     {
@@ -361,10 +396,10 @@
         "tackles90": 0.6,
         "interceptions90": 0.2571428571428571,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
-        "key_passes90": 0.0,
+        "dribbles90": 0.782,
+        "key_passes90": 1.6,
         "passes_completed90": 0.0,
-        "pass_pct": 0.0,
+        "pass_pct": 78.0,
         "yellow_cards90": 0.2,
         "red_cards90": 0.0,
         "rating": 7.62,
@@ -387,7 +422,17 @@
         "understat_key_passes90": 1.6,
         "understat_shots90": 3.914285714285714,
         "xg90": 0.9176490240863391,
-        "pos_raw": "FW"
+        "pos_raw": "FW",
+        "xa90": 0.37931313323123117,
+        "dribble_pct": 48.0,
+        "aerials_won90": 1.26,
+        "aerials_lost90": 1.163,
+        "aerials_won_pct": 52.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "winger_estimate",
+        "aerials_source": "estimated_fwd",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -410,13 +455,13 @@
         "assists90": 0.22,
         "xg90": 0.16841742737915522,
         "xa90": 0.20120601918010955,
-        "shots90": 0.0,
+        "shots90": 2.2885085574572126,
         "shots_on_target90": 0.84,
-        "key_passes90": 0.0,
+        "key_passes90": 2.1124694376528117,
         "tackles90": 3.52,
         "interceptions90": 1.67,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "dribbles90": 0.85,
         "passes_completed90": 0.0,
         "rating": 6.73,
         "data_source": "fbref+verified",
@@ -437,10 +482,19 @@
         "understat_shots90": 2.2885085574572126,
         "auto_populate_source": "understat_stub",
         "fbref_matched": true,
-        "pass_pct": 0.0,
+        "pass_pct": 85.0,
         "yellow_cards90": 0.13222331047992164,
         "red_cards90": 0.0,
-        "pos_raw": "MF"
+        "pos_raw": "MF",
+        "dribble_pct": 62.0,
+        "aerials_won90": 0.85,
+        "aerials_lost90": 0.921,
+        "aerials_won_pct": 48.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "creator_estimate",
+        "aerials_source": "estimated_mid",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -465,11 +519,11 @@
         "xa90": 0.08853827197762097,
         "shots90": 1.5,
         "shots_on_target90": 0.62,
-        "key_passes90": 0.0,
+        "key_passes90": 0.6539792387543253,
         "tackles90": 1.187087816730302,
         "interceptions90": 1.4994793474488024,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "dribbles90": 0.85,
         "passes_completed90": 0.0,
         "rating": 6.76,
         "data_source": "fbref+verified",
@@ -490,10 +544,18 @@
         "understat_shots90": 1.4636678200692042,
         "auto_populate_source": "understat_stub",
         "fbref_matched": true,
-        "pass_pct": 0.0,
+        "pass_pct": 85.0,
         "yellow_cards90": 0.21867407150295037,
         "red_cards90": 0.0,
-        "pos_raw": "MF"
+        "pos_raw": "MF",
+        "dribble_pct": 62.0,
+        "aerials_won90": 0.85,
+        "aerials_lost90": 0.921,
+        "aerials_won_pct": 48.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "role_default",
+        "aerials_source": "estimated_mid"
       }
     },
     {
@@ -518,11 +580,11 @@
         "xa90": 0.24557861788416785,
         "shots90": 2.74,
         "shots_on_target90": 1.24,
-        "key_passes90": 0.0,
+        "key_passes90": 1.791044776119403,
         "tackles90": 1.6938110749185669,
         "interceptions90": 0.5211726384364821,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "dribbles90": 0.7,
         "passes_completed90": 0.0,
         "rating": 7.11,
         "data_source": "fbref+verified",
@@ -543,10 +605,19 @@
         "understat_shots90": 2.6865671641791047,
         "auto_populate_source": "understat_stub",
         "fbref_matched": true,
-        "pass_pct": 0.0,
+        "pass_pct": 78.0,
         "yellow_cards90": 0.03257328990228013,
         "red_cards90": 0.0,
-        "pos_raw": "FW"
+        "pos_raw": "FW",
+        "dribble_pct": 48.0,
+        "aerials_won90": 1.047,
+        "aerials_lost90": 0.967,
+        "aerials_won_pct": 52.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "winger_estimate",
+        "aerials_source": "estimated_fwd",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -556,11 +627,12 @@
       "stats": {
         "team": "Barcelona",
         "league": "LaLiga",
-        "primary_position": "ST",
+        "primary_position": "LW",
         "fpl_position": "FWD",
         "positions": [
+          "LW",
           "ST",
-          "CM"
+          "AM"
         ],
         "player_id": 124712,
         "minutes": 2562.0,
@@ -568,15 +640,15 @@
         "starts": 29,
         "goals90": 0.77,
         "assists90": 0.25,
-        "xg90": 0.7687719280368569,
-        "xa90": 0.2889772521145859,
-        "shots90": 0.0,
+        "xg90": 0.769,
+        "xa90": 0.289,
+        "shots90": 3.323,
         "shots_on_target90": 1.65,
-        "key_passes90": 0.0,
+        "key_passes90": 1.819,
         "tackles90": 0.0,
         "interceptions90": 0.0,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "dribbles90": 3.8,
         "passes_completed90": 0.0,
         "rating": 7.19,
         "data_source": "fbref+verified",
@@ -597,10 +669,19 @@
         "understat_shots90": 3.322969296541003,
         "auto_populate_source": "understat_stub",
         "fbref_matched": true,
-        "pass_pct": 0.0,
+        "pass_pct": 81.0,
         "yellow_cards90": 0.2107728337236534,
         "red_cards90": 0.0,
-        "pos_raw": "FW,MF"
+        "pos_raw": "FW,MF",
+        "dribble_pct": 54.0,
+        "aerials_won90": 1.162,
+        "aerials_lost90": 1.259,
+        "aerials_won_pct": 48.0,
+        "pass_pct_source": "legend_override",
+        "dribble_pct_source": "legend_override",
+        "dribbles_source": "winger_estimate",
+        "aerials_source": "estimated_fwd",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -626,10 +707,10 @@
         "tackles90": 1.1190550202051601,
         "interceptions90": 0.755362138638483,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
-        "key_passes90": 0.0,
+        "dribbles90": 0.849,
+        "key_passes90": 2.1713578719455615,
         "passes_completed90": 0.0,
-        "pass_pct": 0.0,
+        "pass_pct": 78.0,
         "yellow_cards90": 0.167858253030774,
         "red_cards90": 0.0,
         "rating": 7.22,
@@ -652,7 +733,17 @@
         "understat_key_passes90": 2.1713578719455615,
         "understat_shots90": 3.591091865140736,
         "xg90": 0.42984378287621117,
-        "pos_raw": "FW,MF"
+        "pos_raw": "FW,MF",
+        "xa90": 0.2502104310169609,
+        "dribble_pct": 48.0,
+        "aerials_won90": 1.084,
+        "aerials_lost90": 1.174,
+        "aerials_won_pct": 48.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "winger_estimate",
+        "aerials_source": "estimated_fwd",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -677,11 +768,11 @@
         "xa90": 0.13253703615034576,
         "shots90": 3.74,
         "shots_on_target90": 1.77,
-        "key_passes90": 0.0,
+        "key_passes90": 1.0512950736414424,
         "tackles90": 0.5604566683964712,
         "interceptions90": 0.467047223663726,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "dribbles90": 0.75,
         "passes_completed90": 0.0,
         "rating": 7.37,
         "data_source": "fbref+verified",
@@ -702,10 +793,19 @@
         "understat_shots90": 3.6566785170137126,
         "auto_populate_source": "understat_stub",
         "fbref_matched": true,
-        "pass_pct": 0.0,
+        "pass_pct": 78.0,
         "yellow_cards90": 0.0934094447327452,
         "red_cards90": 0.0,
-        "pos_raw": "FW"
+        "pos_raw": "FW",
+        "dribble_pct": 48.0,
+        "aerials_won90": 1.196,
+        "aerials_lost90": 1.104,
+        "aerials_won_pct": 52.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "creator_estimate",
+        "aerials_source": "estimated_fwd",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -727,15 +827,15 @@
         "starts": 35,
         "goals90": 1.39,
         "assists90": 0.46,
-        "xg90": 0.8814280693393166,
-        "xa90": 0.39447523236918214,
-        "shots90": 6.525942636158557,
+        "xg90": 0.881,
+        "xa90": 0.394,
+        "shots90": 6.526,
         "shots_on_target90": 3.08,
-        "key_passes90": 2.20431840154689,
+        "key_passes90": 2.204,
         "tackles90": 0.0,
         "interceptions90": 0.0,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "dribbles90": 1.85,
         "dribble_pct": 52.0,
         "passes_completed90": 0.0,
         "rating": 7.75,
@@ -764,7 +864,9 @@
         "aerials_source": "estimated_prime",
         "yellow_cards90": 0.14516129032258066,
         "red_cards90": 0.02903225806451613,
-        "pos_raw": "FW,MF"
+        "pos_raw": "FW,MF",
+        "dribbles_source": "winger_estimate",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -793,14 +895,14 @@
         "xa90": 0.11,
         "shots90": 0.77,
         "shots_on_target90": 0.2,
-        "key_passes90": 0.0,
+        "key_passes90": 0.6303724928366762,
         "tackles90": 2.4091778202676863,
         "interceptions90": 2.3804971319311665,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "dribbles90": 0.85,
         "dribble_pct": 68.0,
         "passes_completed90": 0.0,
-        "pass_pct": 0.0,
+        "pass_pct": 85.0,
         "long_balls90": 3.1,
         "long_ball_pct": 62.0,
         "big_chances_created90": 0.25,
@@ -829,7 +931,13 @@
         "data_source": "fbref+verified",
         "auto_populate_source": "seed_seasons",
         "fbref_matched": true,
-        "pos_raw": "MF"
+        "pos_raw": "MF",
+        "aerials_won90": 0.85,
+        "aerials_lost90": 0.921,
+        "aerials_won_pct": 48.0,
+        "pass_pct_source": "role_default",
+        "dribbles_source": "role_default",
+        "aerials_source": "estimated_mid"
       }
     },
     {
@@ -851,15 +959,15 @@
         "starts": 37,
         "goals90": 1.15,
         "assists90": 0.48,
-        "xg90": 0.8384378092660484,
-        "xa90": 0.46979116471887306,
+        "xg90": 0.838,
+        "xa90": 0.47,
         "shots90": 4.99,
         "shots_on_target90": 2.77,
-        "key_passes90": 0.0,
+        "key_passes90": 2.534,
         "tackles90": 0.0,
         "interceptions90": 0.0,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "dribbles90": 4.2,
         "passes_completed90": 0.0,
         "rating": 7.58,
         "data_source": "fbref+verified",
@@ -880,10 +988,19 @@
         "understat_shots90": 4.98814463544754,
         "auto_populate_source": "understat_stub",
         "fbref_matched": true,
-        "pass_pct": 0.0,
+        "pass_pct": 85.0,
         "yellow_cards90": 0.10666666666666667,
         "red_cards90": 0.0,
-        "pos_raw": "FW,MF"
+        "pos_raw": "FW,MF",
+        "dribble_pct": 55.0,
+        "aerials_won90": 1.476,
+        "aerials_lost90": 1.362,
+        "aerials_won_pct": 52.0,
+        "pass_pct_source": "legend_override",
+        "dribble_pct_source": "legend_override",
+        "dribbles_source": "winger_estimate",
+        "aerials_source": "estimated_fwd",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -915,7 +1032,7 @@
         "dribbles90": 1.69,
         "key_passes90": 4.1674462114125355,
         "passes_completed90": 0.0,
-        "pass_pct": 0.0,
+        "pass_pct": 78.0,
         "yellow_cards90": 0.22910479422995333,
         "red_cards90": 0.0,
         "rating": 6.91,
@@ -937,7 +1054,15 @@
         },
         "season_profile": "2013-2014",
         "data_source": "fbref+verified",
-        "pos_raw": "FW,MF"
+        "pos_raw": "FW,MF",
+        "dribble_pct": 48.0,
+        "aerials_won90": 1.084,
+        "aerials_lost90": 1.174,
+        "aerials_won_pct": 48.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "aerials_source": "estimated_fwd",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -964,10 +1089,10 @@
         "tackles90": 0.609375,
         "interceptions90": 0.421875,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
-        "key_passes90": 0.0,
+        "dribbles90": 1.015,
+        "key_passes90": 2.364760432766615,
         "passes_completed90": 0.0,
-        "pass_pct": 0.0,
+        "pass_pct": 85.0,
         "yellow_cards90": 0.09375,
         "red_cards90": 0.0,
         "rating": 6.93,
@@ -991,7 +1116,13 @@
         "understat_shots90": 1.9938176197836166,
         "xg90": 0.23663279033299114,
         "auto_populate_source": "fbref",
-        "pos_raw": "MF,FW"
+        "pos_raw": "MF,FW",
+        "xa90": 0.2855097144911241,
+        "dribble_pct": 62.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "winger_estimate",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -1017,10 +1148,10 @@
         "tackles90": 0.41153710868800564,
         "interceptions90": 1.1396412240590925,
         "clearances90": 1.2346113260640168,
-        "dribbles90": 0.0,
+        "dribbles90": 0.35,
         "key_passes90": 0.09480337078651685,
         "passes_completed90": 0.0,
-        "pass_pct": 0.0,
+        "pass_pct": 84.0,
         "yellow_cards90": 0.1266268026732325,
         "red_cards90": 0.0,
         "rating": 6.56,
@@ -1050,7 +1181,11 @@
         "aerials_lost90": 0.48486553896332296,
         "aerials_won_pct": 55.0,
         "aerials_source": "estimated",
-        "xa90": 0.0033369586735001104
+        "xa90": 0.0033369586735001104,
+        "dribble_pct": 58.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "role_default"
       }
     },
     {
@@ -1079,10 +1214,10 @@
         "tackles90": 1.3203684749232343,
         "interceptions90": 0.7676560900716479,
         "clearances90": 3.961105424769703,
-        "dribbles90": 0.0,
+        "dribbles90": 0.85,
         "dribble_pct": 75.0,
         "passes_completed90": 0.0,
-        "pass_pct": 0.0,
+        "pass_pct": 85.0,
         "long_balls90": 7.382573179033356,
         "long_ball_pct": 80.6,
         "big_chances_created90": 0.2450646698434309,
@@ -1122,7 +1257,10 @@
         "aerials_won90": 0.8714431934493346,
         "aerials_lost90": 0.7129989764585465,
         "aerials_won_pct": 55.0,
-        "aerials_source": "estimated"
+        "aerials_source": "estimated",
+        "pass_pct_source": "role_default",
+        "dribbles_source": "creator_estimate",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -1146,14 +1284,14 @@
         "xa90": 0.3001143292682927,
         "shots90": 3.73,
         "shots_on_target90": 1.59,
-        "key_passes90": 0.0,
+        "key_passes90": 2.4545454545454546,
         "tackles90": 0.4142692750287687,
         "interceptions90": 0.6559263521288837,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "dribbles90": 0.994,
         "dribble_pct": 53.06,
         "passes_completed90": 0.0,
-        "pass_pct": 0.0,
+        "pass_pct": 78.0,
         "long_balls90": 2.3666158536585367,
         "long_ball_pct": 65.71,
         "big_chances_created90": 0.583079268292683,
@@ -1187,7 +1325,14 @@
         "understat_shots90": 3.6818181818181817,
         "data_source": "fbref+verified",
         "auto_populate_source": "sofascore",
-        "pos_raw": "MF,FW"
+        "pos_raw": "MF,FW",
+        "aerials_won90": 1.145,
+        "aerials_lost90": 1.057,
+        "aerials_won_pct": 52.0,
+        "pass_pct_source": "role_default",
+        "dribbles_source": "winger_estimate",
+        "aerials_source": "estimated_fwd",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -1218,7 +1363,7 @@
         "dribbles90": 0.5992481389578164,
         "dribble_pct": 45.1,
         "passes_completed90": 0.0,
-        "pass_pct": 0.0,
+        "pass_pct": 84.0,
         "long_balls90": 2.904667328699106,
         "long_ball_pct": 66.33,
         "big_chances_created90": 0.13406156901688182,
@@ -1258,7 +1403,9 @@
         "aerials_won90": 2.6357142857142857,
         "aerials_lost90": 2.1564935064935065,
         "aerials_won_pct": 55.0,
-        "aerials_source": "estimated"
+        "aerials_source": "estimated",
+        "pass_pct_source": "role_default",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -1278,17 +1425,17 @@
         "goals90": 0.17,
         "assists90": 0.1,
         "xg90": 0.1257918462986837,
-        "xa90": 0.0,
+        "xa90": 0.10109512783635526,
         "shots90": 1.11,
         "shots_on_target90": 0.42,
-        "key_passes90": 0.0,
+        "key_passes90": 0.7934074357991567,
         "tackles90": 2.7745664739884393,
         "interceptions90": 2.2196531791907512,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "dribbles90": 0.85,
         "dribble_pct": 64.71,
         "passes_completed90": 0.0,
-        "pass_pct": 0.0,
+        "pass_pct": 85.0,
         "long_balls90": 5.259515570934256,
         "long_ball_pct": 74.88,
         "big_chances_created90": 0.17301038062283736,
@@ -1322,7 +1469,13 @@
         "understat_shots90": 1.1038712150249137,
         "data_source": "fbref+verified",
         "auto_populate_source": "sofascore",
-        "pos_raw": "MF"
+        "pos_raw": "MF",
+        "aerials_won90": 0.85,
+        "aerials_lost90": 0.921,
+        "aerials_won_pct": 48.0,
+        "pass_pct_source": "role_default",
+        "dribbles_source": "role_default",
+        "aerials_source": "estimated_mid"
       }
     },
     {
@@ -1342,17 +1495,17 @@
         "goals90": 0.99,
         "assists90": 0.31,
         "xg90": 0.7194563301031704,
-        "xa90": 0.0,
+        "xa90": 0.25423260036157286,
         "shots90": 4.43,
         "shots_on_target90": 2.07,
-        "key_passes90": 0.0,
+        "key_passes90": 1.8889641164522681,
         "tackles90": 0.2786377708978328,
         "interceptions90": 0.21671826625386997,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "dribbles90": 0.775,
         "dribble_pct": 63.41,
         "passes_completed90": 0.0,
-        "pass_pct": 0.0,
+        "pass_pct": 78.0,
         "long_balls90": 0.5546045874700445,
         "long_ball_pct": 54.55,
         "big_chances_created90": 0.36973639164669636,
@@ -1386,7 +1539,14 @@
         "understat_shots90": 4.35680433310765,
         "data_source": "fbref+verified",
         "auto_populate_source": "sofascore",
-        "pos_raw": "FW"
+        "pos_raw": "FW",
+        "aerials_won90": 1.28,
+        "aerials_lost90": 1.181,
+        "aerials_won_pct": 52.0,
+        "pass_pct_source": "role_default",
+        "dribbles_source": "winger_estimate",
+        "aerials_source": "estimated_fwd",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -1412,10 +1572,10 @@
         "tackles90": 1.12,
         "interceptions90": 1.12,
         "clearances90": 4.24,
-        "dribbles90": 0.0,
+        "dribbles90": 0.35,
         "key_passes90": 0.3190075321222862,
         "passes_completed90": 0.0,
-        "pass_pct": 0.0,
+        "pass_pct": 84.0,
         "yellow_cards90": 0.4845222072678331,
         "red_cards90": 0.0,
         "rating": 6.64,
@@ -1445,7 +1605,11 @@
         "aerials_lost90": 1.17,
         "aerials_won_pct": 68.4,
         "aerials_source": "verified",
-        "xa90": 0.02137716919411507
+        "xa90": 0.02137716919411507,
+        "dribble_pct": 58.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "role_default"
       }
     },
     {
@@ -1471,10 +1635,10 @@
         "tackles90": 1.4196516595465,
         "interceptions90": 1.1830430496220834,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
-        "key_passes90": 0.0,
+        "dribbles90": 0.564,
+        "key_passes90": 1.5557729941291585,
         "passes_completed90": 0.0,
-        "pass_pct": 0.0,
+        "pass_pct": 78.0,
         "yellow_cards90": 0.14788038120276042,
         "red_cards90": 0.0,
         "rating": 7.16,
@@ -1497,7 +1661,17 @@
         "understat_key_passes90": 1.5557729941291585,
         "understat_shots90": 2.700587084148728,
         "xg90": 0.4273121607345903,
-        "auto_populate_source": "fbref"
+        "auto_populate_source": "fbref",
+        "xa90": 0.19024386677577537,
+        "dribble_pct": 48.0,
+        "aerials_won90": 1.056,
+        "aerials_lost90": 0.974,
+        "aerials_won_pct": 52.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "winger_estimate",
+        "aerials_source": "estimated_fwd",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -1523,10 +1697,10 @@
         "tackles90": 0.800658978583196,
         "interceptions90": 0.771004942339374,
         "clearances90": 2.401976935749588,
-        "dribbles90": 0.0,
+        "dribbles90": 0.35,
         "key_passes90": 0.3557312252964427,
         "passes_completed90": 0.0,
-        "pass_pct": 0.0,
+        "pass_pct": 84.0,
         "yellow_cards90": 0.26688632619439867,
         "red_cards90": 0.0,
         "rating": 6.63,
@@ -1556,7 +1730,11 @@
         "aerials_lost90": 0.9433218511307472,
         "aerials_won_pct": 55.0,
         "aerials_source": "estimated",
-        "xa90": 0.021839042750036293
+        "xa90": 0.021839042750036293,
+        "dribble_pct": 58.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "role_default"
       }
     },
     {
@@ -1582,10 +1760,10 @@
         "tackles90": 0.5893682588597843,
         "interceptions90": 1.2480739599383668,
         "clearances90": 1.768104776579353,
-        "dribbles90": 0.0,
+        "dribbles90": 0.35,
         "key_passes90": 0.38091573682185453,
         "passes_completed90": 0.0,
-        "pass_pct": 0.0,
+        "pass_pct": 84.0,
         "yellow_cards90": 0.20801232665639446,
         "red_cards90": 0.03466872110939907,
         "rating": 6.62,
@@ -1615,7 +1793,11 @@
         "aerials_lost90": 0.6943829668020731,
         "aerials_won_pct": 55.0,
         "aerials_source": "estimated",
-        "xa90": 0.02308253797646232
+        "xa90": 0.02308253797646232,
+        "dribble_pct": 58.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "role_default"
       }
     },
     {
@@ -1635,17 +1817,17 @@
         "goals90": 0.05,
         "assists90": 0.27,
         "xg90": 0.09417431316083884,
-        "xa90": 0.0,
+        "xa90": 0.21314048373477817,
         "shots90": 1.6,
         "shots_on_target90": 0.37,
-        "key_passes90": 0.0,
+        "key_passes90": 1.773623041940374,
         "tackles90": 1.0507614213197969,
         "interceptions90": 1.416243654822335,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "dribbles90": 0.85,
         "dribble_pct": 76.19,
         "passes_completed90": 0.0,
-        "pass_pct": 0.0,
+        "pass_pct": 85.0,
         "long_balls90": 5.738866396761134,
         "long_ball_pct": 79.75,
         "big_chances_created90": 0.3643724696356275,
@@ -1679,7 +1861,14 @@
         "understat_shots90": 1.5917129863567459,
         "data_source": "fbref+verified",
         "auto_populate_source": "sofascore",
-        "pos_raw": "MF"
+        "pos_raw": "MF",
+        "aerials_won90": 0.85,
+        "aerials_lost90": 0.921,
+        "aerials_won_pct": 48.0,
+        "pass_pct_source": "role_default",
+        "dribbles_source": "creator_estimate",
+        "aerials_source": "estimated_mid",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -1706,10 +1895,10 @@
         "tackles90": 0.47736916548797736,
         "interceptions90": 0.6046676096181046,
         "clearances90": 1.432107496463932,
-        "dribbles90": 0.0,
+        "dribbles90": 0.35,
         "dribble_pct": 100.0,
         "passes_completed90": 0.0,
-        "pass_pct": 0.0,
+        "pass_pct": 84.0,
         "long_balls90": 3.1496649292628445,
         "long_ball_pct": 52.22,
         "big_chances_created90": 0.06701414743112435,
@@ -1749,7 +1938,9 @@
         "aerials_won90": 0.6874115983026873,
         "aerials_lost90": 0.5624276713385623,
         "aerials_won_pct": 55.0,
-        "aerials_source": "estimated"
+        "aerials_source": "estimated",
+        "pass_pct_source": "role_default",
+        "dribbles_source": "role_default"
       }
     },
     {
@@ -1797,7 +1988,11 @@
         "season_profile": "2013-2014",
         "data_source": "fbref+verified",
         "understat_matched": false,
-        "auto_populate_source": "fbref"
+        "auto_populate_source": "fbref",
+        "understat_xg90": 0.0,
+        "understat_xa90": 0.0,
+        "understat_key_passes90": 0.0,
+        "understat_shots90": 0.0
       }
     },
     {
@@ -1933,7 +2128,8 @@
         "aerials_won90": 0.242152466367713,
         "aerials_lost90": 0.19812474520994702,
         "aerials_won_pct": 55.0,
-        "aerials_source": "estimated"
+        "aerials_source": "estimated",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -1961,7 +2157,7 @@
         "clearances90": 3.1024667931688805,
         "blocks90": 1.1385199240986716,
         "ball_recoveries90": 5.094876660341556,
-        "dribbles90": 0.0,
+        "dribbles90": 0.35,
         "key_passes90": 0.22705771050141912,
         "passes_completed90": 52.485768500948765,
         "pass_pct": 89.0,
@@ -1992,7 +2188,10 @@
         "understat_xg90": 0.061035622836442184,
         "understat_xa90": 0.05233806578218655,
         "understat_key_passes90": 0.22705771050141912,
-        "understat_shots90": 0.42573320719016083
+        "understat_shots90": 0.42573320719016083,
+        "dribble_pct": 58.0,
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "role_default"
       }
     },
     {
@@ -2012,7 +2211,7 @@
         "goals90": 0.6881172347881491,
         "assists90": 0.17202930869703728,
         "xg90": 0.5013188395410606,
-        "xa90": 0.0,
+        "xa90": 0.17883443604320873,
         "shots90": 3.297228416693214,
         "shots_on_target90": 1.5195922268238293,
         "key_passes90": 1.3762344695762982,
@@ -2055,7 +2254,12 @@
         "understat_key_passes90": 1.3696892834495877,
         "understat_shots90": 3.2815472415979707,
         "data_source": "sofascore",
-        "auto_populate_source": "sofascore"
+        "auto_populate_source": "sofascore",
+        "aerials_won90": 0.024084103217585216,
+        "aerials_lost90": 0.01970517535984245,
+        "aerials_won_pct": 55.0,
+        "aerials_source": "estimated",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -2086,10 +2290,10 @@
         "aerials_won90": 0.5107846649946256,
         "aerials_lost90": 0.4179147259046937,
         "aerials_won_pct": 55.0,
-        "dribbles90": 0.0,
+        "dribbles90": 1.477,
         "key_passes90": 4.247693399574166,
         "passes_completed90": 0.0,
-        "pass_pct": 0.0,
+        "pass_pct": 85.0,
         "yellow_cards90": 0.09673951988534575,
         "red_cards90": 0.0,
         "rating": 7.16,
@@ -2114,7 +2318,12 @@
         "understat_shots90": 3.1937544357700496,
         "xg90": 0.2588993832839136,
         "xa90": 0.6585749326507786,
-        "auto_populate_source": "fbref"
+        "auto_populate_source": "fbref",
+        "dribble_pct": 62.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "creator_estimate",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -2139,11 +2348,11 @@
         "xa90": 0.06638958121041423,
         "shots90": 4.31,
         "shots_on_target90": 2.06,
-        "key_passes90": 0.0,
+        "key_passes90": 0.7542742205833054,
         "tackles90": 0.5463743676222597,
         "interceptions90": 0.45531197301854975,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "dribbles90": 0.75,
         "passes_completed90": 0.0,
         "rating": 7.39,
         "data_source": "fbref+verified",
@@ -2164,14 +2373,23 @@
         "understat_shots90": 4.314448541736507,
         "auto_populate_source": "understat_stub",
         "fbref_matched": true,
-        "pass_pct": 0.0,
+        "pass_pct": 78.0,
         "yellow_cards90": 0.15177065767284992,
         "red_cards90": 0.0,
         "pos_raw": "FW",
         "stat_profile": "manual_prime",
         "manual_profile_type": "prime",
         "manual_season_suffix": "16/17",
-        "prime_season": "2016-2017"
+        "prime_season": "2016-2017",
+        "dribble_pct": 48.0,
+        "aerials_won90": 1.277,
+        "aerials_lost90": 1.179,
+        "aerials_won_pct": 52.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "role_default",
+        "aerials_source": "estimated_fwd",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -2222,7 +2440,7 @@
         "understat_shots90": 1.177325581395349,
         "auto_populate_source": "understat_stub",
         "fbref_matched": true,
-        "pass_pct": 0.0,
+        "pass_pct": 84.0,
         "yellow_cards90": 0.3053805138148328,
         "red_cards90": 0.043625787687833255,
         "pos_raw": "DF",
@@ -2235,7 +2453,11 @@
         "stat_profile": "manual_prime",
         "manual_profile_type": "prime",
         "manual_season_suffix": "17/18",
-        "prime_season": "2017-2018"
+        "prime_season": "2017-2018",
+        "dribble_pct": 58.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -2286,7 +2508,7 @@
         "understat_shots90": 0.9894459102902374,
         "auto_populate_source": "understat_stub",
         "fbref_matched": true,
-        "pass_pct": 0.0,
+        "pass_pct": 84.0,
         "yellow_cards90": 0.07898200965335674,
         "red_cards90": 0.0,
         "pos_raw": "DF",
@@ -2299,7 +2521,11 @@
         "stat_profile": "manual_prime",
         "manual_profile_type": "prime",
         "manual_season_suffix": "16/17",
-        "prime_season": "2016-2017"
+        "prime_season": "2016-2017",
+        "dribble_pct": 58.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -2325,11 +2551,11 @@
         "xa90": 0.15888720912946508,
         "shots90": 2.4,
         "shots_on_target90": 1.09,
-        "key_passes90": 0.0,
+        "key_passes90": 1.0120783007080383,
         "tackles90": 1.1639549436795995,
         "interceptions90": 0.6382978723404256,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "dribbles90": 0.85,
         "passes_completed90": 0.0,
         "rating": 6.92,
         "data_source": "fbref+verified",
@@ -2350,14 +2576,19 @@
         "understat_shots90": 2.399000416493128,
         "auto_populate_source": "understat_stub",
         "fbref_matched": true,
-        "pass_pct": 0.0,
+        "pass_pct": 85.0,
         "yellow_cards90": 0.18773466833541927,
         "red_cards90": 0.0,
         "pos_raw": "MF,FW",
         "stat_profile": "manual_prime",
         "manual_profile_type": "prime",
         "manual_season_suffix": "18/19",
-        "prime_season": "2018-2019"
+        "prime_season": "2018-2019",
+        "dribble_pct": 62.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "creator_estimate",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -2378,15 +2609,15 @@
         "starts": 35,
         "goals90": 1.1,
         "assists90": 0.06,
-        "shots90": 2.53,
-        "shots_on_target90": 0.4,
+        "shots90": 5.48,
+        "shots_on_target90": 2.3,
         "tackles90": 0.0,
         "interceptions90": 0.0,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
-        "key_passes90": 0.0,
+        "dribbles90": 0.75,
+        "key_passes90": 1.536,
         "passes_completed90": 0.0,
-        "pass_pct": 0.0,
+        "pass_pct": 78.0,
         "yellow_cards90": 0.03042596348951995,
         "red_cards90": 0.0,
         "penalty_goals90": 0.0912778891142664,
@@ -2408,14 +2639,23 @@
         "understat_xa90": 0.08142748921137465,
         "understat_key_passes90": 1.5356306457009032,
         "understat_shots90": 5.480093676814988,
-        "xg90": 0.7531087685783957,
-        "xa90": 0.08142748921137465,
+        "xg90": 0.753,
+        "xa90": 0.081,
         "auto_populate_source": "fbref",
         "pos_raw": "FW,MF",
         "stat_profile": "manual_prime",
         "manual_profile_type": "prime",
         "manual_season_suffix": "15/16",
-        "prime_season": "2015-2016"
+        "prime_season": "2015-2016",
+        "dribble_pct": 48.0,
+        "aerials_won90": 1.344,
+        "aerials_lost90": 1.241,
+        "aerials_won_pct": 52.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "creator_estimate",
+        "aerials_source": "estimated_fwd",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -2440,10 +2680,10 @@
         "tackles90": 1.6993957703927491,
         "interceptions90": 3.4327794561933533,
         "clearances90": 5.098187311178247,
-        "dribbles90": 0.0,
+        "dribbles90": 0.35,
         "key_passes90": 0.23773584905660378,
         "passes_completed90": 0.0,
-        "pass_pct": 0.0,
+        "pass_pct": 84.0,
         "yellow_cards90": 0.23791540785498488,
         "red_cards90": 0.033987915407854986,
         "rating": 6.67,
@@ -2477,7 +2717,11 @@
         "stat_profile": "manual_prime",
         "manual_profile_type": "prime",
         "manual_season_suffix": "15/16",
-        "prime_season": "2015-2016"
+        "prime_season": "2015-2016",
+        "dribble_pct": 58.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "role_default"
       }
     },
     {
@@ -2502,10 +2746,10 @@
         "tackles90": 0.6,
         "interceptions90": 0.2571428571428571,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
-        "key_passes90": 0.0,
+        "dribbles90": 0.782,
+        "key_passes90": 1.6,
         "passes_completed90": 0.0,
-        "pass_pct": 0.0,
+        "pass_pct": 78.0,
         "yellow_cards90": 0.2,
         "red_cards90": 0.0,
         "rating": 7.62,
@@ -2532,7 +2776,17 @@
         "stat_profile": "manual_prime",
         "manual_profile_type": "prime",
         "manual_season_suffix": "15/16",
-        "prime_season": "2015-2016"
+        "prime_season": "2015-2016",
+        "xa90": 0.37931313323123117,
+        "dribble_pct": 48.0,
+        "aerials_won90": 1.26,
+        "aerials_lost90": 1.163,
+        "aerials_won_pct": 52.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "winger_estimate",
+        "aerials_source": "estimated_fwd",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -2555,13 +2809,13 @@
         "assists90": 0.22,
         "xg90": 0.16841742737915522,
         "xa90": 0.20120601918010955,
-        "shots90": 0.0,
+        "shots90": 2.2885085574572126,
         "shots_on_target90": 0.84,
-        "key_passes90": 0.0,
+        "key_passes90": 2.1124694376528117,
         "tackles90": 3.52,
         "interceptions90": 1.67,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "dribbles90": 0.85,
         "passes_completed90": 0.0,
         "rating": 6.73,
         "data_source": "fbref+verified",
@@ -2582,14 +2836,23 @@
         "understat_shots90": 2.2885085574572126,
         "auto_populate_source": "understat_stub",
         "fbref_matched": true,
-        "pass_pct": 0.0,
+        "pass_pct": 85.0,
         "yellow_cards90": 0.13222331047992164,
         "red_cards90": 0.0,
         "pos_raw": "MF",
         "stat_profile": "manual_prime",
         "manual_profile_type": "prime",
         "manual_season_suffix": "15/16",
-        "prime_season": "2015-2016"
+        "prime_season": "2015-2016",
+        "dribble_pct": 62.0,
+        "aerials_won90": 0.85,
+        "aerials_lost90": 0.921,
+        "aerials_won_pct": 48.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "creator_estimate",
+        "aerials_source": "estimated_mid",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -2614,11 +2877,11 @@
         "xa90": 0.08853827197762097,
         "shots90": 1.5,
         "shots_on_target90": 0.62,
-        "key_passes90": 0.0,
+        "key_passes90": 0.6539792387543253,
         "tackles90": 1.187087816730302,
         "interceptions90": 1.4994793474488024,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "dribbles90": 0.85,
         "passes_completed90": 0.0,
         "rating": 6.76,
         "data_source": "fbref+verified",
@@ -2639,14 +2902,22 @@
         "understat_shots90": 1.4636678200692042,
         "auto_populate_source": "understat_stub",
         "fbref_matched": true,
-        "pass_pct": 0.0,
+        "pass_pct": 85.0,
         "yellow_cards90": 0.21867407150295037,
         "red_cards90": 0.0,
         "pos_raw": "MF",
         "stat_profile": "manual_prime",
         "manual_profile_type": "prime",
         "manual_season_suffix": "17/18",
-        "prime_season": "2017-2018"
+        "prime_season": "2017-2018",
+        "dribble_pct": 62.0,
+        "aerials_won90": 0.85,
+        "aerials_lost90": 0.921,
+        "aerials_won_pct": 48.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "role_default",
+        "aerials_source": "estimated_mid"
       }
     },
     {
@@ -2671,11 +2942,11 @@
         "xa90": 0.24557861788416785,
         "shots90": 2.74,
         "shots_on_target90": 1.24,
-        "key_passes90": 0.0,
+        "key_passes90": 1.791044776119403,
         "tackles90": 1.6938110749185669,
         "interceptions90": 0.5211726384364821,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "dribbles90": 0.7,
         "passes_completed90": 0.0,
         "rating": 7.11,
         "data_source": "fbref+verified",
@@ -2696,14 +2967,23 @@
         "understat_shots90": 2.6865671641791047,
         "auto_populate_source": "understat_stub",
         "fbref_matched": true,
-        "pass_pct": 0.0,
+        "pass_pct": 78.0,
         "yellow_cards90": 0.03257328990228013,
         "red_cards90": 0.0,
         "pos_raw": "FW",
         "stat_profile": "manual_prime",
         "manual_profile_type": "prime",
         "manual_season_suffix": "17/18",
-        "prime_season": "2017-2018"
+        "prime_season": "2017-2018",
+        "dribble_pct": 48.0,
+        "aerials_won90": 1.047,
+        "aerials_lost90": 0.967,
+        "aerials_won_pct": 52.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "winger_estimate",
+        "aerials_source": "estimated_fwd",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -2713,11 +2993,12 @@
       "stats": {
         "team": "Barcelona",
         "league": "LaLiga",
-        "primary_position": "ST",
+        "primary_position": "LW",
         "fpl_position": "FWD",
         "positions": [
+          "LW",
           "ST",
-          "CM"
+          "AM"
         ],
         "player_id": 124712,
         "minutes": 2562.0,
@@ -2725,15 +3006,15 @@
         "starts": 29,
         "goals90": 0.77,
         "assists90": 0.25,
-        "xg90": 0.7687719280368569,
-        "xa90": 0.2889772521145859,
-        "shots90": 0.0,
+        "xg90": 0.769,
+        "xa90": 0.289,
+        "shots90": 3.323,
         "shots_on_target90": 1.65,
-        "key_passes90": 0.0,
+        "key_passes90": 1.819,
         "tackles90": 0.0,
         "interceptions90": 0.0,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "dribbles90": 3.8,
         "passes_completed90": 0.0,
         "rating": 7.19,
         "data_source": "fbref+verified",
@@ -2754,14 +3035,23 @@
         "understat_shots90": 3.322969296541003,
         "auto_populate_source": "understat_stub",
         "fbref_matched": true,
-        "pass_pct": 0.0,
+        "pass_pct": 81.0,
         "yellow_cards90": 0.2107728337236534,
         "red_cards90": 0.0,
         "pos_raw": "FW,MF",
         "stat_profile": "manual_prime",
         "manual_profile_type": "prime",
         "manual_season_suffix": "14/15",
-        "prime_season": "2014-2015"
+        "prime_season": "2014-2015",
+        "dribble_pct": 54.0,
+        "aerials_won90": 1.162,
+        "aerials_lost90": 1.259,
+        "aerials_won_pct": 48.0,
+        "pass_pct_source": "legend_override",
+        "dribble_pct_source": "legend_override",
+        "dribbles_source": "winger_estimate",
+        "aerials_source": "estimated_fwd",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -2787,10 +3077,10 @@
         "tackles90": 1.1190550202051601,
         "interceptions90": 0.755362138638483,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
-        "key_passes90": 0.0,
+        "dribbles90": 0.849,
+        "key_passes90": 2.1713578719455615,
         "passes_completed90": 0.0,
-        "pass_pct": 0.0,
+        "pass_pct": 78.0,
         "yellow_cards90": 0.167858253030774,
         "red_cards90": 0.0,
         "rating": 7.22,
@@ -2817,7 +3107,17 @@
         "stat_profile": "manual_prime",
         "manual_profile_type": "prime",
         "manual_season_suffix": "16/17",
-        "prime_season": "2016-2017"
+        "prime_season": "2016-2017",
+        "xa90": 0.2502104310169609,
+        "dribble_pct": 48.0,
+        "aerials_won90": 1.084,
+        "aerials_lost90": 1.174,
+        "aerials_won_pct": 48.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "winger_estimate",
+        "aerials_source": "estimated_fwd",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -2842,11 +3142,11 @@
         "xa90": 0.13253703615034576,
         "shots90": 3.74,
         "shots_on_target90": 1.77,
-        "key_passes90": 0.0,
+        "key_passes90": 1.0512950736414424,
         "tackles90": 0.5604566683964712,
         "interceptions90": 0.467047223663726,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "dribbles90": 0.75,
         "passes_completed90": 0.0,
         "rating": 7.37,
         "data_source": "fbref+verified",
@@ -2867,14 +3167,23 @@
         "understat_shots90": 3.6566785170137126,
         "auto_populate_source": "understat_stub",
         "fbref_matched": true,
-        "pass_pct": 0.0,
+        "pass_pct": 78.0,
         "yellow_cards90": 0.0934094447327452,
         "red_cards90": 0.0,
         "pos_raw": "FW",
         "stat_profile": "manual_prime",
         "manual_profile_type": "prime",
         "manual_season_suffix": "16/17",
-        "prime_season": "2016-2017"
+        "prime_season": "2016-2017",
+        "dribble_pct": 48.0,
+        "aerials_won90": 1.196,
+        "aerials_lost90": 1.104,
+        "aerials_won_pct": 52.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "creator_estimate",
+        "aerials_source": "estimated_fwd",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -2906,7 +3215,7 @@
         "dribbles90": 1.69,
         "key_passes90": 4.1674462114125355,
         "passes_completed90": 0.0,
-        "pass_pct": 0.0,
+        "pass_pct": 78.0,
         "yellow_cards90": 0.22910479422995333,
         "red_cards90": 0.0,
         "rating": 6.91,
@@ -2932,7 +3241,15 @@
         "stat_profile": "manual_prime",
         "manual_profile_type": "prime",
         "manual_season_suffix": "13/14",
-        "prime_season": "2013-2014"
+        "prime_season": "2013-2014",
+        "dribble_pct": 48.0,
+        "aerials_won90": 1.084,
+        "aerials_lost90": 1.174,
+        "aerials_won_pct": 48.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "aerials_source": "estimated_fwd",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -2959,10 +3276,10 @@
         "tackles90": 0.609375,
         "interceptions90": 0.421875,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
-        "key_passes90": 0.0,
+        "dribbles90": 1.015,
+        "key_passes90": 2.364760432766615,
         "passes_completed90": 0.0,
-        "pass_pct": 0.0,
+        "pass_pct": 85.0,
         "yellow_cards90": 0.09375,
         "red_cards90": 0.0,
         "rating": 6.93,
@@ -2990,7 +3307,13 @@
         "stat_profile": "manual_prime",
         "manual_profile_type": "prime",
         "manual_season_suffix": "22/23",
-        "prime_season": "2022-2023"
+        "prime_season": "2022-2023",
+        "xa90": 0.2855097144911241,
+        "dribble_pct": 62.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "winger_estimate",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -3021,7 +3344,7 @@
         "tackles90": 0.0,
         "interceptions90": 0.0,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "dribbles90": 1.682,
         "passes_completed90": 0.0,
         "pass_pct": 86.0,
         "rating": 7.4,
@@ -3049,7 +3372,11 @@
         "understat_xg90": 0.23265434422972348,
         "understat_xa90": 0.517356443548572,
         "understat_key_passes90": 4.287112561174552,
-        "understat_shots90": 1.4094616639477977
+        "understat_shots90": 1.4094616639477977,
+        "dribble_pct": 62.0,
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "winger_estimate",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -3078,7 +3405,7 @@
         "tackles90": 0.0,
         "interceptions90": 0.0,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "dribbles90": 0.35,
         "passes_completed90": 0.0,
         "rating": 7.0,
         "data_source": "understat_stub",
@@ -3102,7 +3429,12 @@
         "aerials_lost90": 1.3,
         "aerials_won_pct": 65.0,
         "aerials_source": "estimated",
-        "auto_populate_source": "understat_stub"
+        "auto_populate_source": "understat_stub",
+        "dribble_pct": 58.0,
+        "pass_pct": 84.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "role_default"
       }
     },
     {
@@ -3131,7 +3463,7 @@
         "tackles90": 0.0,
         "interceptions90": 0.0,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "dribbles90": 0.806,
         "passes_completed90": 0.0,
         "rating": 7.0,
         "data_source": "understat_stub",
@@ -3153,7 +3485,12 @@
         "aerials_won90": 2.0,
         "aerials_lost90": 1.2,
         "aerials_won_pct": 62.0,
-        "aerials_source": "estimated"
+        "aerials_source": "estimated",
+        "dribble_pct": 58.0,
+        "pass_pct": 84.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "winger_estimate"
       }
     },
     {
@@ -3182,7 +3519,7 @@
         "tackles90": 0.0,
         "interceptions90": 0.0,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "dribbles90": 0.593,
         "passes_completed90": 0.0,
         "rating": 7.0,
         "data_source": "understat_stub",
@@ -3200,7 +3537,13 @@
         "understat_xg90": 0.24414589488147442,
         "understat_xa90": 0.2062974900436339,
         "understat_key_passes90": 1.8534031413612566,
-        "understat_shots90": 1.5078534031413613
+        "understat_shots90": 1.5078534031413613,
+        "dribble_pct": 62.0,
+        "pass_pct": 85.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "winger_estimate",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -3229,7 +3572,7 @@
         "tackles90": 0.0,
         "interceptions90": 0.0,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "dribbles90": 0.85,
         "passes_completed90": 0.0,
         "rating": 7.0,
         "data_source": "understat_stub",
@@ -3247,7 +3590,13 @@
         "understat_xg90": 0.21682302418703184,
         "understat_xa90": 0.3158265186872954,
         "understat_key_passes90": 2.8964830789648306,
-        "understat_shots90": 1.2840079628400796
+        "understat_shots90": 1.2840079628400796,
+        "dribble_pct": 62.0,
+        "pass_pct": 85.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "creator_estimate",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -3276,7 +3625,7 @@
         "tackles90": 0.0,
         "interceptions90": 0.0,
         "clearances90": 0.0,
-        "dribbles90": 0.0,
+        "dribbles90": 0.35,
         "passes_completed90": 0.0,
         "rating": 7.0,
         "data_source": "understat_stub",
@@ -3298,7 +3647,12 @@
         "aerials_won90": 2.5,
         "aerials_lost90": 1.4,
         "aerials_won_pct": 64.0,
-        "aerials_source": "estimated"
+        "aerials_source": "estimated",
+        "dribble_pct": 58.0,
+        "pass_pct": 84.0,
+        "pass_pct_source": "role_default",
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "role_default"
       }
     },
     {
@@ -3357,7 +3711,12 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "understat_xg90": 0.7924859661010368,
+        "understat_xa90": 0.051549129276200825,
+        "understat_key_passes90": 0.6009536850075718,
+        "understat_shots90": 3.819697040150662,
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -3385,8 +3744,8 @@
         "tackles90": 0.0,
         "interceptions90": 0.0,
         "clearances90": 0.8388157894736842,
-        "dribbles90": 0.0,
-        "dribble_pct": 0.0,
+        "dribbles90": 0.6,
+        "dribble_pct": 55.0,
         "passes_completed90": 25.65416989164087,
         "pass_pct": 79.263276251228,
         "long_balls90": 5.47547407120743,
@@ -3417,7 +3776,10 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "understat_xa90": 0.002937589487522736,
+        "dribble_pct_source": "role_default",
+        "dribbles_source": "role_default"
       }
     },
     {
@@ -3440,7 +3802,7 @@
         "xg90": 0.55,
         "xa90": 0.09,
         "shots90": 2.89,
-        "shots_on_target90": 0.55,
+        "shots_on_target90": 1.3,
         "key_passes90": 0.5,
         "tackles90": 0.2,
         "interceptions90": 0.1,
@@ -3462,7 +3824,15 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "dribble_pct": 48.0,
+        "understat_xg90": 0.6039000000000001,
+        "understat_xa90": 0.10053,
+        "understat_key_passes90": 0.499,
+        "understat_shots90": 2.8871100000000003,
+        "dribble_pct_source": "role_default",
+        "sot_source": "goals_sot_repair",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -3520,7 +3890,12 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "understat_xg90": 0.18666000000000002,
+        "understat_xa90": 0.07819000000000001,
+        "understat_key_passes90": 1.3972,
+        "understat_shots90": 4.03596,
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -3597,7 +3972,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -3906,7 +4282,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -4131,7 +4508,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -4440,7 +4818,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -4517,7 +4896,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -4594,7 +4974,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -4739,7 +5120,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -4816,7 +5198,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -4893,7 +5276,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -5047,7 +5431,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -5268,7 +5653,8 @@
         },
         "season_profile": "2025-2026",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -5499,7 +5885,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -5884,7 +6271,8 @@
         },
         "season_profile": "2025-2026",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -5961,7 +6349,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -6038,7 +6427,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -6404,7 +6794,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -6481,7 +6872,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -6558,7 +6950,8 @@
         },
         "season_profile": "2025-2026",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -6635,7 +7028,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -6789,7 +7183,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -6866,7 +7261,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -6943,7 +7339,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -7086,7 +7483,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -7163,7 +7561,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -7394,7 +7793,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -7471,7 +7871,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -7779,7 +8180,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -7856,7 +8258,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -8011,7 +8414,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -8233,7 +8637,8 @@
         },
         "season_profile": "2025-2026",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -8310,7 +8715,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -8454,7 +8860,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -8531,7 +8938,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -8608,7 +9016,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -8827,7 +9236,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -9214,7 +9624,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -9291,7 +9702,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -9368,7 +9780,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -9589,7 +10002,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -9820,7 +10234,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -9897,7 +10312,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -9974,7 +10390,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -10197,7 +10614,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -10274,7 +10692,8 @@
         },
         "season_profile": "2025-2026",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -10351,7 +10770,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -10428,7 +10848,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -10726,7 +11147,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -11111,7 +11533,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -11486,7 +11909,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -11563,7 +11987,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -11717,7 +12142,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -11871,7 +12297,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -12333,7 +12760,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -12631,7 +13059,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -12708,7 +13137,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -13006,7 +13436,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -13160,7 +13591,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -13381,7 +13813,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -13612,7 +14045,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -13690,7 +14124,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -13767,7 +14202,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -13844,7 +14280,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -13921,7 +14358,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -13998,7 +14436,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -14211,7 +14650,8 @@
         },
         "season_profile": "2025-2026",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -14288,7 +14728,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -14442,7 +14883,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -14519,7 +14961,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -14596,7 +15039,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -14971,7 +15415,8 @@
         },
         "season_profile": "2025-2026",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -15048,7 +15493,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -15125,7 +15571,8 @@
         },
         "season_profile": "2025-2026",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -15387,7 +15834,7 @@
         "dribbles90": 0.7821515222085785,
         "dribble_pct": 52.88,
         "passes_completed90": 0.0,
-        "pass_pct": 0.0,
+        "pass_pct": 78.0,
         "long_balls90": 0.8533501896333755,
         "long_ball_pct": 65.22,
         "big_chances_created90": 0.5120101137800253,
@@ -15436,7 +15883,9 @@
           "2023/2024": 1551.0
         },
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "pass_pct_source": "role_default",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -15590,7 +16039,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -15667,7 +16117,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -15821,7 +16272,8 @@
         },
         "season_profile": "2024-2025",
         "data_source": "player_stats_cache",
-        "auto_populate_source": "player_stats_cache"
+        "auto_populate_source": "player_stats_cache",
+        "stat_gaps_backfilled": true
       }
     },
     {
@@ -16597,5 +17049,13 @@
     "fail_count": 0,
     "skip_count": 45,
     "failed": []
+  },
+  "prime_gap_backfill_report": {
+    "repaired_count": 60,
+    "still_incomplete_count": 0
+  },
+  "prime_stat_gap_backfill": {
+    "repaired_count": 6,
+    "note": "Legend overrides + normalize persist; systemic zeros fixed in prior backfill"
   }
 }

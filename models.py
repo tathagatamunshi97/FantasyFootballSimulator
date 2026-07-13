@@ -236,6 +236,31 @@ def _normalize_stat_gaps(data: dict[str, Any]) -> None:
         sot = float(data.get("shots_on_target90") or 0)
         if sot > 0:
             data["shots90"] = round(sot / 0.42, 3)
+    # Impossible SoT vs goals (sparse FBref / cache blends: Higuaín-era stubs,
+    # El Kaabi sot << goals). Prefer Understat shot volume when richer; otherwise
+    # repair SoT from existing shots / goals so finishing math stays coherent.
+    _goals = float(data.get("goals90") or 0)
+    _sot = float(data.get("shots_on_target90") or 0)
+    _shots = float(data.get("shots90") or 0)
+    _ushots = float(data.get("understat_shots90") or 0)
+    if _goals >= 0.4 and (_sot <= 0 or _sot < _goals * 0.85):
+        if _ushots > max(_shots, 0.1):
+            data["shots90"] = _ushots
+            data["shots_on_target90"] = round(max(_goals * 1.15, _ushots * 0.42), 3)
+            data.setdefault("shots_source", "understat_sot_repair")
+            data.setdefault("sot_source", "understat_sot_repair")
+        else:
+            shot_base = max(_shots, _ushots, _goals * 3.2)
+            if shot_base > 0 and not _shots:
+                data["shots90"] = round(shot_base, 3)
+                data.setdefault("shots_source", "goals_shots_repair")
+            repaired_sot = round(
+                max(_goals * 1.15, min(max(_shots, shot_base) * 0.45, max(_shots, shot_base))),
+                3,
+            )
+            if repaired_sot > _sot:
+                data["shots_on_target90"] = repaired_sot
+                data.setdefault("sot_source", "goals_sot_repair")
     if not data.get("xg90") and data.get("understat_xg90"):
         data["xg90"] = data["understat_xg90"]
 
@@ -255,7 +280,8 @@ def _normalize_stat_gaps(data: dict[str, Any]) -> None:
         )
     )
     if is_winger and not data.get("dribbles90"):
-        data["dribbles90"] = min(3.0, kp * 0.32 + ast * 0.55)
+        data["dribbles90"] = round(min(3.0, kp * 0.32 + ast * 0.55), 3)
+        data.setdefault("dribbles_source", "winger_estimate")
 
     # Sparse FBref primes often ship pass_pct/dribble_pct as literal 0. Board intercept
     # / dribble math treat that as "never completes a pass / never beats a man", which
@@ -264,6 +290,7 @@ def _normalize_stat_gaps(data: dict[str, Any]) -> None:
     # still fill a role default so carry/press-resist terms and board on-ball play work.
     _PASS_PCT = {"GK": 72.0, "DEF": 84.0, "MID": 85.0, "FWD": 78.0}
     _DRIBBLE_PCT = {"GK": 40.0, "DEF": 58.0, "MID": 62.0, "FWD": 48.0}
+    _DRIBBLES90 = {"DEF": 0.35, "MID": 0.85, "FWD": 0.75}
     minutes = float(data.get("minutes") or 0)
     if minutes > 0 and fpl != "GK":
         if not float(data.get("pass_pct") or 0):
@@ -272,6 +299,14 @@ def _normalize_stat_gaps(data: dict[str, Any]) -> None:
         if not float(data.get("dribble_pct") or 0):
             data["dribble_pct"] = _DRIBBLE_PCT.get(fpl, 55.0)
             data.setdefault("dribble_pct_source", "role_default")
+        if not float(data.get("dribbles90") or 0):
+            # Creators with KP get a slightly richer carry estimate than pure role floor.
+            if kp >= 1.0 or ast >= 0.15:
+                data["dribbles90"] = round(min(2.4, max(_DRIBBLES90.get(fpl, 0.6), kp * 0.28 + ast * 0.45)), 3)
+                data.setdefault("dribbles_source", "creator_estimate")
+            else:
+                data["dribbles90"] = _DRIBBLES90.get(fpl, 0.6)
+                data.setdefault("dribbles_source", "role_default")
 
     if not data.get("aerials_won90") and data.get("aerials_source") != "fotmob":
         clearances = float(data.get("clearances90", 0) or 0)
@@ -286,18 +321,32 @@ def _normalize_stat_gaps(data: dict[str, Any]) -> None:
                 data["aerials_won_pct"] = pct
                 data.setdefault("aerials_source", "estimated")
         elif fpl == "FWD" and (
-            float(data.get("shots90") or 0) >= 3.0
-            or float(data.get("xg90") or data.get("npxg90") or 0) >= 0.35
+            float(data.get("shots90") or 0) >= 2.0
+            or float(data.get("xg90") or data.get("npxg90") or 0) >= 0.25
+            or float(data.get("goals90") or 0) >= 0.35
         ):
-            # Box strikers without FotMob aerial rows still contest crosses; keep modest.
+            # Box strikers / wide attackers without FotMob aerial rows still contest
+            # crosses; keep modest so board aerials aren't a hard zero.
             sot = float(data.get("shots_on_target90") or 0)
-            won90 = min(2.35, 0.85 + sot * 0.28)
-            pct = 52.0
+            won90 = min(2.35, 0.70 + sot * 0.28)
+            pct = 48.0 if primary in {"RW", "LW", "RM", "LM"} else 52.0
             lost90 = won90 * (100.0 - pct) / pct if pct > 0 else won90 * 0.9
             data["aerials_won90"] = round(won90, 3)
             data["aerials_lost90"] = round(lost90, 3)
             data["aerials_won_pct"] = pct
             data.setdefault("aerials_source", "estimated_fwd")
+        elif fpl == "MID" and (
+            float(data.get("tackles90") or 0) >= 1.5
+            or float(data.get("interceptions90") or 0) >= 1.2
+        ):
+            # Ball-winning mids without aerial rows: modest contest rate.
+            won90 = 0.85
+            pct = 48.0
+            lost90 = won90 * (100.0 - pct) / pct
+            data["aerials_won90"] = round(won90, 3)
+            data["aerials_lost90"] = round(lost90, 3)
+            data["aerials_won_pct"] = pct
+            data.setdefault("aerials_source", "estimated_mid")
 
 
 @dataclass

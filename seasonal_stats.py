@@ -95,6 +95,20 @@ def _display_name_for_player(raw_name: str, player_id: int) -> str:
 
 
 def _load_seed_season_entry(player_id: int, season_suffix: str) -> dict[str, Any] | None:
+    """Load a seed season entry from database (if enabled) or JSON file."""
+    # Try database first (only on Render with DATABASE_URL set)
+    try:
+        import db
+        if db.is_db_enabled():
+            seed = db.load_all_seed_seasons()
+            player_seasons = seed.get(str(player_id)) or {}
+            data = player_seasons.get(season_suffix)
+            if data:
+                return dict(data)
+    except (ImportError, Exception):
+        pass
+
+    # Fall back to JSON file
     if not SEED_SEASONS_FILE.exists():
         return None
     try:

@@ -1,0 +1,411 @@
+{
+  "repaired_count": 6,
+  "skipped": 220,
+  "dry_run": false,
+  "repaired": [
+    {
+      "player": "Gonzalo Higuaín",
+      "profile_type": "season pick",
+      "season": "15/16",
+      "changed": {
+        "key_passes90": {
+          "before": 1.5356306457009032,
+          "after": 1.536
+        }
+      },
+      "legend_overrides": {}
+    },
+    {
+      "player": "Neymar",
+      "profile_type": "season pick",
+      "season": "14/15",
+      "changed": {
+        "shots90": {
+          "before": 3.322969296541003,
+          "after": 3.323
+        },
+        "key_passes90": {
+          "before": 1.8188884570540225,
+          "after": 1.819
+        },
+        "dribbles90": {
+          "before": 0.72,
+          "after": 3.8
+        },
+        "pass_pct": {
+          "before": 78.0,
+          "after": 81.0
+        },
+        "dribble_pct": {
+          "before": 48.0,
+          "after": 54.0
+        },
+        "positions": {
+          "before": [
+            "LW",
+            "RW",
+            "ST",
+            "CM"
+          ],
+          "after": [
+            "LW",
+            "ST",
+            "AM"
+          ]
+        }
+      },
+      "legend_overrides": {
+        "pass_pct": {
+          "before": 78.0,
+          "after": 81.0
+        },
+        "dribble_pct": {
+          "before": 48.0,
+          "after": 54.0
+        },
+        "pass_pct_source": {
+          "before": "role_default",
+          "after": "legend_override"
+        },
+        "dribble_pct_source": {
+          "before": "role_default",
+          "after": "legend_override"
+        },
+        "dribbles90": {
+          "before": 0.72,
+          "after": 3.8
+        },
+        "positions": {
+          "before": [
+            "LW",
+            "RW",
+            "ST",
+            "CM"
+          ],
+          "after": [
+            "LW",
+            "ST",
+            "AM"
+          ]
+        }
+      }
+    },
+    {
+      "player": "Cristiano Ronaldo",
+      "profile_type": "prime",
+      "season": "14/15",
+      "changed": {
+        "shots90": {
+          "before": 6.525942636158557,
+          "after": 6.526
+        },
+        "key_passes90": {
+          "before": 2.20431840154689,
+          "after": 2.204
+        },
+        "dribbles90": {
+          "before": 0.958,
+          "after": 1.85
+        }
+      },
+      "legend_overrides": {
+        "dribbles90": {
+          "before": 0.958,
+          "after": 1.85
+        }
+      }
+    },
+    {
+      "player": "Lionel Messi",
+      "profile_type": "prime",
+      "season": "14/15",
+      "changed": {
+        "key_passes90": {
+          "before": 2.5340841730883223,
+          "after": 2.534
+        },
+        "dribbles90": {
+          "before": 1.075,
+          "after": 4.2
+        },
+        "pass_pct": {
+          "before": 78.0,
+          "after": 85.0
+        },
+        "dribble_pct": {
+          "before": 48.0,
+          "after": 55.0
+        }
+      },
+      "legend_overrides": {
+        "pass_pct": {
+          "before": 78.0,
+          "after": 85.0
+        },
+        "dribble_pct": {
+          "before": 48.0,
+          "after": 55.0
+        },
+        "pass_pct_source": {
+          "before": "role_default",
+          "after": "legend_override"
+        },
+        "dribble_pct_source": {
+          "before": "role_default",
+          "after": "legend_override"
+        },
+        "dribbles90": {
+          "before": 1.075,
+          "after": 4.2
+        }
+      }
+    },
+    {
+      "player": "Gonzalo Higuaín",
+      "profile_type": "prime",
+      "season": "15/16",
+      "changed": {
+        "key_passes90": {
+          "before": 1.5356306457009032,
+          "after": 1.536
+        }
+      },
+      "legend_overrides": {}
+    },
+    {
+      "player": "Neymar",
+      "profile_type": "prime",
+      "season": "14/15",
+      "changed": {
+        "shots90": {
+          "before": 3.322969296541003,
+          "after": 3.323
+        },
+        "key_passes90": {
+          "before": 1.8188884570540225,
+          "after": 1.819
+        },
+        "dribbles90": {
+          "before": 0.72,
+          "after": 3.8
+        },
+        "pass_pct": {
+          "before": 78.0,
+          "after": 81.0
+        },
+        "dribble_pct": {
+          "before": 48.0,
+          "after": 54.0
+        },
+        "positions": {
+          "before": [
+            "LW",
+            "RW",
+            "ST",
+            "CM"
+          ],
+          "after": [
+            "LW",
+            "ST",
+            "AM"
+          ]
+        }
+      },
+      "legend_overrides": {
+        "pass_pct": {
+          "before": 78.0,
+          "after": 81.0
+        },
+        "dribble_pct": {
+          "before": 48.0,
+          "after": 54.0
+        },
+        "pass_pct_source": {
+          "before": "role_default",
+          "after": "legend_override"
+        },
+        "dribble_pct_source": {
+          "before": "role_default",
+          "after": "legend_override"
+        },
+        "dribbles90": {
+          "before": 0.72,
+          "after": 3.8
+        },
+        "positions": {
+          "before": [
+            "LW",
+            "RW",
+            "ST",
+            "CM"
+          ],
+          "after": [
+            "LW",
+            "ST",
+            "AM"
+          ]
+        }
+      }
+    }
+  ],
+  "examples": {
+    "Gonzalo Higuaín": {
+      "player": "Gonzalo Higuaín",
+      "profile_type": "prime",
+      "season": "15/16",
+      "changed": {
+        "key_passes90": {
+          "before": 1.5356306457009032,
+          "after": 1.536
+        }
+      },
+      "legend_overrides": {}
+    },
+    "Neymar": {
+      "player": "Neymar",
+      "profile_type": "prime",
+      "season": "14/15",
+      "changed": {
+        "shots90": {
+          "before": 3.322969296541003,
+          "after": 3.323
+        },
+        "key_passes90": {
+          "before": 1.8188884570540225,
+          "after": 1.819
+        },
+        "dribbles90": {
+          "before": 0.72,
+          "after": 3.8
+        },
+        "pass_pct": {
+          "before": 78.0,
+          "after": 81.0
+        },
+        "dribble_pct": {
+          "before": 48.0,
+          "after": 54.0
+        },
+        "positions": {
+          "before": [
+            "LW",
+            "RW",
+            "ST",
+            "CM"
+          ],
+          "after": [
+            "LW",
+            "ST",
+            "AM"
+          ]
+        }
+      },
+      "legend_overrides": {
+        "pass_pct": {
+          "before": 78.0,
+          "after": 81.0
+        },
+        "dribble_pct": {
+          "before": 48.0,
+          "after": 54.0
+        },
+        "pass_pct_source": {
+          "before": "role_default",
+          "after": "legend_override"
+        },
+        "dribble_pct_source": {
+          "before": "role_default",
+          "after": "legend_override"
+        },
+        "dribbles90": {
+          "before": 0.72,
+          "after": 3.8
+        },
+        "positions": {
+          "before": [
+            "LW",
+            "RW",
+            "ST",
+            "CM"
+          ],
+          "after": [
+            "LW",
+            "ST",
+            "AM"
+          ]
+        }
+      }
+    },
+    "Cristiano Ronaldo": {
+      "player": "Cristiano Ronaldo",
+      "profile_type": "prime",
+      "season": "14/15",
+      "changed": {
+        "shots90": {
+          "before": 6.525942636158557,
+          "after": 6.526
+        },
+        "key_passes90": {
+          "before": 2.20431840154689,
+          "after": 2.204
+        },
+        "dribbles90": {
+          "before": 0.958,
+          "after": 1.85
+        }
+      },
+      "legend_overrides": {
+        "dribbles90": {
+          "before": 0.958,
+          "after": 1.85
+        }
+      }
+    },
+    "Lionel Messi": {
+      "player": "Lionel Messi",
+      "profile_type": "prime",
+      "season": "14/15",
+      "changed": {
+        "key_passes90": {
+          "before": 2.5340841730883223,
+          "after": 2.534
+        },
+        "dribbles90": {
+          "before": 1.075,
+          "after": 4.2
+        },
+        "pass_pct": {
+          "before": 78.0,
+          "after": 85.0
+        },
+        "dribble_pct": {
+          "before": 48.0,
+          "after": 55.0
+        }
+      },
+      "legend_overrides": {
+        "pass_pct": {
+          "before": 78.0,
+          "after": 85.0
+        },
+        "dribble_pct": {
+          "before": 48.0,
+          "after": 55.0
+        },
+        "pass_pct_source": {
+          "before": "role_default",
+          "after": "legend_override"
+        },
+        "dribble_pct_source": {
+          "before": "role_default",
+          "after": "legend_override"
+        },
+        "dribbles90": {
+          "before": 1.075,
+          "after": 4.2
+        }
+      }
+    }
+  },
+  "prior_systemic_backfill": "See data/_prime_gap_backfill_report.json (60 profiles)"
+}

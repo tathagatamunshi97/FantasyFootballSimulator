@@ -22,6 +22,15 @@ def _now() -> str:
 
 
 def _load_all() -> dict[str, Any]:
+    """Load all lineups from database (if enabled) or JSON file."""
+    try:
+        import db
+        if db.is_db_enabled():
+            return db.load_all_team_lineups()
+    except (ImportError, Exception):
+        pass
+
+    # Fall back to JSON file
     if not LINEUPS_PATH.exists():
         return {}
     try:
@@ -31,8 +40,19 @@ def _load_all() -> dict[str, Any]:
 
 
 def _save_all(data: dict[str, Any]) -> None:
+    """Save all lineups to database (if enabled) and JSON file."""
+    # Always save to JSON (local fallback and development)
     LINEUPS_PATH.parent.mkdir(parents=True, exist_ok=True)
     LINEUPS_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+
+    # Also save to database if enabled (on Render)
+    try:
+        import db
+        if db.is_db_enabled():
+            for team_name, lineup_data in data.items():
+                db.save_team_lineup(team_name, lineup_data)
+    except (ImportError, Exception):
+        pass
 
 
 def _resolve_key(team_name: str, store: dict[str, Any]) -> str | None:
