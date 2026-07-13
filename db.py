@@ -27,6 +27,20 @@ def is_db_enabled() -> bool:
     return _USE_DB
 
 
+def check_connection() -> dict[str, Any]:
+    """Diagnostic round-trip: actually run a query, not just check DATABASE_URL is set."""
+    if not _USE_DB:
+        return {"enabled": False, "ok": False, "message": "DATABASE_URL not set"}
+    try:
+        with _get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT 1")
+                cur.fetchone()
+        return {"enabled": True, "ok": True, "message": "Connected"}
+    except Exception as e:
+        return {"enabled": True, "ok": False, "message": f"{type(e).__name__}: {e}"}
+
+
 @contextmanager
 def _get_conn():
     """Context manager for database connections. Only works if DATABASE_URL is set."""

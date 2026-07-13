@@ -13,6 +13,7 @@ from io import BytesIO
 
 _R2_ENABLED = False
 _R2_CLIENT = None
+_R2_INIT_ERROR: str | None = None
 
 # R2 configuration
 _R2_ACCOUNT_ID = os.environ.get("R2_ACCOUNT_ID", "")
@@ -23,10 +24,11 @@ _R2_BUCKET_NAME = os.environ.get("R2_BUCKET_NAME", "football-simulator")
 
 def _init_r2() -> None:
     """Initialize R2 client if credentials are available."""
-    global _R2_ENABLED, _R2_CLIENT
+    global _R2_ENABLED, _R2_CLIENT, _R2_INIT_ERROR
 
     if not (_R2_ACCOUNT_ID and _R2_ACCESS_KEY_ID and _R2_SECRET_ACCESS_KEY):
         _R2_ENABLED = False
+        _R2_INIT_ERROR = "R2_ACCOUNT_ID / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY not all set"
         return
 
     try:
@@ -43,9 +45,11 @@ def _init_r2() -> None:
         # Test connection
         _R2_CLIENT.head_bucket(Bucket=_R2_BUCKET_NAME)
         _R2_ENABLED = True
-    except (ImportError, Exception) as e:
+        _R2_INIT_ERROR = None
+    except Exception as e:
         _R2_ENABLED = False
         _R2_CLIENT = None
+        _R2_INIT_ERROR = f"{type(e).__name__}: {e}"
 
 
 # Initialize on module load
@@ -55,6 +59,57 @@ _init_r2()
 def is_r2_enabled() -> bool:
     """Check if R2 storage is enabled and connected."""
     return _R2_ENABLED
+
+
+def check_connection() -> dict[str, Any]:
+    """Diagnostic round-trip: write, read back, and delete a small test object.
+
+    Unlike is_r2_enabled() (checked once at import time via head_bucket), this
+    verifies the credentials actually have write/read/delete permission right now.
+    """
+    if not _R2_ENABLED:
+        return {
+            "enabled": False,
+            "ok": False,
+            "bucket": _R2_BUCKET_NAME,
+            "message": _R2_INIT_ERROR or "R2 not configured",
+        }
+
+    import time
+
+    test_key = "_healthcheck/ping.json"
+    payload = {"ts": time.time()}
+    try:
+        _R2_CLIENT.put_object(
+            Bucket=_R2_BUCKET_NAME,
+            Key=test_key,
+            Body=json.dumps(payload),
+            ContentType="application/json",
+        )
+        resp = _R2_CLIENT.get_object(Bucket=_R2_BUCKET_NAME, Key=test_key)
+        readback = json.loads(resp["Body"].read().decode("utf-8"))
+        _R2_CLIENT.delete_object(Bucket=_R2_BUCKET_NAME, Key=test_key)
+
+        if readback.get("ts") != payload["ts"]:
+            return {
+                "enabled": True,
+                "ok": False,
+                "bucket": _R2_BUCKET_NAME,
+                "message": "Read-back value did not match what was written",
+            }
+        return {
+            "enabled": True,
+            "ok": True,
+            "bucket": _R2_BUCKET_NAME,
+            "message": "Write/read/delete round-trip succeeded",
+        }
+    except Exception as e:
+        return {
+            "enabled": True,
+            "ok": False,
+            "bucket": _R2_BUCKET_NAME,
+            "message": f"{type(e).__name__}: {e}",
+        }
 
 
 # ============================================================================

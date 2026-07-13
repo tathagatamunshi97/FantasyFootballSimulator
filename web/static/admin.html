@@ -25,6 +25,13 @@
       </div>
     </div>
 
+    <div class="card" style="margin-top:1rem">
+      <h2>Storage status</h2>
+      <p class="muted">Actually writes/reads a test value — not just "env var is set". This is what determines whether progress survives a Render redeploy.</p>
+      <button type="button" id="storageCheckBtn" class="btn-ghost">Check storage</button>
+      <div id="storageStatus" style="margin-top:0.75rem;display:flex;gap:1rem;flex-wrap:wrap"></div>
+    </div>
+
     <nav class="tab-bar" style="margin-top:1rem" role="tablist">
       <button type="button" class="tab-btn active" data-tab="simulations" role="tab">Simulations</button>
       <button type="button" class="tab-btn" data-tab="tournament" role="tab">Tournament</button>

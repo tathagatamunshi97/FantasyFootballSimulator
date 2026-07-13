@@ -1055,6 +1055,33 @@ document.getElementById("mrClearBtn").addEventListener("click", clearMatchForm);
 document.getElementById("mrHomeGoals").addEventListener("change", updateScore);
 document.getElementById("mrAwayGoals").addEventListener("change", updateScore);
 
+function _storageBadge(label, status) {
+  const color = status.ok ? "#1a7f37" : status.enabled ? "#b35900" : "#767676";
+  const bg = status.ok ? "#e6f4ea" : status.enabled ? "#fff3e0" : "#f0f0f0";
+  const icon = status.ok ? "✓" : status.enabled ? "⚠" : "—";
+  return `
+    <div style="flex:1;min-width:220px;padding:0.75rem;border-radius:6px;background:${bg};border:1px solid ${color}">
+      <div style="font-weight:600;color:${color}">${icon} ${label}</div>
+      <div style="font-size:0.85rem;color:#444;margin-top:0.25rem">${esc(status.message || "")}</div>
+    </div>
+  `;
+}
+
+async function checkStorageStatus() {
+  const el = document.getElementById("storageStatus");
+  el.innerHTML = `<p class="muted">Checking...</p>`;
+  try {
+    const res = await adminApi("/api/admin/storage-status");
+    el.innerHTML =
+      _storageBadge("PostgreSQL (structured data)", res.postgres) +
+      _storageBadge(`R2 (${res.r2.bucket || "tournament files"})`, res.r2);
+  } catch (e) {
+    el.innerHTML = `<p class="muted">Error: ${esc(e.message)}</p>`;
+  }
+}
+
+document.getElementById("storageCheckBtn").addEventListener("click", checkStorageStatus);
+
 const initialTab =
   location.hash === "#tournament"
     ? "tournament"

@@ -194,6 +194,25 @@ async def health() -> dict:
     return {"ok": True}
 
 
+@app.get("/api/admin/storage-status")
+def admin_storage_status(
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Admin diagnostic: actually round-trip PostgreSQL and R2, don't just check env vars."""
+    _check_admin(x_admin_token)
+    try:
+        import db
+        db_status = db.check_connection()
+    except Exception as exc:
+        db_status = {"enabled": False, "ok": False, "message": f"{type(exc).__name__}: {exc}"}
+    try:
+        import r2_storage
+        r2_status = r2_storage.check_connection()
+    except Exception as exc:
+        r2_status = {"enabled": False, "ok": False, "message": f"{type(exc).__name__}: {exc}"}
+    return {"postgres": db_status, "r2": r2_status}
+
+
 @app.post("/api/login")
 def login(body: LoginRequest) -> dict:
     result = auth.attempt_login(body.name, body.password)
