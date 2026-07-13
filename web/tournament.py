@@ -428,83 +428,98 @@ def fixture_round_key(stage_key: str, fx: dict[str, Any], *, knockout_round_name
 
 def find_active_tournament_for_team(team_name: str) -> dict[str, Any] | None:
     """Most recently updated in-progress tournament containing the team."""
-    if not TOURNAMENTS_DIR.exists():
-        return None
     needle = team_name.strip().lower()
     candidates: list[dict[str, Any]] = []
-    for path in TOURNAMENTS_DIR.glob("*.json"):
+
+    for summary in list_tournaments():
         try:
-            t = json.loads(path.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, OSError):
+            t = load_tournament(summary["id"])
+            if not t:
+                continue
+            if t.get("status") not in ACTIVE_TOURNAMENT_STATUSES:
+                continue
+            names = [n.strip().lower() for n in t.get("team_names") or []]
+            if needle in names:
+                candidates.append(t)
+        except Exception as exc:
+            # One malformed tournament document must not break lookups for every team.
+            print(f"Tournament: skipping malformed tournament {summary.get('id')!r}: {exc}")
             continue
-        if t.get("status") not in ACTIVE_TOURNAMENT_STATUSES:
-            continue
-        names = [n.strip().lower() for n in t.get("team_names") or []]
-        if needle in names:
-            candidates.append(t)
+
     if not candidates:
         return None
     candidates.sort(key=lambda row: row.get("updated_at") or "", reverse=True)
     return candidates[0]
 
 
+_READY_ROUND = {
+    "round_key": "ready",
+    "label": "Ready (no active tournament)",
+    "tournament_id": None,
+    "tournament_name": None,
+}
+
+
 def get_team_immediate_round(team_name: str, tournament: dict[str, Any] | None = None) -> dict[str, Any]:
-    """Round context a team should finalize for (next unplayed group matchday or KO tie)."""
-    t = tournament or find_active_tournament_for_team(team_name)
-    if not t:
-        return {
-            "round_key": "ready",
-            "label": "Ready (no active tournament)",
-            "tournament_id": None,
-            "tournament_name": None,
-        }
+    """Round context a team should finalize for (next unplayed group matchday or KO tie).
 
-    name = team_name.strip()
-    best: dict[str, Any] | None = None
+    Never raises — a malformed tournament document must degrade to "ready" rather
+    than break squad-hub lineup loading/saving for every team.
+    """
+    try:
+        t = tournament or find_active_tournament_for_team(team_name)
+        if not t:
+            return dict(_READY_ROUND)
 
-    for gkey, group in (t.get("groups") or {}).items():
-        for fx in group.get("fixtures") or []:
-            if fx.get("played"):
-                continue
-            if name not in (fx.get("home"), fx.get("away")):
-                continue
-            rnd = int(fx.get("round") or 1)
-            if best is None or rnd < best["round"]:
-                best = {
-                    "round_key": fixture_round_key(gkey, fx),
-                    "label": f"Group {gkey.upper()} · Matchday {rnd}",
-                    "round": rnd,
-                    "stage": "group",
-                    "group": gkey,
+        name = team_name.strip()
+        best: dict[str, Any] | None = None
+
+        for gkey, group in (t.get("groups") or {}).items():
+            for fx in group.get("fixtures") or []:
+                if fx.get("played"):
+                    continue
+                if name not in (fx.get("home"), fx.get("away")):
+                    continue
+                rnd = int(fx.get("round") or 1)
+                if best is None or rnd < best["round"]:
+                    best = {
+                        "round_key": fixture_round_key(gkey, fx),
+                        "label": f"Group {gkey.upper()} · Matchday {rnd}",
+                        "round": rnd,
+                        "stage": "group",
+                        "group": gkey,
+                        "tournament_id": t["id"],
+                        "tournament_name": t.get("name"),
+                    }
+
+        if best:
+            return best
+
+        for rnd in (t.get("knockout") or {}).get("rounds") or []:
+            rname = rnd.get("name") or rnd.get("short") or "KO"
+            for tie in rnd.get("ties") or []:
+                if tie.get("played"):
+                    continue
+                if name not in (tie.get("home"), tie.get("away")):
+                    continue
+                return {
+                    "round_key": fixture_round_key("knockout", tie, knockout_round_name=rname),
+                    "label": str(rname),
+                    "round": rname,
+                    "stage": "knockout",
                     "tournament_id": t["id"],
                     "tournament_name": t.get("name"),
                 }
 
-    if best:
-        return best
-
-    for rnd in (t.get("knockout") or {}).get("rounds") or []:
-        rname = rnd.get("name") or rnd.get("short") or "KO"
-        for tie in rnd.get("ties") or []:
-            if tie.get("played"):
-                continue
-            if name not in (tie.get("home"), tie.get("away")):
-                continue
-            return {
-                "round_key": fixture_round_key("knockout", tie, knockout_round_name=rname),
-                "label": str(rname),
-                "round": rname,
-                "stage": "knockout",
-                "tournament_id": t["id"],
-                "tournament_name": t.get("name"),
-            }
-
-    return {
-        "round_key": "ready",
-        "label": "Awaiting next stage",
-        "tournament_id": t.get("id"),
-        "tournament_name": t.get("name"),
-    }
+        return {
+            "round_key": "ready",
+            "label": "Awaiting next stage",
+            "tournament_id": t.get("id"),
+            "tournament_name": t.get("name"),
+        }
+    except Exception as exc:
+        print(f"Tournament: get_team_immediate_round({team_name!r}) failed, defaulting to ready: {exc}")
+        return dict(_READY_ROUND)
 
 
 def resolve_fixture_round_key(

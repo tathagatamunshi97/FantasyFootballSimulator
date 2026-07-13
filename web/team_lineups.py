@@ -129,9 +129,14 @@ def lineup_status(team_name: str, *, immediate_round_key: str | None = None) -> 
     """Return finalized / lock state for squad hub."""
     saved = get_team_lineup(team_name)
     if immediate_round_key is None:
-        from web.tournament import get_team_immediate_round
+        try:
+            from web.tournament import get_team_immediate_round
 
-        immediate_round_key = get_team_immediate_round(team_name).get("round_key")
+            immediate_round_key = get_team_immediate_round(team_name).get("round_key")
+        except Exception:
+            # A transient tournament-lookup failure must never block a lineup save;
+            # worst case the lock state is stale until the next successful check.
+            immediate_round_key = None
 
     finalized = bool(saved and saved.get("finalized"))
     finalized_round = (saved or {}).get("finalized_round")
