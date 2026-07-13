@@ -959,8 +959,9 @@ async function updatePlayerDropdown(teamName, selectElement) {
     const res = await adminApi(`/api/sheets/team?name=${encodeURIComponent(teamName)}`);
     const team = res.team;
 
-    // Roster is just an array of player name strings (used in squad hub)
-    const roster = team.roster || [];
+    // Full roster (array of player name strings) lives at sheet_meta.full_roster
+    // (see google_sheets_teams.team_payload_from_roster)
+    const roster = team.sheet_meta?.full_roster || [];
 
     // Filter empty strings and sort
     const playerNames = roster
