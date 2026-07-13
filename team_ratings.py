@@ -75,6 +75,11 @@ PRESS_XG_SUPPRESS_MAX = 0.08
 DUEL_CREATION_SUPPRESS_MAX = 0.04
 _BACKLINE_POSITIONS = frozenset({"CB", "LB", "RB"})
 _PRESS_CARRY_POSITIONS = frozenset({"CB", "LB", "RB", "DM", "CM"})
+# Fullback/winger combination bonus: _fullback_attack_exposure already exists as a
+# transition-risk *cost*; this is its bounded creation-rating *upside*, paid only
+# when the wide player ahead of the fullback is a genuine threat (so a fullback
+# doesn't get free credit just for bombing forward with no one to combine with).
+FULLBACK_WINGER_COMBO_WEIGHT = 0.18
 
 
 
@@ -348,7 +353,56 @@ def _fullback_attack_exposure(stats: PlayerStats, fit: float) -> float:
     return join_attack * (0.55 + 0.45 * fit)
 
 
+def _wide_side(slot: str) -> str | None:
+    """L/R side for a fullback or winger slot, else None (formations name slots by side)."""
+    su = slot.upper()
+    if su in FULLBACK_SLOTS or su in WINGER_SLOTS:
+        if su.startswith("L"):
+            return "L"
+        if su.startswith("R"):
+            return "R"
+    return None
 
+
+def _fullback_winger_combo_bonus(
+    fb_stats: PlayerStats,
+    fb_fit: float,
+    winger: tuple[PlayerStats, float] | None,
+) -> float:
+    """Bounded creation-rating credit for a fullback overlapping/underlapping with a
+    genuinely threatening winger on the same flank — combination play, not just any
+    fullback pushing forward. Scales with both the fullback's own forward involvement
+    (_fullback_attack_exposure) and the winger's actual creative threat, so a fullback
+    paired with a purely defensive wide player earns little or nothing.
+    """
+    if winger is None:
+        return 0.0
+    winger_stats, winger_fit = winger
+    exposure = _fullback_attack_exposure(fb_stats, fb_fit)
+    winger_threat = _clamp(_player_chance_creation_contrib(winger_stats, winger_fit))
+    return exposure * winger_threat * FULLBACK_WINGER_COMBO_WEIGHT
+
+
+def _fullback_winger_partners(
+    team: FantasyTeam,
+    player_stats: dict[str, PlayerStats],
+) -> dict[str, tuple[PlayerStats, float]]:
+    """Map side ('L'/'R') -> (winger stats, fit) for wingers in the lineup, for the
+    fullback-winger combination bonus. Formation-agnostic: no-winger formations
+    (e.g. 3-5-2) simply yield no partner, so the bonus is 0 for those fullbacks.
+    """
+    partners: dict[str, tuple[PlayerStats, float]] = {}
+    for slot in team.lineup:
+        eff = _eff_slot(slot)
+        if slot_role(eff) != "winger":
+            continue
+        side = _wide_side(eff)
+        if side is None:
+            continue
+        stats = player_stats[slot.player]
+        fit = _slot_fit(stats, team, slot)
+        partners[side] = (stats, fit)
+    return partners
 
 
 def _player_gk_contrib(stats: PlayerStats, fit: float) -> tuple[float, float, bool]:
@@ -665,6 +719,8 @@ def compute_unit_ratings(
 
     gk_backup = False
 
+    wide_partners = _fullback_winger_partners(team, player_stats)
+
 
 
     for slot in team.lineup:
@@ -672,8 +728,9 @@ def compute_unit_ratings(
         stats = player_stats[slot.player]
 
         fit = _slot_fit(stats, team, slot)
+        eff = _eff_slot(slot)
 
-        weights = slot_unit_weights(_eff_slot(slot), stats.fpl_position)
+        weights = slot_unit_weights(eff, stats.fpl_position)
 
 
 
@@ -693,7 +750,11 @@ def compute_unit_ratings(
 
         finishing_scores.append(_player_attack_contrib(stats, fit) * weights.attack)
 
-        creation_scores.append(_player_chance_creation_contrib(stats, fit) * weights.creation)
+        creation = _player_chance_creation_contrib(stats, fit)
+        if slot_role(eff) == "fullback":
+            side = _wide_side(eff)
+            creation += _fullback_winger_combo_bonus(stats, fit, wide_partners.get(side) if side else None)
+        creation_scores.append(creation * weights.creation)
 
         midfield_scores.append(_player_midfield_contrib(stats, fit) * weights.midfield)
 
@@ -799,11 +860,13 @@ def compute_unit_ratings_by_slot(
     gk_scores: list[float] = []
     gk_conf = 1.0
     gk_backup = False
+    wide_partners = _fullback_winger_partners(team, player_stats)
 
     for slot in team.lineup:
         stats = player_stats[slot.player]
         fit = _slot_fit(stats, team, slot)
-        role = slot_role(_eff_slot(slot))
+        eff = _eff_slot(slot)
+        role = slot_role(eff)
 
         if stats.fpl_position == "GK" or role == "gk":
             score, conf, backup = _player_gk_contrib(stats, fit)
@@ -815,7 +878,11 @@ def compute_unit_ratings_by_slot(
         if role in _FINISHING_ROLES:
             finishing_scores.append(_player_attack_contrib(stats, fit))
         if role in _CREATION_ROLES:
-            creation_scores.append(_player_chance_creation_contrib(stats, fit))
+            creation = _player_chance_creation_contrib(stats, fit)
+            if role == "fullback":
+                side = _wide_side(eff)
+                creation += _fullback_winger_combo_bonus(stats, fit, wide_partners.get(side) if side else None)
+            creation_scores.append(creation)
         if role in _ATTACK_ROLES:
             attack_scores.append(
                 0.56 * _player_attack_contrib(stats, fit)
