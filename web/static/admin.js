@@ -910,8 +910,8 @@ function addEventRow(team = "", player = "", assisters = [], minute = "") {
   });
 
   // Update scorers when team changes
-  teamSel.addEventListener("change", () => {
-    updatePlayerDropdown(teamSel.value, playerSel);
+  teamSel.addEventListener("change", async () => {
+    await updatePlayerDropdown(teamSel.value, playerSel);
   });
 
   updateTeamSelects();
@@ -944,10 +944,10 @@ function addAssisterRow(container, teamName) {
   container.appendChild(div);
 
   // Populate assister dropdown with team's players
-  updatePlayerDropdown(teamName, select);
+  updatePlayerDropdown(teamName, select).catch(console.error);
 }
 
-function updatePlayerDropdown(teamName, selectElement) {
+async function updatePlayerDropdown(teamName, selectElement) {
   if (!teamName) {
     selectElement.innerHTML = `<option value="">— Select player —</option>`;
     return;
@@ -955,21 +955,45 @@ function updatePlayerDropdown(teamName, selectElement) {
 
   selectElement.innerHTML = `<option value="">Loading...</option>`;
 
-  adminApi(`/api/sheets/team?name=${encodeURIComponent(teamName)}`).then((res) => {
+  try {
+    const res = await adminApi(`/api/sheets/team?name=${encodeURIComponent(teamName)}`);
     const team = res.team;
-    const roster = team.sheet_meta?.full_roster || team.sheet_meta?.roster_players || [];
+    let roster = [];
+
+    // Try different possible field names for roster
+    if (team.sheet_meta?.full_roster) {
+      roster = team.sheet_meta.full_roster;
+    } else if (team.sheet_meta?.roster_players) {
+      roster = team.sheet_meta.roster_players;
+    } else if (team.roster) {
+      roster = team.roster;
+    } else if (team.lineup) {
+      roster = team.lineup;
+    }
+
     const playerNames = roster
-      .filter((p) => p && p.player)
-      .map((p) => p.player)
+      .filter((p) => {
+        if (!p) return false;
+        // Handle both {player: "name"} and {name: "name"} formats
+        return p.player || p.name;
+      })
+      .map((p) => p.player || p.name)
+      .filter(Boolean)
       .sort();
+
+    if (playerNames.length === 0) {
+      selectElement.innerHTML = `<option value="">— No players found —</option>`;
+      console.warn(`No players found for team "${teamName}". Roster data:`, roster);
+      return;
+    }
 
     selectElement.innerHTML = `<option value="">— Select player —</option>${playerNames
       .map((name) => `<option value="${name}">${name}</option>`)
       .join("")}`;
-  }).catch((err) => {
-    console.error("Failed to load team players:", err);
+  } catch (err) {
+    console.error(`Failed to load players for team "${teamName}":`, err);
     selectElement.innerHTML = `<option value="">— Error loading players —</option>`;
-  });
+  }
 }
 
 function renderAssisters(container, assisters, eventId) {
@@ -1012,9 +1036,9 @@ function updateTeamSelects() {
 
       // Set up change listener if not already set
       if (!sel.dataset.listenerSet) {
-        sel.addEventListener("change", function() {
+        sel.addEventListener("change", async function() {
           const playerSel = this.closest(".goal-event").querySelector(".event-player");
-          updatePlayerDropdown(this.value, playerSel);
+          await updatePlayerDropdown(this.value, playerSel);
         });
         sel.dataset.listenerSet = "true";
       }
