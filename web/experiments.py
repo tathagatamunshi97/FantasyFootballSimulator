@@ -32,6 +32,10 @@ def _experiment_path(exp_id: str) -> Path:
     return EXPERIMENTS_DIR / f"{exp_id}.json"
 
 
+def _r2_key(exp_id: str) -> str:
+    return f"experiments/{exp_id}.json"
+
+
 def _default_experiment(
     exp_id: str,
     user: str,
@@ -223,12 +227,30 @@ def _to_fantasy_teams(payload: dict[str, Any]) -> tuple[FantasyTeam, FantasyTeam
 def save_experiment(exp: dict[str, Any]) -> None:
     EXPERIMENTS_DIR.mkdir(parents=True, exist_ok=True)
     exp["updated_at"] = _now()
+
+    # R2 is the durable copy on Render; local JSON is dev fallback + backup.
+    try:
+        import r2_storage
+        if r2_storage.is_r2_enabled():
+            r2_storage.save_json_blob(_r2_key(exp["id"]), exp)
+    except (ImportError, Exception):
+        pass
+
     _experiment_path(exp["id"]).write_text(
         json.dumps(exp, indent=2, ensure_ascii=False), encoding="utf-8"
     )
 
 
 def load_experiment(exp_id: str) -> dict[str, Any] | None:
+    try:
+        import r2_storage
+        if r2_storage.is_r2_enabled():
+            data = r2_storage.load_json_blob(_r2_key(exp_id))
+            if data is not None:
+                return data
+    except (ImportError, Exception):
+        pass
+
     path = _experiment_path(exp_id)
     if not path.exists():
         return None
@@ -239,9 +261,27 @@ def load_experiment(exp_id: str) -> dict[str, Any] | None:
 
 
 def list_experiments(*, user: str | None = None) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+
+    try:
+        import r2_storage
+        if r2_storage.is_r2_enabled():
+            keys = r2_storage.list_blobs("experiments")
+            for key in keys:
+                exp_id = key.rsplit("/", 1)[-1].removesuffix(".json")
+                exp = load_experiment(exp_id)
+                if not exp:
+                    continue
+                if user and exp.get("user") != user:
+                    continue
+                rows.append(_summary(exp))
+            rows.sort(key=lambda r: r.get("created_at") or "", reverse=True)
+            return rows
+    except (ImportError, Exception):
+        pass
+
     if not EXPERIMENTS_DIR.exists():
         return []
-    rows: list[dict[str, Any]] = []
     for path in EXPERIMENTS_DIR.glob("*.json"):
         try:
             exp = json.loads(path.read_text(encoding="utf-8"))
@@ -340,6 +380,14 @@ def delete_experiment(exp_id: str) -> dict[str, Any]:
         raise KeyError("Experiment not found")
     if is_experiment_running(exp_id):
         raise ValueError("Cannot delete a running experiment")
+
+    try:
+        import r2_storage
+        if r2_storage.is_r2_enabled():
+            r2_storage.delete_json_blob(_r2_key(exp_id))
+    except (ImportError, Exception):
+        pass
+
     _experiment_path(exp_id).unlink(missing_ok=True)
     matchday_session.clear_if_references(experiment_id=exp_id)
     return {"id": exp_id, "user": exp.get("user")}

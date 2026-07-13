@@ -106,8 +106,24 @@ def _save_sessions() -> None:
         _sessions_mtime = None
 
 
+_R2_PASSWORDS_KEY = "auth/team_passwords.json"
+
+
 def _load_passwords() -> None:
     global _passwords, _passwords_mtime
+
+    # R2 is the durable source on Render; local JSON is dev fallback + backup.
+    try:
+        import r2_storage
+        if r2_storage.is_r2_enabled():
+            data = r2_storage.load_json_blob(_R2_PASSWORDS_KEY)
+            if data is not None:
+                _passwords = data
+                _passwords_mtime = None
+                return
+    except (ImportError, Exception):
+        pass
+
     if PASSWORDS_FILE.exists():
         try:
             _passwords = json.loads(PASSWORDS_FILE.read_text(encoding="utf-8"))
@@ -121,8 +137,19 @@ def _load_passwords() -> None:
 
 
 def _maybe_reload_passwords() -> None:
-    """Pick up external edits to team_passwords.json without a process restart."""
+    """Pick up external edits to team_passwords.json without a process restart.
+
+    Local-file-mtime based, so it's only meaningful when R2 isn't the source of
+    truth — otherwise it would clobber the R2-loaded state with a stale local
+    copy the first time it runs (mtime tracking starts at None for R2 loads).
+    """
     global _passwords, _passwords_mtime
+    try:
+        import r2_storage
+        if r2_storage.is_r2_enabled():
+            return
+    except (ImportError, Exception):
+        pass
     try:
         if not PASSWORDS_FILE.exists():
             if _passwords:
@@ -140,6 +167,14 @@ def _maybe_reload_passwords() -> None:
 
 def _save_passwords() -> None:
     global _passwords_mtime
+
+    try:
+        import r2_storage
+        if r2_storage.is_r2_enabled():
+            r2_storage.save_json_blob(_R2_PASSWORDS_KEY, _passwords)
+    except (ImportError, Exception):
+        pass
+
     PASSWORDS_FILE.parent.mkdir(parents=True, exist_ok=True)
     PASSWORDS_FILE.write_text(json.dumps(_passwords, indent=2), encoding="utf-8")
     try:
