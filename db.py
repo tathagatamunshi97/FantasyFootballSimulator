@@ -215,7 +215,7 @@ def load_all_team_lineups() -> dict[str, Any]:
             "prime_player": r["prime_player"] or "",
             "peak_season": r["peak_season"] or {"player": "", "season": ""},
             "finalized": r["finalized"],
-            "finalized_at": r["finalized_at"],
+            "finalized_at": r["finalized_at"].isoformat() if r["finalized_at"] else None,
             "finalized_round": r["finalized_round"],
             "finalized_round_label": r["finalized_round_label"],
             "finalized_snapshot": r["finalized_snapshot"],

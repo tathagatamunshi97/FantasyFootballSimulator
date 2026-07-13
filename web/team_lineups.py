@@ -40,19 +40,27 @@ def _load_all() -> dict[str, Any]:
 
 
 def _save_all(data: dict[str, Any]) -> None:
-    """Save all lineups to database (if enabled) and JSON file."""
-    # Always save to JSON (local fallback and development)
-    LINEUPS_PATH.parent.mkdir(parents=True, exist_ok=True)
-    LINEUPS_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+    """Save all lineups to database (if enabled) and JSON file. Never raises.
 
-    # Also save to database if enabled (on Render)
+    Database is the durable copy on Render; the local JSON write is a dev
+    fallback / non-critical backup and must not be able to fail the request
+    (e.g. a future non-JSON-serializable value slipping in from a DB row).
+    """
     try:
         import db
         if db.is_db_enabled():
             for team_name, lineup_data in data.items():
                 db.save_team_lineup(team_name, lineup_data)
-    except (ImportError, Exception):
-        pass
+    except Exception as exc:
+        print(f"team_lineups: database save failed: {exc}")
+
+    try:
+        LINEUPS_PATH.parent.mkdir(parents=True, exist_ok=True)
+        LINEUPS_PATH.write_text(
+            json.dumps(data, indent=2, ensure_ascii=False, default=str), encoding="utf-8"
+        )
+    except Exception as exc:
+        print(f"team_lineups: local JSON backup save failed: {exc}")
 
 
 def _resolve_key(team_name: str, store: dict[str, Any]) -> str | None:
