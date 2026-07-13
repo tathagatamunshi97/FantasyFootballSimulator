@@ -869,10 +869,12 @@ function addEventRow(team = "", player = "", assisters = [], minute = "") {
       </div>
       <div>
         <label class="muted" style="font-size:0.85rem">Scorer</label>
-        <input class="event-player" type="text" placeholder="Player name" style="width:100%" />
+        <select class="event-player" style="width:100%">
+          <option value="">— Select scorer —</option>
+        </select>
       </div>
       <div>
-        <label class="muted" style="font-size:0.85rem">Minute</label>
+        <label class="muted" style="font-size:0.85rem">Minute (optional)</label>
         <input class="event-minute" type="number" min="1" max="120" placeholder="45" style="width:100%" />
       </div>
       <button type="button" class="btn-ghost" style="padding:0.5rem;align-self:flex-end" onclick="document.getElementById('${id}').remove()">✕</button>
@@ -885,11 +887,11 @@ function addEventRow(team = "", player = "", assisters = [], minute = "") {
 
   // Set values
   const teamSel = row.querySelector(".event-team");
-  const playerInput = row.querySelector(".event-player");
+  const playerSel = row.querySelector(".event-player");
   const minuteInput = row.querySelector(".event-minute");
 
   if (team) teamSel.value = team;
-  if (player) playerInput.value = player;
+  if (player) playerSel.value = player;
   if (minute) minuteInput.value = minute;
 
   // Render existing assisters
@@ -899,27 +901,99 @@ function addEventRow(team = "", player = "", assisters = [], minute = "") {
   // Add assister button
   row.querySelector("button.btn-small").addEventListener("click", (e) => {
     e.preventDefault();
-    const newAssisterDiv = document.createElement("div");
-    newAssisterDiv.style.cssText = "display:flex;gap:0.5rem;margin-bottom:0.5rem";
-    newAssisterDiv.innerHTML = `
-      <input type="text" placeholder="Assister name" class="new-assister" style="flex:1;padding:0.5rem;border:1px solid #ddd;border-radius:3px" />
-      <button type="button" class="btn-ghost" style="padding:0.25rem 0.5rem;font-size:0.9rem" onclick="this.parentElement.remove()">Remove</button>
-    `;
-    assistersList_div.appendChild(newAssisterDiv);
+    const selectedTeam = teamSel.value;
+    if (!selectedTeam) {
+      alert("Please select a team first");
+      return;
+    }
+    addAssisterRow(assistersList_div, selectedTeam);
+  });
+
+  // Update scorers when team changes
+  teamSel.addEventListener("change", () => {
+    updatePlayerDropdown(teamSel.value, playerSel);
   });
 
   updateTeamSelects();
+  // Load initial team's players if team already selected
+  if (team) {
+    updatePlayerDropdown(team, playerSel);
+  }
+}
+
+function addAssisterRow(container, teamName) {
+  const id = `assister_${Date.now()}`;
+  const div = document.createElement("div");
+  div.id = id;
+  div.style.cssText = "display:flex;gap:0.5rem;margin-bottom:0.5rem";
+
+  const select = document.createElement("select");
+  select.className = "assister-select";
+  select.style.cssText = "flex:1;padding:0.5rem;border:1px solid #e0e0e0;border-radius:3px";
+  select.innerHTML = `<option value="">— Select assister —</option>`;
+
+  const removeBtn = document.createElement("button");
+  removeBtn.type = "button";
+  removeBtn.className = "btn-ghost";
+  removeBtn.style.cssText = "padding:0.25rem 0.5rem;font-size:0.9rem";
+  removeBtn.textContent = "Remove";
+  removeBtn.onclick = () => div.remove();
+
+  div.appendChild(select);
+  div.appendChild(removeBtn);
+  container.appendChild(div);
+
+  // Populate assister dropdown with team's players
+  updatePlayerDropdown(teamName, select);
+}
+
+function updatePlayerDropdown(teamName, selectElement) {
+  if (!teamName) {
+    selectElement.innerHTML = `<option value="">— Select player —</option>`;
+    return;
+  }
+
+  selectElement.innerHTML = `<option value="">Loading...</option>`;
+
+  adminApi(`/api/sheets/team?name=${encodeURIComponent(teamName)}`).then((res) => {
+    const team = res.team;
+    const roster = team.sheet_meta?.full_roster || team.sheet_meta?.roster_players || [];
+    const playerNames = roster
+      .filter((p) => p && p.player)
+      .map((p) => p.player)
+      .sort();
+
+    selectElement.innerHTML = `<option value="">— Select player —</option>${playerNames
+      .map((name) => `<option value="${name}">${name}</option>`)
+      .join("")}`;
+  }).catch((err) => {
+    console.error("Failed to load team players:", err);
+    selectElement.innerHTML = `<option value="">— Error loading players —</option>`;
+  });
 }
 
 function renderAssisters(container, assisters, eventId) {
   container.innerHTML = "";
+  if (!assisters || assisters.length === 0) {
+    return;
+  }
   assisters.forEach((assister, idx) => {
     const div = document.createElement("div");
     div.style.cssText = "display:flex;gap:0.5rem;margin-bottom:0.5rem;align-items:center";
-    div.innerHTML = `
-      <span style="flex:1;padding:0.5rem;background:white;border-radius:3px;border:1px solid #e0e0e0">${assister}</span>
-      <button type="button" class="btn-ghost" style="padding:0.25rem 0.5rem;font-size:0.9rem" onclick="this.parentElement.remove()">Remove</button>
-    `;
+    const select = document.createElement("select");
+    select.className = "assister-select";
+    select.style.cssText = "flex:1;padding:0.5rem;border:1px solid #e0e0e0;border-radius:3px";
+    select.innerHTML = `<option value="${assister}">${assister}</option>`;
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "btn-ghost";
+    removeBtn.style.cssText = "padding:0.25rem 0.5rem;font-size:0.9rem";
+    removeBtn.textContent = "Remove";
+    removeBtn.onclick = () => div.remove();
+
+    div.appendChild(select);
+    div.appendChild(removeBtn);
     container.appendChild(div);
   });
 }
@@ -935,6 +1009,15 @@ function updateTeamSelects() {
       const current = sel.value;
       sel.innerHTML = `<option value="">—</option>${teams.map((t) => `<option value="${t}">${t}</option>`).join("")}`;
       if (current) sel.value = current;
+
+      // Set up change listener if not already set
+      if (!sel.dataset.listenerSet) {
+        sel.addEventListener("change", function() {
+          const playerSel = this.closest(".goal-event").querySelector(".event-player");
+          updatePlayerDropdown(this.value, playerSel);
+        });
+        sel.dataset.listenerSet = "true";
+      }
     });
   }).catch(() => {
     // Silently ignore errors when updating team selects
@@ -954,16 +1037,11 @@ function getFormData() {
     const minute = row.querySelector(".event-minute").value;
 
     if (team && player) {
-      // Get all assisters from the assisters list
-      const assisterDivs = row.querySelectorAll(".assisters-list span");
-      const assisters = Array.from(assisterDivs).map((div) => div.textContent.trim());
-
-      // Also check for new unsaved assisters
-      const newAssisters = row.querySelectorAll(".new-assister");
-      newAssisters.forEach((input) => {
-        const name = input.value.trim();
-        if (name) assisters.push(name);
-      });
+      // Get all assisters from the assister select dropdowns
+      const assisterSelects = row.querySelectorAll(".assister-select");
+      const assisters = Array.from(assisterSelects)
+        .map((select) => select.value.trim())
+        .filter((name) => name);
 
       // Record goal
       events.push({
@@ -974,7 +1052,7 @@ function getFormData() {
         assister: assisters.length > 0 ? assisters[0] : undefined, // Primary assister
       });
 
-      // Record additional assisters (if API supports it)
+      // Record additional assisters
       for (let i = 1; i < assisters.length; i++) {
         events.push({
           team,
