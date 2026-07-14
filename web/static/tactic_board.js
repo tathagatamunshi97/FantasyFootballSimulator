@@ -3203,18 +3203,18 @@
       }
 
       // NOTE: this used to fire unconditionally whenever a winger/FB was simply out
-      // wide and deep — which is their normal position — so it pre-empted the
-      // "cut_inside" pattern's box drives and the "wing_carry" pattern's fullback/
-      // winger overlap-underlap-decoy-onetwo combination play (decideFbWingLink)
-      // almost every time either was selected, leaving cross/cutback/recycle as
-      // the only outcome a wide player ever reached. Exempt those two patterns so
-      // they actually get to run when chosen.
-      if (
-        isWideFinalThird(carrier) &&
-        stage !== "BUILD_UP" &&
-        pattern !== "cut_inside" &&
-        pattern !== "wing_carry"
-      ) {
+      // wide and deep — pre-empting "cut_inside"/"wing_carry" almost every time.
+      // A full exemption (tried earlier this session) over-corrected badly: those
+      // patterns carry a high base pattern-selection weight for wingers already,
+      // tuned assuming this gate would keep blocking them — removing the gate
+      // entirely flipped them from ~never executing to ~always executing,
+      // producing runaway one-sided matches (confirmed: blowout scores, >7 xG
+      // games). Cap it to a bounded fraction of attempts instead — enough for
+      // box drives/combination play to actually happen sometimes (the original
+      // bug), without turning off the safety valve altogether.
+      const allowPatternBreakthrough =
+        (pattern === "cut_inside" || pattern === "wing_carry") && rng() < 0.4;
+      if (isWideFinalThird(carrier) && stage !== "BUILD_UP" && !allowPatternBreakthrough) {
         return decideWideFinalThird(carrier);
       }
 
