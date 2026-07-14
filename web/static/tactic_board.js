@@ -2475,7 +2475,16 @@
     }
 
     function backPassTarget(carrier) {
-      const mates = teammates(carrier);
+      let mates = teammates(carrier);
+      // A winger close to/in the final third shouldn't recycle all the way back
+      // to a CB — the "behind" scoring below naturally favours whoever is
+      // deepest, which is almost always the centre-back. Exclude CB from the
+      // pool here (FB/CM/DM remain, so a nearby out-ball is still available)
+      // unless that leaves no options at all.
+      if (carrier.role === "W" && possessionDepth(carrier) >= 0.58) {
+        const noCB = mates.filter((m) => m.role !== "CB");
+        if (noCB.length) mates = noCB;
+      }
       const attackSign = carrier.side === "home" ? -1 : 1;
       const scored = mates.map((m) => {
         const behind = -attackSign * (m.top - carrier.top);
@@ -3176,7 +3185,11 @@
         const back = backPassTarget(carrier);
         const dm = teammates(carrier).find((m) => m.role === "DM");
         const cb = teammates(carrier).find((m) => m.role === "CB");
-        const target = dm || (isDefRole(back?.role) ? back : cb) || back;
+        // Winger close to/in the final third: don't force the explicit CB fallback
+        // below — backPassTarget already steered `back` away from CB for this case,
+        // so just use it (FB/CM/DM) rather than overriding back to cb anyway.
+        const avoidCB = carrier.role === "W" && possessionDepth(carrier) >= 0.58;
+        const target = dm || (isDefRole(back?.role) || avoidCB ? back : cb) || back;
         doPass(carrier, target, "pass");
         if (spell) {
           spell.lastPattern = "recycle";
