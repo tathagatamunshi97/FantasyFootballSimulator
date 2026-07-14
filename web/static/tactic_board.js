@@ -3020,7 +3020,10 @@
         Math.max(0, -ad) * 0.45;
       if ((spell?.patternActions || 0) >= 5) wRecycle += 0.25;
       if (spell?.willAttemptChance && (stage === "CHANCE_CREATION" || stage === "BOX_OCCUPATION")) wRecycle *= 0.35;
-      wRecycle *= clamp(1.15 - urg * 0.55 - Math.max(0, ad) * 0.35 + Math.max(0, -pressD) * 0.1, 0.2, 1.15);
+      // Urgency coefficient nudged 0.55 -> 0.65: once a spell has earned real
+      // urgency (sustained possession, favourable matchup), recycling should lose
+      // out to progression somewhat more decisively than before.
+      wRecycle *= clamp(1.15 - urg * 0.65 - Math.max(0, ad) * 0.35 + Math.max(0, -pressD) * 0.1, 0.2, 1.15);
       if (hold > 0.12 && urg < 0.55) wRecycle *= 1.15;
       if (isFwdRole(carrier.role) && depth >= 0.66) wRecycle = 0;
 
@@ -3180,7 +3183,11 @@
           spell.pattern = null;
           spell.patternConfidence = 100;
           spell.patternActions = 0;
-          dropPossessionState(2);
+          // Was dropPossessionState(2) — every other recycle/reset call site in this
+          // file uses 1 step. Regressing 2 stages (e.g. BOX_OCCUPATION -> PROGRESSING)
+          // re-blocked several stage-gated aggressive checks (isFinalThirdStage, the
+          // wide-final-third gate, etc.) for longer than a single sideways pass should.
+          dropPossessionState(1);
         }
         return true;
       }
@@ -3421,7 +3428,8 @@
         urg * 0.12;
       let recycleW =
         0.38 + sidePoss(carrier.side) * 0.4 + (threat && threat.d < 5.5 ? 0.35 : 0) + (ready ? 0 : 0.55);
-      recycleW *= clamp(1.1 - urg * 0.5 - Math.max(0, ad) * 0.3, 0.2, 1.1);
+      // Same modest urgency-coefficient nudge as pickAttackPattern's wRecycle (0.5 -> 0.58).
+      recycleW *= clamp(1.1 - urg * 0.58 - Math.max(0, ad) * 0.3, 0.2, 1.1);
       if (forwardInFinalThird(carrier)) recycleW = 0;
       const pick = weightedPick([
         { id: "cross", w: Math.max(0.05, crossW) },
@@ -4685,7 +4693,12 @@
             if (nearOpp && nearOpp.d < 7) {
               const oRel = fromPitchPct(pin.side, nearOpp.pin.left, nearOpp.pin.top);
               const away = Math.sign(xx - oRel.x) || (pin.baseX >= 0.5 ? 1 : -1);
-              const bump = (1 - nearOpp.d / 7) * 0.022;
+              // An off-ball attacker genuinely tight-marked (<4, vs the general 7
+              // personal-space band) gets a slightly bigger check-away than pure
+              // collision avoidance — a small, bounded reaction to close marking,
+              // not a new movement system.
+              const tightMark = attacking && pin.id !== carrierId && nearOpp.d < 4;
+              const bump = (1 - nearOpp.d / 7) * (tightMark ? 0.038 : 0.022);
               xx = clamp(xx + away * bump, 0.04, 0.96);
               dd = clamp(dd + (dd >= oRel.depth ? 0.008 : -0.006) * bump * 8, 0.03, 0.96);
             }
