@@ -694,12 +694,19 @@
     // Raw finishing unit (0–1); drives day-form mixture, not soft-compressed attack
     const unitFinHome = unit01(unitHome.finishing ?? unitHome.finishing_threat, 0.55);
     const unitFinAway = unit01(unitAway.finishing ?? unitAway.finishing_threat, 0.55);
+    // Individual goalkeeper quality (backend's confidence-weighted per-keeper rating).
+    // Fallback 0.4 matches team_ratings.py's LEAGUE_GK_RATING baseline.
+    const gkHome = unit01(unitHome.goalkeeper, 0.4);
+    const gkAway = unit01(unitAway.goalkeeper, 0.4);
 
     function sideAttack(side) {
       return side === "home" ? attackHome : attackAway;
     }
     function sideDefend(side) {
       return side === "home" ? defendHome : defendAway;
+    }
+    function sideGoalkeeper(side) {
+      return side === "home" ? gkHome : gkAway;
     }
     function sidePress(side) {
       return side === "home" ? pressHome : pressAway;
@@ -989,6 +996,7 @@
         dribbles_won: 0,
         dribbles_lost: 0,
         saves: 0,
+        blocked_shots: 0,
         possessions: 0,
         turnovers: 0,
         chances_created: 0,
@@ -1062,6 +1070,7 @@
       else if (type === "dribble_won") bumpCount(side, "dribbles_won");
       else if (type === "dribble_lost") bumpCount(side, "dribbles_lost");
       else if (type === "save") bumpCount(side, "saves");
+      else if (type === "blocked_shot") bumpCount(side, "blocked_shots");
       else if (type === "possession") bumpCount(side, "possessions");
       else if (type === "turnover") bumpCount(side, "turnovers");
     }
@@ -1409,6 +1418,24 @@
           pendingClear = { fromId: keeper.id, toId: outlet.id, at: matchMinute + 0.35 };
         }
         actionTimer = 0.7;
+        return;
+      }
+
+      if (flight.outcome === "blocked") {
+        const blocker = flight.interceptor;
+        clearLastPasser();
+        if (blocker) {
+          pushMatchEvent("blocked_shot", blocker.side, {
+            player: blocker.player,
+            player_short: blocker.short,
+            against: flight.against,
+            detail: `blocked ${flight.shooterShort || "the shot"}`,
+          });
+        }
+        say(`Blocked! ${blocker?.short || "defender"} gets across`, 1.3);
+        spell = null;
+        if (blocker) giveBall(blocker, `${blocker.short} clears the danger`);
+        actionTimer = 0.65;
         return;
       }
 
@@ -2902,6 +2929,16 @@
         }
       }
 
+      // Complete: CM/AM give-and-go return after cm_cm_layoff
+      if (last && last.kind === "cm_cm_layoff" && (carrier.role === "CM" || carrier.role === "AM")) {
+        const passer = pinById.get(last.fromId);
+        if (passer && dist(carrier, passer) < 20 && (passer._running || passer.lockUntil > matchMinute || urg >= 0.35)) {
+          spell.combo = { kind: "cm_cm_return", fromId: carrier.id, toId: passer.id };
+          doPass(carrier, passer, throughBallLegal(carrier, passer) ? "through" : "pass");
+          return true;
+        }
+      }
+
       // Start: CM → ST feet (set up third-man return)
       if (
         (carrier.role === "CM" || carrier.role === "AM") &&
@@ -2952,6 +2989,28 @@
         if (sts[0]) {
           spell.combo = { kind: "w_st_feet", fromId: carrier.id, toId: sts[0].id };
           doPass(carrier, sts[0], "pass");
+          return true;
+        }
+      }
+
+      // Start: CM/AM give-and-go — a quick one-two with a nearby central partner to
+      // beat a presser, rather than only ever recycling backward under pressure.
+      if (
+        (carrier.role === "CM" || carrier.role === "AM") &&
+        urg >= 0.22 &&
+        depth >= 0.3 &&
+        rng() < 0.22 + urg * 0.14
+      ) {
+        const partner = teammates(carrier)
+          .filter((m) => (m.role === "CM" || m.role === "AM") && m.id !== carrier.id)
+          .filter((m) => dist(carrier, m) < 18 && defendersInLane(carrier, m) < 2)
+          .sort((a, b) => dist(carrier, a) - dist(carrier, b))[0];
+        if (partner && !wouldPassBeOffside(carrier, partner)) {
+          spell.combo = { kind: "cm_cm_layoff", fromId: carrier.id, toId: partner.id };
+          // Cue the passer to run into space for the return ball (the give-and-go).
+          cueRun(carrier, clamp(carrier.baseX, 0.22, 0.78), clamp(depth + 0.08, 0.3, 0.85), 1.0);
+          carrier._supportRole = "third_man";
+          doPass(carrier, partner, "pass");
           return true;
         }
       }
@@ -5620,6 +5679,7 @@
       const keeper = gkOf(oppOf(carrier.side));
       const atk = sideAttack(carrier.side);
       const def = sideDefend(oppOf(carrier.side));
+      const gk = sideGoalkeeper(oppOf(carrier.side));
       ballAttached = false;
       phase = "FINISH";
       if (spell) {
@@ -5683,6 +5743,7 @@
             carrier.stats.shots90 * (roleFin ? 0.018 : 0.012) -
             (roleFin ? fq * 0.06 : 0) +
             (boxed ? 0 : 0.12) +
+            gk * 0.14 +
             (rng() - 0.5) * 0.06) *
           saveScale;
         if (rng() < clamp(saveP, 0.04, roleFin && boxed && fq >= 0.7 ? 0.42 : 0.55)) willScore = false;
@@ -5705,10 +5766,27 @@
         actionTimer = dur + 0.35;
         ballFlight = { outcome: "goal", side: carrier.side };
       } else {
+        // Was mislabeled: this used to route every non-scoring shot to the keeper
+        // ("save") or wide, with no distinct "blocked by an outfield defender"
+        // outcome at all — a real, sizeable share of shots never reach the keeper.
         const blockP =
           0.28 + def * 0.22 - atk * 0.08 - carrier.stats.xg90 * 0.06 + (boxed ? 0 : 0.1) + (rng() - 0.5) * 0.08;
-        if (rng() < clamp(blockP, 0.25, 0.78)) {
-          // Path ends at keeper — decided now
+        if (rng() < clamp(blockP, 0.18, 0.5)) {
+          const blocker =
+            nearestOpponent(carrier, 9)?.pin ||
+            pinsOf(oppOf(carrier.side)).find((p) => p.role === "CB") ||
+            keeper;
+          const blockArc = passArcFor(carrier.left, carrier.top, blocker.left, blocker.top, "through");
+          setBallTarget(blocker.left, blocker.top, clamp(blockArc.dur * 0.7, 0.2, 0.38), false, blockArc.ctrl);
+          actionTimer = clamp(blockArc.dur * 0.7, 0.2, 0.38) + 0.3;
+          ballFlight = {
+            outcome: "blocked",
+            interceptor: blocker,
+            against: carrier.side,
+            shooterShort: carrier.short,
+          };
+        } else if (rng() < clamp(0.58 + atk * 0.15, 0.35, 0.78)) {
+          // Reaches the keeper — saved.
           const saveArc = passArcFor(carrier.left, carrier.top, keeper.left, keeper.top, "through");
           setBallTarget(keeper.left, keeper.top, clamp(saveArc.dur * 0.9, 0.32, 0.5), false, saveArc.ctrl);
           actionTimer = 0.85;
@@ -7122,6 +7200,7 @@
         midfield: extended.midfield ?? (extended.units || {}).midfield,
         midfield_defence: (extended.units || {}).midfield_defence,
         finishing: (extended.units || {}).finishing ?? extended.finishing,
+        goalkeeper: (extended.units || {}).goalkeeper,
       },
     };
   }
@@ -7358,6 +7437,7 @@
           dribbles_won: 0,
           dribbles_lost: 0,
           saves: 0,
+          blocked_shots: 0,
           possessions: 0,
           turnovers: 0,
           chances_created: 0,
@@ -7373,6 +7453,7 @@
           dribbles_won: 0,
           dribbles_lost: 0,
           saves: 0,
+          blocked_shots: 0,
           possessions: 0,
           turnovers: 0,
           chances_created: 0,
