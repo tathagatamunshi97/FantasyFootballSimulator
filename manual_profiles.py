@@ -60,6 +60,11 @@ STAT_FIELDS = (
     "fbref_matched",
     "league",
     "player_id",
+    "aerials_won90",
+    "aerials_lost90",
+    "aerials_won_pct",
+    "aerials_source",
+    "duels_won_pct",
 )
 
 _INDEX: dict[tuple[str, str, str], dict[str, Any]] | None = None
@@ -208,7 +213,18 @@ def _load_profiles_list() -> list[dict[str, Any]]:
         except Exception:
             pass
 
-    # Legacy seed_seasons.json → season_pick entries
+    # Legacy seed_seasons.json → season_pick entries.
+    # Only fills gaps: a player/profile_type/season already present from
+    # manual_profiles.json/XLSX above must win, since _build_index() keeps the
+    # last entry for a given key and this fallback used to silently overwrite
+    # complete manual profiles with sparser legacy data (e.g. missing aerial
+    # duel stats) for the same player/season.
+    existing_keys = {
+        (key, profile["profile_type"], profile["season_suffix"])
+        for profile in rows
+        for key in _player_keys(profile["player_name"])
+    }
+
     seed_path = DATA_DIR / "seed_seasons.json"
     if seed_path.exists():
         try:
@@ -220,8 +236,14 @@ def _load_profiles_list() -> list[dict[str, Any]]:
                 for suffix, data in seasons.items():
                     row = {"player_name": pname, "profile_type": "season pick", "season_suffix": suffix, **data}
                     built = _row_to_profile(row)
-                    if built:
-                        rows.append(built)
+                    if not built:
+                        continue
+                    keys = {
+                        (key, built["profile_type"], built["season_suffix"]) for key in _player_keys(pname)
+                    }
+                    if keys & existing_keys:
+                        continue
+                    rows.append(built)
         except (json.JSONDecodeError, OSError, ValueError):
             pass
 

@@ -2,11 +2,11 @@
   "kinjal": {
     "units": {
       "transition_risk": 0.302,
-      "defence": 0.413,
+      "defence": 0.593,
       "midfield_defence": 0.257
     },
     "composites": {
-      "aerial_defence": 0.342
+      "aerial_defence": 0.591
     },
     "transition": {
       "fullbacks": [
@@ -102,11 +102,11 @@
         },
         {
           "player": "Diego God\u00edn",
-          "aerials_won90": 0.0,
-          "aerials_won_pct": 0.0,
-          "clearances90": 0.0,
-          "signal": 0.0,
-          "mode": "clearance_fallback",
+          "aerials_won90": 3.6,
+          "aerials_won_pct": 80.4,
+          "clearances90": 5.098,
+          "signal": 2.8944,
+          "mode": "aerial",
           "primary_position": "CB"
         },
         {
@@ -119,9 +119,9 @@
           "primary_position": "LB"
         }
       ],
-      "avg_signal": 0.7698,
-      "avg_clearances": 2.5686,
-      "computed_aerial": 0.3422
+      "avg_signal": 1.4934,
+      "avg_clearances": 3.8431,
+      "computed_aerial": 0.5912
     },
     "overrides": {
       "prime": {
@@ -277,8 +277,8 @@
       "team": "Kinjal+Sayan C",
       "formation": "4-3-3 attacking",
       "transition_risk": 0.302,
-      "aerial_defence": 0.342,
-      "defence": 0.413,
+      "aerial_defence": 0.591,
+      "defence": 0.593,
       "midfield_defence": 0.257
     },
     {
