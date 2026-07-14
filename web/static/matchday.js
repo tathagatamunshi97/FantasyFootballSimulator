@@ -20,6 +20,7 @@ let _lastFrameSeq = -1;
 let _savingFt = false;
 let _publishQueue = null;
 let _publishBusy = false;
+let _refreshInFlight = false;
 
 function destroyLiveBoard() {
   if (_liveBoard && typeof _liveBoard.destroy === "function") {
@@ -253,7 +254,11 @@ async function startViewerBoard(session) {
 
   const frame = session.frame || session.board_state;
   const seq = frame?.seq ?? session.frame_seq ?? 0;
-  if (frame && seq !== _lastFrameSeq) {
+  // Strictly-greater, not "different": overlapping polls (see refresh()) can
+  // resolve out of order, so a late-arriving older frame must never overwrite
+  // a newer one already applied — that's what caused the score to visibly
+  // flicker/regress for viewers.
+  if (frame && seq > _lastFrameSeq) {
     _lastFrameSeq = seq;
     if (typeof _liveBoard.applyBroadcastState === "function") {
       _liveBoard.applyBroadcastState(frame);
@@ -288,6 +293,12 @@ function showIdleMatchday(data, { isAdmin, force = false } = {}) {
 }
 
 async function refresh({ force = false } = {}) {
+  // setInterval doesn't wait for the previous call to finish — on a slow poll
+  // (>900ms round trip) this let two requests run concurrently, and if they
+  // resolved out of order the older one would win, appearing to viewers as
+  // the live score randomly regressing. Skip rather than overlap.
+  if (_refreshInFlight) return;
+  _refreshInFlight = true;
   try {
     const data = await api("/api/matchday");
     const isAdmin = isAdminUser() || Boolean(getAdminToken());
@@ -350,6 +361,8 @@ async function refresh({ force = false } = {}) {
     }
     const app = document.getElementById("app");
     if (app) app.innerHTML = `<div class="empty">Failed to load: ${esc(e.message)}</div>`;
+  } finally {
+    _refreshInFlight = false;
   }
 }
 
