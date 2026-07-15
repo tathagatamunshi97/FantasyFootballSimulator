@@ -1487,8 +1487,22 @@
         possession = side;
         phase = "BUILD_UP";
         setBallTarget(50, 50, 0.38, false);
-        pendingKickoffCarrier = { pin: c, at: matchMinute + 0.42 };
-        actionTimer = 0.9;
+        // Send every outfield player back toward their own formation shape —
+        // previously only the ball recentred, so the restart resumed with
+        // whoever was still upfield/out wide from the previous attack still
+        // there. Give them a sprint boost and enough real time to get home
+        // before kickoff, instead of the old near-instant handoff.
+        for (const pin of allPins) {
+          const pct = toPitchPct(pin.side, pin.baseX, pin.baseDepth);
+          pin.tx = pct.left;
+          pin.ty = pct.top;
+          pin._pathCtrl = null;
+          pin.lockUntil = 0;
+          pin._running = true;
+          pin._pressing = false;
+        }
+        pendingKickoffCarrier = { pin: c, at: matchMinute + 1.3 };
+        actionTimer = 1.35;
         return;
       }
       if (pendingKickoffCarrier && matchMinute >= pendingKickoffCarrier.at && ballTween >= 1 && !ballFlight) {
@@ -5592,6 +5606,42 @@
     }
 
     function doCarry(carrier) {
+      // Was unconditionally safe even with a defender right next to the
+      // carrier — a free, guaranteed advance regardless of pressure, while
+      // doDribble (the only contestable forward action) only fires on a
+      // separate dice roll. Give a nearby defender a real, if modest, chance
+      // to close a carry down instead of always standing there doing nothing.
+      const threat = nearestOpponent(carrier, 9);
+      if (threat && threat.d < 8.5) {
+        const resist = sideResist(carrier.side);
+        const def = sideDefend(oppOf(carrier.side));
+        const closeMul = clamp(1.2 - threat.d / 9, 0.55, 1.2);
+        const dispossessP =
+          (0.05 +
+            def * 0.1 +
+            threat.pin.stats.tackles90 * 0.05 -
+            resist * 0.08 -
+            carrier.stats.dribbles90 * 0.03 +
+            (rng() - 0.5) * 0.04) *
+          closeMul;
+        if (rng() < clamp(dispossessP, 0.03, 0.24)) {
+          const opp = threat.pin;
+          pushMatchEvent("dribble_lost", carrier.side, {
+            player: carrier.player,
+            player_short: carrier.short,
+            by: opp.player,
+            detail: `dispossessed by ${opp.short}`,
+          });
+          say(`${opp.short} dispossesses ${carrier.short}`, 1.3);
+          ballAttached = false;
+          const arc = passArcFor(carrier.left, carrier.top, opp.left, opp.top, "pass");
+          const dur = clamp(arc.dur, 0.2, 0.4);
+          setBallTarget(opp.left, opp.top, dur, false, arc.ctrl);
+          actionTimer = dur + 0.2;
+          ballFlight = { outcome: "dribble_lost", interceptor: opp, comment: `${opp.short} closes it down` };
+          return;
+        }
+      }
       const attackSign = carrier.side === "home" ? -1 : 1;
       const push = 2.2 + rng() * 2.4 + carrier.stats.dribbles90 * 0.35;
       const jink = (rng() < 0.55 ? 1 : -1) * (1.6 + rng() * 2.6);
