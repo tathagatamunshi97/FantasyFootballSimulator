@@ -3401,30 +3401,56 @@
           // exists for, so it silently killed fullback/winger combination play
           // (decideFbWingLink below) whenever it would have mattered most.
           const flankEdge = flankMatchupEdge(carrier.side, pinFlank(carrier));
-          if (
-            (sameFlankPartners(carrier, carrier.role === "FB" ? "W" : "FB").length || spell?.patternHint === "fb_to_w") &&
-            rng() <
-              0.68 +
-                (carrier.role === "FB" ? fbAttackThreat(carrier) * 0.25 : carrier.stats.dribbles90 * 0.06) +
-                Math.max(0, flankEdge) * 0.25
-          ) {
-            if (spell?.patternHint === "fb_to_w") spell.patternHint = null;
-            if (decideFbWingLink(carrier, stage, depth)) return true;
-          }
-          if (carrier.role === "W") {
+          // Engine rebuild Phase 5 — objectives vs methods. The objective
+          // here ("progress down this flank") stays fixed, but the method
+          // was always attempted in the same fixed order (link, then pass,
+          // then dribble, then carry) regardless of what the defence is
+          // doing right now. Every individual method's own odds are
+          // untouched below; only the ORDER they're tried in adapts to real
+          // pressure — under a swarm, reach for the quick simple release
+          // first instead of still looking for the fancy combination.
+          const underPressure = pressureAt(carrier.left, carrier.top, carrier.side) > 0.5;
+          const tryLink = () => {
+            if (
+              (sameFlankPartners(carrier, carrier.role === "FB" ? "W" : "FB").length || spell?.patternHint === "fb_to_w") &&
+              rng() <
+                0.68 +
+                  (carrier.role === "FB" ? fbAttackThreat(carrier) * 0.25 : carrier.stats.dribbles90 * 0.06) +
+                  Math.max(0, flankEdge) * 0.25
+            ) {
+              if (spell?.patternHint === "fb_to_w") spell.patternHint = null;
+              if (decideFbWingLink(carrier, stage, depth)) return true;
+            }
+            return false;
+          };
+          const tryPass = () => {
+            if (carrier.role !== "W") return false;
             const links = linkedOptions(carrier).filter((m) => canPlayForward(carrier, m, stage, depth) || isMidRole(m.role) || m.role === "FB");
             if (links.length && rng() < 0.72) {
               doPass(carrier, links[0], throughBallLegal(carrier, links[0]) ? "through" : "pass");
               return true;
             }
-          }
-          if (rng() < 0.32 + st.dribbles90 * 0.14 + (threat && threat.d < 9 ? 0.12 : 0.05)) {
-            doDribble(carrier);
-            return true;
-          }
-          if (rng() < 0.4 + st.dribbles90 * 0.04) {
-            doCarry(carrier);
-            return true;
+            return false;
+          };
+          const tryDribble = () => {
+            if (rng() < 0.32 + st.dribbles90 * 0.14 + (threat && threat.d < 9 ? 0.12 : 0.05)) {
+              doDribble(carrier);
+              return true;
+            }
+            return false;
+          };
+          const tryCarry = () => {
+            if (rng() < 0.4 + st.dribbles90 * 0.04) {
+              doCarry(carrier);
+              return true;
+            }
+            return false;
+          };
+          const order = underPressure
+            ? [tryCarry, tryDribble, tryPass, tryLink]
+            : [tryLink, tryPass, tryDribble, tryCarry];
+          for (const attempt of order) {
+            if (attempt()) return true;
           }
           if (decideFbWingLink(carrier, stage, depth)) return true;
           const flank = teammates(carrier)
