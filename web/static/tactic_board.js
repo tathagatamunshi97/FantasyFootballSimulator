@@ -363,7 +363,9 @@
       /^3-4-3/.test(f) ||
       /^3-4-2-1/.test(f) ||
       f === "4-2-3-1" ||
-      /^3-4-1-2/.test(f)
+      /^3-4-1-2/.test(f) ||
+      /^4-3-3/.test(f) ||
+      /^4-3-1-2/.test(f)
     );
   }
 
@@ -1356,6 +1358,7 @@
         carrierId = to.id;
         possession = to.side;
         ballAttached = true;
+        to._dribbleStreak = 0;
         if (from && from.side === to.side && from.player) {
           lastPasser = {
             player: from.player,
@@ -2788,7 +2791,10 @@
       carrier._pathCtrl = { left: mid.left, top: mid.top, from: matchMinute, until: matchMinute + 0.55 };
       carrier.tx = pct.left;
       carrier.ty = pct.top;
-      carrier.lockUntil = matchMinute + 1.05;
+      // Was locked/held to +1.05/+0.95 — well past when the run-in (until +0.55)
+      // actually finishes, so the striker stood dead still for a stretch waiting
+      // for the clock before shooting. Trimmed to a brief take-a-touch beat.
+      carrier.lockUntil = matchMinute + 0.75;
       carrier._running = true;
       ballAttached = true;
       setBallTarget(pct.left, pct.top, 0.88, true);
@@ -2802,7 +2808,7 @@
         spell.stage = "CHANCE_CREATION";
         spell.awaitingShot = false;
       }
-      pendingShot = { side: carrier.side, at: matchMinute + 0.95 };
+      pendingShot = { side: carrier.side, at: matchMinute + 0.7 };
       return true;
     }
 
@@ -4077,8 +4083,12 @@
                 if (pin.role === "FB") depth = lerp(depth, midLine + 0.04, 0.45);
                 if (pin.role === "CM") depth = lerp(depth, midLine + 0.06, 0.5);
                 if (pin.role === "AM") {
-                  // Pocket ahead of CMs, behind ST — not on the striker line
-                  const pocketD = amCamStack ? atkLine - 0.02 : midLine + 0.1;
+                  // Pocket ahead of CMs, behind ST — not on the striker line.
+                  // Was atkLine-0.02 for amCamStack (4-3-3 attacking), which the
+                  // clamp below only pulled back to atkLine-0.04 — a ~2-4% depth
+                  // gap from the striker, reading as the same line. Give it the
+                  // same real separation as every other formation.
+                  const pocketD = midLine + 0.1;
                   depth = lerp(depth, clamp(pocketD + bias, midLine + 0.04, atkLine - 0.04), 0.45);
                   const halfOsc = Math.sin(shapePulse * 0.65 + h * 2.8);
                   x = lerp(x, clamp(0.5 + halfOsc * 0.14, 0.32, 0.68), 0.35);
@@ -4117,16 +4127,14 @@
                   const ballSideHalf = relBall.x < 0.5 ? halfL : halfR;
                   const oppHalf = relBall.x < 0.5 ? halfR : halfL;
                   const osc = (Math.sin(shapePulse * 0.85 + h * 3.1) + 1) * 0.5;
-                  if (amCamStack) {
-                    // 4-3-3 attacking: AM stays higher / closer to ST lane intentionally
-                    x = lerp(0.5, lerp(halfL, halfR, osc), 0.45);
-                    depth = clamp(0.74 + bias + osc * 0.04, 0.68, 0.84);
-                  } else {
-                    x = lerp(ballSideHalf, oppHalf, osc * 0.55);
-                    x = lerp(x, clamp(relBall.x + (relBall.x > 0.5 ? -0.08 : 0.08), 0.3, 0.7), 0.25);
-                    // Edge of box / pocket — clearly deeper than ST near/far posts
-                    depth = clamp(0.66 + bias + osc * 0.04, 0.58, 0.74);
-                  }
+                  // Was two branches — amCamStack (4-3-3 attacking) deliberately stacked
+                  // the AM at 0.68-0.84 depth, nearly the same line as ST (which sits
+                  // ~0.8-0.9 here). Use the properly-separated pocket depth for every
+                  // formation instead of just the non-stacked one.
+                  x = lerp(ballSideHalf, oppHalf, osc * 0.55);
+                  x = lerp(x, clamp(relBall.x + (relBall.x > 0.5 ? -0.08 : 0.08), 0.3, 0.7), 0.25);
+                  // Edge of box / pocket — clearly deeper than ST near/far posts
+                  depth = clamp(0.66 + bias + osc * 0.04, 0.58, 0.74);
                   pin._running = true;
                 } else if (pin.role === "CM") {
                   x = lerp(pin.baseX, clamp(0.5 + (pin.baseX - 0.5) * 0.7, 0.28, 0.72), 0.4);
@@ -4179,20 +4187,15 @@
                   const ballSideHalf = relBall.x < 0.5 ? halfL : halfR;
                   const oppHalf = relBall.x < 0.5 ? halfR : halfL;
                   const osc = (Math.sin(shapePulse * 0.95 + h * 2.6) + 1) * 0.5;
-                  if (amCamStack) {
-                    // Stack closer to ST lane for 4-3-3 attacking
-                    const nearPost = relBall.x < 0.5 ? 0.42 : 0.58;
-                    const farPost = relBall.x < 0.5 ? 0.58 : 0.42;
-                    x = lerp(nearPost, farPost, osc);
-                    depth = clamp(0.78 + osc * 0.04, 0.72, 0.88);
-                    pin._running = true;
-                  } else {
-                    x = lerp(ballSideHalf, oppHalf, osc * 0.5);
-                    x = lerp(x, clamp(relBall.x + (relBall.x > 0.5 ? -0.1 : 0.1), 0.28, 0.72), 0.3);
-                    // Pocket / edge of box — under ST, not crashing same posts
-                    depth = clamp(0.68 + bias + osc * 0.05, 0.6, 0.78);
-                    pin._running = true;
-                  }
+                  // Was two branches — amCamStack (4-3-3 attacking) deliberately stacked
+                  // the AM at 0.72-0.88 depth, nearly the same as ST's box-occupation
+                  // depth (~midLine+0.12 to 0.92, often 0.8+). Use the properly-separated
+                  // pocket depth for every formation instead of just the non-stacked one.
+                  x = lerp(ballSideHalf, oppHalf, osc * 0.5);
+                  x = lerp(x, clamp(relBall.x + (relBall.x > 0.5 ? -0.1 : 0.1), 0.28, 0.72), 0.3);
+                  // Pocket / edge of box — under ST, not crashing same posts
+                  depth = clamp(0.68 + bias + osc * 0.05, 0.6, 0.78);
+                  pin._running = true;
                 } else if (pin.role === "W") {
                   // Cutback lane — wide and slightly deeper than the six-yard
                   x = flank === "R" ? 0.9 : flank === "L" ? 0.1 : lerp(pin.baseX, relBall.x, 0.2);
@@ -4317,8 +4320,11 @@
                 }
               }
 
-              // AM/CAM cycles — pocket / half-spaces / late arrive; not ST near/far clones
-              if (pin.role === "AM" && atkStage !== "BUILD_UP" && !amCamStack) {
+              // AM/CAM cycles — pocket / half-spaces / late arrive; not ST near/far clones.
+              // Used to skip this whole block for amCamStack (4-3-3 attacking), leaving
+              // that formation's AM without any pocket-cycling behaviour at all — give
+              // every formation the same richer AM movement.
+              if (pin.role === "AM" && atkStage !== "BUILD_UP") {
                 const offLine = defendingOffsideLine(pin.side);
                 const pocketCap = Math.min(offLine - 0.04, 0.78);
                 const halfL = 0.34;
@@ -4388,7 +4394,9 @@
                       pin._overlapRun = true;
                     } else if (pin.role === "CM" || pin.role === "AM") {
                       x = lerp(x, clamp(relBall.x + (relBall.x > 0.5 ? -0.12 : 0.12), 0.28, 0.72), 0.4);
-                      const amCap = pin.role === "AM" && !amCamStack ? atkLine - 0.08 : atkLine;
+                      // Was atkLine (i.e. no cap at all, same as ST's own line) for
+                      // amCamStack — always keep a real gap behind the striker.
+                      const amCap = pin.role === "AM" ? atkLine - 0.08 : atkLine;
                       depth = lerp(depth, clamp(relBall.depth - 0.02, midLine, amCap), 0.35);
                     } else if (pin.role === "ST") {
                       const offLine = defendingOffsideLine(pin.side);
@@ -4407,13 +4415,11 @@
                       depth = lerp(depth, Math.min(onsideDepth, relBall.depth + 0.08), 0.35);
                       x = lerp(x, clamp(relBall.x + (pin.baseX - 0.5) * 0.25, 0.28, 0.72), 0.3);
                     } else if (pin.role === "AM" && pin.id !== carrierPin.id) {
-                      // Second AM / support: pocket under ball, not ST crash depth
+                      // Second AM / support: pocket under ball, not ST crash depth.
+                      // Was a much shallower gap (0.01 vs 0.06) up to atkLine itself
+                      // for amCamStack — keep the same real separation everywhere.
                       x = lerp(x, clamp(relBall.x + (pin.baseX - 0.5) * 0.2, 0.3, 0.7), 0.35);
-                      depth = lerp(
-                        depth,
-                        clamp(relBall.depth - (amCamStack ? 0.01 : 0.06), midLine, amCamStack ? atkLine : atkLine - 0.06),
-                        0.35
-                      );
+                      depth = lerp(depth, clamp(relBall.depth - 0.06, midLine, atkLine - 0.06), 0.35);
                     } else if (pin.role === "DM" || (pin.role === "CM" && pin.id !== carrierPin.id)) {
                       depth = lerp(depth, clamp(relBall.depth - 0.08, defLine + 0.06, midLine + 0.06), 0.4);
                       x = lerp(x, relBall.x + (pin.baseX - relBall.x) * 0.5, 0.3);
@@ -4428,7 +4434,7 @@
                       pin._running = true;
                     } else if (pin.role === "CM" || pin.role === "AM") {
                       x = lerp(x, clamp(relBall.x + (relBall.x > 0.5 ? -0.1 : 0.1), 0.3, 0.7), 0.38);
-                      const amCap = pin.role === "AM" && !amCamStack ? atkLine - 0.08 : atkLine;
+                      const amCap = pin.role === "AM" ? atkLine - 0.08 : atkLine;
                       depth = lerp(depth, clamp(relBall.depth - 0.01, midLine, amCap), 0.32);
                     } else if (pin.role === "ST") {
                       const offLine = defendingOffsideLine(pin.side);
@@ -4490,7 +4496,12 @@
                 }
               } else if (pin.role === "W" || pin.role === "AM" || (pin.role === "FB" && pin._overlapRun)) {
                 const offLine = defendingOffsideLine(pin.side);
-                if (pin.role === "AM" && !amCamStack) {
+                // This is a final clamp applied after every per-stage depth calc above —
+                // for amCamStack (4-3-3 attacking) it used to fall through to the same
+                // near-offside-line cap as an overlapping FB/winger, silently undoing
+                // the pocket separation those stages had just set. Apply the pocket-side
+                // cap to every formation's AM, not just non-stacked ones.
+                if (pin.role === "AM") {
                   // CAM stays pocket-side of the last line — don't share ST crash depth
                   depth = Math.min(depth, Math.min(0.78, offLine - 0.035));
                 } else if (deepOk || pin._overlapRun) {
@@ -4909,6 +4920,7 @@
       ballAttached = true;
       ballCtrl = null;
       pin._boxDriveDone = false;
+      pin._dribbleStreak = 0;
       if (sideChanged) clearLastPasser();
       setBallTarget(pin.left, pin.top + (pin.side === "home" ? -1.2 : 1.2), 0.32, true);
       if (comment) say(comment);
@@ -5510,6 +5522,10 @@
       const defU = sideDefend(oppOf(carrier.side));
       const closeMul = threat ? clamp(1.25 - threat.d / 11, 0.55, 1.35) : 0.7;
       const packMul = pressPack.length > 1 && pressPack[1].d < 9 ? 1.12 : 1;
+      // Each consecutive dribble against a fresh defender (without releasing the
+      // ball via a pass) gets harder — covering defenders regroup/gang up, so a
+      // run of 3-4 beaten defenders in one carry is rare rather than routine.
+      const streak = carrier._dribbleStreak || 0;
       const successP =
         0.28 +
         carrier.stats.dribbles90 * 0.07 +
@@ -5520,10 +5536,11 @@
         press * 0.03 * closeMul -
         defU * 0.08 -
         (threat ? threat.pin.stats.tackles90 * 0.07 : 0) -
-        (threat ? threat.pin.stats.interceptions90 * 0.02 : 0) +
+        (threat ? threat.pin.stats.interceptions90 * 0.02 : 0) -
+        Math.min(streak, 4) * 0.11 +
         (rng() - 0.5) * 0.08;
 
-      const won = rng() < clamp(successP, 0.16, 0.72);
+      const won = rng() < clamp(successP, 0.1, 0.72);
       const attackSign = carrier.side === "home" ? -1 : 1;
       const ahead = 2.2 + carrier.stats.dribbles90 * 0.55 + rng() * 1.5;
       const jink = (rng() < 0.5 ? 1 : -1) * (2.2 + rng() * 2.8);
@@ -5542,6 +5559,7 @@
       actionTimer = dur + 0.12 + spellIdlePause() * 0.35;
 
       if (won) {
+        carrier._dribbleStreak = streak + 1;
         pushMatchEvent("dribble_won", carrier.side, {
           player: carrier.player,
           player_short: carrier.short,
