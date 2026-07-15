@@ -86,12 +86,18 @@ sustained CM↔RB ping-pong without permanently blacklisting anyone once a
 couple of other players have touched the ball.
 
 ### Problem 5 — Support movement (every player needs an objective)
-**Status: Partial.** `assignSupportRoles` (tagging teammates as
-safe_outlet/progressive/third_man/switch/depth_runner based on real lane and
-marking checks) already existed before this rebuild and was left as-is. What
-changed: wingers now get genuine space-evaluated movement (see Problem 6).
-AM/ST/CM support movement is still the older, formula/stage-driven
-positioning — not rebuilt.
+**Status: Done, after a second round.** `assignSupportRoles` (tagging
+teammates as safe_outlet/progressive/third_man/switch/depth_runner based on
+real lane and marking checks) already existed before this rebuild and was
+left as-is. What's new: a **persistent player intent** system (`ensureIntent`)
+gives W/FB/AM/ST/CM/DM a held behavioral goal — drawn from a small per-role
+menu, weighted by real context, and kept for ~1.0-2.2 match-minutes rather
+than recomputed every tick — wired into every FINAL_THIRD and
+BOX_OCCUPATION/CHANCE_CREATION/FINISH positioning branch for those six roles.
+This was a direct response to a second round of ChatGPT feedback on the
+first rebuild pass, which argued the engine now had "enough tactical
+richness" and what it actually lacked was persistent intent, not more space
+evaluation. See the "Round 2" section below for detail.
 
 ### Problem 6 — No space model (sine-wave positioning)
 **Status: Done for wingers specifically.** Found the critique's exact
@@ -170,9 +176,14 @@ modeled at all** — no orientation/facing property exists anywhere on a
 player pin.
 
 ### Problem 12 — Off-ball intelligence (drag defender, check short, spin behind, occupy weak-side CB, create overload)
-**Status: Not done**, beyond the narrow touchline-vs-half-space choice for
-wingers (Problem 6) and the reception/turnover reaction bursts (Problem 8).
-The richer menu of off-ball actions the critique described doesn't exist.
+**Status: Partial, after Round 2.** The persistent intent system (Problem 5)
+gives six roles a genuine held goal (e.g. ST `pin_last_line`/`drop_short`/
+`far_post`, W `stretch`/`attack_gap`/`underlap`) which covers some of this —
+"drop_short" is a check-to-feet, "underlap" is a version of spinning
+inside/beyond a marker, "pin_last_line" is occupying the shoulder of the
+last defender. Not covered: explicitly *dragging* a specific named defender
+out of position, occupying the *weak-side* CB specifically (intent doesn't
+reason about which opposing defender it's manipulating), or blind-side runs.
 
 ---
 
@@ -181,10 +192,61 @@ The richer menu of off-ball actions the critique described doesn't exist.
 | # | Priority | Status |
 |---|---|---|
 | 1 | Continuous 1v1/2v1 duels replacing random turnover | Done for dribble/carry/pass; not for aerial duels (separate, untouched formula) |
-| 2 | Dynamic off-ball movement engine | Wingers only; AM/ST/CM/FB untouched |
+| 2 | Dynamic off-ball movement engine | Wingers got space evaluation (Round 1); all six outfield attacking roles now also have persistent intent (Round 2). CB/DM/GK untouched (not off-ball-attacking roles in the same sense) |
 | 3 | Coordinated defensive shape | CB pair only; midfield/fullback/winger coordination not built |
 | 4 | Spatial evaluation replacing fixed attack patterns | Only the re-pick *trigger* got real spatial awareness; `pickAttackPattern` itself is still the same weighted-random choice among 5 named patterns |
-| 5 | Objectives vs. execution methods | One pattern (`wing_carry`) only, and only the *order* methods are tried in, not a true per-method scoring system; the other 4 patterns are untouched |
+| 5 | Objectives vs. execution methods | One pattern (`wing_carry`) only, and only the *order* methods are tried in, not a true per-method scoring system; the other 4 patterns are untouched. (Note: this is pattern-level objectives/methods, distinct from the new player-level intent system, which addresses a related but different critique — see Round 2.) |
+
+---
+
+## Round 2 — persistent player intent (in response to a second ChatGPT review)
+
+After Round 1 (Phases 1-5 plus the standalone pressure-field/pass-memory/
+reaction-trigger fixes above), ChatGPT reviewed this same document and
+concluded the engine now had "enough tactical richness" — the bigger gap
+wasn't another tactical system, it was that off-ball movement had no
+**persistent intent**: `_supportRole` and the winger touchline/half-space
+choice were both recomputed fresh every tick, which can flicker between
+near-tied options ("an indecisive player"). The proposed fix: give each
+player a held goal (stretch, receive, attack a gap, drag a marker, support,
+etc.) that lasts a few seconds, with space evaluation serving *how* to
+achieve the intent rather than deciding *whether* to have one.
+
+Built as `ensureIntent(pin, relBall)` — draws from a small, context-weighted
+per-role menu and holds the result for ~1.0-2.2 match-minutes:
+
+| Role | Menu |
+|---|---|
+| W | `stretch`, `attack_gap`, `underlap` |
+| FB | `overlap`, `hold_width`, `tuck_support` |
+| AM | `attack_gap`, `support`, `back_post` |
+| ST | `pin_last_line`, `drop_short`, `far_post` |
+| CM | `support`, `progressive_run`, `hold_width` |
+| DM | `screen`, `support` |
+
+Wired into every FINAL_THIRD and BOX_OCCUPATION/CHANCE_CREATION/FINISH
+positioning branch for all six roles — intent selects the target zone,
+existing space-aware math (`scoreOpenSpace`, the near/far-post oscillation,
+`fbAttackThreat`) still decides how to get there or how far to commit. The
+FB overlap branch's real-time opportunity check (ball central + CM on it +
+same flank) is preserved as a gate on top of intent, not replaced by it.
+The standalone winger `_wPrefHalf` hysteresis (a narrower, role-specific
+version of the same idea, added in Round 1) was removed and replaced by this
+general mechanism, so there's one persistent-decision layer, not two.
+
+Verified the same way as Round 1: brace/paren/bracket balance after each of
+three edit passes (infrastructure, FINAL_THIRD, BOX_OCCUPATION), and a live
+local match watched via the Browser tool (~11,000 ticks/22 simulated
+minutes) with no console errors.
+
+**Honest limits:** the menus are hand-picked and reasonably small (2-3 per
+role), not the full 8-item off-ball menu from the original critique (check
+short/spin behind/drag CB/occupy weak-side CB/blind-side run/late arrival
+are only partially represented). Intent doesn't reason about *which specific
+opposing player* it affects (e.g. no explicit "drag *that* CB out"). CB/DM/GK
+don't have attacking intent (arguably correct — those aren't off-ball
+attacking-movement roles in the same sense — but it means Problem 12 is
+still only partially closed.
 
 ---
 
@@ -192,8 +254,8 @@ The richer menu of off-ball actions the critique described doesn't exist.
 
 - A full continuous multi-agent simulation replacing the decide→animate
   loop. The engine is still fundamentally "ball carrier decides, then
-  animates," with the reaction-burst functions (Problem 8) as a bounded
-  patch on top, not a replacement.
+  animates," with the reaction-burst functions (Problem 8) and the intent
+  system (Problem 5/12) as bounded patches on top, not a replacement.
 - Anticipation/pre-pass defender movement (Problem 7).
 - Animation/physics synchronization as a general principle (Problem 9).
 - Aerial duel modeling with the pressure field (still its own separate,
@@ -203,6 +265,9 @@ The richer menu of off-ball actions the critique described doesn't exist.
 - Player orientation/facing/first-touch direction (Problem 11) — this would
   require adding a new property to the player data model, not just a new
   formula.
+- Explicit "drag a named defender" / weak-side-CB-targeting logic within
+  intent — intent selects a zone/behavior, not a specific opposing player
+  to manipulate.
 
 ---
 
@@ -220,6 +285,8 @@ dff810e Engine rebuild Phase 1: continuous pressure field replaces static press/
 d1e7186 Engine rebuild: factor real shot pressure into save probability
 4d87699 Engine rebuild: simultaneous off-ball reactions on advanced pass reception
 cfb9ff5 Engine rebuild: simultaneous reactions when the ball is won back (turnover)
+1e0c60f Document the engine rebuild against the original critique, for ChatGPT review
+5c7d099 Engine rebuild Phase 6: persistent player intent, full build and integration
 ```
 
 Each commit message contains the specific before/after reasoning and the
