@@ -1349,6 +1349,7 @@
           archiveSpell(flight.outcome === "steal" ? "press" : "intercept");
           spell = null;
           giveBall(def, flight.comment || `${def.short} intercepts`);
+          triggerTurnoverReactions(def);
           actionTimer = 0.4 + spellIdlePause() * 0.45;
         }
         return;
@@ -1412,7 +1413,10 @@
         clearLastPasser();
         archiveSpell("dribble_lost");
         spell = null;
-        if (opp) giveBall(opp, flight.comment || `${opp.short} wins it`);
+        if (opp) {
+          giveBall(opp, flight.comment || `${opp.short} wins it`);
+          triggerTurnoverReactions(opp);
+        }
         actionTimer = 0.4;
         return;
       }
@@ -3985,6 +3989,50 @@
         fb._running = true;
         fb._overlapRun = true;
         fb.lockUntil = matchMinute + 0.55;
+      }
+    }
+
+    /**
+     * Engine rebuild — parallel/simultaneous reactions, turnover edition.
+     * The moment the ball is won back (interception/steal/dribble lost),
+     * both sides should react in that same instant: the side that just won
+     * it gets an immediate counter-attacking push, and the nearest opponent
+     * to the new carrier reacts by pressing right away, rather than each
+     * only converging gradually over the following shape ticks.
+     */
+    function triggerTurnoverReactions(winner) {
+      if (!winner || winner.role === "GK") return;
+      const attackSign = winner.side === "home" ? -1 : 1;
+      const mates = teammates(winner).filter((m) => m.role !== "GK");
+
+      const runners = mates
+        .filter(
+          (m) =>
+            (m.role === "ST" || m.role === "W" || m.role === "AM" || m.role === "CM") &&
+            !m._running &&
+            (m.lockUntil || 0) <= matchMinute
+        )
+        .sort((a, b) => dist(winner, a) - dist(winner, b))
+        .slice(0, 2);
+      for (const runner of runners) {
+        const nx = clamp(runner.left + (rng() - 0.5) * 10, 6, 94);
+        const ny = clamp(runner.top + attackSign * (6 + rng() * 4), 5, 95);
+        const midX = clamp((runner.left + nx) / 2, 6, 94);
+        const midY = clamp(runner.top + attackSign * 3, 5, 95);
+        runner._pathCtrl = { left: midX, top: midY, from: matchMinute, until: matchMinute + 0.6 };
+        runner.tx = nx;
+        runner.ty = ny;
+        runner._running = true;
+        runner.lockUntil = matchMinute + 0.55;
+      }
+
+      // The side that just lost it reacts immediately too - the nearest
+      // opponent to the new carrier presses right away instead of only
+      // converging over the following ticks.
+      const opp = nearestOpponent(winner, 14);
+      if (opp && opp.pin.role !== "GK") {
+        opp.pin._pressing = true;
+        opp.pin.lockUntil = Math.max(opp.pin.lockUntil || 0, matchMinute + 0.35);
       }
     }
 
