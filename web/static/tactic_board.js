@@ -1368,6 +1368,15 @@
         possession = to.side;
         ballAttached = true;
         to._dribbleStreak = 0;
+        // Engine rebuild — pass memory. Record who's received the ball
+        // recently in this spell so scorePassingOption can penalize giving
+        // it straight back, instead of the same CM<->RB exchange scoring as
+        // the "best" option forever regardless of context.
+        if (spell && spell.side === to.side) {
+          spell.lastReceivers = spell.lastReceivers || [];
+          spell.lastReceivers.push(to.id);
+          if (spell.lastReceivers.length > 4) spell.lastReceivers.shift();
+        }
         if (from && from.side === to.side && from.player) {
           lastPasser = {
             player: from.player,
@@ -2520,6 +2529,21 @@
       if (mate.id === favoredId && mate.favorUntil > matchMinute && nLane < 2) score += 0.7;
 
       if (mate._running && nLane === 0) score += 0.35 + (late ? 0.55 : 0);
+
+      // Engine rebuild — pass memory (Problem 4: repetitive passing). A
+      // decision with no memory of who just had the ball scores the same
+      // CM<->RB exchange as "best" forever. Penalize passing straight back
+      // to someone who's touched it recently in this spell, decaying with
+      // how long ago — discourages instant ping-pong without permanently
+      // blacklisting anyone once a couple of other players have touched it.
+      if (spell?.lastReceivers?.length) {
+        const idx = spell.lastReceivers.lastIndexOf(mate.id);
+        if (idx >= 0) {
+          const recency = spell.lastReceivers.length - idx; // 1 = had it last
+          score -= Math.max(0, 2.4 - (recency - 1) * 0.9);
+        }
+      }
+
       score += rng() * 0.28;
       return score;
     }
