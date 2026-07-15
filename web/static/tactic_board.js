@@ -6044,9 +6044,14 @@
         // Was mislabeled: this used to route every non-scoring shot to the keeper
         // ("save") or wide, with no distinct "blocked by an outfield defender"
         // outcome at all — a real, sizeable share of shots never reach the keeper.
+        // Engine rebuild — blockP had zero positional signal at all: a shot
+        // could get "blocked" with no defender anywhere near it. A block
+        // requires someone genuinely in the lane, so gate/scale it on real
+        // pressure at the shooter (pressureAt) instead of team quality alone.
+        const shotPressure = pressureAt(carrier.left, carrier.top, carrier.side);
         const blockP =
-          0.28 + def * 0.22 - atk * 0.08 - carrier.stats.xg90 * 0.06 + (boxed ? 0 : 0.1) + (rng() - 0.5) * 0.08;
-        if (rng() < clamp(blockP, 0.18, 0.5)) {
+          0.1 + def * 0.18 - atk * 0.06 - carrier.stats.xg90 * 0.05 + (boxed ? 0 : 0.06) + shotPressure * 0.16 + (rng() - 0.5) * 0.06;
+        if (rng() < clamp(blockP, 0.03, shotPressure > 0.3 ? 0.55 : 0.22)) {
           const blocker =
             nearestOpponent(carrier, 9)?.pin ||
             pinsOf(oppOf(carrier.side)).find((p) => p.role === "CB") ||
