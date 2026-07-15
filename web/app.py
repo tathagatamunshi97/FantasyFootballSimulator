@@ -1489,6 +1489,23 @@ def override_match_result_api(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
+@app.post("/api/tournament/{tournament_id}/matches/{match_id}/reset")
+def reset_match_result_api(
+    tournament_id: str,
+    match_id: str,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Admin: un-play a match (removes its result, reverses table/bracket
+    contribution and player tallies) so it can be re-recorded from scratch."""
+    _check_admin(x_admin_token)
+    try:
+        return tournament.reset_match_result(tournament_id, match_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
 @app.patch("/api/tournament/{tournament_id}/status")
 def patch_tournament_status_api(
     tournament_id: str,

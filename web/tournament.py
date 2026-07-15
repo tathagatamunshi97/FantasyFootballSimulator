@@ -2191,6 +2191,78 @@ def override_match_result(
     }
 
 
+def reset_match_result(tournament_id: str, match_id: str) -> dict[str, Any]:
+    """Admin: un-play a match so it can be re-run/re-recorded from scratch.
+
+    Removes the stored result, reverses its group-table contribution (or
+    knockout advancement), and refreshes player goal/assist tallies so the
+    removed match no longer counts anywhere. Mirrors override_match_result's
+    safety checks (can't touch a group match once the bracket exists; can't
+    touch a knockout tie a later round has already consumed).
+    """
+    t = load_tournament(tournament_id)
+    if not t:
+        raise KeyError("Tournament not found")
+    found = _find_fixture(t, match_id)
+    if not found:
+        raise KeyError(f"Fixture '{match_id}' not found")
+    stage_key, fx = found
+    if not fx.get("played"):
+        raise ValueError(f"Match {match_id} has not been played yet")
+
+    is_knockout = stage_key == "knockout"
+    if not is_knockout and (t.get("knockout") or {}).get("rounds"):
+        raise ValueError(
+            "Cannot reset a group result after the knockout bracket is generated"
+        )
+    if is_knockout and _knockout_downstream_played(t, match_id):
+        raise ValueError(
+            f"Cannot reset {match_id}: a later knockout match that depends on it "
+            "has already been played"
+        )
+
+    result_id = fx.get("result_id") or match_id
+    (t.get("match_results") or {}).pop(result_id, None)
+
+    fx["played"] = False
+    fx["result_id"] = None
+    fx["score"] = None
+    fx["winner"] = None
+    fx.pop("decided_by", None)
+    fx.pop("experiment_id", None)
+
+    if is_knockout:
+        for rnd in t["knockout"]["rounds"]:
+            for nxt in rnd.get("ties", []):
+                feeds = nxt.get("feeds") or []
+                if match_id not in feeds:
+                    continue
+                idx = feeds.index(match_id)
+                if idx == 0:
+                    nxt["home"] = None
+                else:
+                    nxt["away"] = None
+        all_done = all(
+            t2.get("played")
+            for rnd in t["knockout"]["rounds"]
+            for t2 in rnd.get("ties", [])
+            if t2.get("home") and t2.get("away")
+        )
+        t["status"] = "complete" if all_done else "knockout"
+    else:
+        _recompute_group_table(t, stage_key)
+        if t.get("status") == "complete":
+            t["status"] = "group_stage"
+
+    _refresh_player_tallies(t)
+    save_tournament(t)
+    return {
+        "tournament": tournament_for_api(t),
+        "match": fx,
+        "stage": stage_key,
+    }
+
+
 def set_status(tournament_id: str, status: str) -> dict[str, Any]:
     allowed = {"draft", "group_draw", "group_stage", "knockout", "complete"}
     if status not in allowed:

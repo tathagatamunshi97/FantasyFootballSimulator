@@ -970,6 +970,7 @@ function clearMatchForm() {
   document.getElementById("mrAwayGoals").value = "0";
   document.getElementById("mrEvents").innerHTML = "";
   updateScore();
+  updateResetRow();
 }
 
 function getFormData() {
@@ -1043,15 +1044,48 @@ async function recordMatch() {
   }
 }
 
+function updateResetRow() {
+  const matchId = document.getElementById("mrMatch").value;
+  const match = mrMatchIndex[matchId];
+  document.getElementById("mrResetRow").style.display = match && match.played ? "" : "none";
+}
+
+async function resetMatchToUnplayed() {
+  const tourneyId = document.getElementById("mrTournament").value;
+  const matchId = document.getElementById("mrMatch").value;
+  const match = mrMatchIndex[matchId];
+  if (!tourneyId || !matchId || !match) {
+    mrLog("Select a tournament and match first.");
+    return;
+  }
+  if (!confirm(`Reset ${match.home} vs ${match.away} back to unplayed? This removes its result, reverses the table/bracket, and clears its scorers/assisters.`)) {
+    return;
+  }
+  const btn = document.getElementById("mrResetBtn");
+  btn.disabled = true;
+  try {
+    await adminApi(`/api/tournament/${tourneyId}/matches/${matchId}/reset`, { method: "POST" });
+    mrLog(`✓ Reset ${match.home} vs ${match.away} to unplayed.`);
+    clearMatchForm();
+    await loadMatches(tourneyId);
+  } catch (e) {
+    mrLog(`Error: ${e.message}`);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 // Event listeners for match recording
 document.getElementById("mrTournament").addEventListener("change", (e) => loadMatches(e.target.value));
 document.getElementById("mrMatch").addEventListener("change", () => {
   document.getElementById("mrEvents").innerHTML = "";
   updateWinnerRow();
+  updateResetRow();
 });
 document.getElementById("mrAddEventBtn").addEventListener("click", () => addEventRow());
 document.getElementById("mrRecordBtn").addEventListener("click", recordMatch);
 document.getElementById("mrClearBtn").addEventListener("click", clearMatchForm);
+document.getElementById("mrResetBtn").addEventListener("click", resetMatchToUnplayed);
 document.getElementById("mrHomeGoals").addEventListener("change", updateScore);
 document.getElementById("mrAwayGoals").addEventListener("change", updateScore);
 
