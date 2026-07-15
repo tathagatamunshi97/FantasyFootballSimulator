@@ -66,14 +66,19 @@
       LW: [0.14, 0.56],
     },
     "4-3-3 attacking": {
+      // DM/CM/AM used to all sit at x=0.5 — a dead vertical stack rather than
+      // a midfield sharing the width. DM anchors central; CM and AM take
+      // opposite half-spaces at their own depths, like a real 3-man midfield.
+      // Kept inside the |x-0.5| < 0.08 band (flankOfPin's "C" range) so they
+      // stay classified as central rather than being read as flank players.
       GK: [0.5, 0.05],
       RB: [0.86, 0.2],
       CB1: [0.62, 0.18],
       CB2: [0.38, 0.18],
       LB: [0.14, 0.2],
       DM: [0.5, 0.3],
-      CM: [0.5, 0.4],
-      AM: [0.5, 0.5],
+      CM: [0.44, 0.4],
+      AM: [0.56, 0.5],
       RW: [0.86, 0.58],
       ST: [0.5, 0.64],
       LW: [0.14, 0.58],
@@ -2137,13 +2142,21 @@
       const ad = attackDefendDelta(side);
       const pressD = pressOnBallDelta(side);
       const hold = possessionHoldDelta(side);
-      let effective = n;
+      // Actions pile up far faster than a spell's own nominal duration (roughly
+      // one action every ~0.175 match-minutes), so urgency was saturating
+      // within the first ~1.5 minutes of an 8-9 minute spell and sitting
+      // pinned at max for the rest of it — a rushed sprint to a shot instead
+      // of a patient buildup. Slow just the action-count component; the
+      // tactical signals below (strong attack vs weak defence, heavy press)
+      // still apply at full strength since those are genuine hurry-up cues.
+      const nSlow = n * 0.35;
+      let effective = nSlow;
       // Strong attack vs weak defence → urgency earlier
       if (ad > 0.1) effective += 1.15 + ad * 2.8;
       else if (ad < -0.08) {
         // Weak attack vs strong defence → patient through actions 1–4, then catch up
-        if (n <= 4) effective = n * (0.45 + Math.max(0, 0.12 + ad));
-        else effective = 2.0 + (n - 4) * (1.05 + Math.min(0.25, -ad * 0.4));
+        if (nSlow <= 4) effective = nSlow * (0.45 + Math.max(0, 0.12 + ad));
+        else effective = 2.0 + (nSlow - 4) * (1.05 + Math.min(0.25, -ad * 0.4));
       }
       // High press vs weak resist → hurry decisions
       if (pressD > 0.08) effective += pressD * 3.1;
@@ -4738,6 +4751,18 @@
                 }
               }
 
+              // Wingers/CAM sat out of any defensive duty entirely — fine to
+              // not track back into their own box, but they shouldn't just
+              // stay pinned upfield either while their side defends. Nudge
+              // them back toward at least the halfway line under real
+              // pressure, well short of the CB/FB/DM low-block retreat above.
+              if (threat > 0.12 && (pin.role === "W" || pin.role === "AM")) {
+                const wingRetreatCap = midLine + 0.05;
+                if (depth < wingRetreatCap) {
+                  depth = lerp(depth, wingRetreatCap, 0.14 + threat * 0.2);
+                }
+              }
+
               // Final central channel clamp for designated cover shapes
               if (centralMidCover && isScreenMid) {
                 const hard =
@@ -5711,10 +5736,12 @@
       const drought = matchMinute - lastGoalMinute;
       const droughtBoost = drought > 28 ? 0.05 : drought > 18 ? 0.025 : 0;
       const totalGoals = homeScore + awayScore;
-      // Blowout rubber-band was too soft (only kicked in at 4+ combined goals,
-      // and only to 0.7x) — matches were still finishing 5-7, 5-3 etc. Start
-      // dampening earlier and harder as the combined total climbs.
-      const fatigue = totalGoals >= 6 ? 0.4 : totalGoals >= 4 ? 0.6 : totalGoals >= 3 ? 0.8 : 1;
+      // Reverted the harsher blowout rubber-band from earlier — dampening
+      // conversion by total goals scored punishes a genuinely elite finisher
+      // for their team's *other* goals, regardless of their own numbers. The
+      // right lever against blowouts is upstream (fewer/harder big chances
+      // via spellChanceP/boxOccupationReady/progressionUrgency), not this.
+      const fatigue = totalGoals >= 5 ? 0.55 : totalGoals >= 4 ? 0.7 : 1;
       const boxed = inPenaltyBox(carrier);
       const box = boxed ? 0.1 : nearPenaltyBox(carrier) ? 0.03 : -0.04;
       const skillGap = atk - def;
@@ -5755,15 +5782,15 @@
         fatigue *
         form;
       // Floors drop on cold days; ceilings rise with finisher quality for ST/W/AM.
-      // The raw p above routinely overshot these ceilings for any competent
-      // finisher (elite ST box shots were landing near 0.6-0.7+ *every* time,
-      // not just on a good day), so the "ceiling" was really acting as the
-      // typical rate rather than a rare high-end case. Pulled in ~20%.
+      // Reverted the ceiling cut from earlier — capping how well elite
+      // finishers convert is the wrong lever (it suppresses a genuinely good
+      // Neymar/Messi-calibre finisher's numbers directly). The fix belongs
+      // upstream, in how rarely a big/quality chance gets created at all.
       const lo = boxed ? (form < 0.7 ? 0.012 : 0.04) : form < 0.7 ? 0.006 : 0.015;
       const hiElite = roleFin ? clamp((fq - 0.38) * 0.42, 0, 0.24) : 0;
       const hi = boxed
-        ? clamp((0.32 + hiElite) * Math.min(form, 1.55), 0.26, roleFin ? 0.58 : 0.46)
-        : clamp((0.12 + hiElite * 0.4) * Math.min(form, 1.55), 0.09, roleFin ? 0.28 : 0.22);
+        ? clamp((0.4 + hiElite) * Math.min(form, 1.55), 0.32, roleFin ? 0.72 : 0.58)
+        : clamp((0.15 + hiElite * 0.4) * Math.min(form, 1.55), 0.11, roleFin ? 0.34 : 0.26);
       return rng() < clamp(p, lo, hi);
     }
 
