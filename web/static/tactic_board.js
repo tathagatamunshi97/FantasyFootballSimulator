@@ -5514,12 +5514,16 @@
       const passWasOffside = passKind !== "clear" && wouldPassBeOffside(from, to, to.left, to.top);
       const threat = nearestOpponent(to, 12);
       const pressers = nearestOpponents(from, 10, 2);
-      const press = sidePress(oppOf(from.side));
       const resist = sideResist(from.side);
-      const edge = press - resist;
       const atkU = sideAttack(from.side);
       const defU = sideDefend(oppOf(from.side));
       const possQ = sidePoss(from.side);
+      // Engine rebuild — real pressure on the passer instead of the static
+      // team press/resist scalar pair, consistent with Phase 1 (doDribble/
+      // doCarry) and Phase 4 (pattern re-picks). A passer genuinely swarmed
+      // by nearby opponents should be more likely to lose it regardless of
+      // the team's overall pressing rating.
+      const fieldPressure = pressureAt(from.left, from.top, from.side);
 
       let outcome = "pass";
       let interceptor = null;
@@ -5527,7 +5531,6 @@
 
       if (threat && !(replayScore && nextScheduledGoal(possession, matchMinute))) {
         const def = threat.pin;
-        const closePress = pressers[0] ? clamp(1.2 - pressers[0].d / 11, 0.4, 1.25) : 0.55;
         const longPen = passKind === "long" || isLongSkip(from, to) ? 0.2 : 0;
         const laneN = defendersInLane(from, to);
         const lanePen = laneN * 0.055;
@@ -5535,10 +5538,9 @@
           0.035 +
           def.stats.interceptions90 * 0.05 +
           def.stats.tackles90 * 0.03 +
-          Math.min(0.08, Math.max(0, edge) * 0.1) * closePress +
-          press * 0.025 * closePress +
+          Math.min(0.1, Math.max(0, fieldPressure - resist * 1.4) * 0.09) +
           defU * 0.07 -
-          resist * 0.09 -
+          resist * 0.05 -
           possQ * 0.055 -
           atkU * 0.04 -
           from.stats.pass_pct * 0.0015 -
@@ -5559,19 +5561,12 @@
           });
         }
       }
-      if (
-        outcome === "pass" &&
-        pressers[0] &&
-        pressers[0].d < 5.2 + Math.max(0, edge) * 2.5 &&
-        passKind !== "clear"
-      ) {
+      if (outcome === "pass" && pressers[0] && fieldPressure > 0.3 && passKind !== "clear") {
         const p = pressers[0].pin;
         const stealP =
           0.028 +
-          Math.max(0, edge) * 0.09 +
-          press * 0.025 +
+          Math.max(0, fieldPressure - resist * 1.2) * 0.11 +
           p.stats.tackles90 * 0.035 -
-          resist * 0.07 -
           from.stats.dribble_pct * 0.0012;
         if (rng() < clamp(stealP, 0.015, 0.22)) {
           outcome = "steal";
