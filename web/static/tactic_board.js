@@ -6010,6 +6010,12 @@
         const saveScale = clamp(1.05 - (form - 1) * 0.55, 0.52, 1.7);
         const roleFin = isAttackFinisher(carrier);
         const fq = finisherQuality(carrier);
+        // Engine rebuild — a shot hit under real pressure (someone closing
+        // the shooter down as they strike) is more likely scuffed/rushed and
+        // therefore easier to save, not just a function of team/keeper
+        // quality. Modest weight since a good finisher can still finish
+        // well under pressure.
+        const shotPressure = pressureAt(carrier.left, carrier.top, carrier.side);
         const saveP =
           (0.1 +
             def * 0.22 -
@@ -6019,6 +6025,7 @@
             (roleFin ? fq * 0.06 : 0) +
             (boxed ? 0 : 0.12) +
             gk * 0.14 +
+            shotPressure * 0.06 +
             (rng() - 0.5) * 0.06) *
           saveScale;
         if (rng() < clamp(saveP, 0.04, roleFin && boxed && fq >= 0.7 ? 0.42 : 0.55)) willScore = false;
