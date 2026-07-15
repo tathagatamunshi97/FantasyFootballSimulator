@@ -681,8 +681,11 @@
     // Softer blends — player + unit, compressed so favorites win more often but don't steamroll
     const attackHome = clamp(teamAttackPower(homePins) * 0.55 + unitAtkHome * 0.45, 0.25, 0.82);
     const attackAway = clamp(teamAttackPower(awayPins) * 0.55 + unitAtkAway * 0.45, 0.25, 0.82);
-    const defendHome = clamp(teamDefendPower(homePins) * 0.55 + unitDefHome * 0.4 + pressHome * 0.08, 0.25, 0.82);
-    const defendAway = clamp(teamDefendPower(awayPins) * 0.55 + unitDefAway * 0.4 + pressAway * 0.08, 0.25, 0.82);
+    // +6% flat buff — attacking was overpowering defence across the board
+    // (chance creation, dribbles/carries, shot conversion all read off this),
+    // so raise the one number that feeds every defensive term at once.
+    const defendHome = clamp((teamDefendPower(homePins) * 0.55 + unitDefHome * 0.4 + pressHome * 0.08) * 1.06, 0.25, 0.87);
+    const defendAway = clamp((teamDefendPower(awayPins) * 0.55 + unitDefAway * 0.4 + pressAway * 0.08) * 1.06, 0.25, 0.87);
     // Create floor: weak sides still manufacture chances vs strong defences
     const createHome = clamp(teamCreationPower(homePins) * 0.55 + unitCreateHome * 0.45, 0.42, 0.9);
     const createAway = clamp(teamCreationPower(awayPins) * 0.55 + unitCreateAway * 0.45, 0.42, 0.9);
