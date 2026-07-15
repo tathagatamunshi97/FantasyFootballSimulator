@@ -174,9 +174,10 @@
   const DEFAULT_LAYOUT = FORMATION_LAYOUTS["4-3-3 flat"];
   /**
    * Sim-seconds for a full 90' at 1× speed.
-   * Default board speed is 0.5× → wall-clock ≈ 2 × MATCH_WATCH_SECONDS ≈ 8 minutes.
+   * Default board speed is 0.5× → wall-clock ≈ 2 × MATCH_WATCH_SECONDS ≈ 6 minutes
+   * (two 3-minute halves).
    */
-  const MATCH_WATCH_SECONDS = 240;
+  const MATCH_WATCH_SECONDS = 180;
 
   /** Role stagger within a team block (offsets from defence / mid / attack line depths). */
   const LINE_ROLE = {
