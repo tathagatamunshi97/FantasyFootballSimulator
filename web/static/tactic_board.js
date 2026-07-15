@@ -1896,17 +1896,28 @@
       if (urg >= 1.05 && boxed >= 1) return true;
       if (urg >= 1.2 && arriving >= 1 && ad > 0.08) return true;
       if (ad > 0.18 && boxed >= 1) return true;
-      // Focal #9 / elite finisher alone in the box — don't starve big chances
+      // Focal #9 / elite finisher alone in the box — but only when genuinely
+      // unmarked. This was firing for any elite forward merely standing in
+      // the box at modest urgency regardless of whether a defender was right
+      // there marking him, so defensive coverage got no credit at all.
+      // Tightened thresholds and require the nearest defender not be tight.
       if (boxed >= 1) {
         const finishers = pinsOf(side).filter(
-          (p) => isAttackFinisher(p) && inPenaltyBox(p) && finisherQuality(p) >= 0.55
+          (p) =>
+            isAttackFinisher(p) &&
+            inPenaltyBox(p) &&
+            finisherQuality(p) >= 0.55 &&
+            (nearestOpponent(p, 6)?.d ?? 99) >= 4.5
         );
         if (finishers.length) {
           const elite = finishers.some((p) => finisherQuality(p) >= 0.72 || p.role === "ST");
-          if (elite && (urg >= 0.55 || ad > 0.05 || arriving >= 1 || finishers.some((p) => p.role === "ST" && finisherQuality(p) >= 0.65))) {
+          if (
+            elite &&
+            (urg >= 0.75 || ad > 0.1 || (arriving >= 1 && ad > 0.02) || finishers.some((p) => p.role === "ST" && finisherQuality(p) >= 0.72))
+          ) {
             return true;
           }
-          if (finishers.some((p) => p.role === "ST" && finisherQuality(p) >= 0.78)) return true;
+          if (finishers.some((p) => p.role === "ST" && finisherQuality(p) >= 0.84)) return true;
         }
       }
       return false;
@@ -4961,12 +4972,15 @@
       const def = sideDefend(oppOf(side));
       const vol = possChanceVolumeMul(side);
       const supp = possessionSuppressionMul(side);
-      // High floor: underdogs still fire often; possession control soft-scales volume;
-      // attack weight raised so ~0.59 attack isn't ignored when creation is mediocre.
+      // Floor/base pulled down — every possession firing a shot attempt 52-92%
+      // of the time meant defence never got credit for just containing a spell
+      // without it escalating into a chance. Underdogs still fire reasonably
+      // often; possession control soft-scales volume; attack weight kept
+      // relative to creation so a strong attack isn't ignored either.
       return clamp(
-        (0.56 + create * 0.26 + atk * 0.2 - def * 0.02 + (rng() - 0.5) * 0.05) * vol * lerp(1, supp, 0.45),
-        0.52,
-        0.92
+        (0.42 + create * 0.24 + atk * 0.18 - def * 0.03 + (rng() - 0.5) * 0.05) * vol * lerp(1, supp, 0.45),
+        0.32,
+        0.72
       );
     }
 
@@ -5697,7 +5711,10 @@
       const drought = matchMinute - lastGoalMinute;
       const droughtBoost = drought > 28 ? 0.05 : drought > 18 ? 0.025 : 0;
       const totalGoals = homeScore + awayScore;
-      const fatigue = totalGoals >= 5 ? 0.55 : totalGoals >= 4 ? 0.7 : 1;
+      // Blowout rubber-band was too soft (only kicked in at 4+ combined goals,
+      // and only to 0.7x) — matches were still finishing 5-7, 5-3 etc. Start
+      // dampening earlier and harder as the combined total climbs.
+      const fatigue = totalGoals >= 6 ? 0.4 : totalGoals >= 4 ? 0.6 : totalGoals >= 3 ? 0.8 : 1;
       const boxed = inPenaltyBox(carrier);
       const box = boxed ? 0.1 : nearPenaltyBox(carrier) ? 0.03 : -0.04;
       const skillGap = atk - def;
@@ -5738,11 +5755,15 @@
         fatigue *
         form;
       // Floors drop on cold days; ceilings rise with finisher quality for ST/W/AM.
+      // The raw p above routinely overshot these ceilings for any competent
+      // finisher (elite ST box shots were landing near 0.6-0.7+ *every* time,
+      // not just on a good day), so the "ceiling" was really acting as the
+      // typical rate rather than a rare high-end case. Pulled in ~20%.
       const lo = boxed ? (form < 0.7 ? 0.012 : 0.04) : form < 0.7 ? 0.006 : 0.015;
       const hiElite = roleFin ? clamp((fq - 0.38) * 0.42, 0, 0.24) : 0;
       const hi = boxed
-        ? clamp((0.4 + hiElite) * Math.min(form, 1.55), 0.32, roleFin ? 0.72 : 0.58)
-        : clamp((0.15 + hiElite * 0.4) * Math.min(form, 1.55), 0.11, roleFin ? 0.34 : 0.26);
+        ? clamp((0.32 + hiElite) * Math.min(form, 1.55), 0.26, roleFin ? 0.58 : 0.46)
+        : clamp((0.12 + hiElite * 0.4) * Math.min(form, 1.55), 0.09, roleFin ? 0.28 : 0.22);
       return rng() < clamp(p, lo, hi);
     }
 
