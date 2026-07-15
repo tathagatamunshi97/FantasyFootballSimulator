@@ -1622,6 +1622,30 @@
       return opp.slice(0, n ?? 2);
     }
 
+    /**
+     * Engine rebuild Phase 1 — continuous pressure field. Real defensive heat
+     * at a pitch position, summed from every nearby opponent's actual
+     * position (not a per-team constant), so a covering second defender who
+     * isn't the single nearest one still counts. This is what a genuine
+     * 1v1/2v1 duel should be contested against instead of a static
+     * team-wide press/resist scalar computed once at kickoff.
+     */
+    const PRESSURE_RADIUS = 10;
+    function pressureAt(x, y, side) {
+      const opponents = pinsOf(oppOf(side));
+      let total = 0;
+      for (const opp of opponents) {
+        if (opp.role === "GK") continue;
+        const d = dist({ left: x, top: y }, opp);
+        if (d >= PRESSURE_RADIUS) continue;
+        const proximity = 1 - d / PRESSURE_RADIUS;
+        const closing = opp._pressing || opp._running ? 1.2 : 1;
+        const quality = 0.4 + (opp.stats.tackles90 || 0) * 0.08 + (opp.stats.interceptions90 || 0) * 0.04;
+        total += proximity * proximity * closing * quality;
+      }
+      return total;
+    }
+
     function teammates(pin) {
       return pinsOf(pin.side).filter((p) => p.id !== pin.id && p.role !== "GK");
     }
@@ -5571,14 +5595,15 @@
     function doDribble(carrier) {
       if (ballFlight) return;
       const threat = nearestOpponent(carrier, 12);
-      const pressPack = nearestOpponents(carrier, 10, 2);
       const resist = sideResist(carrier.side);
-      const press = sidePress(oppOf(carrier.side));
-      const edge = press - resist;
       const atkU = sideAttack(carrier.side);
       const defU = sideDefend(oppOf(carrier.side));
-      const closeMul = threat ? clamp(1.25 - threat.d / 11, 0.55, 1.35) : 0.7;
-      const packMul = pressPack.length > 1 && pressPack[1].d < 9 ? 1.12 : 1;
+      // Engine rebuild Phase 1 — real positional pressure instead of the
+      // static team press/resist scalar. A covering second defender who
+      // isn't the single nearest one now measurably raises the difficulty
+      // (genuine 2v1), and a press-resistant team blunts local heat rather
+      // than team-wide press that has nothing to do with this exact duel.
+      const fieldPressure = pressureAt(carrier.left, carrier.top, carrier.side);
       // Each consecutive dribble against a fresh defender (without releasing the
       // ball via a pass) gets harder — covering defenders regroup/gang up, so a
       // run of 3-4 beaten defenders in one carry is rare rather than routine.
@@ -5589,8 +5614,7 @@
         carrier.stats.dribble_pct * 0.0035 +
         resist * 0.16 +
         atkU * 0.06 -
-        Math.max(0, edge) * 0.12 * closeMul * packMul -
-        press * 0.03 * closeMul -
+        Math.max(0, fieldPressure - resist * 1.6) * 0.16 -
         defU * 0.08 -
         (threat ? threat.pin.stats.tackles90 * 0.07 : 0) -
         (threat ? threat.pin.stats.interceptions90 * 0.02 : 0) -
@@ -5655,20 +5679,28 @@
       // separate dice roll. Give a nearby defender a real, if modest, chance
       // to close a carry down instead of always standing there doing nothing.
       const threat = nearestOpponent(carrier, 9);
-      if (threat && threat.d < 8.5) {
+      // Engine rebuild Phase 1 — also gate on the real pressure field, not
+      // just the single nearest defender, so a converging 2v1 (neither
+      // defender alone inside the old 8.5-unit cutoff) still counts as real
+      // pressure instead of being invisible to this check.
+      const fieldPressure = pressureAt(carrier.left, carrier.top, carrier.side);
+      if ((threat && threat.d < 8.5) || fieldPressure > 0.35) {
         const resist = sideResist(carrier.side);
         const def = sideDefend(oppOf(carrier.side));
-        const closeMul = clamp(1.2 - threat.d / 9, 0.55, 1.2);
+        const closeMul = threat ? clamp(1.2 - threat.d / 9, 0.55, 1.2) : 0.7;
         const dispossessP =
           (0.05 +
             def * 0.1 +
-            threat.pin.stats.tackles90 * 0.05 -
+            (threat ? threat.pin.stats.tackles90 * 0.05 : 0) -
             resist * 0.08 -
             carrier.stats.dribbles90 * 0.03 +
+            fieldPressure * 0.09 +
             (rng() - 0.5) * 0.04) *
           closeMul;
-        if (rng() < clamp(dispossessP, 0.03, 0.24)) {
-          const opp = threat.pin;
+        if (rng() < clamp(dispossessP, 0.03, 0.26)) {
+          // threat, or (when fieldPressure alone triggered the gate) the
+          // nearest opponent within the pressure radius — always non-null.
+          const opp = threat?.pin || nearestOpponent(carrier, 14)?.pin;
           pushMatchEvent("dribble_lost", carrier.side, {
             player: carrier.player,
             player_short: carrier.short,
