@@ -1650,6 +1650,28 @@
       return pinsOf(pin.side).filter((p) => p.id !== pin.id && p.role !== "GK");
     }
 
+    /**
+     * Engine rebuild Phase 2 — off-ball space evaluation. Score a candidate
+     * (x, depth) position for `pin` on how genuinely open it is right now:
+     * real defensive pressure there (pressureAt, Phase 1), how clear the
+     * passing lane from the current ball position would be (laneScore), and
+     * whether a teammate is already crowding it. This is what should decide
+     * between two off-ball spots instead of a sine wave of elapsed time.
+     */
+    function scoreOpenSpace(pin, x, depth) {
+      const pct = toPitchPct(pin.side, x, depth);
+      const pressure = pressureAt(pct.left, pct.top, pin.side);
+      const openness = 1 / (1 + pressure);
+      const lane = laneScore({ left: ball.left, top: ball.top, side: pin.side }, pct) / 3.6;
+      let nearestMate = Infinity;
+      for (const m of teammates(pin)) {
+        const d = dist(pct, m);
+        if (d < nearestMate) nearestMate = d;
+      }
+      const crowding = nearestMate < 6 ? -0.4 : nearestMate < 10 ? -0.15 : 0;
+      return openness * 1.3 + lane + crowding;
+    }
+
     function isMidRole(role) {
       return role === "DM" || role === "CM" || role === "AM";
     }
@@ -4180,12 +4202,24 @@
                   depth = clamp(onsideDepth, midLine + 0.1, 0.9);
                   if (ballWide) x = lerp(x, relBall.x, 0.12);
                 } else if (pin.role === "W") {
+                  // Engine rebuild Phase 2 — was a pure sine wave of elapsed
+                  // time picking touchline vs half-space regardless of
+                  // pressure, lane, or teammate crowding. Score both real
+                  // candidates and hold the better one (small hysteresis so
+                  // it doesn't flicker every recompute when scores are close).
                   const touch = flank === "R" ? 0.93 : flank === "L" ? 0.07 : pin.baseX;
                   const half = flank === "R" ? 0.72 : flank === "L" ? 0.28 : 0.5;
-                  // Priority 6: oscillate touchline ↔ half-space
-                  const osc = (Math.sin(shapePulse * 0.75 + h * 4.2) + 1) * 0.5;
-                  x = lerp(touch, half, osc);
-                  depth = clamp(0.72 + osc * 0.06, 0.66, 0.84);
+                  const depthTouch = 0.72;
+                  const depthHalf = 0.78;
+                  const scoreTouch = scoreOpenSpace(pin, touch, depthTouch);
+                  const scoreHalf = scoreOpenSpace(pin, half, depthHalf);
+                  const hysteresis = 0.12;
+                  const pickHalf = pin._wPrefHalf
+                    ? scoreHalf > scoreTouch - hysteresis
+                    : scoreHalf > scoreTouch + hysteresis;
+                  pin._wPrefHalf = pickHalf;
+                  x = pickHalf ? half : touch;
+                  depth = clamp(pickHalf ? depthHalf : depthTouch, 0.66, 0.84);
                   pin._running = true;
                 } else if (pin.role === "AM") {
                   const halfL = 0.36;
@@ -4424,12 +4458,24 @@
                 depth = Math.min(depth, pocketCap);
               }
 
-              // Priority 6: winger oscillation even outside FINAL_THIRD
-              if (pin.role === "W" && (atkStage === "PROGRESSING" || atkStage === "FINAL_THIRD")) {
+              // Engine rebuild Phase 2 — was a second, independent sine wave
+              // applied on top of the FINAL_THIRD scoring above (diluting
+              // it 65% back toward a time-driven blend) and the only signal
+              // at all for PROGRESSING. FINAL_THIRD is already handled by
+              // real space-scoring above; drive PROGRESSING the same way
+              // instead, sharing the same _wPrefHalf flag so a winger
+              // doesn't flip preference right at the stage boundary.
+              if (pin.role === "W" && atkStage === "PROGRESSING") {
                 const touch = flank === "R" ? 0.92 : flank === "L" ? 0.08 : pin.baseX;
                 const half = flank === "R" ? 0.7 : flank === "L" ? 0.3 : 0.5;
-                const osc = (Math.sin(shapePulse * 0.7 + h * 4) + 1) * 0.5;
-                x = lerp(x, lerp(touch, half, osc), 0.65);
+                const scoreTouch = scoreOpenSpace(pin, touch, depth);
+                const scoreHalf = scoreOpenSpace(pin, half, depth);
+                const hysteresis = 0.12;
+                const pickHalf = pin._wPrefHalf
+                  ? scoreHalf > scoreTouch - hysteresis
+                  : scoreHalf > scoreTouch + hysteresis;
+                pin._wPrefHalf = pickHalf;
+                x = lerp(x, pickHalf ? half : touch, 0.5);
               }
 
               // Ball-carrier network offsets (W / CM / FB): shape already offers options when ball arrives
