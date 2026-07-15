@@ -1377,6 +1377,8 @@
           spell.lastReceivers.push(to.id);
           if (spell.lastReceivers.length > 4) spell.lastReceivers.shift();
         }
+        // Engine rebuild — parallel/simultaneous reactions (Problem 8).
+        triggerReceptionReactions(to);
         if (from && from.side === to.side && from.player) {
           lastPasser = {
             player: from.player,
@@ -3924,6 +3926,66 @@
         }
       }
       return { defLine, midLine, atkLine, relBall, threeBack, boxThreat };
+    }
+
+    /**
+     * Engine rebuild — parallel/simultaneous reactions (Problem 8: "everything
+     * happens sequentially"). JS is single-threaded, so this can't be literal
+     * concurrency, but the spirit of the fix is real: when the ball arrives
+     * somewhere dangerous, multiple teammates should react in that same
+     * instant, not each independently notice the opportunity a tick or two
+     * later once the continuous shape recompute happens to catch up. Fires
+     * a small synchronous burst of immediate off-ball reactions right when a
+     * pass is received in a genuinely advanced position — one attacking
+     * teammate bursts into a run, one nearby fullback overlaps — using the
+     * same _pathCtrl/tx/ty/lockUntil mechanism doDribble/doCarry/driveIntoBox
+     * already use for a run that survives the next shape tick.
+     */
+    function triggerReceptionReactions(receiver) {
+      if (!receiver || receiver.role === "GK") return;
+      if (possessionDepth(receiver) < 0.55) return;
+      const attackSign = receiver.side === "home" ? -1 : 1;
+      const mates = teammates(receiver).filter((m) => m.role !== "GK");
+
+      // One advanced attacker not already making a run bursts forward now,
+      // instead of waiting for the next shape tick to notice the opening.
+      const runner = mates
+        .filter(
+          (m) =>
+            (m.role === "ST" || m.role === "W" || m.role === "AM") &&
+            !m._running &&
+            (m.lockUntil || 0) <= matchMinute
+        )
+        .sort((a, b) => dist(receiver, a) - dist(receiver, b))[0];
+      if (runner) {
+        const nx = clamp(runner.left + (rng() - 0.5) * 8, 6, 94);
+        const ny = clamp(runner.top + attackSign * (5 + rng() * 3), 5, 95);
+        const midX = clamp((runner.left + nx) / 2, 6, 94);
+        const midY = clamp(runner.top + attackSign * 2.5, 5, 95);
+        runner._pathCtrl = { left: midX, top: midY, from: matchMinute, until: matchMinute + 0.6 };
+        runner.tx = nx;
+        runner.ty = ny;
+        runner._running = true;
+        runner.lockUntil = matchMinute + 0.55;
+      }
+
+      // One nearby fullback not already overlapping steps forward at the
+      // same time, rather than as a separate, later decision.
+      const fb = mates
+        .filter((m) => m.role === "FB" && !m._overlapRun && Math.abs(m.left - receiver.left) < 30)
+        .sort((a, b) => dist(receiver, a) - dist(receiver, b))[0];
+      if (fb) {
+        const nx = fb.left > 50 ? 90 : 10;
+        const ny = clamp(fb.top + attackSign * 5, 5, 95);
+        const midX = clamp((fb.left + nx) / 2, 6, 94);
+        const midY = clamp(fb.top + attackSign * 2, 5, 95);
+        fb._pathCtrl = { left: midX, top: midY, from: matchMinute, until: matchMinute + 0.6 };
+        fb.tx = nx;
+        fb.ty = ny;
+        fb._running = true;
+        fb._overlapRun = true;
+        fb.lockUntil = matchMinute + 0.55;
+      }
     }
 
     /**
