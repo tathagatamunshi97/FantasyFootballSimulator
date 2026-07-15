@@ -109,6 +109,7 @@ def _build_public_session_locked() -> dict[str, Any] | None:
         "home": s.get("home"),
         "away": s.get("away"),
         "is_knockout": bool(s.get("is_knockout")),
+        "is_experiment": bool(s.get("is_experiment")),
         "seed": s.get("seed"),
         "board": board,
         "board_state": s.get("board_state"),
@@ -319,8 +320,15 @@ def start_board_session(
     board: dict[str, Any],
     seed: int,
     is_knockout: bool = False,
+    is_experiment: bool = False,
 ) -> dict[str, Any]:
-    """Start a shared tactic-board Matchday broadcast (setup → live → result)."""
+    """Start a shared tactic-board Matchday broadcast (setup → live → result).
+
+    ``is_experiment`` marks an ad-hoc Team Lab experiment rather than a
+    tournament fixture — ``fixture_id`` then holds the experiment's own id,
+    and completion routes to experiments.complete_experiment_from_board
+    instead of tournament.complete_from_board (see /api/matchday/complete).
+    """
     global _session, _frame_seq
     snap: dict[str, Any] | None | bool = False
     with _lock:
@@ -341,6 +349,7 @@ def start_board_session(
             "team_a": copy.deepcopy(team_a),
             "team_b": copy.deepcopy(team_b),
             "is_knockout": bool(is_knockout),
+            "is_experiment": bool(is_experiment),
             "seed": int(seed),
             "board": copy.deepcopy(board),
             "board_state": None,

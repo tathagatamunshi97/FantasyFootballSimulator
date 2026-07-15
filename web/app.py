@@ -543,6 +543,15 @@ def matchday_complete_from_board(
     _check_admin(x_admin_token)
     try:
         session = matchday_session.require_active_session()
+        if session.get("is_experiment"):
+            return experiments.complete_experiment_from_board(
+                session["fixture_id"],
+                home_goals=int(body.get("home_goals", 0)),
+                away_goals=int(body.get("away_goals", 0)),
+                winner=body.get("winner"),
+                board_events=body.get("board_events"),
+                match_log=body.get("match_log"),
+            )
         return tournament.complete_from_board(
             session["tournament_id"],
             session["fixture_id"],
@@ -886,6 +895,23 @@ def get_experiment(
             detail="This simulation is not available. Watch live matches on /matchday.",
         )
     return {"experiment": exp}
+
+
+@app.post("/api/experiments/{exp_id}/start-live")
+def start_experiment_live_match_api(
+    exp_id: str,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Admin: open a live tactic-board Matchday session for this experiment's
+    teams, instead of the scripted Monte-Carlo-scoreline replay. Redirects to
+    /matchday, which hosts/completes it exactly like a tournament fixture."""
+    _check_admin(x_admin_token)
+    try:
+        return experiments.start_experiment_live_match(exp_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 def _format_squad_eval_error(exc: Exception) -> str:

@@ -457,6 +457,132 @@ def create_and_run_experiment(
     return _summary(exp) | {"id": exp_id}
 
 
+def start_experiment_live_match(exp_id: str) -> dict[str, Any]:
+    """Open a live tactic-board Matchday session for an experiment's teams.
+
+    Monte Carlo (exp["report"]) stays as the pre-match preview; the admin
+    hosts the match live on /matchday exactly like a tournament fixture, and
+    completion (via /api/matchday/complete's is_experiment branch) calls
+    complete_experiment_from_board to store the actual played result.
+    """
+    from web import matchday_session
+    from web.state import get_stats_store
+    # Deferred: web.tournament imports this module at load time, so importing
+    # it back here at module scope would be circular.
+    from web.tournament import _board_side_payload
+
+    exp = load_experiment(exp_id)
+    if not exp:
+        raise KeyError("Experiment not found")
+    if not exp.get("team_a") or not exp.get("team_b"):
+        raise ValueError("Experiment has no team data yet — wait for it to finish running.")
+
+    store = get_stats_store()
+    player_stats, _season_overrides, name_map = prepare_match_player_stats(
+        exp["team_a"], exp["team_b"], store, cache_only=True
+    )
+    resolved = _apply_name_map({"team_a": exp["team_a"], "team_b": exp["team_b"]}, name_map)
+    home_team = FantasyTeam.from_dict(resolved["team_a"])
+    away_team = FantasyTeam.from_dict(resolved["team_b"])
+    home_payload = _board_side_payload(home_team, player_stats)
+    away_payload = _board_side_payload(away_team, player_stats)
+    board = {
+        "match_id": exp_id,
+        "home": home_payload,
+        "away": away_payload,
+        "unit_home": home_payload.get("_unit") or {},
+        "unit_away": away_payload.get("_unit") or {},
+    }
+    seed = abs(hash(f"experiment:{exp_id}")) % (2**31)
+    status = matchday_session.start_board_session(
+        tournament_id="",
+        tournament_name="Team Lab experiment",
+        fixture_id=exp_id,
+        stage="experiment",
+        home=home_team.name,
+        away=away_team.name,
+        team_a=home_payload,
+        team_b=away_payload,
+        board=board,
+        seed=seed,
+        is_knockout=False,
+        is_experiment=True,
+    )
+    return {
+        "status": "board_ready",
+        "engine": "tactic_board",
+        "redirect": "/matchday",
+        "experiment_id": exp_id,
+        "home": home_team.name,
+        "away": away_team.name,
+        "board": board,
+        "matchday": status,
+    }
+
+
+def complete_experiment_from_board(
+    exp_id: str,
+    *,
+    home_goals: int,
+    away_goals: int,
+    winner: str | None = None,
+    board_events: list[dict[str, Any]] | None = None,
+    match_log: dict[str, Any] | list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Store the actual tactic-board-played result on an experiment.
+
+    exp["report"] (Monte Carlo) is left untouched as the pre-match preview;
+    the real outcome lives separately in exp["live_result"].
+    """
+    exp = load_experiment(exp_id)
+    if not exp:
+        raise KeyError("Experiment not found")
+
+    home = (exp.get("team_a") or {}).get("name") or "Home"
+    away = (exp.get("team_b") or {}).get("name") or "Away"
+    if winner is None:
+        if home_goals > away_goals:
+            winner = home
+        elif away_goals > home_goals:
+            winner = away
+
+    stored_events = board_events if isinstance(board_events, list) else None
+    stored_log = match_log
+    if not stored_events and isinstance(match_log, dict) and isinstance(match_log.get("events"), list):
+        stored_events = [e for e in match_log["events"] if isinstance(e, dict)]
+
+    exp["live_result"] = {
+        "engine": "tactic_board",
+        "home": home,
+        "away": away,
+        "home_goals": int(home_goals),
+        "away_goals": int(away_goals),
+        "score": f"{int(home_goals)}-{int(away_goals)}",
+        "winner": winner,
+        "board_events": stored_events,
+        "match_log": stored_log,
+        "played_at": _now(),
+    }
+    save_experiment(exp)
+
+    from web import matchday_session
+
+    matchday_session.set_result(
+        {
+            "match_id": exp_id,
+            "score": exp["live_result"]["score"],
+            "home_goals": int(home_goals),
+            "away_goals": int(away_goals),
+            "winner": winner,
+            "home": home,
+            "away": away,
+            "engine": "tactic_board",
+            "experiment_id": exp_id,
+        }
+    )
+    return {"experiment": _summary(exp) | {"id": exp_id}, "live_result": exp["live_result"]}
+
+
 def formation_meta() -> dict[str, Any]:
     from slot_roles import ROLE_FILTER_OPTIONS, allowed_role_filters
 
