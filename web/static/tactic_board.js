@@ -5850,6 +5850,12 @@
     function decideAction() {
       const carrier = findCarrier();
       if (!carrier || finished || ballFlight) return;
+      // A goal/restart sequence is already locked in (ball walking back to the
+      // centre, kickoff carrier not yet assigned) — actionTimer expires well
+      // before this resolves, which let the scoring side grab another decision
+      // (and even score again) before kickoff ever happened. Freeze decisions
+      // until the restart actually completes.
+      if (pendingRestart || pendingKickoffCarrier || pendingClear) return;
 
       if (!spell || spell.side !== possession) beginSpell(possession, "spell");
       // Hierarchy: state → shape already applied in tickDecision → ball decision here
