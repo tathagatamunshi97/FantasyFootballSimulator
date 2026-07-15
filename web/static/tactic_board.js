@@ -4874,6 +4874,23 @@
               p.depth = lerp(p.depth, avgD, 0.55);
             }
           }
+          // Engine rebuild Phase 3 — coordinated lateral cover, not just depth.
+          // Each CB independently chases the ball's x-position (set above),
+          // which can leave both drifting the same way and the far side
+          // uncovered — the exact "defenders act independently" gap from the
+          // critique. The CB further from the ball-side danger holds back
+          // toward central cover instead of also mirroring the near CB's
+          // shift, so beating one defender doesn't leave both exposed.
+          if (!attacking) {
+            const byDanger = [...cbPend].sort(
+              (a, b) => Math.abs(a.pin.left - ballLeft) - Math.abs(b.pin.left - ballLeft)
+            );
+            const farCB = byDanger[byDanger.length - 1];
+            if (farCB) {
+              const coverX = 0.5 + (farCB.pin.baseX - 0.5) * 0.5;
+              farCB.x = lerp(farCB.x, coverX, 0.3);
+            }
+          }
         }
         if (cbPend.length) {
           const cbAvg = cbPend.reduce((s, p) => s + p.depth, 0) / cbPend.length;
