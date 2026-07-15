@@ -1666,6 +1666,58 @@
     }
 
     /**
+     * Engine rebuild — persistent player intent. ChatGPT's follow-up
+     * critique on the earlier rebuild: recomputing a role's behavioral goal
+     * every single tick (as the old winger touchline/half-space hysteresis
+     * and _supportRole both did) lets it flicker between options that are
+     * only marginally different in score — an indecisive player. Intent is
+     * drawn from a small per-role menu and *held* for a few sim-seconds,
+     * re-drawn only once it expires. Space evaluation (scoreOpenSpace,
+     * pressureAt) still decides HOW to serve the intent within each role's
+     * positioning branch — it no longer decides WHETHER to have one.
+     */
+    const INTENT_MENUS = {
+      W: ["stretch", "attack_gap", "underlap"],
+      FB: ["overlap", "hold_width", "tuck_support"],
+      AM: ["attack_gap", "support", "back_post"],
+      ST: ["pin_last_line", "drop_short", "far_post"],
+      CM: ["support", "progressive_run", "hold_width"],
+      DM: ["screen", "support"],
+    };
+    const INTENT_WEIGHTS = {
+      W: { central: [0.3, 0.45, 0.25], wide: [0.55, 0.3, 0.15] },
+      FB: { central: [0.35, 0.35, 0.3], wide: [0.5, 0.3, 0.2] },
+      AM: { central: [0.4, 0.35, 0.25], wide: [0.4, 0.35, 0.25] },
+      ST: { central: [0.5, 0.3, 0.2], wide: [0.5, 0.3, 0.2] },
+      CM: { central: [0.4, 0.32, 0.28], wide: [0.4, 0.32, 0.28] },
+      DM: { central: [0.55, 0.45], wide: [0.55, 0.45] },
+    };
+
+    function ensureIntent(pin, relBall) {
+      const menu = INTENT_MENUS[pin.role];
+      if (!menu) return null;
+      if (pin._intent && pin._intentUntil > matchMinute) return pin._intent;
+      const central = Math.abs(relBall.x - 0.5) < 0.22;
+      const weights = INTENT_WEIGHTS[pin.role][central ? "central" : "wide"];
+      const roll = rng();
+      let acc = 0;
+      let chosen = menu[menu.length - 1];
+      for (let i = 0; i < menu.length; i++) {
+        acc += weights[i];
+        if (roll < acc) {
+          chosen = menu[i];
+          break;
+        }
+      }
+      pin._intent = chosen;
+      // Held for ~1.0-2.2 match-minutes (roughly 2-4.5 real seconds at the
+      // default board speed) — long enough to read as a decision, not a
+      // twitch, short enough to keep responding to how the game develops.
+      pin._intentUntil = matchMinute + 1.0 + rng() * 1.2;
+      return chosen;
+    }
+
+    /**
      * Engine rebuild Phase 2 — off-ball space evaluation. Score a candidate
      * (x, depth) position for `pin` on how genuinely open it is right now:
      * real defensive pressure there (pressureAt, Phase 1), how clear the
@@ -4362,56 +4414,102 @@
                 // ST near/far post onside of last defender; LW half-space; RW far post/wide;
                 // CM edge of box; AM pocket / half-spaces (deeper than ST unless 4-3-3 attacking);
                 // FB hold width OR overlap (start when ball still central with CM)
+                // Engine rebuild — every branch below now reads a held pin._intent
+                // (ensureIntent) instead of recomputing a fresh choice every tick.
+                // Existing space-aware math (scoreOpenSpace, the near/far-post
+                // oscillation, etc.) still decides HOW to execute the intent; it
+                // no longer decides WHETHER to have one.
                 if (pin.role === "ST") {
+                  const intent = ensureIntent(pin, relBall);
                   const offLine = defendingOffsideLine(pin.side);
                   const onsideDepth = offLine - (0.008 + h * 0.012);
                   const ballWide = relBall.x < 0.32 || relBall.x > 0.68;
                   const nearPost = relBall.x < 0.5 ? 0.38 : 0.62;
                   const farPost = relBall.x < 0.5 ? 0.64 : 0.36;
-                  const osc = (Math.sin(shapePulse * 0.9 + h * 3.5) + 1) * 0.5;
-                  x = lerp(nearPost, farPost, osc);
-                  depth = clamp(onsideDepth, midLine + 0.1, 0.9);
-                  if (ballWide) x = lerp(x, relBall.x, 0.12);
+                  if (intent === "drop_short") {
+                    x = lerp(x, clamp(relBall.x, 0.32, 0.68), 0.4);
+                    depth = clamp(relBall.depth - 0.08, midLine + 0.04, 0.7);
+                  } else if (intent === "far_post") {
+                    x = lerp(x, farPost, 0.4);
+                    depth = clamp(onsideDepth, midLine + 0.1, 0.9);
+                  } else {
+                    // pin_last_line (default) — hold the shoulder of the last
+                    // defender; still drifts near/far post but less freely
+                    // than a pure oscillation since the intent is to stay
+                    // pinned onside rather than wander.
+                    const osc = (Math.sin(shapePulse * 0.9 + h * 3.5) + 1) * 0.5;
+                    x = lerp(nearPost, farPost, osc * 0.35 + 0.32);
+                    depth = clamp(onsideDepth, midLine + 0.1, 0.9);
+                    if (ballWide) x = lerp(x, relBall.x, 0.12);
+                  }
                 } else if (pin.role === "W") {
                   // Engine rebuild Phase 2 — was a pure sine wave of elapsed
                   // time picking touchline vs half-space regardless of
-                  // pressure, lane, or teammate crowding. Score both real
-                  // candidates and hold the better one (small hysteresis so
-                  // it doesn't flicker every recompute when scores are close).
+                  // pressure, lane, or teammate crowding. Now the intent
+                  // (stretch / attack_gap / underlap) decides the target
+                  // zone, held for a few seconds; scoreOpenSpace still fine-
+                  // tunes how far to commit to it based on real pressure.
+                  const intent = ensureIntent(pin, relBall);
                   const touch = flank === "R" ? 0.93 : flank === "L" ? 0.07 : pin.baseX;
                   const half = flank === "R" ? 0.72 : flank === "L" ? 0.28 : 0.5;
-                  const depthTouch = 0.72;
-                  const depthHalf = 0.78;
-                  const scoreTouch = scoreOpenSpace(pin, touch, depthTouch);
-                  const scoreHalf = scoreOpenSpace(pin, half, depthHalf);
-                  const hysteresis = 0.12;
-                  const pickHalf = pin._wPrefHalf
-                    ? scoreHalf > scoreTouch - hysteresis
-                    : scoreHalf > scoreTouch + hysteresis;
-                  pin._wPrefHalf = pickHalf;
-                  x = pickHalf ? half : touch;
-                  depth = clamp(pickHalf ? depthHalf : depthTouch, 0.66, 0.84);
+                  const underlapX = clamp(0.5 + (pin.baseX - 0.5) * 0.3, 0.38, 0.62);
+                  let targetX = touch;
+                  let targetD = 0.72;
+                  if (intent === "attack_gap") {
+                    targetX = half;
+                    targetD = 0.78;
+                  } else if (intent === "underlap") {
+                    targetX = underlapX;
+                    targetD = 0.82;
+                  }
+                  const openHere = scoreOpenSpace(pin, targetX, targetD);
+                  const openTouch = scoreOpenSpace(pin, touch, 0.72);
+                  const settle = clamp(0.5 + (openHere - openTouch) * 0.05, 0.35, 0.62);
+                  x = lerp(x, targetX, settle);
+                  depth = clamp(lerp(depth, targetD, settle), 0.66, 0.84);
                   pin._running = true;
                 } else if (pin.role === "AM") {
+                  const intent = ensureIntent(pin, relBall);
                   const halfL = 0.36;
                   const halfR = 0.64;
                   const ballSideHalf = relBall.x < 0.5 ? halfL : halfR;
                   const oppHalf = relBall.x < 0.5 ? halfR : halfL;
-                  const osc = (Math.sin(shapePulse * 0.85 + h * 3.1) + 1) * 0.5;
-                  // Was two branches — amCamStack (4-3-3 attacking) deliberately stacked
-                  // the AM at 0.68-0.84 depth, nearly the same line as ST (which sits
-                  // ~0.8-0.9 here). Use the properly-separated pocket depth for every
-                  // formation instead of just the non-stacked one.
-                  x = lerp(ballSideHalf, oppHalf, osc * 0.55);
-                  x = lerp(x, clamp(relBall.x + (relBall.x > 0.5 ? -0.08 : 0.08), 0.3, 0.7), 0.25);
-                  // Edge of box / pocket — clearly deeper than ST near/far posts
-                  depth = clamp(0.66 + bias + osc * 0.04, 0.58, 0.74);
+                  if (intent === "support") {
+                    x = lerp(x, clamp(relBall.x, 0.32, 0.68), 0.4);
+                    depth = clamp(relBall.depth - 0.06, midLine + 0.04, 0.7);
+                  } else if (intent === "back_post") {
+                    const farX = relBall.x < 0.5 ? 0.7 : 0.3;
+                    x = lerp(x, farX, 0.4);
+                    depth = clamp(0.72 + bias, 0.66, 0.8);
+                  } else {
+                    // attack_gap (default) — existing half-space pocket behaviour
+                    const osc = (Math.sin(shapePulse * 0.85 + h * 3.1) + 1) * 0.5;
+                    // Was two branches — amCamStack (4-3-3 attacking) deliberately stacked
+                    // the AM at 0.68-0.84 depth, nearly the same line as ST (which sits
+                    // ~0.8-0.9 here). Use the properly-separated pocket depth for every
+                    // formation instead of just the non-stacked one.
+                    x = lerp(ballSideHalf, oppHalf, osc * 0.55);
+                    x = lerp(x, clamp(relBall.x + (relBall.x > 0.5 ? -0.08 : 0.08), 0.3, 0.7), 0.25);
+                    // Edge of box / pocket — clearly deeper than ST near/far posts
+                    depth = clamp(0.66 + bias + osc * 0.04, 0.58, 0.74);
+                  }
                   pin._running = true;
                 } else if (pin.role === "CM") {
-                  x = lerp(pin.baseX, clamp(0.5 + (pin.baseX - 0.5) * 0.7, 0.28, 0.72), 0.4);
-                  depth = clamp(0.7 + bias, 0.64, 0.78); // edge of box
+                  const intent = ensureIntent(pin, relBall);
+                  if (intent === "progressive_run") {
+                    x = lerp(x, clamp(relBall.x + (relBall.x > 0.5 ? 0.1 : -0.1), 0.26, 0.74), 0.4);
+                    depth = clamp(0.74 + bias, 0.68, 0.82);
+                  } else if (intent === "hold_width") {
+                    x = lerp(pin.baseX, 0.5, 0.3);
+                    depth = clamp(0.62 + bias, 0.55, 0.7);
+                  } else {
+                    // support (default) — existing edge-of-box behaviour
+                    x = lerp(pin.baseX, clamp(0.5 + (pin.baseX - 0.5) * 0.7, 0.28, 0.72), 0.4);
+                    depth = clamp(0.7 + bias, 0.64, 0.78); // edge of box
+                  }
                   pin._running = true;
                 } else if (pin.role === "FB") {
+                  const intent = ensureIntent(pin, relBall);
                   const ballCentral = Math.abs(relBall.x - 0.5) < 0.22;
                   const cmHasBall =
                     carrierId &&
@@ -4423,14 +4521,19 @@
                     (flank === "R" && relBall.x >= 0.5) || (flank === "L" && relBall.x < 0.5);
                   const oppFlank =
                     (flank === "R" && relBall.x < 0.42) || (flank === "L" && relBall.x > 0.58);
-                  // Overlap starts when ball still central with CM — BEFORE winger receives
-                  if ((ballCentral && cmHasBall && sameFlankAsBall) || (atkPattern === "wing_carry" && sameFlankAsBall)) {
+                  // Overlap starts when ball still central with CM — BEFORE winger
+                  // receives - but only when the FB's held intent is actually to
+                  // overlap; the opportunity existing isn't enough on its own.
+                  if (
+                    ((ballCentral && cmHasBall && sameFlankAsBall) || (atkPattern === "wing_carry" && sameFlankAsBall)) &&
+                    intent === "overlap"
+                  ) {
                     x = flank === "R" ? 0.92 : 0.08;
                     depth = clamp(0.76 + fbAttackThreat(pin) * 0.1, 0.68, 0.9);
                     pin._running = true;
                     pin._overlapRun = true;
-                  } else if (oppFlank) {
-                    // Opposite FB tucks
+                  } else if (oppFlank || intent === "tuck_support") {
+                    // Opposite FB tucks (or held intent is to tuck and support)
                     x = lerp(pin.baseX, 0.5 + sideSign * 0.18, 0.55);
                     depth = clamp(midLine + 0.02, defLine + 0.06, midLine + 0.1);
                     pin._overlapRun = false;
@@ -4443,41 +4546,83 @@
               } else if (atkStage === "BOX_OCCUPATION" || atkStage === "CHANCE_CREATION" || atkStage === "FINISH") {
                 // ≥2 attackers crash box OR 1 + arriving runner; CM edge; W cutback lane
                 // AM stays in pocket / arrives late — not same near/far posts as ST (except 4-3-3 attacking)
+                // Engine rebuild — same held pin._intent as FINAL_THIRD (usually
+                // still active on entering this stage; ensureIntent redraws only
+                // if it's actually expired).
                 if (pin.role === "ST") {
+                  const intent = ensureIntent(pin, relBall);
                   const offLine = defendingOffsideLine(pin.side);
                   const onsideDepth = offLine - (0.008 + h * 0.012);
                   const crashers = pins.filter((p) => p.role === "ST" || p.role === "W");
                   const idx = crashers.findIndex((p) => p.id === pin.id);
                   const nearPost = relBall.x < 0.5 ? 0.4 : 0.6;
                   const farPost = relBall.x < 0.5 ? 0.62 : 0.38;
-                  x = idx % 2 === 0 ? nearPost : farPost;
-                  depth = clamp(onsideDepth, midLine + 0.12, 0.92);
+                  if (intent === "drop_short") {
+                    x = lerp(x, clamp(relBall.x, 0.32, 0.68), 0.4);
+                    depth = clamp(relBall.depth - 0.06, midLine + 0.1, 0.8);
+                  } else if (intent === "far_post") {
+                    x = farPost;
+                    depth = clamp(onsideDepth, midLine + 0.12, 0.92);
+                  } else {
+                    x = idx % 2 === 0 ? nearPost : farPost;
+                    depth = clamp(onsideDepth, midLine + 0.12, 0.92);
+                  }
                 } else if (pin.role === "AM") {
+                  const intent = ensureIntent(pin, relBall);
                   const halfL = 0.34;
                   const halfR = 0.66;
                   const ballSideHalf = relBall.x < 0.5 ? halfL : halfR;
                   const oppHalf = relBall.x < 0.5 ? halfR : halfL;
-                  const osc = (Math.sin(shapePulse * 0.95 + h * 2.6) + 1) * 0.5;
-                  // Was two branches — amCamStack (4-3-3 attacking) deliberately stacked
-                  // the AM at 0.72-0.88 depth, nearly the same as ST's box-occupation
-                  // depth (~midLine+0.12 to 0.92, often 0.8+). Use the properly-separated
-                  // pocket depth for every formation instead of just the non-stacked one.
-                  x = lerp(ballSideHalf, oppHalf, osc * 0.5);
-                  x = lerp(x, clamp(relBall.x + (relBall.x > 0.5 ? -0.1 : 0.1), 0.28, 0.72), 0.3);
-                  // Pocket / edge of box — under ST, not crashing same posts
-                  depth = clamp(0.68 + bias + osc * 0.05, 0.6, 0.78);
+                  if (intent === "support") {
+                    x = lerp(x, clamp(relBall.x, 0.3, 0.7), 0.4);
+                    depth = clamp(relBall.depth - 0.08, midLine + 0.06, 0.72);
+                  } else if (intent === "back_post") {
+                    x = relBall.x < 0.5 ? 0.72 : 0.28;
+                    depth = clamp(0.7 + bias, 0.62, 0.78);
+                  } else {
+                    const osc = (Math.sin(shapePulse * 0.95 + h * 2.6) + 1) * 0.5;
+                    // Was two branches — amCamStack (4-3-3 attacking) deliberately stacked
+                    // the AM at 0.72-0.88 depth, nearly the same as ST's box-occupation
+                    // depth (~midLine+0.12 to 0.92, often 0.8+). Use the properly-separated
+                    // pocket depth for every formation instead of just the non-stacked one.
+                    x = lerp(ballSideHalf, oppHalf, osc * 0.5);
+                    x = lerp(x, clamp(relBall.x + (relBall.x > 0.5 ? -0.1 : 0.1), 0.28, 0.72), 0.3);
+                    // Pocket / edge of box — under ST, not crashing same posts
+                    depth = clamp(0.68 + bias + osc * 0.05, 0.6, 0.78);
+                  }
                   pin._running = true;
                 } else if (pin.role === "W") {
-                  // Cutback lane — wide and slightly deeper than the six-yard
-                  x = flank === "R" ? 0.9 : flank === "L" ? 0.1 : lerp(pin.baseX, relBall.x, 0.2);
-                  depth = clamp(0.78 + h * 0.04, 0.74, 0.86);
+                  const intent = ensureIntent(pin, relBall);
+                  if (intent === "underlap") {
+                    // Cut inside to attack the near-post/six-yard channel instead
+                    // of holding the touchline cutback lane.
+                    x = clamp(0.5 + (pin.baseX - 0.5) * 0.35, 0.36, 0.64);
+                    depth = clamp(0.8 + h * 0.04, 0.76, 0.88);
+                  } else {
+                    // Cutback lane — wide and slightly deeper than the six-yard
+                    x = flank === "R" ? 0.9 : flank === "L" ? 0.1 : lerp(pin.baseX, relBall.x, 0.2);
+                    depth = clamp(0.78 + h * 0.04, 0.74, 0.86);
+                  }
                   pin._running = true;
                 } else if (pin.role === "CM") {
-                  x = clamp(0.5 + (pin.baseX - 0.5) * 0.55 + (h - 0.5) * 0.04, 0.3, 0.7);
-                  depth = clamp(0.72 + bias, 0.68, 0.8);
+                  const intent = ensureIntent(pin, relBall);
+                  if (intent === "progressive_run") {
+                    x = clamp(relBall.x + (relBall.x > 0.5 ? 0.12 : -0.12), 0.26, 0.74);
+                    depth = clamp(0.76 + bias, 0.7, 0.84);
+                  } else if (intent === "hold_width") {
+                    x = lerp(pin.baseX, 0.5, 0.2);
+                    depth = clamp(0.6 + bias, 0.52, 0.68);
+                  } else {
+                    x = clamp(0.5 + (pin.baseX - 0.5) * 0.55 + (h - 0.5) * 0.04, 0.3, 0.7);
+                    depth = clamp(0.72 + bias, 0.68, 0.8);
+                  }
                   pin._running = true;
                 } else if (pin.role === "FB") {
-                  if (pin._overlapRun || atkPattern === "wing_carry" || Math.abs(relBall.x - pin.baseX) < 0.35) {
+                  const intent = ensureIntent(pin, relBall);
+                  if (
+                    (pin._overlapRun || atkPattern === "wing_carry" || Math.abs(relBall.x - pin.baseX) < 0.35) &&
+                    intent !== "hold_width"
+                  ) {
                     x = flank === "R" ? 0.91 : 0.09;
                     depth = clamp(0.8 + fbAttackThreat(pin) * 0.08, 0.72, 0.9);
                     pin._running = true;
@@ -4486,8 +4631,14 @@
                     depth = clamp(midLine + 0.06, defLine + 0.08, 0.7);
                   }
                 } else if (pin.role === "DM") {
-                  depth = clamp(0.58 + bias, 0.5, 0.66);
-                  x = lerp(pin.baseX, relBall.x, 0.25);
+                  const intent = ensureIntent(pin, relBall);
+                  if (intent === "screen") {
+                    depth = clamp(0.54 + bias, 0.46, 0.62);
+                    x = lerp(pin.baseX, 0.5, 0.3);
+                  } else {
+                    depth = clamp(0.58 + bias, 0.5, 0.66);
+                    x = lerp(pin.baseX, relBall.x, 0.25);
+                  }
                 }
                 // Ensure enough crashers when occupation thin
                 if (boxedN < 2 && (pin.role === "W" || pin.role === "CM") && h > 0.45) {
@@ -4633,20 +4784,16 @@
               // applied on top of the FINAL_THIRD scoring above (diluting
               // it 65% back toward a time-driven blend) and the only signal
               // at all for PROGRESSING. FINAL_THIRD is already handled by
-              // real space-scoring above; drive PROGRESSING the same way
-              // instead, sharing the same _wPrefHalf flag so a winger
-              // doesn't flip preference right at the stage boundary.
+              // real space-scoring above; drive PROGRESSING the same way,
+              // reading the same held pin._intent (engine rebuild — persistent
+              // intent) so a winger doesn't flip preference right at the
+              // PROGRESSING/FINAL_THIRD stage boundary.
               if (pin.role === "W" && atkStage === "PROGRESSING") {
+                const intent = ensureIntent(pin, relBall);
                 const touch = flank === "R" ? 0.92 : flank === "L" ? 0.08 : pin.baseX;
                 const half = flank === "R" ? 0.7 : flank === "L" ? 0.3 : 0.5;
-                const scoreTouch = scoreOpenSpace(pin, touch, depth);
-                const scoreHalf = scoreOpenSpace(pin, half, depth);
-                const hysteresis = 0.12;
-                const pickHalf = pin._wPrefHalf
-                  ? scoreHalf > scoreTouch - hysteresis
-                  : scoreHalf > scoreTouch + hysteresis;
-                pin._wPrefHalf = pickHalf;
-                x = lerp(x, pickHalf ? half : touch, 0.5);
+                const targetX = intent === "attack_gap" || intent === "underlap" ? half : touch;
+                x = lerp(x, targetX, 0.5);
               }
 
               // Ball-carrier network offsets (W / CM / FB): shape already offers options when ball arrives
