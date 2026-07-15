@@ -3236,7 +3236,17 @@
       const stage = spell.stage || "PROGRESSING";
       const depth = possessionDepth(carrier);
       // Confidence-driven re-pick (Priority 4): starts 100, −15/action, re-pick at 0
-      const stale = !spell.pattern || (spell.patternConfidence ?? 100) <= 0;
+      // Engine rebuild Phase 4 — spatial evaluation: a pattern is a bet that a
+      // certain space stays open. Also force an immediate re-pick if real
+      // defensive pressure at the carrier has spiked well past what it was
+      // when this pattern was chosen, instead of blindly running the fixed
+      // action-count timer while the defence has already closed it down.
+      const currentPressure = pressureAt(carrier.left, carrier.top, carrier.side);
+      const pressureSpiked =
+        spell.pattern &&
+        spell.patternBaselinePressure != null &&
+        currentPressure > spell.patternBaselinePressure + 0.6;
+      const stale = !spell.pattern || (spell.patternConfidence ?? 100) <= 0 || pressureSpiked;
       if (stale) {
         const next = pickAttackPattern(carrier, stage, depth);
         if (spell.pattern && next !== spell.pattern) spell.lastPattern = spell.pattern;
@@ -3244,6 +3254,7 @@
         spell.pattern = next;
         spell.patternConfidence = 100;
         spell.patternActions = 0;
+        spell.patternBaselinePressure = currentPressure;
         if (changed || !spell.patternAnnounced) {
           const labels = {
             central: "Central",
@@ -5119,6 +5130,7 @@
         patternConfidence: 100,
         patternActions: 0,
         patternAnnounced: false,
+        patternBaselinePressure: null,
         patternHint: null,
         awaitingBoxShot: false,
       };
