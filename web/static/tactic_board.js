@@ -3088,10 +3088,10 @@
         Math.max(0, -ad) * 0.45;
       if ((spell?.patternActions || 0) >= 5) wRecycle += 0.25;
       if (spell?.willAttemptChance && (stage === "CHANCE_CREATION" || stage === "BOX_OCCUPATION")) wRecycle *= 0.35;
-      // Urgency coefficient nudged 0.55 -> 0.65: once a spell has earned real
-      // urgency (sustained possession, favourable matchup), recycling should lose
-      // out to progression somewhat more decisively than before.
-      wRecycle *= clamp(1.15 - urg * 0.65 - Math.max(0, ad) * 0.35 + Math.max(0, -pressD) * 0.1, 0.2, 1.15);
+      // Urgency coefficient: original 0.55, nudged to 0.65 earlier this session,
+      // pulled back partway to 0.60 — 0.65 was contributing to runaway one-sided
+      // matches on unvalidated production data going into a hard deadline.
+      wRecycle *= clamp(1.15 - urg * 0.6 - Math.max(0, ad) * 0.35 + Math.max(0, -pressD) * 0.1, 0.2, 1.15);
       if (hold > 0.12 && urg < 0.55) wRecycle *= 1.15;
       if (isFwdRole(carrier.role) && depth >= 0.66) wRecycle = 0;
 
@@ -3209,11 +3209,13 @@
       // tuned assuming this gate would keep blocking them — removing the gate
       // entirely flipped them from ~never executing to ~always executing,
       // producing runaway one-sided matches (confirmed: blowout scores, >7 xG
-      // games). Cap it to a bounded fraction of attempts instead — enough for
-      // box drives/combination play to actually happen sometimes (the original
-      // bug), without turning off the safety valve altogether.
+      // games, rapid repeat goals). First correction (40%) still ran on
+      // unvalidated production data going into a hard deadline — cut further
+      // to 20% for more safety margin. Still nonzero (the original bug was
+      // "never", not "should always"), just conservative until this can
+      // actually be watched play out.
       const allowPatternBreakthrough =
-        (pattern === "cut_inside" || pattern === "wing_carry") && rng() < 0.4;
+        (pattern === "cut_inside" || pattern === "wing_carry") && rng() < 0.2;
       if (isWideFinalThird(carrier) && stage !== "BUILD_UP" && !allowPatternBreakthrough) {
         return decideWideFinalThird(carrier);
       }
@@ -3500,8 +3502,9 @@
         urg * 0.12;
       let recycleW =
         0.38 + sidePoss(carrier.side) * 0.4 + (threat && threat.d < 5.5 ? 0.35 : 0) + (ready ? 0 : 0.55);
-      // Same modest urgency-coefficient nudge as pickAttackPattern's wRecycle (0.5 -> 0.58).
-      recycleW *= clamp(1.1 - urg * 0.58 - Math.max(0, ad) * 0.3, 0.2, 1.1);
+      // Original 0.5, nudged to 0.58 earlier this session, pulled back partway
+      // to 0.54 alongside pickAttackPattern's wRecycle for the same reason.
+      recycleW *= clamp(1.1 - urg * 0.54 - Math.max(0, ad) * 0.3, 0.2, 1.1);
       if (forwardInFinalThird(carrier)) recycleW = 0;
       const pick = weightedPick([
         { id: "cross", w: Math.max(0.05, crossW) },
