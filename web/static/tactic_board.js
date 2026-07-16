@@ -5074,11 +5074,25 @@
 
               if (defMode === "track" && runner) {
                 const markRel = fromPitchPct(pin.side, runner.left, runner.top);
+                // Engine rebuild — full anticipation: same held-intent read as
+                // the "mark" branch below, applied to tracking a breaking
+                // runner too. A runner's intent tells you where the run is
+                // actually going, not just where they are right now.
+                let trackAnticipatedX = markRel.x;
+                if (runner._intent === "stretch" || runner._intent === "overlap") {
+                  trackAnticipatedX = clamp(markRel.x + (markRel.x > 0.5 ? 0.05 : -0.05), 0.05, 0.95);
+                } else if (
+                  runner._intent === "underlap" ||
+                  runner._intent === "attack_gap" ||
+                  runner._intent === "tuck_support"
+                ) {
+                  trackAnticipatedX = clamp(markRel.x + (markRel.x > 0.5 ? -0.05 : 0.05), 0.05, 0.95);
+                }
                 const t = clamp(0.38 + trackBoost * 0.22, 0.32, 0.72);
                 const trackX =
                   centralMidCover && isScreenMid
-                    ? clamp(markRel.x, 0.28, 0.72)
-                    : markRel.x;
+                    ? clamp(trackAnticipatedX, 0.28, 0.72)
+                    : trackAnticipatedX;
                 x = lerp(x, trackX, t * (centralMidCover && isScreenMid ? 0.72 : 1));
                 const trackDepth = clamp(markRel.depth - 0.005, defLine - 0.04, midLine + 0.1);
                 depth = lerp(depth, threat > 0.4 ? Math.min(trackDepth, goalside + 0.04) : trackDepth, t * 0.9);
@@ -5847,6 +5861,13 @@
         const longPen = passKind === "long" || isLongSkip(from, to) ? 0.2 : 0;
         const laneN = defendersInLane(from, to);
         const lanePen = laneN * 0.055;
+        // Engine rebuild — full anticipation. A defender already in "mark"
+        // mode on the receiver has been anticipating their held intent
+        // (Problem 7) every tick before this pass was even thrown - they
+        // aren't starting cold. Give that a genuine payoff in the actual
+        // interception odds, not just in where the defender's sprite stands.
+        const anticipating = def._defMode === "mark" && Boolean(to._intent);
+        const anticipationBonus = anticipating ? 0.05 : 0;
         const pIntercept =
           0.035 +
           def.stats.interceptions90 * 0.05 +
@@ -5859,7 +5880,8 @@
           from.stats.pass_pct * 0.0015 -
           from.stats.key_passes90 * 0.008 +
           longPen +
-          lanePen;
+          lanePen +
+          anticipationBonus;
         const cap = passKind === "long" ? 0.48 : 0.3;
         if (rng() < clamp(pIntercept, 0.025, cap)) {
           outcome = "intercept";
