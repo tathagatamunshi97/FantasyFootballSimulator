@@ -3544,25 +3544,47 @@
       }
 
       if (pattern === "wide_switch") {
+        // Engine rebuild — objectives vs methods (Phase 5), extended past
+        // wing_carry. The objective ("switch the point of attack") stays
+        // fixed; only the order these methods are tried in now adapts to
+        // real pressure — under a swarm, the cross-field switch is the
+        // riskiest, slowest-to-execute option, so reach for the available
+        // local pass first instead of still looking for the long switch.
         const far = oppositeFlankWinger(carrier);
-        if (far && isJustifiedSwitch(carrier, far)) {
-          say(`Switch — ${far.short}`, 1.2);
-          doPass(carrier, far, "switch");
-          return true;
-        }
-        // Unjustified: prefer local FB/CM/supporting winger
-        const local = teammates(carrier)
-          .filter((m) => !isCrossFieldSwitch(carrier, m) && (m.role === "CM" || m.role === "FB" || m.role === "W" || m.role === "ST"))
-          .filter((m) => isLocalTriangleOption(carrier, m) || dist(carrier, m) < 20)
-          .sort((a, b) => scoreAttackSequence(carrier, b) - scoreAttackSequence(carrier, a));
-        if (local[0]) {
-          doPass(carrier, local[0], "pass");
-          return true;
-        }
-        const cm = teammates(carrier).find((m) => m.role === "CM");
-        if (cm) {
-          doPass(carrier, cm, "pass");
-          return true;
+        const tryFarSwitch = () => {
+          if (far && isJustifiedSwitch(carrier, far)) {
+            say(`Switch — ${far.short}`, 1.2);
+            doPass(carrier, far, "switch");
+            return true;
+          }
+          return false;
+        };
+        const tryLocalPass = () => {
+          // Unjustified: prefer local FB/CM/supporting winger
+          const local = teammates(carrier)
+            .filter((m) => !isCrossFieldSwitch(carrier, m) && (m.role === "CM" || m.role === "FB" || m.role === "W" || m.role === "ST"))
+            .filter((m) => isLocalTriangleOption(carrier, m) || dist(carrier, m) < 20)
+            .sort((a, b) => scoreAttackSequence(carrier, b) - scoreAttackSequence(carrier, a));
+          if (local[0]) {
+            doPass(carrier, local[0], "pass");
+            return true;
+          }
+          return false;
+        };
+        const tryCmFallback = () => {
+          const cm = teammates(carrier).find((m) => m.role === "CM");
+          if (cm) {
+            doPass(carrier, cm, "pass");
+            return true;
+          }
+          return false;
+        };
+        const underPressureWS = pressureAt(carrier.left, carrier.top, carrier.side) > 0.5;
+        const orderWS = underPressureWS
+          ? [tryLocalPass, tryFarSwitch, tryCmFallback]
+          : [tryFarSwitch, tryLocalPass, tryCmFallback];
+        for (const attempt of orderWS) {
+          if (attempt()) return true;
         }
       }
 
@@ -3672,49 +3694,72 @@
 
       if (pattern === "cut_inside") {
         if (carrier.role === "W" || (carrier.role === "AM" && isWideChannel(carrier))) {
-          if (
-            depth >= 0.72 &&
-            Math.abs(carrier.left - 50) < 28 &&
-            rng() < 0.4 + st.xg90 * 0.45 + Math.max(0, ad) * 0.35 + urg * 0.08
-          ) {
-            if (!boxOccupationReady(carrier.side)) {
-              const slip = throughRunner(carrier, stage, depth);
-              if (slip && urg >= 0.7) {
-                doPass(carrier, slip, "through");
+          // Engine rebuild — objectives vs methods (Phase 5), extended past
+          // wing_carry. The objective ("cut inside and create") stays fixed;
+          // only the order these three methods are tried in now adapts to
+          // real pressure — under a swarm, the ambitious drive/shoot sequence
+          // is the riskiest option, so release the ball to whoever's already
+          // in a good spot first instead of still trying to carry through
+          // traffic.
+          const tryShootSeq = () => {
+            if (
+              depth >= 0.72 &&
+              Math.abs(carrier.left - 50) < 28 &&
+              rng() < 0.4 + st.xg90 * 0.45 + Math.max(0, ad) * 0.35 + urg * 0.08
+            ) {
+              if (!boxOccupationReady(carrier.side)) {
+                const slip = throughRunner(carrier, stage, depth);
+                if (slip && urg >= 0.7) {
+                  doPass(carrier, slip, "through");
+                  return true;
+                }
+                doPass(carrier, progressiveTarget(carrier), "pass");
                 return true;
               }
-              doPass(carrier, progressiveTarget(carrier), "pass");
+              if (!inPenaltyBox(carrier) && (carrier.role === "AM" || st.xg90 > 0.28 || ad > 0.12)) {
+                return Boolean(driveIntoBox(carrier));
+              }
+              doShot(carrier, false);
               return true;
             }
-            if (!inPenaltyBox(carrier) && (carrier.role === "AM" || st.xg90 > 0.28 || ad > 0.12)) {
-              return driveIntoBox(carrier);
+            return false;
+          };
+          const tryCutDribble = () => {
+            if (rng() < 0.5 + st.dribbles90 * 0.12) {
+              const attackSign = carrier.side === "home" ? -1 : 1;
+              const sideSign = carrier.left < 50 ? 1 : -1;
+              const midX = clamp(carrier.left + sideSign * (6 + rng() * 5), 18, 82);
+              const midY = clamp(carrier.top + attackSign * (2 + rng() * 2), 5, 95);
+              const nx = clamp(lerp(midX, 50, 0.35) + (rng() - 0.5) * 2, 20, 80);
+              const ny = clamp(carrier.top + attackSign * (3.5 + rng() * 2.5), 5, 95);
+              carrier._pathCtrl = { left: midX, top: midY, from: matchMinute, until: matchMinute + 0.5 };
+              carrier.tx = nx;
+              carrier.ty = ny;
+              carrier.lockUntil = matchMinute + 0.95;
+              carrier._decoyInside = true;
+              ballAttached = true;
+              setBallTarget(nx, ny + attackSign * -0.4, 0.7, true);
+              actionTimer = 0.82 + spellIdlePause() * 0.3;
+              say(`${carrier.short} cuts inside`, 1.25);
+              ballFlight = { outcome: "dribble_won" };
+              return true;
             }
-            doShot(carrier, false);
-            return true;
-          }
-          if (rng() < 0.5 + st.dribbles90 * 0.12) {
-            const attackSign = carrier.side === "home" ? -1 : 1;
-            const sideSign = carrier.left < 50 ? 1 : -1;
-            const midX = clamp(carrier.left + sideSign * (6 + rng() * 5), 18, 82);
-            const midY = clamp(carrier.top + attackSign * (2 + rng() * 2), 5, 95);
-            const nx = clamp(lerp(midX, 50, 0.35) + (rng() - 0.5) * 2, 20, 80);
-            const ny = clamp(carrier.top + attackSign * (3.5 + rng() * 2.5), 5, 95);
-            carrier._pathCtrl = { left: midX, top: midY, from: matchMinute, until: matchMinute + 0.5 };
-            carrier.tx = nx;
-            carrier.ty = ny;
-            carrier.lockUntil = matchMinute + 0.95;
-            carrier._decoyInside = true;
-            ballAttached = true;
-            setBallTarget(nx, ny + attackSign * -0.4, 0.7, true);
-            actionTimer = 0.82 + spellIdlePause() * 0.3;
-            say(`${carrier.short} cuts inside`, 1.25);
-            ballFlight = { outcome: "dribble_won" };
-            return true;
-          }
-          const slip = throughRunner(carrier, stage, depth) || shooterTarget(carrier);
-          if (slip.id !== carrier.id && rng() < 0.55 + urg * 0.12 + Math.max(0, ad) * 0.2) {
-            doPass(carrier, slip, throughBallLegal(carrier, slip) ? "through" : "pass");
-            return true;
+            return false;
+          };
+          const tryPassToShooter = () => {
+            const slip = throughRunner(carrier, stage, depth) || shooterTarget(carrier);
+            if (slip.id !== carrier.id && rng() < 0.55 + urg * 0.12 + Math.max(0, ad) * 0.2) {
+              doPass(carrier, slip, throughBallLegal(carrier, slip) ? "through" : "pass");
+              return true;
+            }
+            return false;
+          };
+          const underPressureCI = pressureAt(carrier.left, carrier.top, carrier.side) > 0.5;
+          const orderCI = underPressureCI
+            ? [tryPassToShooter, tryCutDribble, tryShootSeq]
+            : [tryShootSeq, tryCutDribble, tryPassToShooter];
+          for (const attempt of orderCI) {
+            if (attempt()) return true;
           }
         } else {
           const winger = teammates(carrier)
@@ -3734,34 +3779,66 @@
       }
 
       // central
+      // Engine rebuild — objectives vs methods (Phase 5), extended past
+      // wing_carry. The objective ("progress centrally") stays fixed; only
+      // the order these methods are tried in now adapts to real pressure —
+      // under a swarm, reach for the quick release (dribble away or a safe
+      // carry) before still looking for the elaborate through-ball. The
+      // unconditional doCarry at the very end is unchanged from before this
+      // patch — every path through this block must still always resolve to
+      // some action, so it stays as the guaranteed last resort regardless of
+      // how the earlier methods get reordered.
       {
-        if (threat && threat.d < 9 && rng() < 0.32 + st.dribbles90 * 0.09) {
-          doDribble(carrier);
-          return true;
-        }
-        const runner = depth >= 0.5 || urg >= 0.65 ? throughRunner(carrier, stage, depth) : null;
-        if (
-          runner &&
-          (carrier.role === "CM" || carrier.role === "AM" || carrier.role === "W") &&
-          rng() <
-            clamp(
-              0.32 +
-                st.key_passes90 * 0.12 +
-                st.xa90 * 0.25 +
-                (carrier.role === "CM" ? 0.14 : 0) +
-                urg * 0.16 +
-                (late ? 0.18 : 0) +
-                ad * 0.4,
-              0.15,
-              0.85
-            )
-        ) {
-          doPass(carrier, runner, "through");
-          return true;
-        }
-        if (rng() < (carrier.role === "CM" ? 0.78 : 0.62)) {
-          doPass(carrier, centralProgressTarget(carrier, stage, depth), "pass");
-          return true;
+        const tryDribbleClose = () => {
+          if (threat && threat.d < 9 && rng() < 0.32 + st.dribbles90 * 0.09) {
+            doDribble(carrier);
+            return true;
+          }
+          return false;
+        };
+        const tryThrough = () => {
+          const runner = depth >= 0.5 || urg >= 0.65 ? throughRunner(carrier, stage, depth) : null;
+          if (
+            runner &&
+            (carrier.role === "CM" || carrier.role === "AM" || carrier.role === "W") &&
+            rng() <
+              clamp(
+                0.32 +
+                  st.key_passes90 * 0.12 +
+                  st.xa90 * 0.25 +
+                  (carrier.role === "CM" ? 0.14 : 0) +
+                  urg * 0.16 +
+                  (late ? 0.18 : 0) +
+                  ad * 0.4,
+                0.15,
+                0.85
+              )
+          ) {
+            doPass(carrier, runner, "through");
+            return true;
+          }
+          return false;
+        };
+        const tryPass = () => {
+          if (rng() < (carrier.role === "CM" ? 0.78 : 0.62)) {
+            doPass(carrier, centralProgressTarget(carrier, stage, depth), "pass");
+            return true;
+          }
+          return false;
+        };
+        const tryCarryGated = () => {
+          if (rng() < 0.4 + st.dribbles90 * 0.04) {
+            doCarry(carrier);
+            return true;
+          }
+          return false;
+        };
+        const underPressureC = pressureAt(carrier.left, carrier.top, carrier.side) > 0.5;
+        const orderC = underPressureC
+          ? [tryDribbleClose, tryCarryGated, tryThrough, tryPass]
+          : [tryDribbleClose, tryThrough, tryPass, tryCarryGated];
+        for (const attempt of orderC) {
+          if (attempt()) return true;
         }
         doCarry(carrier);
         return true;
@@ -5423,6 +5500,38 @@
             if (p.pin.role === "FB" && !p.pin._pressing && !p.pin._overlapRun) {
               const maxAhead = attacking ? (p.pin._tuckIn ? 0.16 : 0.22) : 0.085;
               p.depth = clamp(p.depth, cbAvg - 0.02, cbAvg + maxAhead);
+            }
+          }
+        }
+
+        // Engine rebuild — coordinated CM/DM cover, mirroring Phase 3's
+        // CB-pair fix onto the central midfield group. Each CM/DM
+        // independently chased the ball's x-position with zero awareness of
+        // where its midfield partner stood — the same "defenders act
+        // independently" gap the CB fix closed, just one line further
+        // forward. Generalized over however many CM+DM pins the formation
+        // actually fields (2-3 across the supported formations — some are a
+        // DM+DM double pivot with no CM at all, e.g. 4-2-3-1; others a
+        // DM+CM1+CM2 trio, e.g. 4-3-3 flat), rather than assuming an exact
+        // pair. Lateral cover only, deliberately no depth-leveling like the
+        // CB pair gets — a DM is supposed to sit behind the CM(s), so
+        // flattening that natural depth gap the way the CB pair's shared
+        // line does would be wrong here.
+        if (!attacking) {
+          const cmdmPend = pending.filter((p) => p.pin.role === "CM" || p.pin.role === "DM");
+          if (cmdmPend.length >= 2) {
+            const byDangerMD = [...cmdmPend].sort(
+              (a, b) => Math.abs(a.pin.left - ballLeft) - Math.abs(b.pin.left - ballLeft)
+            );
+            const farMD = byDangerMD[byDangerMD.length - 1];
+            if (farMD) {
+              const coverX = 0.5 + (farMD.pin.baseX - 0.5) * 0.5;
+              farMD.x = lerp(farMD.x, coverX, 0.3);
+            }
+            // A three-pin midfield's middle player shades toward central
+            // cover too, instead of also independently chasing the ball.
+            for (const p of byDangerMD.slice(1, -1)) {
+              p.x = lerp(p.x, 0.5 + (p.pin.baseX - 0.5) * 0.7, 0.18);
             }
           }
         }
