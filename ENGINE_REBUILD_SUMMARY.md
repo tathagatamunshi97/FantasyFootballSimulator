@@ -143,10 +143,23 @@ distinct from this. What's new across Rounds 3-4:
   been anticipating — not just cosmetic positioning with no payoff.
 - `hold` (the passive default) has nothing specific to anticipate against
   and was left alone.
+- **mark** also now reads the *carrier's own* held intent, not just the
+  marked attacker's — the closest this engine gets to the critique's literal
+  "carrier body angle → likely pass": a carrier whose own intent is
+  forward-oriented (`progressive_run`/`attack_gap`/`underlap`/`back_post`)
+  signals they're looking to release forward, so the marker tightens up
+  harder on the mark instead of tracking at a fixed rate regardless of what
+  the passer themselves is telegraphing.
+- The interception-odds payoff was extended to press's own duel outcome too
+  — a presser in active "press" mode (already anticipating with cover
+  shadow) gets a bonus in the "steal" (winning it in the tackle before the
+  pass gets away) odds, not just `doPass`'s "intercept" outcome.
 
-Not done: nothing reads the *passer's* own body shape/intent specifically
-(only the receiver's/carrier's teammates' signals); no anticipation payoff
-wired into press's own duel outcomes (only pass interception).
+This closes every anticipation gap identified after Round 4. Genuinely open
+boundary: no literal player-orientation/facing property exists on the data
+model (Problem 11) — everything here reads *held intent* and *tagged support
+roles* as the proxy for "what is this player about to do," not a modeled
+body angle.
 
 ### Problem 8 — Everything happens sequentially, not parallel
 **Status: Partial, with an important framing caveat.** The engine is
@@ -350,6 +363,8 @@ b4e1472 Engine rebuild: full anticipation - track mode reads intent, interceptio
 4d6d249 Document Round 4: full anticipation (track mode + interception payoff)
 5a4e0fc Engine rebuild: extend anticipation to cover mode via progressive/third-man tags
 cc8ee76 Engine rebuild: extend anticipation to press mode (press with cover shadow)
+f85215d Document full anticipation completion across mark/track/cover/press modes
+c281b17 Engine rebuild: read the carrier's own intent, and give press its duel payoff
 ```
 
 Each commit message contains the specific before/after reasoning and the
