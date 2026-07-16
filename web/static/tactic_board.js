@@ -4998,7 +4998,7 @@
               const runner = threats.find((a) => a._running || a.lockUntil > matchMinute || a._overlapRun);
               const mark = threats[0] || null;
 
-              let defMode = "hold";
+              let naturalMode = "hold";
               const pressEligible =
                 pin.role === "DM" ||
                 pin.role === "CM" ||
@@ -5031,7 +5031,7 @@
                 (pin.role === "CB" || pin.role === "FB" || (pin.role === "DM" && defQ > 0.5)) &&
                 dist(pin, runner) < 16 + trackBoost * 3
               ) {
-                defMode = "track";
+                naturalMode = "track";
               } else if (
                 pressEligible &&
                 pressRank >= 0 &&
@@ -5039,7 +5039,7 @@
                 dBall < pressRadius &&
                 !(threat > 0.55 && pin.role === "CB" && pressRank > 0)
               ) {
-                defMode = "press";
+                naturalMode = "press";
               } else if (
                 (pin.role === "CM" || pin.role === "DM" || (threeBack && pin.role === "AM")) &&
                 carrier &&
@@ -5047,10 +5047,27 @@
                   defQ > 0.48 ||
                   threat > 0.35)
               ) {
-                defMode = "cover";
+                naturalMode = "cover";
               } else if (mark && (pin.role === "CB" || pin.role === "FB" || pin.role === "DM" || pin.role === "CM")) {
-                defMode = "mark";
+                naturalMode = "mark";
               }
+
+              // Engine rebuild — defensive intent hold. naturalMode above was
+              // recomputed from scratch every tick, same as the pre-rebuild
+              // winger hysteresis and _supportRole: two defenders near-tied on
+              // pressRank (nearest to the ball) could flip which one presses
+              // and which holds/covers every single recompute. "track" (a
+              // breaking runner) always overrides immediately since missing a
+              // run is too costly to hold a stale assignment through; every
+              // other mode is held for a short window once assigned.
+              const defHoldActive = (pin._defModeUntil || 0) > matchMinute;
+              if (naturalMode === "track" || !defHoldActive || pin._defMode == null) {
+                if (pin._defMode !== naturalMode) {
+                  pin._defMode = naturalMode;
+                  pin._defModeUntil = matchMinute + 0.35 + rng() * 0.25;
+                }
+              }
+              const defMode = pin._defMode || naturalMode;
 
               // Goalside cover depth: between ball and own goal (depth ≤ ball)
               const goalside = clamp(Math.min(relBall.depth - 0.02, defLine + 0.02), 0.05, midLine + 0.04);
