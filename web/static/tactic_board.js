@@ -618,14 +618,6 @@
 
     const unitHome = opts.unitHome || {};
     const unitAway = opts.unitAway || {};
-    // Engine fix — the pre-match Monte Carlo engine's own expected-xG figures
-    // (the same numbers shown on the experiment page) were already threaded
-    // all the way down to these board options (xgHome/xgAway) but never once
-    // read inside the live simulation. Read them here so the spell pipeline
-    // has a real target to anchor total chance volume against — see
-    // xgPaceMul, near spellChanceP.
-    const targetXgHome = Number(opts.xgHome);
-    const targetXgAway = Number(opts.xgAway);
     function unit01(v, fallback = 0.55) {
       const n = Number(v);
       if (!Number.isFinite(n)) return fallback;
@@ -717,6 +709,45 @@
     // Fallback 0.4 matches team_ratings.py's LEAGUE_GK_RATING baseline.
     const gkHome = unit01(unitHome.goalkeeper, 0.4);
     const gkAway = unit01(unitAway.goalkeeper, 0.4);
+
+    // Engine fix — expected-xG target per side, used by xgPaceMul (near
+    // spellChanceP) to anchor total chance volume against what squad quality
+    // actually predicts for a full 90 minutes. opts.xgHome/xgAway (the real
+    // Monte Carlo expected_xg) only exist for the Team Lab "test simulation"
+    // watch flow — tournament/matchday matches (start_experiment_live_match /
+    // matchday_session) never run that Monte Carlo step at all, so those are
+    // always undefined there. Fall back to approximating the same figure from
+    // unit ratings that are present on every live match regardless of flow —
+    // mirrors team_ratings.py's combined_attack_xg / defence_suppression /
+    // midfield_battle_multiplier (the dominant terms in the real formula)
+    // closely enough to serve as a pacing anchor; deliberately skips the
+    // smaller terms (press_xg_suppression, trophy/silverware multiplier)
+    // since this only needs to be a reasonable target, not a bit-for-bit
+    // replica of the separate Python engine.
+    const unitMidHome = unit01(unitHome.midfield, 0.5);
+    const unitMidAway = unit01(unitAway.midfield, 0.5);
+    const transitionRiskHome = unit01(unitHome.transition_risk, 0.3);
+    const transitionRiskAway = unit01(unitAway.transition_risk, 0.3);
+    function approxXgTarget(finishing, chanceCreation, oppDefence, oppMidDef, oppGk, oppTransRisk, ownMid, oppMid) {
+      const atkXg = Math.max(0.35, 2.05 * (0.42 + 0.88 * finishing));
+      const createXg = Math.max(0, 2.05 * 0.36 * chanceCreation * 0.5);
+      const effGk = 0.4 + 0.55 * (oppGk - 0.4);
+      let combined = 0.54 * oppDefence + 0.32 * oppMidDef + 0.14 * effGk;
+      combined *= Math.max(0.68, 1 - oppTransRisk * 0.32);
+      const suppression = 1 / (1 + combined * 0.95);
+      const midDelta = clamp(ownMid - oppMid, -0.8, 0.8);
+      return (atkXg + createXg) * suppression * (1 + 0.1 * midDelta);
+    }
+    const rawXgHome = Number(opts.xgHome);
+    const rawXgAway = Number(opts.xgAway);
+    const targetXgHome =
+      Number.isFinite(rawXgHome) && rawXgHome > 0.05
+        ? rawXgHome
+        : approxXgTarget(unitFinHome, unitCreateHome, defendAway, midDefAway, gkAway, transitionRiskAway, unitMidHome, unitMidAway);
+    const targetXgAway =
+      Number.isFinite(rawXgAway) && rawXgAway > 0.05
+        ? rawXgAway
+        : approxXgTarget(unitFinAway, unitCreateAway, defendHome, midDefHome, gkHome, transitionRiskHome, unitMidAway, unitMidHome);
 
     function sideAttack(side) {
       return side === "home" ? attackHome : attackAway;
