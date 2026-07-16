@@ -120,21 +120,33 @@ AM still has three of its own sine oscillations, left untouched (different
 role, out of scope for this slice). ST/CM/FB positioning is untouched.
 
 ### Problem 7 — No anticipation (defenders react after the pass, not before)
-**Status: Mostly done, completed in Round 4.** A pre-existing heuristic,
-`receiverFacingPasser`, checks the receiver's relative position/orientation to
-the passer for pass-target scoring — untouched, and distinct from this.
-What's new: both defensive modes that target a specific attacker ("mark" —
-Round 3, and now "track" — Round 4) read that attacker's held intent and
-anticipate a small shift in the direction it's actually taking them
-(`stretch`/`overlap` → drifting wider; `underlap`/`attack_gap`/`tuck_support`
-→ cutting inside) instead of only reacting to their current position — a
-direct product of the intent system existing. Round 4 also closed the loop
-between anticipated positioning and actual outcomes: a defender already in
-"mark" mode on the eventual pass receiver — who's been anticipating their
-held intent every tick before the pass was even thrown — now gets a genuine
-interception-odds bonus in `doPass`, not just cosmetic positioning with no
-payoff. Not done: nothing reads the *passer's* body shape/intent specifically
-(only the receiver's), and "cover"/"press"/"hold" modes don't anticipate.
+**Status: Done across every defensive mode with a meaningful target.** A
+pre-existing heuristic, `receiverFacingPasser`, checks the receiver's relative
+position/orientation to the passer for pass-target scoring — untouched, and
+distinct from this. What's new across Rounds 3-4:
+- **mark** and **track** (both target a specific attacker) read that
+  attacker's held intent and anticipate a small shift in the direction it's
+  actually taking them (`stretch`/`overlap` → drifting wider;
+  `underlap`/`attack_gap`/`tuck_support` → cutting inside) instead of only
+  reacting to their current position — a direct product of the intent system
+  existing.
+- **cover** and **press** (zonal/ball-oriented, no single marked attacker)
+  instead read the carrier's `_supportRole` tagging (`assignSupportRoles`,
+  computed every tick) to identify the `progressive`/`third_man` teammate —
+  the carrier's actual most dangerous option — and shade toward screening
+  that specific option: cover shades its zonal position toward them; press
+  angles its approach to the ball to also block that lane ("pressing with
+  cover shadow"), instead of pure ball-position pursuit.
+- Closed the loop between anticipated positioning and actual outcomes in
+  `doPass`: a defender already in mark or cover mode gets a genuine
+  interception-odds bonus when the pass actually goes to the player they'd
+  been anticipating — not just cosmetic positioning with no payoff.
+- `hold` (the passive default) has nothing specific to anticipate against
+  and was left alone.
+
+Not done: nothing reads the *passer's* own body shape/intent specifically
+(only the receiver's/carrier's teammates' signals); no anticipation payoff
+wired into press's own duel outcomes (only pass interception).
 
 ### Problem 8 — Everything happens sequentially, not parallel
 **Status: Partial, with an important framing caveat.** The engine is
@@ -335,6 +347,9 @@ a5ea6f7 Engine rebuild: defensive intent hold, mirroring the attacking-intent fi
 844b467 Engine rebuild: physics realism - shot wind-up instead of instant ball departure
 71add83 Document Round 3: defensive intent, extended shape, anticipation, physics
 b4e1472 Engine rebuild: full anticipation - track mode reads intent, interceptions pay off
+4d6d249 Document Round 4: full anticipation (track mode + interception payoff)
+5a4e0fc Engine rebuild: extend anticipation to cover mode via progressive/third-man tags
+cc8ee76 Engine rebuild: extend anticipation to press mode (press with cover shadow)
 ```
 
 Each commit message contains the specific before/after reasoning and the
