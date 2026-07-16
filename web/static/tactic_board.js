@@ -6264,6 +6264,26 @@
 
     function doShot(carrier, mustScore) {
       if (ballFlight) return;
+      // Engine rebuild — physics realism (Problem 9). A shot previously had
+      // zero wind-up: the ball started flying the instant the decision was
+      // made, no plant-foot/backswing motion at all. Give the shooter's own
+      // sprite a brief, bounded plant (bulge toward a control point and
+      // back to the same spot, via the same _pathCtrl bezier mechanism
+      // doDribble/doCarry already use) right at the shot's start. This is
+      // purely cosmetic on the shooter — it doesn't delay the scoring
+      // decision or ball flight, and everyone else keeps moving/reacting
+      // exactly as before ("never freeze everyone").
+      carrier._pathCtrl = {
+        left: clamp(carrier.left + (rng() - 0.5) * 1.5, 2, 98),
+        top: clamp(carrier.top + (carrier.side === "home" ? -1 : 1) * 1.2, 2, 98),
+        from: matchMinute,
+        until: matchMinute + 0.12,
+      };
+      carrier.tx = carrier.left;
+      carrier.ty = carrier.top;
+      // Hold the lock through the plant window so updateTeamShape doesn't
+      // overwrite tx/ty with a fresh target before the bulge completes.
+      carrier.lockUntil = Math.max(carrier.lockUntil || 0, matchMinute + 0.12);
       const keeper = gkOf(oppOf(carrier.side));
       const atk = sideAttack(carrier.side);
       const def = sideDefend(oppOf(carrier.side));
