@@ -985,6 +985,17 @@
     let pensTimer = 0;
     let possSeconds = { home: 0, away: 0 };
     let liveXg = { home: 0, away: 0 };
+    // Engine fix — how long (in match-minutes) a side stays "scrambling" after
+    // triggerDefensiveBreachReactions fires against it. The reaction sets a
+    // movement target (tx/ty) for the covering players, but their actual
+    // on-pitch position (pin.left/top — what pressureAt/nearestOpponent
+    // read) only catches up over several rendered frames. If the very next
+    // action (often driveIntoBox, in the same match-minute) checks for a
+    // nearby defender before that catch-up happens, it correctly finds
+    // nobody close — the recovery never had time to matter. This window
+    // lets the contest checks themselves acknowledge the defence is
+    // actively scrambling even before its sprites have visually arrived.
+    let breachRecoveryUntil = { home: 0, away: 0 };
     /**
      * Per-team finishing form for this match (drawn once at reset/kickoff).
      * Multiplies shot conversion; does not invent goals without shots.
@@ -1426,6 +1437,19 @@
         }
         // Engine rebuild — parallel/simultaneous reactions (Problem 8).
         triggerReceptionReactions(to);
+        // Engine fix — the recovery reaction that fires when a duel is
+        // physically lost (doDribble/doCarry/driveIntoBox) also needs to
+        // fire here: a dangerous pass into an advanced position beats the
+        // defence positionally even when no dribble ever happened — the
+        // exact gap behind "slips it through -> unmarked run -> goal" with
+        // zero defensive reaction anywhere in the sequence. Treat the
+        // defender nearest the new advanced receiver as the one who needed
+        // to close the passing lane and didn't, and fire the same recovery
+        // burst (chase back, covering CB/FB shifts across, DM/CM drops in).
+        if (possessionDepth(to) >= 0.55) {
+          const nearestDef = nearestOpponent(to, 16);
+          if (nearestDef) triggerDefensiveBreachReactions(nearestDef.pin);
+        }
         if (from && from.side === to.side && from.player) {
           lastPasser = {
             player: from.player,
@@ -3021,6 +3045,67 @@
 
     function driveIntoBox(carrier) {
       if (!carrier || inPenaltyBox(carrier)) return false;
+      // Engine fix — real defensive contest during the drive. This was a
+      // fully uncontested cinematic dash: the carrier warped straight to a
+      // shooting position with zero chance of being closed down along the
+      // way, no matter how many defenders were actually nearby.
+      // doDribble/doCarry/doPass all already have a genuine pressure-based
+      // contest (this session's earlier work); this function — called from
+      // 7 different attacking decision points — was the one place a carrier
+      // could always walk into the box unopposed, which is very likely the
+      // literal mechanism behind "attacker moves in, defence reacts after,
+      // lots of clean 1v1 looks." Mirrors doCarry's dispossession check.
+      // Engine fix — a defender mid-recovery (triggerDefensiveBreachReactions
+      // fired against this carrier's side within the last ~0.35 match-
+      // minutes) is actively scrambling across even though their on-pitch
+      // position hasn't caught up to that yet — pressureAt/nearestOpponent
+      // only see where they physically are right now, so a fast follow-up
+      // action in the same minute as the breach would otherwise find nobody
+      // engaged at all. Widen the engagement gate during that window so the
+      // covering run actually has a chance to matter instead of always
+      // arriving one tick too late to affect anything.
+      const scrambling = (breachRecoveryUntil[oppOf(carrier.side)] || 0) > matchMinute;
+      const engageRadius = scrambling ? 13 : 9;
+      const threat = nearestOpponent(carrier, engageRadius);
+      const fieldPressure = pressureAt(carrier.left, carrier.top, carrier.side);
+      const engageGate = scrambling ? 12.5 : 8.5;
+      const pressureGate = scrambling ? 0.15 : 0.35;
+      if ((threat && threat.d < engageGate) || fieldPressure > pressureGate || scrambling) {
+        const resist = sideResist(carrier.side);
+        const def = sideDefend(oppOf(carrier.side));
+        const closeMul = threat ? clamp(1.2 - threat.d / engageRadius, 0.55, 1.2) : 0.7;
+        const stopP =
+          (0.06 +
+            def * 0.11 +
+            (threat ? threat.pin.stats.tackles90 * 0.055 : 0) +
+            (threat ? threat.pin.stats.interceptions90 * 0.02 : 0) -
+            resist * 0.07 -
+            carrier.stats.dribbles90 * 0.032 +
+            fieldPressure * 0.1 +
+            (scrambling ? 0.08 : 0) +
+            (rng() - 0.5) * 0.04) *
+          closeMul;
+        if (rng() < clamp(stopP, 0.04, 0.28)) {
+          const opp = threat?.pin || nearestOpponent(carrier, 14)?.pin;
+          if (opp) {
+            pushMatchEvent("dribble_lost", carrier.side, {
+              player: carrier.player,
+              player_short: carrier.short,
+              by: opp.player,
+              detail: `stopped by ${opp.short}`,
+            });
+            say(`${opp.short} stops ${carrier.short}`, 1.35);
+            ballAttached = false;
+            const arc = passArcFor(carrier.left, carrier.top, opp.left, opp.top, "pass");
+            const dur = clamp(arc.dur, 0.2, 0.4);
+            setBallTarget(opp.left, opp.top, dur, false, arc.ctrl);
+            actionTimer = dur + 0.2;
+            ballFlight = { outcome: "dribble_lost", interceptor: opp, comment: `${opp.short} closes it down` };
+            return false;
+          }
+        }
+        if (threat) triggerDefensiveBreachReactions(threat.pin);
+      }
       const rel = fromPitchPct(carrier.side, carrier.left, carrier.top);
       const sideSign = rel.x >= 0.5 ? -1 : 1;
       const wantX = clamp(0.5 + (rel.x - 0.5) * 0.45 + sideSign * 0.02 + (rng() - 0.5) * 0.04, 0.34, 0.66);
@@ -4215,6 +4300,75 @@
         fb._running = true;
         fb._overlapRun = true;
         fb.lockUntil = matchMinute + 0.55;
+      }
+    }
+
+    /**
+     * Engine fix — defensive breach recovery. Until now, a defender who lost
+     * a 1v1 (doDribble, doCarry, driveIntoBox) just returned to the normal
+     * shape cycle like nothing happened: no recovery sprint, no covering
+     * teammate shifting across, no holding midfielder dropping to protect
+     * the space in front of goal. Real defending is a team reaction the
+     * instant a player is beaten, not just that one player's problem. Fires
+     * synchronously at the moment the duel is lost, mirroring
+     * triggerTurnoverReactions/triggerReceptionReactions — the conceding
+     * side's version of the same "react in this exact instant, don't wait
+     * for the next shape tick" idea.
+     */
+    function triggerDefensiveBreachReactions(beaten) {
+      if (!beaten || beaten.role === "GK") return;
+      const attackSign = beaten.side === "home" ? -1 : 1;
+      const mates = teammates(beaten).filter((m) => m.role !== "GK");
+      // Mark this side as actively scrambling for a short window — read by
+      // driveIntoBox/doCarry so an immediate follow-up action doesn't check
+      // for a nearby defender before the recovery sprint above has had any
+      // chance to actually close the distance.
+      breachRecoveryUntil[beaten.side] = matchMinute + 0.35;
+
+      // The beaten defender chases back goal-side instead of drifting back
+      // at normal shape speed.
+      const recoverY = clamp(beaten.top - attackSign * 6, 3, 97);
+      const midY = clamp(beaten.top - attackSign * 2.5, 3, 97);
+      beaten._pathCtrl = { left: beaten.left, top: midY, from: matchMinute, until: matchMinute + 0.5 };
+      beaten.tx = beaten.left;
+      beaten.ty = recoverY;
+      beaten._running = true;
+      beaten.lockUntil = matchMinute + 0.5;
+
+      // Covering CB/FB shifts across and drops immediately, instead of only
+      // shading over on the next shape recompute.
+      if (beaten.role === "CB" || beaten.role === "FB") {
+        const cover = mates
+          .filter((m) => (m.role === "CB" || m.role === "FB") && m.id !== beaten.id)
+          .sort((a, b) => dist(beaten, a) - dist(beaten, b))[0];
+        if (cover) {
+          cover.tx = clamp(lerp(cover.left, beaten.left, 0.3), 6, 94);
+          cover.ty = clamp(cover.top - attackSign * 2.5, 3, 97);
+          cover._running = true;
+          cover.lockUntil = matchMinute + 0.45;
+        }
+      }
+
+      // Nearest DM/CM drops back to screen the space in front of goal.
+      const screen = mates
+        .filter((m) => m.role === "DM" || m.role === "CM")
+        .sort((a, b) => dist(beaten, a) - dist(beaten, b))[0];
+      if (screen) {
+        screen.tx = clamp(lerp(screen.left, beaten.left, 0.3), 10, 90);
+        screen.ty = clamp(screen.top - attackSign * 3, 3, 97);
+        screen._running = true;
+        screen.lockUntil = matchMinute + 0.45;
+      }
+
+      // Far-side FB tucks infield to help cover centrally.
+      const farFB = mates.find(
+        (m) => m.role === "FB" && m.id !== beaten.id && (m.left > 50) !== (beaten.left > 50)
+      );
+      if (farFB) {
+        farFB.tx = clamp(lerp(farFB.left, 50, 0.35), 15, 85);
+        farFB.ty = farFB.top;
+        farFB._tuckIn = true;
+        farFB.lockUntil = matchMinute + 0.4;
       }
     }
 
@@ -6472,6 +6626,7 @@
         });
         say(`${carrier.short} dribbles past ${threat?.pin.short || "the press"}`, 1.4);
         ballFlight = { outcome: "dribble_won" };
+        if (threat) triggerDefensiveBreachReactions(threat.pin);
       } else {
         const opp = threat?.pin || nearestOpponent(carrier, 30)?.pin || pinsOf(oppOf(carrier.side))[3];
         pushMatchEvent("dribble_lost", carrier.side, {
@@ -6502,16 +6657,24 @@
       // doDribble (the only contestable forward action) only fires on a
       // separate dice roll. Give a nearby defender a real, if modest, chance
       // to close a carry down instead of always standing there doing nothing.
-      const threat = nearestOpponent(carrier, 9);
+      // Engine fix — same scrambling window as driveIntoBox: a defender
+      // triggerDefensiveBreachReactions just sent recovering hasn't
+      // physically arrived yet, so widen the engagement gate briefly rather
+      // than let the recovery run always be one tick too late to count.
+      const scrambling = (breachRecoveryUntil[oppOf(carrier.side)] || 0) > matchMinute;
+      const engageRadius = scrambling ? 13 : 9;
+      const threat = nearestOpponent(carrier, engageRadius);
       // Engine rebuild Phase 1 — also gate on the real pressure field, not
       // just the single nearest defender, so a converging 2v1 (neither
       // defender alone inside the old 8.5-unit cutoff) still counts as real
       // pressure instead of being invisible to this check.
       const fieldPressure = pressureAt(carrier.left, carrier.top, carrier.side);
-      if ((threat && threat.d < 8.5) || fieldPressure > 0.35) {
+      const engageGate = scrambling ? 12.5 : 8.5;
+      const pressureGate = scrambling ? 0.15 : 0.35;
+      if ((threat && threat.d < engageGate) || fieldPressure > pressureGate || scrambling) {
         const resist = sideResist(carrier.side);
         const def = sideDefend(oppOf(carrier.side));
-        const closeMul = threat ? clamp(1.2 - threat.d / 9, 0.55, 1.2) : 0.7;
+        const closeMul = threat ? clamp(1.2 - threat.d / engageRadius, 0.55, 1.2) : 0.7;
         const dispossessP =
           (0.05 +
             def * 0.1 +
@@ -6519,6 +6682,7 @@
             resist * 0.08 -
             carrier.stats.dribbles90 * 0.03 +
             fieldPressure * 0.09 +
+            (scrambling ? 0.07 : 0) +
             (rng() - 0.5) * 0.04) *
           closeMul;
         if (rng() < clamp(dispossessP, 0.03, 0.26)) {
@@ -6540,6 +6704,7 @@
           ballFlight = { outcome: "dribble_lost", interceptor: opp, comment: `${opp.short} closes it down` };
           return;
         }
+        if (threat && threat.d < 8.5) triggerDefensiveBreachReactions(threat.pin);
       }
       const attackSign = carrier.side === "home" ? -1 : 1;
       const push = 2.2 + rng() * 2.4 + carrier.stats.dribbles90 * 0.35;
@@ -8049,6 +8214,7 @@
       clearLastPasser();
       possSeconds = { home: 0, away: 0 };
       liveXg = { home: 0, away: 0 };
+      breachRecoveryUntil = { home: 0, away: 0 };
       redrawFinishingForm();
       commentaryLines = [];
       if (feedEl) feedEl.innerHTML = "";
