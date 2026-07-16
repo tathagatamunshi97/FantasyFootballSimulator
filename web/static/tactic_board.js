@@ -5119,6 +5119,22 @@
                   ? lerp(relBall.x, 0.5, 0.62)
                   : lerp(relBall.x, 0.5, 0.4);
                 x = lerp(x, laneX, 0.32 + defQ * 0.12 + threat * 0.1);
+                // Engine rebuild — full anticipation, cover mode. Cover's
+                // whole job is screening the next dangerous option, so read
+                // it directly instead of only reacting to ball position: if
+                // the carrier already has a teammate tagged as the
+                // progressive/third-man option (assignSupportRoles, computed
+                // every tick), shade toward them specifically ahead of the
+                // pass, not just generic ball-side space.
+                if (carrier && carrier.side !== pin.side) {
+                  const dangerMate = teammates(carrier).find(
+                    (m) => m._supportRole === "progressive" || m._supportRole === "third_man"
+                  );
+                  if (dangerMate) {
+                    const dangerRel = fromPitchPct(pin.side, dangerMate.left, dangerMate.top);
+                    x = lerp(x, clamp(dangerRel.x, 0.28, 0.72), 0.18);
+                  }
+                }
                 if (mark && !(centralMidCover && isScreenMid)) x = lerp(x, clamp(mark.left, 18, 82), 0.18);
                 else if (mark && centralMidCover && isScreenMid) {
                   const markRel = fromPitchPct(pin.side, mark.left, mark.top);
@@ -5864,10 +5880,15 @@
         // Engine rebuild — full anticipation. A defender already in "mark"
         // mode on the receiver has been anticipating their held intent
         // (Problem 7) every tick before this pass was even thrown - they
-        // aren't starting cold. Give that a genuine payoff in the actual
-        // interception odds, not just in where the defender's sprite stands.
-        const anticipating = def._defMode === "mark" && Boolean(to._intent);
-        const anticipationBonus = anticipating ? 0.05 : 0;
+        // aren't starting cold. Same for "cover": its whole job is screening
+        // the carrier's progressive/third-man option, so if the actual pass
+        // goes to exactly that tagged teammate, the cover defender read it
+        // correctly. Give both a genuine payoff in the actual interception
+        // odds, not just in where the defender's sprite stands.
+        const markAnticipating = def._defMode === "mark" && Boolean(to._intent);
+        const coverAnticipating =
+          def._defMode === "cover" && (to._supportRole === "progressive" || to._supportRole === "third_man");
+        const anticipationBonus = markAnticipating ? 0.05 : coverAnticipating ? 0.04 : 0;
         const pIntercept =
           0.035 +
           def.stats.interceptions90 * 0.05 +
