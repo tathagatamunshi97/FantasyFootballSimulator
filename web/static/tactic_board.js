@@ -5102,11 +5102,27 @@
                 const nearBoost = dBall < 5 ? 1.4 : dBall < 8 ? 1.1 : 0.7;
                 const t = (0.22 + press * 0.32 + pin.stats.tackles90 * 0.04 + Math.max(0, pressEdge) * 0.12) * nearBoost;
                 const step = clamp(t * (1 - threat * 0.28), 0.14, 0.62);
+                // Engine rebuild — full anticipation, press mode ("press with
+                // cover shadow"): a real presser angles their run to also
+                // screen the easiest out-ball while closing the carrier down,
+                // rather than beelining straight at the ball. Bias the
+                // approach slightly toward the carrier's tagged danger option
+                // (assignSupportRoles) when one exists.
+                let pressTargetX = relBall.x;
+                if (carrier && carrier.side !== pin.side) {
+                  const dangerMate = teammates(carrier).find(
+                    (m) => m._supportRole === "progressive" || m._supportRole === "third_man"
+                  );
+                  if (dangerMate) {
+                    const dangerRel = fromPitchPct(pin.side, dangerMate.left, dangerMate.top);
+                    pressTargetX = lerp(relBall.x, dangerRel.x, 0.2);
+                  }
+                }
                 if (centralMidCover && isScreenMid) {
-                  const pressX = clamp(relBall.x, 0.3, 0.7);
+                  const pressX = clamp(pressTargetX, 0.3, 0.7);
                   x = lerp(x, pressX, step * 0.55);
                 } else {
-                  x = lerp(x, relBall.x, step);
+                  x = lerp(x, pressTargetX, step);
                 }
                 if (threeBack && (pin.role === "CM" || pin.role === "DM" || pin.role === "AM")) {
                   depth = lerp(depth, clamp(relBall.depth - 0.02, defLine, midLine + 0.04), step * 0.5);
