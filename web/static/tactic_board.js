@@ -6262,17 +6262,21 @@
       const pHot = clamp(0.12 + bias * 0.16, 0.04, 0.28);
       const u = rng();
       if (u < pCold) {
-        // Cold day — goals << xG: factor ~0.35–0.72 (was 0.22–0.65; less blank-night extreme)
-        return clamp(0.35 + rng() * 0.37, 0.32, 0.72);
+        // Cold day — was 0.32-0.72 (drawn once, held for the whole match).
+        // Real production data: a team creating 2+ xG and scoring 0 while
+        // the opponent overperforms wildly, in a single 90-minute lock-in
+        // with no chance to turn it around, feels like a coin flip rather
+        // than controlled variance. Narrowed the swing.
+        return clamp(0.55 + rng() * 0.25, 0.52, 0.8);
       }
       if (u < pCold + pHot) {
-        // Hot day — goals > xG (e.g. 4–5 from ~3): factor ~1.35–1.95
-        return clamp(1.35 + rng() * 0.6, 1.3, 1.95);
+        // Hot day — was 1.3-1.95. Narrowed to match.
+        return clamp(1.2 + rng() * 0.35, 1.18, 1.55);
       }
       // Normal — triangular-ish around 1.0 (+ mild finishing mean shift)
-      const noise = (rng() + rng() + rng() - 1.5) * 0.22;
+      const noise = (rng() + rng() + rng() - 1.5) * 0.2;
       const meanShift = bias * 0.06;
-      return clamp(1.0 + meanShift + noise, 0.78, 1.22);
+      return clamp(1.0 + meanShift + noise, 0.82, 1.18);
     }
 
     function redrawFinishingForm() {
@@ -7266,6 +7270,14 @@
         clockCap = 90;
         clockEl.textContent = "45'";
         say("Second half underway", 1.8);
+        // Engine rebuild — finishing form was drawn once at kickoff and held
+        // for the entire match; a single unlucky "cold" roll could lock a
+        // team out of scoring for the whole 90 minutes regardless of the
+        // chances they actually created. Real production data showed exactly
+        // this (a team generating 2+ xG and finishing with zero goals).
+        // Re-draw for the second half so a bad first half isn't a life
+        // sentence - a team really can come out and turn it around.
+        redrawFinishingForm();
       } else if (kind === "et_intro") {
         matchMinute = 90.05;
         clockCap = 105;
