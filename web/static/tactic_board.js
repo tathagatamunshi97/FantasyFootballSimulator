@@ -1661,6 +1661,29 @@
       return total;
     }
 
+    /**
+     * Engine rebuild — real aerial-duel presence, replacing the static
+     * sideAerial/strikerAerialThreat squad-wide scalars in the cross/header
+     * contest. Same shape as pressureAt (proximity²-weighted sum over every
+     * nearby player, not just the single nearest one), but weighted by
+     * aerial ability instead of tackling — a header contest is decided by
+     * who's actually in the box jumping, not by a team-wide averaged rating
+     * with no positional signal at all.
+     */
+    const AERIAL_RADIUS = 12;
+    function boxAerialPresence(x, y, side, excludeId) {
+      let total = 0;
+      for (const p of pinsOf(side)) {
+        if (p.role === "GK" || p.id === excludeId) continue;
+        const d = dist({ left: x, top: y }, p);
+        if (d >= AERIAL_RADIUS) continue;
+        const proximity = 1 - d / AERIAL_RADIUS;
+        const ability = 0.35 + (p.stats.aerials_won90 || 0) * 0.09 * Math.max(0.4, (p.stats.aerials_won_pct || 50) / 100);
+        total += proximity * proximity * ability;
+      }
+      return total;
+    }
+
     function teammates(pin) {
       return pinsOf(pin.side).filter((p) => p.id !== pin.id && p.role !== "GK");
     }
@@ -3299,6 +3322,34 @@
         wCentral *= lerp(1, supp, 0.4);
         wRecycle += (1 - supp) * 0.6;
       }
+
+      // Engine rebuild — spatial evaluation for pattern selection (Priority 4).
+      // Every weight above is squad-quality/urgency/carrier-stat driven; none
+      // of them ask whether the specific space each pattern actually needs is
+      // open right now — the exact "fixed pattern menu with no space model"
+      // gap. Score each pattern's real target zone with the same pressureAt
+      // field used everywhere else in the rebuild, and fold that into the
+      // existing weights rather than replacing them (pickAttackPattern's
+      // squad/urgency signals stay the primary driver; this is a real-time
+      // correction on top).
+      const relC = fromPitchPct(carrier.side, carrier.left, carrier.top);
+      const ownFlank = pinFlank(carrier);
+      const farFlank = ownFlank === "L" ? "R" : ownFlank === "R" ? "L" : relC.x > 0.5 ? "L" : "R";
+      const farFlankX = farFlank === "L" ? 0.12 : 0.88;
+      const zoneOpenness = (zx, zd) => {
+        const pct = toPitchPct(carrier.side, clamp(zx, 0.04, 0.96), clamp(zd, 0.04, 0.96));
+        return 1 / (1 + pressureAt(pct.left, pct.top, carrier.side));
+      };
+      const centralOpen = zoneOpenness(0.5, Math.min(0.94, relC.depth + 0.12));
+      const farFlankOpen = zoneOpenness(farFlankX, Math.min(0.94, relC.depth + 0.08));
+      const ownFlankOpen = zoneOpenness(relC.x, Math.min(0.94, relC.depth + 0.14));
+      const halfSpaceX = clamp(relC.x + (relC.x > 0.5 ? -0.18 : 0.18), 0.05, 0.95);
+      const halfSpaceOpen = zoneOpenness(halfSpaceX, Math.min(0.94, relC.depth + 0.1));
+      wCentral += (centralOpen - 0.5) * 1.1;
+      wSwitch += (farFlankOpen - 0.5) * 1.3;
+      wWing += (ownFlankOpen - 0.5) * 1.1;
+      wCut += (halfSpaceOpen - 0.5) * 1.1;
+      wRecycle += (0.5 - Math.max(centralOpen, farFlankOpen, ownFlankOpen, halfSpaceOpen)) * 0.5;
 
       const entries = [
         { id: "central", w: wCentral },
@@ -5337,6 +5388,33 @@
           }
         }
 
+        // Engine rebuild — winger tracks back, the last link in the Problem 3
+        // defensive chain ("LCB shifts, DM slides over, LB tucks inside, RW
+        // tracks back"). W is never defMode-eligible (always "hold" while
+        // defending) and previously only had a generic depth-only retreat
+        // nudge (below), with zero awareness of whether its own FB had
+        // actually recovered. The FB's *target* depth gets hard-clamped back
+        // near the CB line every tick just above, but its real on-pitch
+        // position (pin.left/top) lags that target while still jogging back
+        // from an advanced run — that lag is the genuine open flank. Read the
+        // FB's actual position, not the clamped target, to detect it.
+        if (!attacking) {
+          for (const fbEntry of pending) {
+            if (fbEntry.pin.role !== "FB" || fbEntry.pin._pressing) continue;
+            const fbRel = fromPitchPct(fbEntry.pin.side, fbEntry.pin.left, fbEntry.pin.top);
+            const exposure = fbRel.depth - (defLine + 0.16);
+            if (exposure <= 0) continue;
+            const wEntry = pending.find(
+              (p) => p.pin.role === "W" && !p.pin._pressing && (p.pin.left > 50) === (fbEntry.pin.left > 50)
+            );
+            if (wEntry) {
+              const coverT = clamp(exposure * 1.8, 0.15, 0.55);
+              wEntry.x = lerp(wEntry.x, fbEntry.pin.baseX, coverT);
+              wEntry.depth = Math.min(wEntry.depth, lerp(wEntry.depth, defLine + 0.1, coverT));
+            }
+          }
+        }
+
         for (const { pin, x, depth } of pending) {
           let dd = clamp(depth, 0.03, 0.96);
           let xx = clamp(x, 0.04, 0.96);
@@ -5707,6 +5785,33 @@
       // Maestro on low-poss side: still force dangerous actions out of nothing
       const maestroShine = maestro && lowPoss;
 
+      // Engine rebuild — separate AM/ST intelligence. Every branch below this
+      // point that follows was written as "(carrier.role === 'ST' ||
+      // carrier.role === 'AM')" — an AM on the ball made the exact same
+      // drive/shoot choices as a ST with the same stats, differing only in
+      // shooterTarget's role bias for who *else* gets picked, never in what
+      // the AM itself does with the ball. A CAM's real job is chance
+      // creation first, shooting second; give that its own gate ahead of
+      // everything else, scaled by the AM's own creative-vs-finishing
+      // profile so a genuinely goal-hungry AM (high xg90 relative to xa90)
+      // still plays like a shooting threat instead of being forced to pass.
+      if (carrier.role === "AM" && !inPenaltyBox(carrier) && !maestroShine) {
+        const amStats = carrier.stats;
+        const creativeEdge = amStats.xa90 * 1.3 + amStats.key_passes90 * 0.35 - amStats.xg90 * 0.9;
+        if (creativeEdge > 0.05) {
+          const shooter = shooterTarget(carrier);
+          if (shooter.id !== carrier.id && rng() < 0.5 + amStats.xa90 * 0.5 + amStats.key_passes90 * 0.1) {
+            const kind =
+              throughBallLegal(carrier, shooter) && rng() < 0.5 + amStats.key_passes90 * 0.14 + amStats.xa90 * 0.25
+                ? "through"
+                : "pass";
+            spell.awaitingShot = true;
+            doPass(carrier, shooter, kind);
+            return;
+          }
+        }
+      }
+
       // Without box occupation, refuse high-xG path — recycle instead
       if (!ready && !inPenaltyBox(carrier)) {
         if (
@@ -5998,9 +6103,13 @@
           tx = fromLeft ? clamp(54 + rng() * 14, 50, 74) : clamp(26 + rng() * 14, 26, 50);
         }
         ty = from.side === "home" ? clamp(8 + rng() * 12, 5, 26) : clamp(92 - rng() * 12, 74, 95);
-        // Contested header vs aerial defence / CB positioning — decided before flight
+        // Contested header vs aerial defence / CB positioning — decided before flight.
+        // Engine rebuild — migrated off the static sideAerial/strikerAerialThreat
+        // squad-wide scalars (never touched actual positions) onto boxAerialPresence,
+        // the same proximity²-weighted real-position field pressureAt uses elsewhere:
+        // how many bodies are genuinely in the box around the landing spot, not a
+        // team-average rating applied regardless of who actually made the run.
         if (outcome === "pass") {
-          const aerial = sideAerial(oppOf(from.side));
           const cbs = pinsOf(oppOf(from.side)).filter((p) => p.role === "CB");
           let bestCb = null;
           let bestD = Infinity;
@@ -6016,6 +6125,8 @@
               ? (to.stats.aerials_won90 || 0) * 0.08 *
                 Math.max(0.45, (to.stats.aerials_won_pct || 50) / 100)
               : 0;
+          const atkBoxPresence = boxAerialPresence(tx, ty, from.side, to.id);
+          const defBoxPresence = boxAerialPresence(tx, ty, oppOf(from.side));
           const attAerial =
             0.32 +
             to.stats.xg90 * 0.36 +
@@ -6023,9 +6134,9 @@
             (to.role === "ST" ? 0.14 : 0.05) +
             from.stats.xa90 * 0.3 +
             atkU * 0.08 +
-            strikerAerialThreat(from.side) * 0.22;
+            atkBoxPresence * 0.18;
           const defAerial =
-            aerial * 0.85 +
+            defBoxPresence * 0.5 +
             (bestCb ? 0.18 + bestCb.stats.interceptions90 * 0.045 + bestCb.stats.tackles90 * 0.02 : 0.12) +
             (bestD < 11 ? 0.14 : bestD < 16 ? 0.06 : 0) +
             defU * 0.08;
