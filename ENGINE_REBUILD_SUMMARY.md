@@ -66,13 +66,16 @@ freeze before every box shot. Trimmed to a brief take-a-touch beat.
   it's one continuous formula, not discrete zones.
 
 ### Problem 3 — One player beats five defenders (no collective shape)
-**Status: Partial.** Only centre-back-pair coordination was built: each CB
-previously computed its own `x` position independently by chasing the ball,
-with zero awareness of where the other CB stood. Now, when defending, the CB
-further from the ball-side danger holds back toward central cover instead of
-mirroring the near CB's shift. The full chain from the critique's example
-("LCB shifts, DM slides over, LB tucks inside, RW tracks back") is **not**
-built — only the CB↔CB piece.
+**Status: Partial, extended in Round 3.** Started as CB-pair-only
+coordination: each CB previously computed its own `x` position independently
+by chasing the ball, with zero awareness of where the other CB stood. Round 1
+fixed that — the CB further from the ball-side danger holds back toward
+central cover instead of mirroring the near CB's shift. Round 3 extended it
+outward: once the near-side CB has actually committed to `defMode "press"`,
+the DM slides across to screen the vacated space, and the far-side FB tucks
+infield to cover in behind. Closer to the critique's full chain ("LCB shifts,
+DM slides over, LB tucks inside, RW tracks back") but still not complete —
+the winger-tracks-back piece isn't built.
 
 ### Problem 4 — Repetitive passing (no pass memory)
 **Status: Done.** `spell.lastReceivers` existed as a field in the spell object
@@ -117,11 +120,19 @@ AM still has three of its own sine oscillations, left untouched (different
 role, out of scope for this slice). ST/CM/FB positioning is untouched.
 
 ### Problem 7 — No anticipation (defenders react after the pass, not before)
-**Status: Not done.** A pre-existing heuristic, `receiverFacingPasser`,
-checks the receiver's relative position/orientation to the passer for
-pass-target scoring — but no defender ever moves *before* a pass is thrown
-based on reading the carrier's body shape. Interceptions are still decided at
-the moment `doPass` executes, as a probability roll.
+**Status: Partial, done in Round 3.** A pre-existing heuristic,
+`receiverFacingPasser`, checks the receiver's relative position/orientation to
+the passer for pass-target scoring — untouched. What's new: the "mark"
+defensive mode previously always tracked the marked attacker's exact current
+position — purely reactive. Now that intent persists (Phase 6/Round 2) it's a
+genuinely readable signal: the marker anticipates a small shift in the
+direction that intent is actually taking the attacker (`stretch`/`overlap` →
+drifting wider; `underlap`/`attack_gap`/`tuck_support` → cutting inside)
+instead of only marking where they already are — a direct product of the
+intent system existing. Interceptions themselves are still decided at the
+moment `doPass` executes, as a probability roll; no defender pre-emptively
+closes a lane before the pass is thrown based on reading the passer's body
+shape specifically (as opposed to the receiver's intent).
 
 ### Problem 8 — Everything happens sequentially, not parallel
 **Status: Partial, with an important framing caveat.** The engine is
@@ -147,9 +158,17 @@ This is still two specific trigger points reacting with two specific roles
 each, not a general "every player reacts to everything" architecture.
 
 ### Problem 9 — Animations don't match physics (freeze before/during actions)
-**Status: Only the one specific bug from Problem 1 was fixed.** No general
-"windup begins before the decision completes, defenders never freeze"
-architecture was built.
+**Status: Partial, extended in Round 3.** The Problem 1 shot-freeze bug was
+already fixed. New: a shot previously had zero wind-up at all — the ball
+started flying the instant the decision was made, no plant-foot/backswing
+motion on the shooter. Added a brief, bounded plant bulge on the shooter's
+own sprite right at the shot's start (same `_pathCtrl` bezier mechanism as
+`doDribble`/`doCarry`), purely cosmetic — doesn't delay the scoring decision,
+xG, or ball flight timing. Confirmed via code reading (not just assumption)
+that "never freeze everyone" was already true architecturally before this:
+`updateTeamShape`/`applyPinMotion` run for all 22 players every tick
+regardless of `ballFlight` state. No goalkeeper save-reaction pose or general
+"animation begins before decision completes" system beyond this one instance.
 
 ### Problem 10 — No pressure field
 **Status: Done, and adopted broadly — this ended up being the rebuild's
@@ -250,14 +269,34 @@ still only partially closed.
 
 ---
 
+## Round 3 — defensive intent, extended shape, anticipation, physics
+
+Four pieces, each verified separately with a live local match:
+
+1. **Defensive intent hold.** `defMode` (hold/press/track/cover/mark) was
+   recomputed from scratch every tick — the same flicker risk the winger
+   hysteresis and `_supportRole` had before Phase 6. Two defenders near-tied
+   on `pressRank` (nearest-to-ball) could flip which one presses and which
+   covers on every recompute. The full priority-chain logic is untouched
+   (renamed to `naturalMode`); added a hold wrapper so a mode persists
+   ~0.35-0.6 match-minutes once assigned, except `track` (a breaking runner),
+   which always overrides immediately.
+2. **Extended defensive shape** (Problem 3, see above).
+3. **Anticipation** (Problem 7, see above).
+4. **Physics realism / shot wind-up** (Problem 9, see above).
+
 ## What this rebuild deliberately did NOT attempt
 
 - A full continuous multi-agent simulation replacing the decide→animate
   loop. The engine is still fundamentally "ball carrier decides, then
   animates," with the reaction-burst functions (Problem 8) and the intent
   system (Problem 5/12) as bounded patches on top, not a replacement.
-- Anticipation/pre-pass defender movement (Problem 7).
-- Animation/physics synchronization as a general principle (Problem 9).
+- Full anticipation — only the "mark" mode reads intent; interceptions are
+  still a probability roll decided at pass time, not a lane closed off
+  before the ball is released.
+- A general "animation begins before decision completes" architecture
+  (Problem 9) — only the shooter's own plant motion was added; no goalkeeper
+  save-reaction pose or equivalent for other actions.
 - Aerial duel modeling with the pressure field (still its own separate,
   older formula).
 - Rebuilding `pickAttackPattern`'s pattern *selection* itself, or any
@@ -268,6 +307,7 @@ still only partially closed.
 - Explicit "drag a named defender" / weak-side-CB-targeting logic within
   intent — intent selects a zone/behavior, not a specific opposing player
   to manipulate.
+- The winger-tracks-back piece of the Problem 3 defensive chain.
 
 ---
 
@@ -287,6 +327,10 @@ d1e7186 Engine rebuild: factor real shot pressure into save probability
 cfb9ff5 Engine rebuild: simultaneous reactions when the ball is won back (turnover)
 1e0c60f Document the engine rebuild against the original critique, for ChatGPT review
 5c7d099 Engine rebuild Phase 6: persistent player intent, full build and integration
+17078f2 Update rebuild summary with the persistent-intent round (Round 2)
+a5ea6f7 Engine rebuild: defensive intent hold, mirroring the attacking-intent fix
+62da411 Engine rebuild: extend defensive shape outward + real anticipation
+844b467 Engine rebuild: physics realism - shot wind-up instead of instant ball departure
 ```
 
 Each commit message contains the specific before/after reasoning and the
