@@ -1180,6 +1180,13 @@
       const volMul = possChanceVolumeMul(carrier.side);
       const suppMul = possessionSuppressionMul(carrier.side);
       xg *= lerp(1, volMul, 0.32) * suppMul;
+      // Engine fix — same pace anchor as spellChanceP (xgPaceMul), blended at
+      // partial weight here. Frequency (spellChanceP) is still the primary
+      // lever; this just means a side already running well above its own
+      // expected pace doesn't get full-quality looks on top of also getting
+      // more of them, instead of frequency alone carrying the entire
+      // correction.
+      xg *= lerp(1, xgPaceMul(carrier.side), 0.45);
       if (isMaestroPin(carrier) && volMul < 0.98) {
         xg *= clamp(1.06 + (1 - volMul) * 0.14, 1, 1.2);
       }
@@ -5759,7 +5766,19 @@
      * (organicWillScore/finishingForm) — those were checked and are fine in
      * isolation; this only tempers how often a spell is allowed to become a
      * shot in the first place. "Slight variance" is still expected — this
-     * dampens runaway swings, it doesn't erase them (bounded 0.55–1.6×).
+     * dampens runaway swings, it doesn't erase them.
+     *
+     * Strengthened after a real production match still finished 3.6 vs 1.8
+     * xG against a 2.24-2.19 target (Team B kept scoring steadily at 53',
+     * 74', 86' — well after they were already running hot, exactly when the
+     * original 0.55-slope/0.55-floor version should have been braking hardest
+     * but wasn't: at that magnitude of overshoot it only cut spellChanceP to
+     * ~0.67x, nowhere near enough against ~10-15 total spells). Slope
+     * doubled, floor/ceiling widened. Also now blended into estimateChanceXg
+     * (partial weight, not full — frequency was already the primary lever
+     * and shouldn't be fully duplicated) so a side running hot gets both
+     * fewer additional chances AND slightly tougher ones once it does get
+     * one, instead of frequency alone trying to carry the whole correction.
      */
     function xgPaceMul(side) {
       const target = side === "home" ? targetXgHome : targetXgAway;
@@ -5767,7 +5786,7 @@
       const progress = clamp(matchMinute / 90, 0.12, 1);
       const expectedSoFar = target * progress;
       const relGap = (liveXg[side] - expectedSoFar) / Math.max(target, 0.6);
-      return clamp(1 - relGap * 0.55, 0.55, 1.6);
+      return clamp(1 - relGap * 1.1, 0.3, 1.7);
     }
 
     /** Probability this spell produces a shot attempt (~most spells; target ~10–14 shots / match). */
