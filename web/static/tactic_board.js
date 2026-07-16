@@ -618,6 +618,14 @@
 
     const unitHome = opts.unitHome || {};
     const unitAway = opts.unitAway || {};
+    // Engine fix — the pre-match Monte Carlo engine's own expected-xG figures
+    // (the same numbers shown on the experiment page) were already threaded
+    // all the way down to these board options (xgHome/xgAway) but never once
+    // read inside the live simulation. Read them here so the spell pipeline
+    // has a real target to anchor total chance volume against — see
+    // xgPaceMul, near spellChanceP.
+    const targetXgHome = Number(opts.xgHome);
+    const targetXgAway = Number(opts.xgAway);
     function unit01(v, fallback = 0.55) {
       const n = Number(v);
       if (!Number.isFinite(n)) return fallback;
@@ -5593,6 +5601,35 @@
       return clamp(4.4 + hold * 8.2 + rng() * 3.0, 3.6, 15);
     }
 
+    /**
+     * Engine fix — anchor total chance volume to the pre-match quality-implied
+     * xG target (targetXgHome/targetXgAway, read from opts.xgHome/xgAway —
+     * the same number the Monte Carlo engine already computes and displays
+     * pre-match, but that the live spell pipeline never once compared itself
+     * against). Root cause found by instrumenting two live matches of the
+     * identical fixture: total match xG swung from 0.53 to 4.73 for the same
+     * side, traced to shot COUNT (not per-shot xG) — 11 shots in one run, 1
+     * in the other — because nothing in the spell pipeline ever checks a
+     * side's actual accumulated xG so far against what its own quality
+     * predicts for a full 90 minutes. This is a bounded mean-reversion on
+     * spellChanceP (whether a spell escalates into a shot at all): a side
+     * running well above its own expected pace gets throttled toward fewer
+     * further chances; a side running well below gets a lift. Deliberately
+     * not touching per-shot xG (estimateChanceXg) or conversion
+     * (organicWillScore/finishingForm) — those were checked and are fine in
+     * isolation; this only tempers how often a spell is allowed to become a
+     * shot in the first place. "Slight variance" is still expected — this
+     * dampens runaway swings, it doesn't erase them (bounded 0.55–1.6×).
+     */
+    function xgPaceMul(side) {
+      const target = side === "home" ? targetXgHome : targetXgAway;
+      if (!Number.isFinite(target) || target <= 0.05) return 1;
+      const progress = clamp(matchMinute / 90, 0.12, 1);
+      const expectedSoFar = target * progress;
+      const relGap = (liveXg[side] - expectedSoFar) / Math.max(target, 0.6);
+      return clamp(1 - relGap * 0.55, 0.55, 1.6);
+    }
+
     /** Probability this spell produces a shot attempt (~most spells; target ~10–14 shots / match). */
     function spellChanceP(side) {
       const create = sideCreate(side);
@@ -5606,7 +5643,10 @@
       // often; possession control soft-scales volume; attack weight kept
       // relative to creation so a strong attack isn't ignored either.
       return clamp(
-        (0.42 + create * 0.24 + atk * 0.18 - def * 0.03 + (rng() - 0.5) * 0.05) * vol * lerp(1, supp, 0.45),
+        (0.42 + create * 0.24 + atk * 0.18 - def * 0.03 + (rng() - 0.5) * 0.05) *
+          vol *
+          lerp(1, supp, 0.45) *
+          xgPaceMul(side),
         0.32,
         0.72
       );
