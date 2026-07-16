@@ -5185,7 +5185,22 @@
                 ) {
                   anticipatedX = clamp(markRel.x + (markRel.x > 0.5 ? -0.05 : 0.05), 0.05, 0.95);
                 }
-                const markT = (pin.role === "FB" || pin.role === "CM" ? 0.4 : 0.32) * trackBoost;
+                // Engine rebuild — full anticipation: also read the
+                // carrier's OWN held intent, not just the marked attacker's
+                // - the closest this engine gets to "carrier body angle ->
+                // likely pass" from the critique. A carrier whose own intent
+                // is forward-oriented is signalling they're looking to
+                // release forward, so tighten up on the mark a bit harder
+                // instead of tracking at the same fixed rate regardless of
+                // what the passer themselves is telegraphing.
+                const carrierForward =
+                  carrier &&
+                  carrier.side !== pin.side &&
+                  (carrier._intent === "progressive_run" ||
+                    carrier._intent === "attack_gap" ||
+                    carrier._intent === "underlap" ||
+                    carrier._intent === "back_post");
+                const markT = (pin.role === "FB" || pin.role === "CM" ? 0.4 : 0.32) * trackBoost * (carrierForward ? 1.15 : 1);
                 const markX =
                   centralMidCover && isScreenMid
                     ? clamp(anticipatedX, 0.3, 0.7)
@@ -5935,11 +5950,18 @@
       }
       if (outcome === "pass" && pressers[0] && fieldPressure > 0.3 && passKind !== "clear") {
         const p = pressers[0].pin;
+        // Engine rebuild — full anticipation, press's own duel payoff. A
+        // presser in active "press" mode has been angling their run with
+        // cover shadow, reading the danger option, not just reacting cold
+        // when they happen to get close. Give that anticipation a bonus in
+        // the actual steal-in-the-tackle odds too, not just interception.
+        const pressAnticipating = p._defMode === "press";
         const stealP =
           0.028 +
           Math.max(0, fieldPressure - resist * 1.2) * 0.11 +
           p.stats.tackles90 * 0.035 -
-          from.stats.dribble_pct * 0.0012;
+          from.stats.dribble_pct * 0.0012 +
+          (pressAnticipating ? 0.03 : 0);
         if (rng() < clamp(stealP, 0.015, 0.22)) {
           outcome = "steal";
           interceptor = p;
