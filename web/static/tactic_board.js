@@ -5121,11 +5121,29 @@
                 );
               } else if (defMode === "mark" && mark) {
                 const markRel = fromPitchPct(pin.side, mark.left, mark.top);
+                // Engine rebuild — anticipation (Problem 7). Was purely
+                // reactive: always tracked the marked attacker's exact
+                // current spot. Now that intent persists (Phase 6) it's a
+                // real, readable signal — anticipate a small shift in the
+                // direction that intent is actually taking them (stretch/
+                // overlap keep drifting wider; underlap/attack_gap/
+                // tuck_support cut inside) instead of only marking where
+                // they already are.
+                let anticipatedX = markRel.x;
+                if (mark._intent === "stretch" || mark._intent === "overlap") {
+                  anticipatedX = clamp(markRel.x + (markRel.x > 0.5 ? 0.05 : -0.05), 0.05, 0.95);
+                } else if (
+                  mark._intent === "underlap" ||
+                  mark._intent === "attack_gap" ||
+                  mark._intent === "tuck_support"
+                ) {
+                  anticipatedX = clamp(markRel.x + (markRel.x > 0.5 ? -0.05 : 0.05), 0.05, 0.95);
+                }
                 const markT = (pin.role === "FB" || pin.role === "CM" ? 0.4 : 0.32) * trackBoost;
                 const markX =
                   centralMidCover && isScreenMid
-                    ? clamp(markRel.x, 0.3, 0.7)
-                    : markRel.x;
+                    ? clamp(anticipatedX, 0.3, 0.7)
+                    : anticipatedX;
                 x = lerp(x, markX, clamp(markT * (centralMidCover && isScreenMid ? 0.7 : 1), 0.28, 0.55));
                 const markDepth = clamp(markRel.depth - 0.01, defLine - 0.03, midLine + 0.08);
                 depth = lerp(depth, threat > 0.4 ? Math.min(markDepth, goalside + 0.05) : markDepth, 0.34 * trackBoost);
@@ -5220,10 +5238,31 @@
             const byDanger = [...cbPend].sort(
               (a, b) => Math.abs(a.pin.left - ballLeft) - Math.abs(b.pin.left - ballLeft)
             );
+            const nearCB = byDanger[0];
             const farCB = byDanger[byDanger.length - 1];
             if (farCB) {
               const coverX = 0.5 + (farCB.pin.baseX - 0.5) * 0.5;
               farCB.x = lerp(farCB.x, coverX, 0.3);
+            }
+            // Engine rebuild — extend the coordinated reshape outward, closer
+            // to the critique's full chain ("LCB shifts, DM slides over, LB
+            // tucks inside"): once the near-side CB has actually committed to
+            // pressing, the DM slides across to screen the space just
+            // vacated, and the far-side FB tucks infield to cover in behind,
+            // instead of each independently computing a position with no
+            // awareness that a teammate has just stepped out.
+            if (nearCB && nearCB.pin._defMode === "press") {
+              const dmEntry = pending.find((p) => p.pin.role === "DM");
+              if (dmEntry) {
+                dmEntry.x = clamp(lerp(dmEntry.x, nearCB.x, 0.3), 0.3, 0.7);
+              }
+              for (const p of pending) {
+                if (p.pin.role !== "FB") continue;
+                const isFarSideFB = (p.pin.left > 50) !== (nearCB.pin.left > 50);
+                if (isFarSideFB) {
+                  p.x = lerp(p.x, 0.5 + (p.pin.baseX - 0.5) * 0.6, 0.25);
+                }
+              }
             }
           }
         }
