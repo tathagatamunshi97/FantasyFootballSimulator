@@ -1426,6 +1426,19 @@
         possession = to.side;
         ballAttached = true;
         to._dribbleStreak = 0;
+        // Engine fix — player orientation (Problem 11), first concrete
+        // consumer. A receiver's real facing direction (tracked in
+        // applyPinMotion from actual movement, not a proxy) tells us
+        // whether they took the ball on the half-turn or with their back to
+        // goal. The latter needs a genuine extra touch before they can turn
+        // and drive — read as a brief penalty by doDribble/doCarry/
+        // driveIntoBox rather than treating every reception as equally
+        // ready to go immediately.
+        {
+          const attackSign = to.side === "home" ? -1 : 1;
+          const facingForward = (to.facingY ?? 0) * attackSign > 0.15;
+          if (!facingForward) to._backToGoalUntil = matchMinute + 0.22;
+        }
         // Engine rebuild — pass memory. Record who's received the ball
         // recently in this spell so scorePassingOption can penalize giving
         // it straight back, instead of the same CM<->RB exchange scoring as
@@ -3065,12 +3078,17 @@
       // covering run actually has a chance to matter instead of always
       // arriving one tick too late to affect anything.
       const scrambling = (breachRecoveryUntil[oppOf(carrier.side)] || 0) > matchMinute;
-      const engageRadius = scrambling ? 13 : 9;
+      // Engine fix — player orientation: a carrier still turning from a
+      // back-to-goal reception (resolveBallFlight's pass outcome) is a
+      // genuine opening for the defence, same spirit as the scrambling
+      // window above.
+      const backToGoal = (carrier._backToGoalUntil || 0) > matchMinute;
+      const engageRadius = scrambling || backToGoal ? 13 : 9;
       const threat = nearestOpponent(carrier, engageRadius);
       const fieldPressure = pressureAt(carrier.left, carrier.top, carrier.side);
-      const engageGate = scrambling ? 12.5 : 8.5;
-      const pressureGate = scrambling ? 0.15 : 0.35;
-      if ((threat && threat.d < engageGate) || fieldPressure > pressureGate || scrambling) {
+      const engageGate = scrambling || backToGoal ? 12.5 : 8.5;
+      const pressureGate = scrambling || backToGoal ? 0.15 : 0.35;
+      if ((threat && threat.d < engageGate) || fieldPressure > pressureGate || scrambling || backToGoal) {
         const resist = sideResist(carrier.side);
         const def = sideDefend(oppOf(carrier.side));
         const closeMul = threat ? clamp(1.2 - threat.d / engageRadius, 0.55, 1.2) : 0.7;
@@ -3083,6 +3101,7 @@
             carrier.stats.dribbles90 * 0.032 +
             fieldPressure * 0.1 +
             (scrambling ? 0.08 : 0) +
+            (backToGoal ? 0.07 : 0) +
             (rng() - 0.5) * 0.04) *
           closeMul;
         if (rng() < clamp(stopP, 0.04, 0.28)) {
@@ -5809,9 +5828,31 @@
           pin._pathCtrl = null;
         }
         const maxLogical = Math.max(0.04, pinRunSpeedPct(pin) * dt);
+        const prevLeft = pin.left;
+        const prevTop = pin.top;
         const logical = stepTowardClamped(pin.left, pin.top, wantL, wantT, rate, maxLogical);
         pin.left = logical.left;
         pin.top = logical.top;
+        // Engine fix — player orientation (Problem 11). Every other engine
+        // piece (intent, support roles, anticipation) has been a proxy for
+        // "what is this player about to do" because there was never an
+        // actual orientation property on a pin. Derive a real facing
+        // direction from actual movement this frame; when barely moving
+        // (marking, holding shape), default to facing the ball, which is
+        // what a stationary player is actually looking at.
+        const moveDx = pin.left - prevLeft;
+        const moveDy = pin.top - prevTop;
+        const moveMag = Math.hypot(moveDx, moveDy);
+        if (moveMag > 0.015) {
+          pin.facingX = moveDx / moveMag;
+          pin.facingY = moveDy / moveMag;
+        } else if (pin.facingX == null) {
+          const bx = ball.left - pin.left;
+          const by = ball.top - pin.top;
+          const bm = Math.hypot(bx, by) || 1;
+          pin.facingX = bx / bm;
+          pin.facingY = by / bm;
+        }
         // Render trails logical (slightly softer / slower) — never chases tx directly
         if (pin.rx == null) pin.rx = pin.left;
         if (pin.ry == null) pin.ry = pin.top;
@@ -6115,6 +6156,19 @@
       spell = null;
       giveBall(opp, `${opp.short} on the break`);
       actionTimer = 0.55 + rng() * 0.35;
+      // Engine fix — this was the one turnover pathway with zero reaction of
+      // any kind: resolveBallFlight's intercept/steal outcome already fires
+      // triggerTurnoverReactions for the side that just won it, but a press-
+      // forced mistake (decideAction's "pressed into a mistake" branch,
+      // which calls doTurnover directly) skipped both that AND the
+      // conceding side's defensive recovery — a fast break could go straight
+      // from turnover to goal with nobody on the losing side reacting at
+      // all. carrier is the one who just lost it; treat them as the trigger
+      // point the same way a beaten defender would be (chase back, nearest
+      // covering teammates react) since the whole side now needs to
+      // organize immediately, not just whoever misplaced the ball.
+      triggerTurnoverReactions(opp);
+      triggerDefensiveBreachReactions(carrier);
     }
 
     function spellIdlePause() {
@@ -6586,6 +6640,11 @@
       // ball via a pass) gets harder — covering defenders regroup/gang up, so a
       // run of 3-4 beaten defenders in one carry is rare rather than routine.
       const streak = carrier._dribbleStreak || 0;
+      // Engine fix — player orientation: a carrier still mid-turn from
+      // receiving with their back to goal (see resolveBallFlight's pass
+      // outcome) hasn't had a real touch to get the ball under control
+      // facing forward yet.
+      const backToGoal = (carrier._backToGoalUntil || 0) > matchMinute;
       const successP =
         0.28 +
         carrier.stats.dribbles90 * 0.07 +
@@ -6596,7 +6655,8 @@
         defU * 0.08 -
         (threat ? threat.pin.stats.tackles90 * 0.07 : 0) -
         (threat ? threat.pin.stats.interceptions90 * 0.02 : 0) -
-        Math.min(streak, 4) * 0.11 +
+        Math.min(streak, 4) * 0.11 -
+        (backToGoal ? 0.12 : 0) +
         (rng() - 0.5) * 0.08;
 
       const won = rng() < clamp(successP, 0.1, 0.72);
@@ -6662,16 +6722,20 @@
       // physically arrived yet, so widen the engagement gate briefly rather
       // than let the recovery run always be one tick too late to count.
       const scrambling = (breachRecoveryUntil[oppOf(carrier.side)] || 0) > matchMinute;
-      const engageRadius = scrambling ? 13 : 9;
+      // Engine fix — player orientation: a carrier still turning from a
+      // back-to-goal reception is a genuine opening for the defence, same
+      // spirit as the scrambling window above.
+      const backToGoal = (carrier._backToGoalUntil || 0) > matchMinute;
+      const engageRadius = scrambling || backToGoal ? 13 : 9;
       const threat = nearestOpponent(carrier, engageRadius);
       // Engine rebuild Phase 1 — also gate on the real pressure field, not
       // just the single nearest defender, so a converging 2v1 (neither
       // defender alone inside the old 8.5-unit cutoff) still counts as real
       // pressure instead of being invisible to this check.
       const fieldPressure = pressureAt(carrier.left, carrier.top, carrier.side);
-      const engageGate = scrambling ? 12.5 : 8.5;
-      const pressureGate = scrambling ? 0.15 : 0.35;
-      if ((threat && threat.d < engageGate) || fieldPressure > pressureGate || scrambling) {
+      const engageGate = scrambling || backToGoal ? 12.5 : 8.5;
+      const pressureGate = scrambling || backToGoal ? 0.15 : 0.35;
+      if ((threat && threat.d < engageGate) || fieldPressure > pressureGate || scrambling || backToGoal) {
         const resist = sideResist(carrier.side);
         const def = sideDefend(oppOf(carrier.side));
         const closeMul = threat ? clamp(1.2 - threat.d / engageRadius, 0.55, 1.2) : 0.7;
@@ -6683,6 +6747,7 @@
             carrier.stats.dribbles90 * 0.03 +
             fieldPressure * 0.09 +
             (scrambling ? 0.07 : 0) +
+            (backToGoal ? 0.06 : 0) +
             (rng() - 0.5) * 0.04) *
           closeMul;
         if (rng() < clamp(dispossessP, 0.03, 0.26)) {
