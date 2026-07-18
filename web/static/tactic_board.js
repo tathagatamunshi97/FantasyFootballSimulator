@@ -1974,6 +1974,19 @@
       return Boolean(carrier && isFwdRole(carrier.role) && possessionDepth(carrier) >= 0.66);
     }
 
+    // Engine fix — an overlapping FB who actually reaches the box/edge-of-box
+    // had no equivalent of the above: decideWideFinalThird only zeroed its
+    // recycle weight (and only routed to a forced shot/dribble/progress
+    // action) for ST/W. An FB in that same genuinely dangerous position kept
+    // a live, unconditional chance of picking "recycle" and then always
+    // executed a sterile backPassTarget() pass — the exact "looks free on
+    // goal, then suddenly back-passes" bug. FB isn't given forwardFinalThirdAction's
+    // shot bias (unrealistic for a fullback); it should still fall through
+    // to the existing cross/cutback choice instead of recycling.
+    function fbDeepInBox(carrier) {
+      return Boolean(carrier && carrier.role === "FB" && (inPenaltyBox(carrier) || nearPenaltyBox(carrier)));
+    }
+
     function forwardFinalThirdAction(carrier) {
       if (!carrier) return false;
       const maestro = isMaestroPin(carrier);
@@ -4029,14 +4042,14 @@
       // Original 0.5, nudged to 0.58 earlier this session, pulled back partway
       // to 0.54 alongside pickAttackPattern's wRecycle for the same reason.
       recycleW *= clamp(1.1 - urg * 0.54 - Math.max(0, ad) * 0.3, 0.2, 1.1);
-      if (forwardInFinalThird(carrier)) recycleW = 0;
+      if (forwardInFinalThird(carrier) || fbDeepInBox(carrier)) recycleW = 0;
       const pick = weightedPick([
         { id: "cross", w: Math.max(0.05, crossW) },
         { id: "cutback", w: cutbackW },
         { id: "recycle", w: recycleW },
       ]);
 
-      if ((pick === "recycle" || (!ready && rng() < 0.55 - urg * 0.2)) && urg < 1.05) {
+      if ((pick === "recycle" || (!ready && rng() < 0.55 - urg * 0.2)) && urg < 1.05 && !fbDeepInBox(carrier)) {
         if (forwardInFinalThird(carrier)) {
           return forwardFinalThirdAction(carrier);
         }
@@ -5364,9 +5377,19 @@
               }
 
               const carrier = findCarrier();
+              // Engine fix — an overlapping opposition FB was invisible to this
+              // list entirely (role filter only covered ST/W/AM/CM), so no CB/FB
+              // ever tracked or marked one: they could run the full length of the
+              // flank and arrive in the box completely unaccounted for. Only
+              // count a FB once they're actually making a forward run, so a
+              // normally-positioned FB still doesn't spuriously draw coverage.
               const threats = pinsOf(oppOf(pin.side)).filter(
                 (a) =>
-                  (a.role === "ST" || a.role === "W" || a.role === "AM" || a.role === "CM") &&
+                  (a.role === "ST" ||
+                    a.role === "W" ||
+                    a.role === "AM" ||
+                    a.role === "CM" ||
+                    (a.role === "FB" && (a._overlapRun || a._running))) &&
                   Math.abs(a.left - pin.left) < (pin.role === "FB" ? 22 : 17) &&
                   dist(pin, a) < 20
               );
