@@ -996,6 +996,15 @@
     // lets the contest checks themselves acknowledge the defence is
     // actively scrambling even before its sprites have visually arrived.
     let breachRecoveryUntil = { home: 0, away: 0 };
+    // Engine fix — a side that just scored had no reaction to it at all:
+    // same attacking urgency and pattern mix the very next spell as if
+    // nothing happened. Real teams manage the game for a few minutes after
+    // taking a lead — consolidate possession, don't immediately commit
+    // numbers forward again — instead of pushing straight back onto the
+    // front foot. Set in markGoal; read by pickAttackPattern (favours
+    // recycle) and spellChanceP (fewer forced chance attempts) for the
+    // scoring side only.
+    let leadProtectUntil = { home: 0, away: 0 };
     /**
      * Per-team finishing form for this match (drawn once at reset/kickoff).
      * Multiplies shot conversion; does not invent goals without shots.
@@ -1600,12 +1609,24 @@
         // whoever was still upfield/out wide from the previous attack still
         // there. Give them a sprint boost and enough real time to get home
         // before kickoff, instead of the old near-instant handoff.
+        // Engine fix — kickoff law (both teams stay in their own half until
+        // the ball is in play): this sent everyone straight to their raw
+        // formation baseDepth, which for advanced roles (ST/W/AM, often
+        // 0.56-0.64) is already past the halfway line into the opponent's
+        // half. Clamp everyone to their own half for the restart itself.
+        // lockUntil must survive past the kickoff (matchMinute + 1.3, when
+        // pendingKickoffCarrier actually puts the ball live) — updateTeamShape
+        // skips any pin with lockUntil > matchMinute (line ~4728), so leaving
+        // this at 0 let the very next decision tick immediately recompute
+        // each pin's normal (unclamped) formation depth and overwrite the
+        // clamp before the restart ever happened.
         for (const pin of allPins) {
-          const pct = toPitchPct(pin.side, pin.baseX, pin.baseDepth);
+          const kickoffDepth = Math.min(pin.baseDepth, 0.46);
+          const pct = toPitchPct(pin.side, pin.baseX, kickoffDepth);
           pin.tx = pct.left;
           pin.ty = pct.top;
           pin._pathCtrl = null;
-          pin.lockUntil = 0;
+          pin.lockUntil = matchMinute + 1.3;
           pin._running = true;
           pin._pressing = false;
         }
@@ -3501,6 +3522,17 @@
       wWing += (ownFlankOpen - 0.5) * 1.1;
       wCut += (halfSpaceOpen - 0.5) * 1.1;
       wRecycle += (0.5 - Math.max(centralOpen, farFlankOpen, ownFlankOpen, halfSpaceOpen)) * 0.5;
+
+      // Engine fix — protect-the-lead mentality. A side that just scored
+      // manages the game for a few minutes: favour holding the ball over
+      // immediately committing back forward.
+      if ((leadProtectUntil[carrier.side] || 0) > matchMinute) {
+        wRecycle *= 1.7;
+        wCentral *= 0.7;
+        wCut *= 0.6;
+        wWing *= 0.75;
+        wSwitch *= 0.8;
+      }
 
       const entries = [
         { id: "central", w: wCentral },
@@ -5998,11 +6030,16 @@
       // without it escalating into a chance. Underdogs still fire reasonably
       // often; possession control soft-scales volume; attack weight kept
       // relative to creation so a strong attack isn't ignored either.
+      // Engine fix — protect-the-lead mentality: fewer forced chance
+      // attempts for a few minutes right after scoring, same spirit as the
+      // pattern-weight shift in pickAttackPattern.
+      const leadProtectMul = (leadProtectUntil[side] || 0) > matchMinute ? 0.72 : 1;
       return clamp(
         (0.42 + create * 0.24 + atk * 0.18 - def * 0.03 + (rng() - 0.5) * 0.05) *
           vol *
           lerp(1, supp, 0.45) *
-          xgPaceMul(side),
+          xgPaceMul(side) *
+          leadProtectMul,
         0.32,
         0.72
       );
@@ -6363,6 +6400,8 @@
       if (side === "home") homeScore += 1;
       else awayScore += 1;
       lastGoalMinute = matchMinute;
+      // Engine fix — protect-the-lead mentality. See declaration.
+      leadProtectUntil[side] = matchMinute + 3;
       scoreEl.textContent = `${homeScore} – ${awayScore}`;
       flashEl.hidden = false;
       flashEl.className = `tactic-flash ${side}`;
@@ -8314,6 +8353,7 @@
       possSeconds = { home: 0, away: 0 };
       liveXg = { home: 0, away: 0 };
       breachRecoveryUntil = { home: 0, away: 0 };
+      leadProtectUntil = { home: 0, away: 0 };
       redrawFinishingForm();
       commentaryLines = [];
       if (feedEl) feedEl.innerHTML = "";
