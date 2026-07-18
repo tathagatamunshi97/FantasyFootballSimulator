@@ -1426,6 +1426,7 @@
         possession = to.side;
         ballAttached = true;
         to._dribbleStreak = 0;
+        to._lastDribbleOpp = null;
         // Engine fix — player orientation (Problem 11), first concrete
         // consumer. A receiver's real facing direction (tracked in
         // applyPinMotion from actual movement, not a proxy) tells us
@@ -5925,6 +5926,7 @@
       ballCtrl = null;
       pin._boxDriveDone = false;
       pin._dribbleStreak = 0;
+      pin._lastDribbleOpp = null;
       if (sideChanged) clearLastPasser();
       setBallTarget(pin.left, pin.top + (pin.side === "home" ? -1.2 : 1.2), 0.32, true);
       if (comment) say(comment);
@@ -6418,6 +6420,14 @@
       if (threat && !(replayScore && nextScheduledGoal(possession, matchMinute))) {
         const def = threat.pin;
         const longPen = passKind === "long" || isLongSkip(from, to) ? 0.2 : 0;
+        // Engine fix — through balls had no risk premium of their own at
+        // all: the interception cap and formula treated "slips it through"
+        // identically to a routine short pass (capped at the same 0.3, no
+        // extra penalty term the way long balls get longPen), when threading
+        // a ball through a set defensive line is one of the hardest passes
+        // to complete cleanly in real football — it's precisely what a
+        // well-organized back line (and the offside trap) exists to punish.
+        const throughPen = passKind === "through" ? 0.16 : 0;
         const laneN = defendersInLane(from, to);
         const lanePen = laneN * 0.055;
         // Engine rebuild — full anticipation. A defender already in "mark"
@@ -6444,9 +6454,10 @@
           from.stats.pass_pct * 0.0015 -
           from.stats.key_passes90 * 0.008 +
           longPen +
+          throughPen +
           lanePen +
           anticipationBonus;
-        const cap = passKind === "long" ? 0.48 : 0.3;
+        const cap = passKind === "long" ? 0.48 : passKind === "through" ? 0.4 : 0.3;
         if (rng() < clamp(pIntercept, 0.025, cap)) {
           outcome = "intercept";
           interceptor = def;
@@ -6626,7 +6637,18 @@
 
     function doDribble(carrier) {
       if (ballFlight) return;
-      const threat = nearestOpponent(carrier, 12);
+      // Engine fix — this contest never got the scrambling-window treatment
+      // doCarry/driveIntoBox already have. A covering defender mid-recovery
+      // (triggerDefensiveBreachReactions just fired against this side) is
+      // actively closing in even though their on-pitch position hasn't
+      // caught up yet — without this, doDribble's fixed 12-unit search and
+      // unmodified odds meant the SECOND defender in a breakaway (e.g. the
+      // far CB covering after the near CB was already beaten) got a
+      // completely normal-difficulty duel, or worse, no threat at all if
+      // they hadn't visually arrived — exactly backwards from a defence
+      // that's actively scrambling to cover a breach.
+      const scrambling = (breachRecoveryUntil[oppOf(carrier.side)] || 0) > matchMinute;
+      const threat = nearestOpponent(carrier, scrambling ? 16 : 12);
       const resist = sideResist(carrier.side);
       const atkU = sideAttack(carrier.side);
       const defU = sideDefend(oppOf(carrier.side));
@@ -6640,6 +6662,15 @@
       // ball via a pass) gets harder — covering defenders regroup/gang up, so a
       // run of 3-4 beaten defenders in one carry is rare rather than routine.
       const streak = carrier._dribbleStreak || 0;
+      // Engine fix — beating a second, genuinely DIFFERENT defender in the
+      // same unbroken run (e.g. a striker who's already beaten one CB now
+      // facing the covering CB) needs to be meaningfully rarer than shimmying
+      // past the same marker twice — real football sees a striker beat one
+      // defender far more often than an entire back line in one run. The
+      // existing streak penalty scales with *how many* wins in a row, but
+      // didn't care whether it was the same or a new opponent each time.
+      const lastBeaten = carrier._lastDribbleOpp;
+      const freshDefender = threat && lastBeaten && threat.pin.id !== lastBeaten;
       // Engine fix — player orientation: a carrier still mid-turn from
       // receiving with their back to goal (see resolveBallFlight's pass
       // outcome) hasn't had a real touch to get the ball under control
@@ -6656,10 +6687,13 @@
         (threat ? threat.pin.stats.tackles90 * 0.07 : 0) -
         (threat ? threat.pin.stats.interceptions90 * 0.02 : 0) -
         Math.min(streak, 4) * 0.11 -
-        (backToGoal ? 0.12 : 0) +
+        (freshDefender ? 0.16 : 0) -
+        (backToGoal ? 0.12 : 0) -
+        (scrambling ? 0.07 : 0) +
         (rng() - 0.5) * 0.08;
 
       const won = rng() < clamp(successP, 0.1, 0.72);
+      if (threat) carrier._lastDribbleOpp = threat.pin.id;
       const attackSign = carrier.side === "home" ? -1 : 1;
       const ahead = 2.2 + carrier.stats.dribbles90 * 0.55 + rng() * 1.5;
       const jink = (rng() < 0.5 ? 1 : -1) * (2.2 + rng() * 2.8);
