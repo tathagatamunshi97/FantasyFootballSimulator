@@ -1011,6 +1011,18 @@
      * Mixture biased by unit finishing (avg ≈ cold 8% / hot 12% / normal 80%).
      */
     let finishingForm = { home: 1, away: 1 };
+    // Engine fix — anti-drought for big chances specifically. organicWillScore's
+    // conversion ceiling was purely a function of the shooter's own finishing
+    // quality/form, with zero sensitivity to how many similar chances the same
+    // side had just missed — a genuinely clinical finisher and a genuinely
+    // clinical forward line could both go cold for several consecutive big
+    // chances at the same fixed odds every time, which reads as unbelievable
+    // ("nothing dropped for anyone all night") rather than one bad shot.
+    // Tracks consecutive missed *big_chance* shots per player (reset when that
+    // player scores) and per side (reset when that side scores); read by
+    // organicWillScore to raise the odds on the next big chance, not to
+    // guarantee one — see isClinicalFinisher/sideForwardLineClinical below.
+    let sideBigMissStreak = { home: 0, away: 0 };
     let commentaryLines = [];
 
     let instrHome = 0;
@@ -2146,6 +2158,24 @@
 
     function isAttackFinisher(pin) {
       return Boolean(pin && (pin.role === "ST" || pin.role === "W" || pin.role === "AM"));
+    }
+
+    /** A real-world clinical finisher: historically outscores their own xG. */
+    function isClinicalFinisher(pin) {
+      return Boolean(pin && pin.stats && pin.stats.goals90 > pin.stats.xg90);
+    }
+
+    /** Forward line (ST/W/AM) collectively within 5% of its combined xG, or ahead of it. */
+    function sideForwardLineClinical(side) {
+      const fwd = pinsOf(side).filter((p) => p.role === "ST" || p.role === "W" || p.role === "AM");
+      if (!fwd.length) return false;
+      let goals = 0;
+      let xg = 0;
+      for (const p of fwd) {
+        goals += p.stats.goals90 || 0;
+        xg += p.stats.xg90 || 0;
+      }
+      return xg > 0 && goals >= xg * 0.95;
     }
 
     /** Quality chance gate: ≥2 in box OR 1 in box + arriving runner; urgency/matchup can soften. */
@@ -6919,7 +6949,7 @@
       finishingForm = { home: drawFinishingForm("home"), away: drawFinishingForm("away") };
     }
 
-    function organicWillScore(carrier) {
+    function organicWillScore(carrier, chanceType) {
       const atk = sideAttack(carrier.side);
       const def = sideDefend(oppOf(carrier.side));
       const drought = matchMinute - lastGoalMinute;
@@ -6980,7 +7010,23 @@
       const hi = boxed
         ? clamp((0.4 + hiElite) * Math.min(form, 1.55), 0.32, roleFin ? 0.72 : 0.58)
         : clamp((0.15 + hiElite * 0.4) * Math.min(form, 1.55), 0.11, roleFin ? 0.34 : 0.26);
-      return rng() < clamp(p, lo, hi);
+      // Engine fix — anti-drought (big chances only, see sideBigMissStreak
+      // declaration). Raises odds on the NEXT big chance after a miss; never
+      // guarantees one (missBoost and the final probability are both capped),
+      // so a genuinely bad night is still possible, just rarer than a flat
+      // i.i.d. coin flip would produce for a proven clinical finisher/attack.
+      let missBoost = 0;
+      if (chanceType === "big_chance") {
+        if (isClinicalFinisher(carrier)) {
+          missBoost += clamp((carrier._bigMissStreak || 0) * 0.22, 0, 0.35);
+        }
+        if (sideForwardLineClinical(carrier.side)) {
+          missBoost += clamp(Math.max(0, (sideBigMissStreak[carrier.side] || 0) - 1) * 0.14, 0, 0.24);
+        }
+        missBoost = clamp(missBoost, 0, 0.4);
+      }
+      const boostedHi = clamp(hi + missBoost, hi, 0.85);
+      return rng() < clamp(p + missBoost, lo, boostedHi);
     }
 
     function doShot(carrier, mustScore) {
@@ -7056,7 +7102,7 @@
           Boolean(due && due.side === carrier.side) ||
           Boolean(late && late.side === carrier.side && remainingGoals(carrier.side) > 0 && matchMinute >= late.minute - 1);
       } else {
-        willScore = Boolean(mustScore) || organicWillScore(carrier);
+        willScore = Boolean(mustScore) || organicWillScore(carrier, chanceType);
       }
       if (willScore && !replayScore && !mustScore) {
         const form = clamp(finishingForm[carrier.side] ?? 1, 0.2, 1.95);
@@ -7083,6 +7129,19 @@
             (rng() - 0.5) * 0.06) *
           saveScale;
         if (rng() < clamp(saveP, 0.04, roleFin && boxed && fq >= 0.7 ? 0.42 : 0.55)) willScore = false;
+      }
+
+      // Engine fix — anti-drought bookkeeping (organic path only; replay/forced
+      // scorelines don't run this). Tracks consecutive missed big chances so
+      // the NEXT one gets the boost applied inside organicWillScore.
+      if (chanceType === "big_chance" && !replayScore && !mustScore) {
+        if (willScore) {
+          carrier._bigMissStreak = 0;
+          sideBigMissStreak[carrier.side] = 0;
+        } else {
+          carrier._bigMissStreak = (carrier._bigMissStreak || 0) + 1;
+          sideBigMissStreak[carrier.side] = (sideBigMissStreak[carrier.side] || 0) + 1;
+        }
       }
 
       if (willScore) {
@@ -8377,6 +8436,7 @@
       liveXg = { home: 0, away: 0 };
       breachRecoveryUntil = { home: 0, away: 0 };
       leadProtectUntil = { home: 0, away: 0 };
+      sideBigMissStreak = { home: 0, away: 0 };
       redrawFinishingForm();
       commentaryLines = [];
       if (feedEl) feedEl.innerHTML = "";
@@ -8410,6 +8470,7 @@
         snapPinPose(p, pct.left, pct.top);
         p.lockUntil = 0;
         p.favorUntil = 0;
+        p._bigMissStreak = 0;
         const el = pinEls.get(p.id);
         if (el) {
           el.classList.remove("has-ball", "pressing", "favored");
