@@ -1042,6 +1042,12 @@
     let shapePulse = 0;
     /** Smoothed 0–1 defensive box/chance pressure per side (gradual drop-back). */
     const defPressureSmooth = { home: 0, away: 0 };
+    // Engine fix — Milestone 2: team elasticity. Smoothed per-side width
+    // multiplier (around 1.0) applied to every pin's lateral distance from
+    // the pitch centreline, and the attacking-stage/possession key it was
+    // last computed against — see teamBlockLines.
+    const teamWidthSmooth = { home: 1, away: 1 };
+    const lastElasticityStage = { home: null, away: null };
     /** Decision-layer cadence (sim-seconds). Shape retargets only here. */
     let decisionAcc = DECISION_INTERVAL_MAX;
     let nextDecisionIn = DECISION_INTERVAL_MIN + rng() * (DECISION_INTERVAL_MAX - DECISION_INTERVAL_MIN);
@@ -4375,7 +4381,38 @@
           atkLine = lerp(atkLine, clamp(defLine + (threeBack ? 0.18 : 0.22), 0.2, 0.5), boxThreat * 0.55);
         }
       }
-      return { defLine, midLine, atkLine, relBall, threeBack, boxThreat };
+
+      // Engine fix — Milestone 2: team elasticity, width dimension. Depth/
+      // line compactness above already breathes with pressure and attacking
+      // stage; width never did — every pin computed its own lateral (x)
+      // position more or less independently, so the team never visibly
+      // stretched for a switch or squeezed as a whole unit under real
+      // central danger. One shared, per-side width multiplier (applied to
+      // every pin's distance from the pitch centreline in updateTeamShape),
+      // plus an explicit Zone 14 (the dangerous central channel just
+      // outside the box) compression trigger on top of the general
+      // pressure-driven target.
+      const inZone14 = relBall.depth > 0.72 && relBall.depth < 0.9 && Math.abs(relBall.x - 0.5) < 0.24;
+      let widthTarget = attacking
+        ? phase === "BUILD_UP" || phase === "PROGRESSING"
+          ? 1.12
+          : phase === "FINAL_THIRD"
+            ? 1.04
+            : 0.9 // BOX_OCCUPATION/CHANCE_CREATION/FINISH — funnel narrow toward goal
+        : 1.0 - boxThreat * 0.22;
+      if (inZone14) widthTarget -= attacking ? 0.02 : 0.1;
+      widthTarget = clamp(widthTarget, 0.82, 1.16);
+
+      // Anticipate a genuine tactical shift (attacking stage / possession
+      // just changed) quickly; otherwise ease slowly so width doesn't chase
+      // every small ball wobble — "line delays, line recovers" rather than
+      // width following the ball 1:1 every tick.
+      const stageKey = attacking ? phase : "defending";
+      const stageChanged = lastElasticityStage[side] !== stageKey;
+      teamWidthSmooth[side] = lerp(teamWidthSmooth[side] ?? 1, widthTarget, stageChanged ? 0.45 : 0.1);
+      lastElasticityStage[side] = stageKey;
+
+      return { defLine, midLine, atkLine, relBall, threeBack, boxThreat, teamWidth: teamWidthSmooth[side] };
     }
 
     /**
@@ -4864,7 +4901,7 @@
         const attacking = side === possession;
         const formation = side === "home" ? homeTeam.formation : awayTeam.formation;
         const centralMidCover = wantsCentralDefMidCover(formation);
-        const { defLine, midLine, atkLine, relBall, threeBack, boxThreat } = teamBlockLines(side, attacking);
+        const { defLine, midLine, atkLine, relBall, threeBack, boxThreat, teamWidth } = teamBlockLines(side, attacking);
         const pins = pinsOf(side);
         const pending = [];
         const boxedN = attacking ? countBoxAttackers(side) : 0;
@@ -5945,6 +5982,11 @@
         for (const { pin, x, depth } of pending) {
           let dd = clamp(depth, 0.03, 0.96);
           let xx = clamp(x, 0.04, 0.96);
+          // Engine fix — Milestone 2: apply the side's breathing width
+          // multiplier here, scaling every outfield pin's distance from the
+          // pitch centreline as one coherent unit (GK excluded — keepers
+          // don't stretch/compress with team shape).
+          if (pin.role !== "GK") xx = clamp(0.5 + (xx - 0.5) * teamWidth, 0.03, 0.97);
           const h = iHash(pin.id);
           const dx = xx - (pin.x ?? pin.baseX);
           const dd0 = dd - (pin.depth ?? pin.baseDepth);
