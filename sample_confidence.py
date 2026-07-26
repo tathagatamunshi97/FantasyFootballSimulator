@@ -24,6 +24,58 @@ CREDIBILITY_M0 = 1000.0
 # is unaffected.
 STALE_SEASON_CREDIBILITY_FACTOR = 0.55
 
+# Engine fix — percentile minutes dampener. The Bayesian curve above (c = m/
+# (m+m0)) saturates early: a merely-good regular (p60, ~2484 blended minutes,
+# c=0.71) and a genuinely nailed-on ever-present (p90, ~3016 minutes, c=0.75)
+# are barely 0.04 apart in credibility despite a huge gap in how reliably
+# their per-90 rate reflects real ability. This stretches that upper range
+# back out: the 90th percentile (and above) of minutes gets no extra
+# dampening at all, then every 5 percentiles below that loses a further
+# PERCENTILE_BAND_STEP off credibility, floored at PERCENTILE_DAMPEN_FLOOR.
+# Stacks multiplicatively with the Bayesian weight and the staleness factor
+# above — this is an additional layer, not a replacement for either.
+#
+# Table is empirical, not guessed: minutes at each 5-percentile mark across
+# the project's actual 210-player draft pool (all 14 fantasy squads' current
+# rosters, sampled 2026-07-26). Re-derive if the pool composition changes
+# substantially — see scripts/ or ask for a recompute.
+MINUTES_PERCENTILE_TABLE: tuple[tuple[int, float], ...] = (
+    (0, 496), (5, 1372), (10, 1545), (15, 1660), (20, 1793), (25, 1921),
+    (30, 1980), (35, 2096), (40, 2175), (45, 2252), (50, 2330), (55, 2386),
+    (60, 2484), (65, 2563), (70, 2605), (75, 2748), (80, 2845), (85, 2896),
+    (90, 3016), (95, 3095), (100, 3420),
+)
+PERCENTILE_BAND_STEP = 0.02
+PERCENTILE_DAMPEN_FLOOR = 0.6
+
+
+def minutes_percentile_rank(minutes: float) -> float:
+    """Interpolate where `minutes` falls (0-100) against MINUTES_PERCENTILE_TABLE."""
+    m = float(minutes or 0.0)
+    table = MINUTES_PERCENTILE_TABLE
+    if m <= table[0][1]:
+        return 0.0
+    if m >= table[-1][1]:
+        return 100.0
+    for (p_lo, m_lo), (p_hi, m_hi) in zip(table, table[1:]):
+        if m_lo <= m <= m_hi:
+            if m_hi == m_lo:
+                return float(p_lo)
+            frac = (m - m_lo) / (m_hi - m_lo)
+            return p_lo + frac * (p_hi - p_lo)
+    return 100.0
+
+
+def percentile_dampener(minutes: float) -> float:
+    """1.0 at/above the 90th percentile of minutes; steps down PERCENTILE_BAND_STEP
+    for every 5 percentiles below that, floored at PERCENTILE_DAMPEN_FLOOR."""
+    percentile = minutes_percentile_rank(minutes)
+    if percentile >= 90:
+        return 1.0
+    bands_below = -(-(90 - percentile) // 5)  # ceil division
+    return max(PERCENTILE_DAMPEN_FLOOR, 1.0 - bands_below * PERCENTILE_BAND_STEP)
+
+
 LEAGUE_GK_BASELINE = {
     "goals_prevented90": 0.045,
     "saves90": 2.4,
@@ -610,7 +662,10 @@ def apply_credibility_dampening(data: dict[str, Any]) -> dict[str, Any]:
     A profile with no current-season data at all (stale — see _is_stale_profile)
     gets its credibility further cut by STALE_SEASON_CREDIBILITY_FACTOR, on top
     of the usual minutes-based shrink, since a large-but-old sample shouldn't be
-    trusted as if it reflects the player's current involvement/form.
+    trusted as if it reflects the player's current involvement/form. Every
+    non-prime/peak player also gets percentile_dampener() applied (see above) —
+    full credit at/above the 90th percentile of minutes, small further shrink
+    every 5 percentiles below that.
     Idempotent via credibility_damped flag.
     """
     if is_undamped_profile(data):
@@ -620,6 +675,7 @@ def apply_credibility_dampening(data: dict[str, Any]) -> dict[str, Any]:
     c = credibility_weight(minutes)
     if _is_stale_profile(data):
         c *= STALE_SEASON_CREDIBILITY_FACTOR
+    c *= percentile_dampener(minutes)
     primary = str(data.get("primary_position") or "MF")
     fpl = str(data.get("fpl_position") or "")
     bucket = role_bucket_for_stats(data)
