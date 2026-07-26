@@ -13,6 +13,17 @@ MIN_TRUSTED_MINUTES = 2200
 # c = m / (m + m0); m0 ≈ one season of substantial play (~11 full matches).
 CREDIBILITY_M0 = 1000.0
 
+# Engine fix — staleness dampening. Credibility above was minutes-only: a player
+# whose blended window falls back to an old last-full-season baseline (typically
+# because a transfer/injury has left them with genuinely few or zero minutes THIS
+# season) got the exact same confidence as a teammate with an equally large but
+# current-season sample. A season and a half old stat line shouldn't be trusted
+# as if it reflects where the player is right now. Applied as a flat multiplier
+# on credibility whenever the current season is entirely absent from
+# seasons_used — real current-season data (even blended with an older season)
+# is unaffected.
+STALE_SEASON_CREDIBILITY_FACTOR = 0.55
+
 LEAGUE_GK_BASELINE = {
     "goals_prevented90": 0.045,
     "saves90": 2.4,
@@ -575,6 +586,20 @@ def is_undamped_profile(data: dict[str, Any]) -> bool:
     return profile in _UNDAMPED_STAT_PROFILES
 
 
+def _is_stale_profile(data: dict[str, Any]) -> bool:
+    """True when the blended window has no data at all from the current season —
+    e.g. a transfer or injury has left the player with too few (or zero) minutes
+    this season, so the blend fell back entirely to an older last-full-season
+    baseline. Real current-season data (even blended with an older season) is not
+    stale, regardless of how few minutes that current season itself contributes."""
+    from sofascore_client import SEASON_SUFFIXES
+
+    suffix = SEASON_SUFFIXES[-1]
+    current_season_label = f"20{suffix[:2]}-20{suffix[3:]}"
+    seasons_used = data.get("seasons_used") or []
+    return current_season_label not in seasons_used
+
+
 def apply_credibility_dampening(data: dict[str, Any]) -> dict[str, Any]:
     """
     Shrink per-90 rate stats toward role priors by minutes credibility.
@@ -582,6 +607,10 @@ def apply_credibility_dampening(data: dict[str, Any]) -> dict[str, Any]:
     adjusted = c * per90 + (1 - c) * prior,  c = m / (m + m0), m0 = CREDIBILITY_M0.
 
     Skips primes and peak-season picks. Missing minutes → c = 0 (full prior).
+    A profile with no current-season data at all (stale — see _is_stale_profile)
+    gets its credibility further cut by STALE_SEASON_CREDIBILITY_FACTOR, on top
+    of the usual minutes-based shrink, since a large-but-old sample shouldn't be
+    trusted as if it reflects the player's current involvement/form.
     Idempotent via credibility_damped flag.
     """
     if is_undamped_profile(data):
@@ -589,6 +618,8 @@ def apply_credibility_dampening(data: dict[str, Any]) -> dict[str, Any]:
 
     minutes = float(data.get("minutes") or 0.0)
     c = credibility_weight(minutes)
+    if _is_stale_profile(data):
+        c *= STALE_SEASON_CREDIBILITY_FACTOR
     primary = str(data.get("primary_position") or "MF")
     fpl = str(data.get("fpl_position") or "")
     bucket = role_bucket_for_stats(data)
