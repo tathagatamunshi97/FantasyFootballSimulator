@@ -6048,12 +6048,53 @@
         } else if (pin._pathCtrl) {
           pin._pathCtrl = null;
         }
-        const maxLogical = Math.max(0.04, pinRunSpeedPct(pin) * dt);
         const prevLeft = pin.left;
         const prevTop = pin.top;
-        const logical = stepTowardClamped(pin.left, pin.top, wantL, wantT, rate, maxLogical);
-        pin.left = logical.left;
-        pin.top = logical.top;
+        // Engine fix — curved steering (Milestone 1: locomotion). The old
+        // model had no velocity at all: every frame it re-lerped position
+        // directly toward the target, so heading snapped to point exactly at
+        // wherever tx/ty currently was — the "gliding to a fixed target" feel.
+        // Now each pin carries a real velocity (pin.vx/vy) that only turns
+        // gradually toward the desired direction (steerRate below, reusing
+        // the same role/context-aware `rate` this file already computes for
+        // every modifier above — pressing, running, tempo, pathCtrl — so all
+        // of that tuning carries over instead of being redone), which is what
+        // actually produces curved paths and slight overshoot/correction
+        // instead of an instant turn. Speed itself also ramps down near the
+        // target (decelRadius) rather than cruising at full speed until it
+        // suddenly arrives.
+        const cruiseSpeed = pinRunSpeedPct(pin);
+        const toL = wantL - pin.left;
+        const toT = wantT - pin.top;
+        const distToTarget = Math.hypot(toL, toT);
+        const decelRadius = 4;
+        const speedScale = distToTarget > 1e-6 ? clamp(distToTarget / decelRadius, 0.12, 1) : 0;
+        const dirL = distToTarget > 1e-6 ? toL / distToTarget : 0;
+        const dirT = distToTarget > 1e-6 ? toT / distToTarget : 0;
+        const desiredVx = dirL * cruiseSpeed * speedScale;
+        const desiredVy = dirT * cruiseSpeed * speedScale;
+        if (pin.vx == null) {
+          pin.vx = 0;
+          pin.vy = 0;
+        }
+        const steerRate = clamp(rate * 2.4, 0.06, 0.95);
+        pin.vx = lerp(pin.vx, desiredVx, steerRate);
+        pin.vy = lerp(pin.vy, desiredVy, steerRate);
+        let nextLeft = pin.left + pin.vx * dt;
+        let nextTop = pin.top + pin.vy * dt;
+        // Safety cap: bound how far one frame can move regardless of any
+        // velocity overshoot, same spirit as the old maxStep clamp.
+        const maxStepThisFrame = Math.max(0.05, cruiseSpeed * 1.6 * dt);
+        const stepDx = nextLeft - pin.left;
+        const stepDy = nextTop - pin.top;
+        const stepMag = Math.hypot(stepDx, stepDy);
+        if (stepMag > maxStepThisFrame && stepMag > 1e-9) {
+          const s = maxStepThisFrame / stepMag;
+          nextLeft = pin.left + stepDx * s;
+          nextTop = pin.top + stepDy * s;
+        }
+        pin.left = clamp(nextLeft, 1, 99);
+        pin.top = clamp(nextTop, 1, 99);
         // Engine fix — player orientation (Problem 11). Every other engine
         // piece (intent, support roles, anticipation) has been a proxy for
         // "what is this player about to do" because there was never an
@@ -6094,6 +6135,7 @@
         // Render trails logical (slightly softer / slower) — never chases tx directly
         if (pin.rx == null) pin.rx = pin.left;
         if (pin.ry == null) pin.ry = pin.top;
+        const maxLogical = Math.max(0.04, cruiseSpeed * dt);
         const maxRender = maxLogical * 0.92;
         const rendered = stepTowardClamped(pin.rx, pin.ry, pin.left, pin.top, rate * 0.88, maxRender);
         pin.rx = rendered.left;
@@ -6127,6 +6169,8 @@
       pin.ty = T;
       pin.rx = L;
       pin.ry = T;
+      pin.vx = 0;
+      pin.vy = 0;
       pin._pathCtrl = null;
       const el = pinEls.get(pin.id);
       if (el) {
