@@ -1836,7 +1836,21 @@
     function ensureIntent(pin, relBall) {
       const menu = INTENT_MENUS[pin.role];
       if (!menu) return null;
-      if (pin._intent && pin._intentUntil > matchMinute) return pin._intent;
+      if (pin._intent && pin._intentUntil > matchMinute) {
+        // Engine fix — faster intent cancellation. A held intent used to run
+        // its full 1.0-2.2 minute window no matter what changed around it —
+        // real players abandon an overlap/underlap the moment the picture
+        // that justified it (a CB stepping out, pressure spiking or
+        // collapsing at this exact spot) has genuinely shifted, not on a
+        // fixed clock. Compares current pressureAt this pin's position
+        // against what it was when the intent was set; a swing bigger than
+        // one defender's worth of heat forces an early re-roll instead of
+        // finishing a now-stale decision.
+        const currentPressure = pressureAt(pin.left, pin.top, pin.side);
+        const baseline = pin._intentSetPressure ?? currentPressure;
+        if (Math.abs(currentPressure - baseline) <= 0.55) return pin._intent;
+        pin._intent = null;
+      }
       const central = Math.abs(relBall.x - 0.5) < 0.22;
       const weights = INTENT_WEIGHTS[pin.role][central ? "central" : "wide"];
       const roll = rng();
@@ -1850,9 +1864,11 @@
         }
       }
       pin._intent = chosen;
+      pin._intentSetPressure = pressureAt(pin.left, pin.top, pin.side);
       // Held for ~1.0-2.2 match-minutes (roughly 2-4.5 real seconds at the
       // default board speed) — long enough to read as a decision, not a
       // twitch, short enough to keep responding to how the game develops.
+      // Can still be cancelled early above if the picture shifts hard.
       pin._intentUntil = matchMinute + 1.0 + rng() * 1.2;
       return chosen;
     }
@@ -2807,28 +2823,32 @@
       shortClear.sort((a, b) => b.score - a.score);
       if (urg >= 0.85 && !trapped) {
         const progressive = shortClear.filter((s) => s.ahead > 1.5);
-        for (const s of progressive) {
-          if (canPlayForward(carrier, s.m, stage, depth) || isMidRole(s.m.role) || s.m.role === "FB") {
-            return s.m;
-          }
-        }
+        const eligible = progressive.filter(
+          (s) => canPlayForward(carrier, s.m, stage, depth) || isMidRole(s.m.role) || s.m.role === "FB"
+        );
+        const pick = nearOptimalPick(eligible, 0.6);
+        if (pick) return pick.m;
       }
-      for (const s of shortClear) {
-        if (canPlayForward(carrier, s.m, stage, depth) || isMidRole(s.m.role) || isDefRole(s.m.role)) {
-          return s.m;
-        }
+      {
+        const eligible = shortClear.filter(
+          (s) => canPlayForward(carrier, s.m, stage, depth) || isMidRole(s.m.role) || isDefRole(s.m.role)
+        );
+        const pick = nearOptimalPick(eligible, 0.6);
+        if (pick) return pick.m;
       }
       if (shortClear.length) return shortClear[0].m;
 
       scored.sort((a, b) => b.score - a.score);
-      for (const s of scored) {
-        if (wouldPassBeOffside(carrier, s.m)) continue;
-        if (s.d > 28 && s.nLane >= 1) continue;
-        if (isCrossFieldSwitch(carrier, s.m) && !isJustifiedSwitch(carrier, s.m)) continue;
-        if (s.d > 32 && Math.abs(s.m.left - carrier.left) > 28) continue;
-        if (canPlayForward(carrier, s.m, stage, depth) || isMidRole(s.m.role) || isDefRole(s.m.role)) {
-          return s.m;
-        }
+      {
+        const eligible = scored.filter((s) => {
+          if (wouldPassBeOffside(carrier, s.m)) return false;
+          if (s.d > 28 && s.nLane >= 1) return false;
+          if (isCrossFieldSwitch(carrier, s.m) && !isJustifiedSwitch(carrier, s.m)) return false;
+          if (s.d > 32 && Math.abs(s.m.left - carrier.left) > 28) return false;
+          return canPlayForward(carrier, s.m, stage, depth) || isMidRole(s.m.role) || isDefRole(s.m.role);
+        });
+        const pick = nearOptimalPick(eligible, 0.6);
+        if (pick) return pick.m;
       }
       return scored[0]?.m || mates[0];
     }
@@ -2920,6 +2940,33 @@
         if (r <= 0) return e.id;
       }
       return entries[entries.length - 1].id;
+    }
+
+    /**
+     * Engine fix — near-optimal decision tolerance. pickAttackPattern and
+     * decideWideFinalThird's cross/cutback/recycle choice already use real
+     * weighted-random selection via weightedPick above, so two near-tied
+     * options there already get picked close to evenly over time. Pass-target
+     * selection (progressiveTarget, centralProgressTarget) didn't: it was a
+     * flat sort-then-take-top, so the single highest-scored option always
+     * won even when a second option scored almost identically — a real
+     * player sometimes takes the slightly-worse-scored pass on purpose
+     * (disguise, trust, anticipated pressure). `list` must already be sorted
+     * descending by .score; picks a weighted draw among every entry within
+     * `margin` of the top score instead of always the literal best.
+     */
+    function nearOptimalPick(list, margin) {
+      if (!list.length) return null;
+      const top = list[0].score;
+      const contenders = [];
+      for (const s of list) {
+        if (top - s.score <= margin) contenders.push(s);
+        else break;
+      }
+      if (contenders.length <= 1) return list[0];
+      const minS = contenders[contenders.length - 1].score;
+      const idx = weightedPick(contenders.map((c, i) => ({ id: i, w: c.score - minS + 0.4 })));
+      return contenders[idx];
     }
 
     function isWideChannel(pin) {
@@ -3261,7 +3308,7 @@
         return { m, score: hub + centralBias + create + space - dist(carrier, m) * 0.02 + rng() * 0.4 };
       });
       scored.sort((a, b) => b.score - a.score);
-      return scored[0].m;
+      return nearOptimalPick(scored, 0.5).m;
     }
 
     function throughRunner(carrier, stage, depth) {
@@ -3270,19 +3317,12 @@
         .filter((m) => canPlayForward(carrier, m, stage, depth))
         .filter((m) => throughBallLegal(carrier, m));
       if (!runners.length) return null;
-      runners.sort((a, b) => {
-        const attrA = throughBallAttractive(carrier, a) ? 2.4 : 0;
-        const attrB = throughBallAttractive(carrier, b) ? 2.4 : 0;
-        return (
-          attrB +
-          b.stats.xg90 * 1.45 +
-          b.stats.xa90 * 0.75 -
-          Math.abs(b.left - 50) * 0.01 -
-          (attrA + a.stats.xg90 * 1.45 + a.stats.xa90 * 0.75) +
-          rng() * 0.25
-        );
+      const scored = runners.map((m) => {
+        const attr = throughBallAttractive(carrier, m) ? 2.4 : 0;
+        return { m, score: attr + m.stats.xg90 * 1.45 + m.stats.xa90 * 0.75 - Math.abs(m.left - 50) * 0.01 + rng() * 0.25 };
       });
-      return runners[0];
+      scored.sort((a, b) => b.score - a.score);
+      return nearOptimalPick(scored, 0.5).m;
     }
 
     /**
@@ -4512,6 +4552,76 @@
     }
 
     /**
+     * Engine fix — event-triggered micro-update, CB edition. A CB stepping
+     * out to press was only ever visible to the rest of the sim on the next
+     * shape recompute: the space it vacates behind/inside it sits there
+     * unattacked for a tick even though a real opposing forward would sense
+     * the gap and move into it the instant the CB commits. Mirrors the same
+     * "react in this exact instant" idea as the other trigger* functions,
+     * fired the moment updateTeamShape's per-pin defensive-mode hysteresis
+     * actually transitions a CB into "press" (not every tick it stays there).
+     */
+    function triggerCBStepOutReaction(pressingCB) {
+      if (!pressingCB) return;
+      const oppSide = oppOf(pressingCB.side);
+      const attackSign = oppSide === "home" ? -1 : 1;
+      const target = pinsOf(oppSide)
+        .filter(
+          (m) =>
+            (m.role === "W" || m.role === "AM" || m.role === "ST") &&
+            !m._running &&
+            (m.lockUntil || 0) <= matchMinute
+        )
+        .sort((a, b) => dist(pressingCB, a) - dist(pressingCB, b))[0];
+      if (!target) return;
+      const nx = clamp(pressingCB.left + (rng() - 0.5) * 6, 6, 94);
+      const ny = clamp(pressingCB.top + attackSign * 6, 5, 95);
+      const midX = clamp((target.left + nx) / 2, 6, 94);
+      const midY = clamp(target.top + attackSign * 2.5, 5, 95);
+      target._pathCtrl = { left: midX, top: midY, from: matchMinute, until: matchMinute + 0.6 };
+      target.tx = nx;
+      target.ty = ny;
+      target._running = true;
+      target.lockUntil = matchMinute + 0.55;
+    }
+
+    /**
+     * Engine fix — event-triggered micro-update, carrier rotation edition.
+     * A carrier who suddenly reorients (turning infield, spinning away from
+     * press) previously left every teammate's run pointed at where the ball
+     * USED to be headed until the next shape tick caught up. Bends the
+     * nearest teammate who's already mid-run toward the carrier's new
+     * facing direction right away — doesn't start a fresh run, just
+     * redirects one already in progress, matching the real "nobody waits"
+     * feel. Called from applyPinMotion only for the current ball carrier,
+     * gated by a short cooldown so one sustained turn doesn't refire every
+     * frame.
+     */
+    function triggerCarrierRotationReaction(carrier) {
+      if (!carrier || carrier.role === "GK") return;
+      const mates = teammates(carrier).filter((m) => m.role !== "GK");
+      const runner = mates
+        .filter(
+          (m) =>
+            (m.role === "ST" || m.role === "W" || m.role === "AM") &&
+            (m._running || (m.lockUntil || 0) > matchMinute)
+        )
+        .sort((a, b) => dist(carrier, a) - dist(carrier, b))[0];
+      if (!runner) return;
+      const bendX = clamp(runner.tx + carrier.facingX * 6, 6, 94);
+      const bendY = clamp(runner.ty + carrier.facingY * 4, 5, 95);
+      runner._pathCtrl = {
+        left: lerp(runner.left, bendX, 0.5),
+        top: lerp(runner.top, bendY, 0.5),
+        from: matchMinute,
+        until: matchMinute + 0.45,
+      };
+      runner.tx = bendX;
+      runner.ty = bendY;
+      runner.lockUntil = Math.max(runner.lockUntil || 0, matchMinute + 0.4);
+    }
+
+    /**
      * Emergent support roles around the ball (carrier / outlet / progressive / third-man / switch / depth).
      */
     function assignSupportRoles(side, carrier, pins) {
@@ -5496,6 +5606,9 @@
               const defHoldActive = (pin._defModeUntil || 0) > matchMinute;
               if (naturalMode === "track" || !defHoldActive || pin._defMode == null) {
                 if (pin._defMode !== naturalMode) {
+                  if (pin.role === "CB" && naturalMode === "press") {
+                    triggerCBStepOutReaction(pin);
+                  }
                   pin._defMode = naturalMode;
                   pin._defModeUntil = matchMinute + 0.35 + rng() * 0.25;
                 }
@@ -5899,6 +6012,28 @@
         const roleEase = MOTION_EASE[pin.role] ?? 0.7;
         let rate = baseFollow * roleEase * (0.94 + h * 0.02);
         if (pin.id === carrierId && !ballAttached) rate *= 0.45;
+        // Engine fix — tempo layer, carrier only. A carrier's own pace toward
+        // their target was one constant rate whether they were shielding the
+        // ball with time to work or being hounded into an instant release —
+        // real players vary rhythm (a brief hesitation to draw a defender or
+        // wait for support, a sudden burst under real pressure), not a
+        // metronome. Only touches this one pin's own rate, refreshed on a
+        // short randomized cadence, and only while they actually have the
+        // ball — never the shared per-pin easing every other player rides on.
+        if (pin.id === carrierId && ballAttached) {
+          if ((pin._tempoUntil || 0) <= matchMinute) {
+            const localPressure = pressureAt(pin.left, pin.top, pin.side);
+            if (localPressure > 0.55 && rng() < 0.4) {
+              pin._tempoMul = 1.25 + rng() * 0.2;
+            } else if (localPressure <= 0.55 && rng() < 0.3) {
+              pin._tempoMul = 0.55 + rng() * 0.2;
+            } else {
+              pin._tempoMul = 1.0;
+            }
+            pin._tempoUntil = matchMinute + 0.15 + rng() * 0.25;
+          }
+          rate *= pin._tempoMul || 1.0;
+        }
         if (pin._pressing) rate *= 1.35;
         else if (pin._running) rate *= 1.28;
         else if (pin.side !== possession && dist(pin, ball) < 12) rate *= 1.08;
@@ -5930,8 +6065,25 @@
         const moveDy = pin.top - prevTop;
         const moveMag = Math.hypot(moveDx, moveDy);
         if (moveMag > 0.015) {
-          pin.facingX = moveDx / moveMag;
-          pin.facingY = moveDy / moveMag;
+          const newFacingX = moveDx / moveMag;
+          const newFacingY = moveDy / moveMag;
+          // Engine fix — event-triggered micro-update, rotation edition (carrier
+          // only — checking every pin every render frame would be wasted work
+          // for the one reaction that actually matters). A sharp turn (>45°,
+          // dot product of old vs new facing below ~0.7) redirects the nearest
+          // teammate's in-progress run immediately; cooldown stops one sustained
+          // spin from refiring every frame.
+          if (
+            pin.id === carrierId &&
+            pin.facingX != null &&
+            matchMinute >= (pin._rotationReactCooldown || 0) &&
+            pin.facingX * newFacingX + pin.facingY * newFacingY < 0.7
+          ) {
+            triggerCarrierRotationReaction(pin);
+            pin._rotationReactCooldown = matchMinute + 0.4;
+          }
+          pin.facingX = newFacingX;
+          pin.facingY = newFacingY;
         } else if (pin.facingX == null) {
           const bx = ball.left - pin.left;
           const by = ball.top - pin.top;
