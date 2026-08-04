@@ -220,11 +220,13 @@ function renderKnockoutTieCell(t, tie, { showRun = false } = {}) {
           ${adminReviewControls(leg, result, { isKnockout: true })}</div>`;
       }
       const canPlay = leg.leg === 1 ? true : Boolean(legs[0].played);
-      if (showRun && canPlay && tie.home && tie.away) {
-        return `<div>Leg ${leg.leg}: <button type="button" class="btn-ghost btn-sm run-ko-btn" data-match-id="${esc(leg.id)}">Run</button>
+      const legTeams =
+        leg.home && leg.away ? `${esc(leg.home)} vs ${esc(leg.away)}` : `<span class="muted">TBD</span>`;
+      if (showRun && canPlay && leg.home && leg.away) {
+        return `<div>Leg ${leg.leg}: ${legTeams} — <button type="button" class="btn-ghost btn-sm run-ko-btn" data-match-id="${esc(leg.id)}">Run</button>
           <a class="btn-link btn-sm" href="/matchday" style="margin-left:0.35rem">Matchday</a></div>`;
       }
-      return `<div class="muted">Leg ${leg.leg}: ${canPlay ? "scheduled" : "awaiting leg 1"}</div>`;
+      return `<div class="muted">Leg ${leg.leg}: ${canPlay ? legTeams : "awaiting leg 1"}</div>`;
     })
     .join("");
   const tieSummary = tie.played

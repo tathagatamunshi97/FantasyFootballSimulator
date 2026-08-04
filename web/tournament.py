@@ -245,18 +245,30 @@ def save_tournament(t: dict[str, Any]) -> None:
     TOURNAMENTS_DIR.mkdir(parents=True, exist_ok=True)
     t["updated_at"] = _now()
 
-    # Save to R2 if enabled (primary storage on Render)
+    # Save to R2 if enabled (primary storage on Render). load_tournament()
+    # always prefers R2 when it's enabled, so a failed R2 write must not be
+    # swallowed here — that would silently make this change vanish on the
+    # next load (local JSON below is written too, but never read back once
+    # R2 is enabled, and Render's local disk isn't durable anyway).
+    r2_write_failed = False
     try:
         import r2_storage
         if r2_storage.is_r2_enabled():
-            r2_storage.save_tournament_metadata(t["id"], t)
-    except (ImportError, Exception):
+            r2_write_failed = not r2_storage.save_tournament_metadata(t["id"], t)
+    except ImportError:
         pass
 
-    # Always save to JSON as fallback
+    # Always save to JSON (local fallback / dev without R2).
     _tournament_path(t["id"]).write_text(
         json.dumps(t, indent=2, ensure_ascii=False), encoding="utf-8"
     )
+
+    if r2_write_failed:
+        raise RuntimeError(
+            f"Failed to persist tournament {t['id']} to R2 storage — see server logs "
+            "for the underlying error. A local copy was written but will not be read "
+            "back on the next request since R2 is enabled."
+        )
 
 
 def load_tournament(tournament_id: str) -> dict[str, Any] | None:
@@ -1909,12 +1921,17 @@ def _knockout_round_short_names(n_teams: int) -> list[str]:
     return ["R16", "QF", "SF", "Final"]
 
 
-def _pair_crossover(qualifiers: list[tuple[str, str, int]]) -> list[tuple[str, str]]:
+def _pair_crossover(
+    qualifiers: list[tuple[str, str, int]]
+) -> list[tuple[tuple[str, int], tuple[str, int]]]:
+    """Crossover pairing (1st vs worst-of-other-group, etc.), keeping each
+    team's group-stage rank alongside it — home/away is decided separately
+    by _first_round_home_away."""
     by_group: dict[str, list[tuple[str, int]]] = {}
     for team, gkey, rank in qualifiers:
         by_group.setdefault(gkey, []).append((team, rank))
     groups = sorted(by_group.keys())
-    pairs: list[tuple[str, str]] = []
+    pairs: list[tuple[tuple[str, int], tuple[str, int]]] = []
     if len(groups) >= 2:
         half = len(groups) // 2
         for i in range(half):
@@ -1924,12 +1941,26 @@ def _pair_crossover(qualifiers: list[tuple[str, str, int]]) -> list[tuple[str, s
             r2 = sorted(by_group[g2], key=lambda x: x[1])
             n = min(len(r1), len(r2))
             for j in range(n):
-                pairs.append((r1[j][0], r2[n - 1 - j][0]))
+                pairs.append((r1[j], r2[n - 1 - j]))
     if not pairs:
-        teams = [q[0] for q in qualifiers]
+        teams = [(q[0], q[2]) for q in qualifiers]
         for i in range(0, len(teams) - 1, 2):
             pairs.append((teams[i], teams[i + 1]))
     return pairs
+
+
+def _first_round_home_away(
+    a: tuple[str, int], b: tuple[str, int], *, seed_better_away: bool
+) -> tuple[str, str]:
+    """(tie_home, tie_away) for one first-round pairing. When the round is
+    two-legged, the better group-stage rank (lower number) plays leg 1 away
+    and hosts the decisive leg 2 — legacy single-match ties keep the plain
+    crossover order unchanged."""
+    a_team, a_rank = a
+    b_team, b_rank = b
+    if not seed_better_away:
+        return (a_team, b_team)
+    return (b_team, a_team) if a_rank <= b_rank else (a_team, b_team)
 
 
 def _build_leg(tie_id: str, leg_num: int, home: str | None, away: str | None) -> dict[str, Any]:
@@ -2006,8 +2037,8 @@ def generate_knockout_bracket(tournament_id: str) -> dict[str, Any]:
             f"got {len(qualifiers)}"
         )
 
-    pairs = _pair_crossover(qualifiers)
-    n_first = len(pairs) * 2
+    raw_pairs = _pair_crossover(qualifiers)
+    n_first = len(raw_pairs) * 2
     if n_first not in VALID_KNOCKOUT_SIZES:
         raise ValueError(f"Invalid knockout bracket size: {n_first} teams")
     round_names = _knockout_round_short_names(n_first)
@@ -2019,13 +2050,16 @@ def generate_knockout_bracket(tournament_id: str) -> dict[str, Any]:
     # keeps every round single-match, just uniformly wrapped in a 1-entry
     # `legs` list so downstream code has one shape to deal with either way.
     two_legged_rounds = fmt == "two_leg"
+    first_round_two_legged = two_legged_rounds and first_name != final_name
+    pairs = [
+        _first_round_home_away(a, b, seed_better_away=first_round_two_legged)
+        for a, b in raw_pairs
+    ]
 
     ties: list[dict[str, Any]] = []
     for i, (home, away) in enumerate(pairs, start=1):
         tie_id = f"ko-{first_name.lower()}-{i}"
-        ties.append(
-            _build_tie(tie_id, home, away, None, two_legged_rounds and first_name != final_name)
-        )
+        ties.append(_build_tie(tie_id, home, away, None, first_round_two_legged))
 
     rounds_out: list[dict[str, Any]] = [
         {
