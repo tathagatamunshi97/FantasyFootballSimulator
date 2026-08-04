@@ -834,21 +834,46 @@ async function loadMatches(tournamentId) {
       }
     }
 
-    // Knockout: t.knockout.rounds[] = {name, label, ties: [{id, home, away, played, result_id, ...}]}
+    // Knockout: t.knockout.rounds[] = {name, label, ties: [{id, home, away, played,
+    // result_id, legs: [{leg, id, home, away, played, ...}], ...}]}. A single-legged
+    // tie (the Final, or a legacy single_elim tournament) has legs.length <= 1 and is
+    // listed by the tie's own id, exactly as before. A two-legged tie is listed as two
+    // separately-selectable legs, each with its own (reversed for leg 2) home/away.
     const rounds = (t.knockout || {}).rounds || [];
     for (const rnd of rounds) {
       const roundName = rnd.label || rnd.name || "Knockout";
       for (const tie of rnd.ties || []) {
         if (!tie.home || !tie.away) continue; // not yet seeded from a prior round
-        mrMatchIndex[tie.id] = {
-          isKnockout: true,
-          home: tie.home,
-          away: tie.away,
-          roundName: rnd.name,
-          played: Boolean(tie.played),
-        };
-        const status = tie.played ? "✓ Done" : "⊝ Pending";
-        matchOptions.push(`<option value="${tie.id}">${tie.home} vs ${tie.away} (${roundName}) ${status}</option>`);
+        const legs = tie.legs || [];
+        if (legs.length <= 1) {
+          mrMatchIndex[tie.id] = {
+            isKnockout: true,
+            home: tie.home,
+            away: tie.away,
+            roundName: rnd.name,
+            played: Boolean(tie.played),
+          };
+          const status = tie.played ? "✓ Done" : "⊝ Pending";
+          matchOptions.push(`<option value="${tie.id}">${tie.home} vs ${tie.away} (${roundName}) ${status}</option>`);
+          continue;
+        }
+        for (const leg of legs) {
+          const canPlay = leg.leg === 1 || Boolean(legs[0].played);
+          mrMatchIndex[leg.id] = {
+            isKnockout: true,
+            twoLegged: true,
+            leg: leg.leg,
+            tieId: tie.id,
+            home: leg.home,
+            away: leg.away,
+            roundName: rnd.name,
+            played: Boolean(leg.played),
+          };
+          const status = leg.played ? "✓ Done" : canPlay ? "⊝ Pending" : "— awaiting leg 1";
+          matchOptions.push(
+            `<option value="${leg.id}">${leg.home} vs ${leg.away} (${roundName}, leg ${leg.leg}) ${status}</option>`
+          );
+        }
       }
     }
 
@@ -953,7 +978,10 @@ function updateWinnerRow() {
   const home = Number(document.getElementById("mrHomeGoals").value) || 0;
   const away = Number(document.getElementById("mrAwayGoals").value) || 0;
 
-  if (match && match.isKnockout && home === away) {
+  // Leg 1 of a two-legged tie never decides anything by itself — never show
+  // or require a winner for it, regardless of its own scoreline.
+  const isLeg1OfTwo = match && match.twoLegged && match.leg === 1;
+  if (match && match.isKnockout && !isLeg1OfTwo && home === away) {
     sel.innerHTML = `<option value="">— Select winner —</option>
       <option value="${esc(match.home)}">${esc(match.home)}</option>
       <option value="${esc(match.away)}">${esc(match.away)}</option>`;
@@ -1014,7 +1042,8 @@ async function recordMatch() {
     mrLog("This match is already marked played. Use the tournament page's override tool to correct a played result.");
     return;
   }
-  if (match.isKnockout && homeGoals === awayGoals && !winner) {
+  const isLeg1OfTwo = match.twoLegged && match.leg === 1;
+  if (match.isKnockout && !isLeg1OfTwo && homeGoals === awayGoals && !winner) {
     mrLog("Scores are level — select who won the tie (penalties/extra time) above.");
     return;
   }

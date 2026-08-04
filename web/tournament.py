@@ -53,7 +53,7 @@ def _default_settings(team_count: int) -> dict[str, Any]:
             "group_count": 1,
             "teams_per_group": 1,
             "advance_per_group": 1,
-            "knockout_format": "single_elim",
+            "knockout_format": "two_leg",
             "simulations_per_match": 10000,
         }
     if team_count <= 4:
@@ -61,7 +61,7 @@ def _default_settings(team_count: int) -> dict[str, Any]:
             "group_count": 1,
             "teams_per_group": team_count,
             "advance_per_group": min(2, team_count),
-            "knockout_format": "single_elim",
+            "knockout_format": "two_leg",
             "simulations_per_match": 10000,
         }
     group_count = 4
@@ -75,7 +75,7 @@ def _default_settings(team_count: int) -> dict[str, Any]:
         "group_count": group_count,
         "teams_per_group": teams_per_group,
         "advance_per_group": advance,
-        "knockout_format": "single_elim",
+        "knockout_format": "two_leg",
         "simulations_per_match": 10000,
     }
 
@@ -176,7 +176,7 @@ def _settings_from_group_count(
         "group_count": group_count,
         "teams_per_group": teams_per_group,
         "advance_per_group": advance,
-        "knockout_format": "single_elim",
+        "knockout_format": "two_leg",
         "simulations_per_match": 10000,
     }
 
@@ -546,16 +546,19 @@ def resolve_fixture_round_key(
 
     for t in tournaments:
         if match_id:
+            for rnd in (t.get("knockout") or {}).get("rounds") or []:
+                for tie in rnd.get("ties") or []:
+                    legs = tie.get("legs") or []
+                    matches_tie = tie.get("id") == match_id
+                    matches_leg = any(leg.get("id") == match_id for leg in legs)
+                    if matches_tie or matches_leg:
+                        rname = rnd.get("name") or rnd.get("short") or "KO"
+                        return fixture_round_key("knockout", tie, knockout_round_name=rname)
             found = _find_fixture(t, match_id)
             if found:
                 stage_key, fx = found
-                if stage_key == "knockout":
-                    for rnd in (t.get("knockout") or {}).get("rounds") or []:
-                        for tie in rnd.get("ties") or []:
-                            if tie.get("id") == match_id:
-                                rname = rnd.get("name") or rnd.get("short") or "KO"
-                                return fixture_round_key("knockout", tie, knockout_round_name=rname)
-                return fixture_round_key(stage_key, fx)
+                if stage_key != "knockout":
+                    return fixture_round_key(stage_key, fx)
 
         if home_name and away_name:
             for gkey, group in (t.get("groups") or {}).items():
@@ -580,6 +583,35 @@ def _find_fixture(t: dict[str, Any], match_id: str) -> tuple[str, dict[str, Any]
             if tie.get("id") == match_id:
                 return "knockout", tie
     return None
+
+
+def _find_knockout_leg(t: dict[str, Any], match_id: str) -> tuple[dict[str, Any], dict[str, Any]] | None:
+    """Resolve match_id to (tie, leg) for a knockout match. Accepts either a
+    leg's own id ("...-leg1"/"...-leg2") or, for a single-legged tie (the
+    Final, or any legacy single_elim tournament), the tie's own bare id."""
+    for rnd in t.get("knockout", {}).get("rounds", []):
+        for tie in rnd.get("ties", []):
+            legs = tie.get("legs") or []
+            for leg in legs:
+                if leg.get("id") == match_id:
+                    return tie, leg
+            if tie.get("id") == match_id and len(legs) == 1:
+                return tie, legs[0]
+    return None
+
+
+def _find_playable_fixture(t: dict[str, Any], match_id: str) -> tuple[str, dict[str, Any]] | None:
+    """Like _find_fixture, but resolves a knockout match_id to its LEG (the
+    actual playable/completable match) rather than the parent tie. Group
+    fixtures are unaffected — they have no legs concept. Used by callers
+    that want "the specific match" (review/accept/override/reset, session
+    setup); callers that specifically want the TIE itself (e.g.
+    _run_knockout_match_job, which does its own leg bookkeeping) should keep
+    using _find_fixture directly."""
+    leg_found = _find_knockout_leg(t, match_id)
+    if leg_found:
+        return "knockout", leg_found[1]
+    return _find_fixture(t, match_id)
 
 
 def _load_teams_for_match(
@@ -1012,6 +1044,12 @@ def _run_knockout_match_job(
     match_id: str,
     exp: dict[str, Any],
 ) -> None:
+    """Monte-Carlo quick-sim path (legacy fallback — the live tactic-board host
+    flow is the real production path and is handled by complete_from_board).
+    For a two-legged tie this resolves BOTH legs in one job (aggregate + away
+    goals, falling back to _resolve_winner's existing statistical tiebreak if
+    still level — this does not simulate real extra time/penalties, matching
+    today's pre-existing behavior for single-match ties)."""
     from web import experiments
 
     t = load_tournament(tournament_id)
@@ -1030,41 +1068,106 @@ def _run_knockout_match_job(
     exp["message"] = "Loading player stats…"
     experiments.save_experiment(exp)
 
-    report, snapshot = _run_simulation(tie["home"], tie["away"], match_id, n_sims)
-    winner = _resolve_winner(
-        tie["home"],
-        tie["away"],
-        snapshot["home_goals"],
-        snapshot["away_goals"],
-        report,
-        require_winner=True,
-    )
-    if not winner:
-        winner = tie["home"]
+    legs = tie.get("legs") or []
+    two_legged = len(legs) == 2
 
-    result_id = match_id
-    t["match_results"][result_id] = {
-        "match_id": match_id,
-        "stage": "knockout",
-        "home": tie["home"],
-        "away": tie["away"],
-        **snapshot,
-        **_analysis_payload_from_report(report),
-        "engine_home_goals": snapshot["home_goals"],
-        "engine_away_goals": snapshot["away_goals"],
-        "winner": winner,
-        "manually_overridden": False,
-        "admin_accepted": False,
-        "played_at": _now(),
-        "experiment_id": exp["id"],
-    }
+    if not two_legged:
+        report, snapshot = _run_simulation(tie["home"], tie["away"], match_id, n_sims)
+        winner = _resolve_winner(
+            tie["home"], tie["away"], snapshot["home_goals"], snapshot["away_goals"],
+            report, require_winner=True,
+        )
+        if not winner:
+            winner = tie["home"]
 
-    tie["played"] = True
-    tie["result_id"] = result_id
-    tie["score"] = snapshot["score"]
-    tie["winner"] = winner
-    tie["experiment_id"] = exp["id"]
-    _advance_knockout_winner(t, tie, winner)
+        result_id = match_id
+        t["match_results"][result_id] = {
+            "match_id": match_id,
+            "stage": "knockout",
+            "home": tie["home"],
+            "away": tie["away"],
+            **snapshot,
+            **_analysis_payload_from_report(report),
+            "engine_home_goals": snapshot["home_goals"],
+            "engine_away_goals": snapshot["away_goals"],
+            "winner": winner,
+            "manually_overridden": False,
+            "admin_accepted": False,
+            "played_at": _now(),
+            "experiment_id": exp["id"],
+        }
+        leg = legs[0] if legs else tie
+        leg["played"] = True
+        leg["result_id"] = result_id
+        leg["score"] = snapshot["score"]
+        leg["home_goals"] = snapshot["home_goals"]
+        leg["away_goals"] = snapshot["away_goals"]
+        tie["played"] = True
+        tie["result_id"] = result_id
+        tie["score"] = snapshot["score"]
+        tie["winner"] = winner
+        tie["experiment_id"] = exp["id"]
+        _advance_knockout_winner(t, tie, winner)
+        final_report = report
+        final_snapshot = snapshot
+    else:
+        leg1, leg2 = legs[0], legs[1]
+        report1, snap1 = _run_simulation(leg1["home"], leg1["away"], leg1["id"], n_sims)
+        report2, snap2 = _run_simulation(leg2["home"], leg2["away"], leg2["id"], n_sims)
+        for leg, result_id, snap, rpt in ((leg1, leg1["id"], snap1, report1), (leg2, leg2["id"], snap2, report2)):
+            t["match_results"][result_id] = {
+                "match_id": result_id,
+                "stage": "knockout",
+                "tie_id": tie["id"],
+                "leg": leg["leg"],
+                "home": leg["home"],
+                "away": leg["away"],
+                **snap,
+                **_analysis_payload_from_report(rpt),
+                "engine_home_goals": snap["home_goals"],
+                "engine_away_goals": snap["away_goals"],
+                "winner": None,
+                "manually_overridden": False,
+                "admin_accepted": False,
+                "played_at": _now(),
+                "experiment_id": exp["id"],
+            }
+            leg["played"] = True
+            leg["result_id"] = result_id
+            leg["score"] = snap["score"]
+            leg["home_goals"] = snap["home_goals"]
+            leg["away_goals"] = snap["away_goals"]
+
+        agg_home_goals = snap1["home_goals"] + snap2["away_goals"]
+        agg_away_goals = snap1["away_goals"] + snap2["home_goals"]
+        if agg_home_goals != agg_away_goals:
+            winner = tie["home"] if agg_home_goals > agg_away_goals else tie["away"]
+            tie_decided = "agg"
+        else:
+            tie_home_away_goals = snap2["away_goals"]
+            tie_away_away_goals = snap1["away_goals"]
+            if tie_home_away_goals != tie_away_away_goals:
+                winner = tie["home"] if tie_home_away_goals > tie_away_away_goals else tie["away"]
+                tie_decided = "away_goals"
+            else:
+                winner = _resolve_winner(
+                    tie["home"], tie["away"], agg_home_goals, agg_away_goals,
+                    report2, require_winner=True,
+                ) or tie["home"]
+                tie_decided = "agg"
+
+        result_id = leg2["id"]
+        tie["played"] = True
+        tie["result_id"] = result_id
+        tie["winner"] = winner
+        tie["decided_by"] = tie_decided
+        tie["agg_home_goals"] = agg_home_goals
+        tie["agg_away_goals"] = agg_away_goals
+        tie["score"] = _format_tie_score(tie)
+        tie["experiment_id"] = exp["id"]
+        _advance_knockout_winner(t, tie, winner)
+        final_report = report2
+        final_snapshot = snap2
 
     all_done = all(
         t2.get("played")
@@ -1075,18 +1178,18 @@ def _run_knockout_match_job(
     if all_done:
         t["status"] = "complete"
     save_tournament(t)
-    _finalize_experiment_from_report(exp, report)
+    _finalize_experiment_from_report(exp, final_report)
     matchday_session.set_result(
         {
-            "score": snapshot["score"],
-            "home_goals": snapshot["home_goals"],
-            "away_goals": snapshot["away_goals"],
-            "winner": winner,
-            "home_win_pct": snapshot.get("home_win_pct"),
-            "draw_pct": snapshot.get("draw_pct"),
-            "away_win_pct": snapshot.get("away_win_pct"),
-            "mode_scoreline": snapshot.get("mode_scoreline"),
-            "top_scorelines": snapshot.get("top_scorelines"),
+            "score": tie["score"],
+            "home_goals": final_snapshot["home_goals"],
+            "away_goals": final_snapshot["away_goals"],
+            "winner": tie["winner"],
+            "home_win_pct": final_snapshot.get("home_win_pct"),
+            "draw_pct": final_snapshot.get("draw_pct"),
+            "away_win_pct": final_snapshot.get("away_win_pct"),
+            "mode_scoreline": final_snapshot.get("mode_scoreline"),
+            "top_scorelines": final_snapshot.get("top_scorelines"),
             "experiment_id": exp["id"],
         },
         experiment_id=exp["id"],
@@ -1115,7 +1218,7 @@ def start_matchday_session(tournament_id: str, match_id: str) -> dict[str, Any]:
     t = load_tournament(tournament_id)
     if not t:
         raise KeyError("Tournament not found")
-    found = _find_fixture(t, match_id)
+    found = _find_playable_fixture(t, match_id)
     if not found:
         raise KeyError(f"Fixture '{match_id}' not found")
     stage_key, fx = found
@@ -1262,14 +1365,37 @@ def prepare_board_match(tournament_id: str, match_id: str) -> dict[str, Any]:
     t = load_tournament(tournament_id)
     if not t:
         raise KeyError("Tournament not found")
-    found = _find_fixture(t, match_id)
-    if not found:
-        raise KeyError(f"Fixture '{match_id}' not found")
-    stage_key, fx = found
+    tie: dict[str, Any] | None = None
+    leg_found = _find_knockout_leg(t, match_id)
+    if leg_found:
+        tie, fx = leg_found
+        stage_key = "knockout"
+    else:
+        found = _find_fixture(t, match_id)
+        if not found:
+            raise KeyError(f"Fixture '{match_id}' not found")
+        stage_key, fx = found
     if fx.get("played"):
         raise ValueError(f"Match {match_id} already played")
     if stage_key == "knockout" and (not fx.get("home") or not fx.get("away")):
         raise ValueError(f"Match {match_id} is not ready (missing teams)")
+
+    # Leg context for a two-legged knockout tie — the live tactic-board
+    # engine needs to know it's leg 1 (never resolve/require a winner off
+    # its own scoreline) vs leg 2 (trigger extra time off the AGGREGATE +
+    # away-goals rule, not this leg's own scoreline) vs a single-legged tie
+    # (the Final, or a legacy single_elim tournament — today's exact
+    # behavior, no leg_context at all). See tactic_board.js's
+    # handleEndOfNinety()/resolveMatchWinner() for the consumer side.
+    leg_context: dict[str, Any] | None = None
+    if tie is not None and len(tie.get("legs") or []) == 2:
+        leg_context = {"leg": fx.get("leg"), "twoLegged": True}
+        if fx.get("leg") == 2:
+            leg1 = tie["legs"][0]
+            if not leg1.get("played"):
+                raise ValueError("Leg 1 has not been played yet")
+            leg_context["enteringAggHome"] = int(leg1["away_goals"])  # this leg's home side's leg-1 (away) goals
+            leg_context["enteringAggAway"] = int(leg1["home_goals"])  # this leg's away side's leg-1 (home) goals
 
     home = fx["home"]
     away = fx["away"]
@@ -1308,6 +1434,7 @@ def prepare_board_match(tournament_id: str, match_id: str) -> dict[str, Any]:
         board=board,
         seed=seed,
         is_knockout=stage_key == "knockout",
+        agg_context=leg_context,
     )
     return {
         "status": "board_ready",
@@ -1335,7 +1462,7 @@ def _format_knockout_score(
     pens_away: int | None = None,
     score_display: str | None = None,
 ) -> str:
-    """Human-readable KO scoreline: FT, AET, or pens."""
+    """Human-readable single-match KO scoreline: FT, AET, or pens."""
     if score_display and str(score_display).strip():
         return str(score_display).strip()
     base = f"{int(home_goals)}-{int(away_goals)}"
@@ -1344,6 +1471,36 @@ def _format_knockout_score(
     if decided_by == "aet":
         return f"{base} AET"
     return base
+
+
+def _format_tie_score(tie: dict[str, Any]) -> str:
+    """Human-readable score for a knockout tie, single- or two-legged."""
+    legs = tie.get("legs") or []
+    if len(legs) <= 1:
+        leg = legs[0] if legs else tie
+        return _format_knockout_score(
+            leg.get("home_goals") or 0,
+            leg.get("away_goals") or 0,
+            decided_by=tie.get("decided_by"),
+            pens_home=tie.get("pens_home"),
+            pens_away=tie.get("pens_away"),
+        )
+    leg1, leg2 = legs[0], legs[1]
+    leg1_str = f"{leg1.get('home_goals') or 0}-{leg1.get('away_goals') or 0}"
+    leg2_str = f"{leg2.get('home_goals') or 0}-{leg2.get('away_goals') or 0}"
+    agg_home = tie.get("agg_home_goals")
+    agg_away = tie.get("agg_away_goals")
+    agg_str = f"agg {agg_home}-{agg_away}" if agg_home is not None and agg_away is not None else ""
+    decided = tie.get("decided_by")
+    suffix = ""
+    if decided == "away_goals":
+        suffix = ", away goals"
+    elif decided == "pens" and tie.get("pens_home") is not None and tie.get("pens_away") is not None:
+        suffix = f", {tie['pens_home']}-{tie['pens_away']} pens"
+    elif decided == "aet":
+        suffix = ", AET"
+    detail = f" ({agg_str}{suffix})" if agg_str else ""
+    return f"{leg1_str}, {leg2_str}{detail}"
 
 
 def complete_from_board(
@@ -1362,25 +1519,44 @@ def complete_from_board(
     pens_away: int | None = None,
     score_display: str | None = None,
 ) -> dict[str, Any]:
-    """Persist official result from the tactic-board pin score (skips Monte Carlo)."""
+    """Persist official result from the tactic-board pin score (skips Monte Carlo).
+
+    For a two-legged knockout tie, `match_id` identifies one LEG. Leg 1 never
+    decides the tie (just records its own scoreline); leg 2 resolves the tie
+    from the aggregate, falling back to the away-goals rule and then to its
+    own extra-time/penalties outcome (already decided by the live engine —
+    see tactic_board.js's aggregate-aware ET trigger) only if still level.
+    """
     if home_goals < 0 or away_goals < 0:
         raise ValueError("Goals must be non-negative")
 
     t = load_tournament(tournament_id)
     if not t:
         raise KeyError("Tournament not found")
-    found = _find_fixture(t, match_id)
-    if not found:
-        raise KeyError(f"Fixture '{match_id}' not found")
-    stage_key, fx = found
+    is_knockout = False
+    tie: dict[str, Any] | None = None
+    leg_found = _find_knockout_leg(t, match_id)
+    if leg_found:
+        tie, fx = leg_found
+        stage_key = "knockout"
+        is_knockout = True
+    else:
+        found = _find_fixture(t, match_id)
+        if not found:
+            raise KeyError(f"Fixture '{match_id}' not found")
+        stage_key, fx = found
+
     if fx.get("played"):
         raise ValueError(f"Match {match_id} already played")
-    if stage_key == "knockout" and (not fx.get("home") or not fx.get("away")):
+    if is_knockout and (not fx.get("home") or not fx.get("away")):
         raise ValueError(f"Match {match_id} is not ready (missing teams)")
 
-    is_knockout = stage_key == "knockout"
     home = fx["home"]
     away = fx["away"]
+    two_legged = bool(is_knockout and tie is not None and len(tie.get("legs") or []) == 2)
+    leg_num = fx.get("leg") if is_knockout else None
+    is_leg1 = two_legged and leg_num == 1
+    is_leg2 = two_legged and leg_num == 2
 
     decided = (decided_by or "").strip().lower() or None
     if decided not in (None, "ft", "aet", "pens"):
@@ -1396,7 +1572,61 @@ def complete_from_board(
         if winner and winner not in (home, away):
             raise ValueError(f"Winner must be '{home}' or '{away}'")
 
-    if is_knockout:
+    # `winner` here is always this LEG's own winner (or None). `tie_winner`/
+    # `tie_decided` (set below) are the TIE's overall outcome — only computed
+    # once the tie is actually decided (never on leg 1 of a two-legged tie).
+    tie_winner: str | None = None
+    tie_decided: str | None = None
+    agg_home_goals: int | None = None
+    agg_away_goals: int | None = None
+
+    if is_leg1:
+        # Leg 1 never decides anything by itself — plain scoreline only, no
+        # ET/pens semantics apply to it regardless of what was passed in.
+        winner = None
+        decided = None
+        ph = pa = None
+        ft_h = ft_a = None
+    elif is_leg2:
+        leg1 = tie["legs"][0]
+        if not leg1.get("played"):
+            raise ValueError("Leg 1 has not been played yet")
+        leg1_home_goals = int(leg1["home_goals"])  # tie["home"]'s leg-1 (home) goals
+        leg1_away_goals = int(leg1["away_goals"])  # tie["away"]'s leg-1 (away) goals
+        # This leg (leg 2) has tie["away"] at home and tie["home"] away, so:
+        agg_home_goals = leg1_home_goals + int(away_goals)  # tie-home: leg1(home) + leg2(away)
+        agg_away_goals = leg1_away_goals + int(home_goals)  # tie-away: leg1(away) + leg2(home)
+        if agg_home_goals != agg_away_goals:
+            tie_winner = tie["home"] if agg_home_goals > agg_away_goals else tie["away"]
+            tie_decided = "agg"
+        else:
+            # Away-goals rule: tie-home's only away leg is leg 2 (this leg,
+            # where they're the away side) — their away goals are this leg's
+            # own away_goals. tie-away's only away leg was leg 1 — their away
+            # goals are leg1's stored away_goals.
+            tie_home_away_goals = int(away_goals)
+            tie_away_away_goals = leg1_away_goals
+            if tie_home_away_goals != tie_away_away_goals:
+                tie_winner = tie["home"] if tie_home_away_goals > tie_away_away_goals else tie["away"]
+                tie_decided = "away_goals"
+            elif decided == "pens" and ph is not None and pa is not None:
+                if ph == pa:
+                    raise ValueError("Penalty shoot-out must have a winner")
+                tie_winner = home if ph > pa else away
+                tie_decided = "pens"
+            elif winner in (home, away):
+                tie_decided = "pens" if ph is not None and pa is not None else "aet"
+                tie_winner = winner
+            else:
+                # Legacy fallback — prefer home if board omitted a pens winner
+                tie_winner = home
+                tie_decided = "pens" if ph is not None else "aet"
+        if not decided:
+            decided = "aet" if (ft_h is not None and ft_a is not None and (ft_h != home_goals or ft_a != away_goals)) else "ft"
+        winner = tie_winner if tie_winner in (home, away) else None
+    elif is_knockout:
+        # Single-legged tie (the Final, or a legacy single_elim tournament) —
+        # this leg's own outcome IS the tie's outcome, exactly as before.
         if home_goals != away_goals:
             resolved = home if home_goals > away_goals else away
             if winner in (home, away) and winner != resolved:
@@ -1418,6 +1648,8 @@ def complete_from_board(
             winner = home
             if not decided:
                 decided = "pens" if ph is not None else "aet"
+        tie_winner = winner
+        tie_decided = decided
     else:
         if home_goals > away_goals:
             winner = home
@@ -1446,7 +1678,7 @@ def complete_from_board(
             decided_by=decided,
             pens_home=ph,
             pens_away=pa,
-            score_display=score_display,
+            score_display=score_display if not two_legged else None,
         )
     else:
         score = f"{home_goals}-{away_goals}"
@@ -1470,6 +1702,10 @@ def complete_from_board(
         "played_at": _now(),
         "simulations": 0,
     }
+    if is_knockout:
+        result["tie_id"] = tie["id"]
+        if two_legged:
+            result["leg"] = leg_num
     if is_knockout and decided:
         result["decided_by"] = decided
     if ft_h is not None and ft_a is not None:
@@ -1509,12 +1745,30 @@ def complete_from_board(
     fx["played"] = True
     fx["result_id"] = result_id
     fx["score"] = score
-    fx["winner"] = winner
-    if is_knockout and decided:
+    fx["home_goals"] = int(home_goals)
+    fx["away_goals"] = int(away_goals)
+    if is_knockout and decided and not is_leg1:
         fx["decided_by"] = decided
 
-    if is_knockout:
-        _advance_knockout_winner(t, fx, winner)
+    tie_now_decided = is_knockout and tie_winner is not None
+    if tie_now_decided:
+        tie["played"] = True
+        tie["result_id"] = result_id
+        tie["winner"] = tie_winner
+        tie["decided_by"] = tie_decided
+        if two_legged:
+            tie["agg_home_goals"] = agg_home_goals
+            tie["agg_away_goals"] = agg_away_goals
+            if tie_decided == "pens" and ph is not None and pa is not None:
+                tie["pens_home"] = ph
+                tie["pens_away"] = pa
+            tie["score"] = _format_tie_score(tie)
+        else:
+            if tie_decided == "pens" and ph is not None and pa is not None:
+                tie["pens_home"] = ph
+                tie["pens_away"] = pa
+            tie["score"] = score
+        _advance_knockout_winner(t, tie, tie_winner)
         all_done = all(
             t2.get("played")
             for rnd in t["knockout"]["rounds"]
@@ -1522,7 +1776,7 @@ def complete_from_board(
             if t2.get("home") and t2.get("away")
         )
         t["status"] = "complete" if all_done else "knockout"
-    else:
+    elif not is_knockout:
         _apply_group_result(
             t["groups"][stage_key]["table"],
             home,
@@ -1532,6 +1786,7 @@ def complete_from_board(
         )
         if t.get("status") == "group_draw":
             t["status"] = "group_stage"
+    # else: leg 1 of a two-legged tie — tie stays pending, nothing to advance.
 
     # Analysis is deferred — built on first "See analysis" / Generate click, not at FT.
     _refresh_player_tallies(t)
@@ -1559,11 +1814,18 @@ def complete_from_board(
     if decided == "pens" and ph is not None and pa is not None:
         md_result["pens_home"] = ph
         md_result["pens_away"] = pa
+    if two_legged:
+        md_result["leg"] = leg_num
+        md_result["tie_id"] = tie["id"]
+        if tie_now_decided:
+            md_result["tie_winner"] = tie_winner
+            md_result["tie_decided_by"] = tie_decided
     matchday_session.set_result(md_result)
 
     return {
         "tournament": tournament_for_api(t),
         "match": fx,
+        "tie": tie if is_knockout else None,
         "result": match_result_for_api(result),
         "stage": stage_key,
         "status": "complete",
@@ -1670,6 +1932,59 @@ def _pair_crossover(qualifiers: list[tuple[str, str, int]]) -> list[tuple[str, s
     return pairs
 
 
+def _build_leg(tie_id: str, leg_num: int, home: str | None, away: str | None) -> dict[str, Any]:
+    """One playable match within a knockout tie (a single-legged tie has just one)."""
+    return {
+        "leg": leg_num,
+        "id": f"{tie_id}-leg{leg_num}",
+        "home": home,
+        "away": away,
+        "played": False,
+        "result_id": None,
+        "score": None,
+        "home_goals": None,
+        "away_goals": None,
+    }
+
+
+def _build_tie(
+    tie_id: str,
+    home: str | None,
+    away: str | None,
+    feeds: list[str] | None,
+    two_legged: bool,
+) -> dict[str, Any]:
+    legs = [_build_leg(tie_id, 1, home, away)]
+    if two_legged:
+        legs.append(_build_leg(tie_id, 2, away, home))
+    return {
+        "id": tie_id,
+        "home": home,
+        "away": away,
+        "played": False,
+        "winner": None,
+        "score": None,
+        "result_id": None,
+        "feeds": feeds,
+        "legs": legs,
+    }
+
+
+def _sync_tie_legs(tie: dict[str, Any]) -> None:
+    """Keep each leg's home/away in step with the tie-level home/away (leg 2, if
+    present, is the reversed return leg). Call whenever a tie's home/away is set
+    or changed — at generation time and whenever a previous tie's winner advances
+    into this one."""
+    legs = tie.get("legs") or []
+    if not legs:
+        return
+    legs[0]["home"] = tie["home"]
+    legs[0]["away"] = tie["away"]
+    if len(legs) > 1:
+        legs[1]["home"] = tie["away"]
+        legs[1]["away"] = tie["home"]
+
+
 def generate_knockout_bracket(tournament_id: str) -> dict[str, Any]:
     t = load_tournament(tournament_id)
     if not t:
@@ -1697,20 +2012,19 @@ def generate_knockout_bracket(tournament_id: str) -> dict[str, Any]:
         raise ValueError(f"Invalid knockout bracket size: {n_first} teams")
     round_names = _knockout_round_short_names(n_first)
     first_name = round_names[0]
+    final_name = round_names[-1]
+    fmt = cfg.get("knockout_format", "single_elim")
+    # Every round except the Final is two-legged when the tournament format is
+    # "two_leg"; "single_elim" (legacy default, preserved for old tournaments)
+    # keeps every round single-match, just uniformly wrapped in a 1-entry
+    # `legs` list so downstream code has one shape to deal with either way.
+    two_legged_rounds = fmt == "two_leg"
 
     ties: list[dict[str, Any]] = []
     for i, (home, away) in enumerate(pairs, start=1):
+        tie_id = f"ko-{first_name.lower()}-{i}"
         ties.append(
-            {
-                "id": f"ko-{first_name.lower()}-{i}",
-                "home": home,
-                "away": away,
-                "played": False,
-                "winner": None,
-                "score": None,
-                "result_id": None,
-                "feeds": None,
-            }
+            _build_tie(tie_id, home, away, None, two_legged_rounds and first_name != final_name)
         )
 
     rounds_out: list[dict[str, Any]] = [
@@ -1725,17 +2039,9 @@ def generate_knockout_bracket(tournament_id: str) -> dict[str, Any]:
         next_ties: list[dict[str, Any]] = []
         for j in range(0, len(prev_ids), 2):
             feeds = prev_ids[j : j + 2]
+            tie_id = f"ko-{rname.lower()}-{j // 2 + 1}"
             next_ties.append(
-                {
-                    "id": f"ko-{rname.lower()}-{j // 2 + 1}",
-                    "home": None,
-                    "away": None,
-                    "played": False,
-                    "winner": None,
-                    "score": None,
-                    "result_id": None,
-                    "feeds": feeds,
-                }
+                _build_tie(tie_id, None, None, feeds, two_legged_rounds and rname != final_name)
             )
         rounds_out.append(
             {
@@ -1747,7 +2053,7 @@ def generate_knockout_bracket(tournament_id: str) -> dict[str, Any]:
         prev_ids = [tie["id"] for tie in next_ties]
 
     t["knockout"] = {
-        "format": t["settings"].get("knockout_format", "single_elim"),
+        "format": fmt,
         "rounds": rounds_out,
     }
     t["status"] = "knockout"
@@ -1767,6 +2073,7 @@ def _advance_knockout_winner(t: dict[str, Any], tie: dict[str, Any], winner: str
                 nxt["home"] = winner
             else:
                 nxt["away"] = winner
+            _sync_tie_legs(nxt)
 
 
 def _knockout_downstream_played(t: dict[str, Any], tie_id: str) -> bool:
@@ -1883,7 +2190,7 @@ def _load_played_match_result(
     t = load_tournament(tournament_id)
     if not t:
         raise KeyError("Tournament not found")
-    found = _find_fixture(t, match_id)
+    found = _find_playable_fixture(t, match_id)
     if not found:
         raise KeyError(f"Fixture '{match_id}' not found")
     _, fx = found
@@ -2051,7 +2358,7 @@ def accept_match_result(tournament_id: str, match_id: str) -> dict[str, Any]:
     t = load_tournament(tournament_id)
     if not t:
         raise KeyError("Tournament not found")
-    found = _find_fixture(t, match_id)
+    found = _find_playable_fixture(t, match_id)
     if not found:
         raise KeyError(f"Fixture '{match_id}' not found")
     stage_key, fx = found
@@ -2085,14 +2392,16 @@ def override_match_result(
     away_goals: int,
     winner: str | None = None,
 ) -> dict[str, Any]:
-    """Admin overrides a completed match score and refreshes standings / KO advancement."""
+    """Admin overrides a completed match (leg) score and refreshes standings /
+    KO advancement. For a two-legged tie's leg 2, re-derives the tie's
+    aggregate/away-goals outcome exactly like complete_from_board does."""
     if home_goals < 0 or away_goals < 0:
         raise ValueError("Goals must be non-negative")
 
     t = load_tournament(tournament_id)
     if not t:
         raise KeyError("Tournament not found")
-    found = _find_fixture(t, match_id)
+    found = _find_playable_fixture(t, match_id)
     if not found:
         raise KeyError(f"Fixture '{match_id}' not found")
     stage_key, fx = found
@@ -2100,11 +2409,20 @@ def override_match_result(
         raise ValueError(f"Match {match_id} has not been played yet")
 
     is_knockout = stage_key == "knockout"
+    tie: dict[str, Any] | None = None
+    if is_knockout:
+        leg_found = _find_knockout_leg(t, match_id)
+        tie = leg_found[0] if leg_found else None
+
     if not is_knockout and (t.get("knockout") or {}).get("rounds"):
         raise ValueError(
             "Cannot override group results after the knockout bracket is generated"
         )
-    if is_knockout and _knockout_downstream_played(t, match_id):
+    # Guard on the TIE's id (feeds always reference ties, never legs) so this
+    # correctly blocks overriding leg 1 once leg 2 has already decided and
+    # advanced the tie, not just once a genuinely later round has been played.
+    guard_id = tie["id"] if tie is not None else match_id
+    if is_knockout and _knockout_downstream_played(t, guard_id):
         raise ValueError(
             f"Cannot override {match_id}: a later knockout match that depends on it "
             "has already been played"
@@ -2124,7 +2442,51 @@ def override_match_result(
         if winner and winner not in (home, away):
             raise ValueError(f"Winner must be '{home}' or '{away}'")
 
-    if is_knockout:
+    two_legged = bool(is_knockout and tie is not None and len(tie.get("legs") or []) == 2)
+    leg_num = fx.get("leg") if is_knockout else None
+    tie_winner: str | None = None
+    tie_decided: str | None = None
+    agg_home_goals: int | None = None
+    agg_away_goals: int | None = None
+
+    if two_legged and leg_num == 1:
+        # Leg 1 never decides the tie by itself.
+        winner = None
+    elif two_legged and leg_num == 2:
+        leg1 = tie["legs"][0]
+        if not leg1.get("played"):
+            raise ValueError("Leg 1 has not been played yet")
+        leg1_home_goals = int(leg1["home_goals"])
+        leg1_away_goals = int(leg1["away_goals"])
+        agg_home_goals = leg1_home_goals + int(away_goals)
+        agg_away_goals = leg1_away_goals + int(home_goals)
+        if agg_home_goals != agg_away_goals:
+            tie_winner = tie["home"] if agg_home_goals > agg_away_goals else tie["away"]
+            tie_decided = "agg"
+        else:
+            tie_home_away_goals = int(away_goals)
+            tie_away_away_goals = leg1_away_goals
+            if tie_home_away_goals != tie_away_away_goals:
+                tie_winner = tie["home"] if tie_home_away_goals > tie_away_away_goals else tie["away"]
+                tie_decided = "away_goals"
+            elif winner in (home, away):
+                tie_winner = winner
+                tie_decided = result.get("decided_by") or "pens"
+            else:
+                resolved = _resolve_winner(
+                    home, away, home_goals, away_goals,
+                    _tiebreak_report_from_result(result), require_winner=True,
+                )
+                if not resolved:
+                    raise ValueError(
+                        "Knockout override is level on aggregate and away goals — pass "
+                        "winner (home or away team name)"
+                    )
+                tie_winner = resolved
+                tie_decided = "agg"
+        winner = tie_winner if tie_winner in (home, away) else None
+    elif is_knockout:
+        # Single-legged tie (the Final, or a legacy single_elim tournament).
         if home_goals == away_goals:
             if winner in (home, away):
                 resolved = winner
@@ -2149,6 +2511,8 @@ def override_match_result(
                     f"Winner '{winner}' does not match scoreline {home_goals}-{away_goals}"
                 )
         winner = resolved
+        tie_winner = winner
+        tie_decided = "ft"
     else:
         if home_goals > away_goals:
             winner = home
@@ -2168,10 +2532,21 @@ def override_match_result(
     result["admin_reviewed_at"] = result["overridden_at"]
 
     fx["score"] = score
+    fx["home_goals"] = int(home_goals)
+    fx["away_goals"] = int(away_goals)
     fx["winner"] = winner
 
-    if is_knockout:
-        _advance_knockout_winner(t, fx, winner)
+    if is_knockout and tie_winner is not None:
+        tie["winner"] = tie_winner
+        tie["decided_by"] = tie_decided
+        tie["played"] = True
+        if two_legged:
+            tie["agg_home_goals"] = agg_home_goals
+            tie["agg_away_goals"] = agg_away_goals
+            tie["score"] = _format_tie_score(tie)
+        else:
+            tie["score"] = score
+        _advance_knockout_winner(t, tie, tie_winner)
         all_done = all(
             t2.get("played")
             for rnd in t["knockout"]["rounds"]
@@ -2179,8 +2554,9 @@ def override_match_result(
             if t2.get("home") and t2.get("away")
         )
         t["status"] = "complete" if all_done else "knockout"
-    else:
+    elif not is_knockout:
         _recompute_group_table(t, stage_key)
+    # else: leg 1 of a two-legged tie overridden — tie stays pending.
 
     save_tournament(t)
     return {
@@ -2192,7 +2568,7 @@ def override_match_result(
 
 
 def reset_match_result(tournament_id: str, match_id: str) -> dict[str, Any]:
-    """Admin: un-play a match so it can be re-run/re-recorded from scratch.
+    """Admin: un-play a match (leg) so it can be re-run/re-recorded from scratch.
 
     Removes the stored result, reverses its group-table contribution (or
     knockout advancement), and refreshes player goal/assist tallies so the
@@ -2203,7 +2579,7 @@ def reset_match_result(tournament_id: str, match_id: str) -> dict[str, Any]:
     t = load_tournament(tournament_id)
     if not t:
         raise KeyError("Tournament not found")
-    found = _find_fixture(t, match_id)
+    found = _find_playable_fixture(t, match_id)
     if not found:
         raise KeyError(f"Fixture '{match_id}' not found")
     stage_key, fx = found
@@ -2211,14 +2587,28 @@ def reset_match_result(tournament_id: str, match_id: str) -> dict[str, Any]:
         raise ValueError(f"Match {match_id} has not been played yet")
 
     is_knockout = stage_key == "knockout"
+    tie: dict[str, Any] | None = None
+    if is_knockout:
+        leg_found = _find_knockout_leg(t, match_id)
+        tie = leg_found[0] if leg_found else None
+
     if not is_knockout and (t.get("knockout") or {}).get("rounds"):
         raise ValueError(
             "Cannot reset a group result after the knockout bracket is generated"
         )
-    if is_knockout and _knockout_downstream_played(t, match_id):
+    guard_id = tie["id"] if tie is not None else match_id
+    if is_knockout and _knockout_downstream_played(t, guard_id):
         raise ValueError(
             f"Cannot reset {match_id}: a later knockout match that depends on it "
             "has already been played"
+        )
+
+    two_legged = bool(is_knockout and tie is not None and len(tie.get("legs") or []) == 2)
+    leg_num = fx.get("leg") if is_knockout else None
+    if two_legged and leg_num == 1 and tie.get("played"):
+        raise ValueError(
+            f"Cannot reset {match_id}: leg 2 of this tie has already been played and "
+            "decided it — reset leg 2 first"
         )
 
     result_id = fx.get("result_id") or match_id
@@ -2227,21 +2617,46 @@ def reset_match_result(tournament_id: str, match_id: str) -> dict[str, Any]:
     fx["played"] = False
     fx["result_id"] = None
     fx["score"] = None
+    fx["home_goals"] = None
+    fx["away_goals"] = None
     fx["winner"] = None
     fx.pop("decided_by", None)
     fx.pop("experiment_id", None)
 
     if is_knockout:
-        for rnd in t["knockout"]["rounds"]:
-            for nxt in rnd.get("ties", []):
-                feeds = nxt.get("feeds") or []
-                if match_id not in feeds:
-                    continue
-                idx = feeds.index(match_id)
-                if idx == 0:
-                    nxt["home"] = None
-                else:
-                    nxt["away"] = None
+        reset_tie_id = match_id
+        if two_legged and leg_num == 2:
+            # Leg 2 decided the tie — un-decide the tie itself too, and
+            # un-seed downstream using the TIE's id (feeds reference ties,
+            # never legs).
+            reset_tie_id = tie["id"]
+            tie["played"] = False
+            tie["result_id"] = None
+            tie["winner"] = None
+            tie["score"] = None
+            tie.pop("decided_by", None)
+            tie.pop("agg_home_goals", None)
+            tie.pop("agg_away_goals", None)
+            tie.pop("pens_home", None)
+            tie.pop("pens_away", None)
+        elif not two_legged:
+            reset_tie_id = tie["id"] if tie is not None else match_id
+        else:
+            # Leg 1 of a two-legged tie, tie not yet decided — nothing at
+            # tie level to undo, and no downstream seeding to reverse.
+            reset_tie_id = None
+        if reset_tie_id:
+            for rnd in t["knockout"]["rounds"]:
+                for nxt in rnd.get("ties", []):
+                    feeds = nxt.get("feeds") or []
+                    if reset_tie_id not in feeds:
+                        continue
+                    idx = feeds.index(reset_tie_id)
+                    if idx == 0:
+                        nxt["home"] = None
+                    else:
+                        nxt["away"] = None
+                    _sync_tie_legs(nxt)
         all_done = all(
             t2.get("played")
             for rnd in t["knockout"]["rounds"]

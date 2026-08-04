@@ -110,6 +110,7 @@ def _build_public_session_locked() -> dict[str, Any] | None:
         "away": s.get("away"),
         "is_knockout": bool(s.get("is_knockout")),
         "is_experiment": bool(s.get("is_experiment")),
+        "agg_context": s.get("agg_context"),
         "seed": s.get("seed"),
         "board": board,
         "board_state": s.get("board_state"),
@@ -321,6 +322,7 @@ def start_board_session(
     seed: int,
     is_knockout: bool = False,
     is_experiment: bool = False,
+    agg_context: dict[str, int] | None = None,
 ) -> dict[str, Any]:
     """Start a shared tactic-board Matchday broadcast (setup → live → result).
 
@@ -328,6 +330,11 @@ def start_board_session(
     tournament fixture — ``fixture_id`` then holds the experiment's own id,
     and completion routes to experiments.complete_experiment_from_board
     instead of tournament.complete_from_board (see /api/matchday/complete).
+
+    ``agg_context`` (leg 2 of a two-legged knockout tie only) carries the
+    aggregate goals each side enters this leg with — {"enteringAggHome":
+    int, "enteringAggAway": int} — so the live board can trigger extra time
+    off the aggregate/away-goals rule instead of this leg's own scoreline.
     """
     global _session, _frame_seq
     snap: dict[str, Any] | None | bool = False
@@ -350,6 +357,7 @@ def start_board_session(
             "team_b": copy.deepcopy(team_b),
             "is_knockout": bool(is_knockout),
             "is_experiment": bool(is_experiment),
+            "agg_context": dict(agg_context) if agg_context else None,
             "seed": int(seed),
             "board": copy.deepcopy(board),
             "board_state": None,

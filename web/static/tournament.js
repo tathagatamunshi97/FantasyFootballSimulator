@@ -175,11 +175,69 @@ function renderFixtures(t, { showRun = false } = {}) {
     .join("");
 }
 
+function legWatchBtn(leg, t) {
+  const result = resultMeta(t, leg.result_id || leg.id);
+  const eid = leg.experiment_id || result?.experiment_id || "";
+  const xgH = result?.expected_xg?.home ?? "";
+  const xgA = result?.expected_xg?.away ?? "";
+  return ` <button type="button" class="btn-ghost btn-sm watch-match-btn"
+    data-match-id="${esc(leg.id)}"
+    data-home="${esc(leg.home)}"
+    data-away="${esc(leg.away)}"
+    data-score="${esc(leg.score)}"
+    data-experiment-id="${esc(eid)}"
+    data-xg-home="${esc(String(xgH))}"
+    data-xg-away="${esc(String(xgA))}"
+  >Watch</button>`;
+}
+
+function renderKnockoutTieCell(t, tie, { showRun = false } = {}) {
+  const legs = tie.legs || [];
+  if (legs.length <= 1) {
+    // Single-legged tie (the Final, or a legacy single_elim tournament) —
+    // unchanged behavior, keyed by the tie's own id.
+    const result = resultMeta(t, tie.result_id || tie.id);
+    if (tie.played) {
+      return `<div><strong>${esc(tie.score)}</strong> · ${esc(tie.winner)}${reviewBadge(result)}${legWatchBtn(legs[0] || tie, t)}</div>
+        ${typeof knockoutScoreNote === "function" ? knockoutScoreNote(result) : ""}
+        ${analysisControls(legs[0] || tie, result)}
+        ${adminReviewControls(legs[0] || tie, result, { isKnockout: true })}`;
+    }
+    if (showRun && tie.home && tie.away) {
+      return `<button type="button" class="btn-ghost btn-sm run-ko-btn" data-match-id="${esc(tie.id)}">Run</button>
+        <a class="btn-link btn-sm" href="/matchday" style="margin-left:0.35rem">Matchday</a>`;
+    }
+    return `<span class="muted">—</span>`;
+  }
+
+  // Two-legged tie.
+  const legLines = legs
+    .map((leg) => {
+      const result = resultMeta(t, leg.result_id || leg.id);
+      if (leg.played) {
+        return `<div>Leg ${leg.leg}: <strong>${esc(leg.home)} ${leg.home_goals}-${leg.away_goals} ${esc(leg.away)}</strong>${reviewBadge(result)}${legWatchBtn(leg, t)}
+          ${analysisControls(leg, result)}
+          ${adminReviewControls(leg, result, { isKnockout: true })}</div>`;
+      }
+      const canPlay = leg.leg === 1 ? true : Boolean(legs[0].played);
+      if (showRun && canPlay && tie.home && tie.away) {
+        return `<div>Leg ${leg.leg}: <button type="button" class="btn-ghost btn-sm run-ko-btn" data-match-id="${esc(leg.id)}">Run</button>
+          <a class="btn-link btn-sm" href="/matchday" style="margin-left:0.35rem">Matchday</a></div>`;
+      }
+      return `<div class="muted">Leg ${leg.leg}: ${canPlay ? "scheduled" : "awaiting leg 1"}</div>`;
+    })
+    .join("");
+  const tieSummary = tie.played
+    ? `<div style="margin-top:0.25rem"><strong>${esc(tie.score)}</strong> · ${esc(tie.winner)} advance</div>`
+    : "";
+  return `${legLines}${tieSummary}`;
+}
+
 function renderKnockout(t, { showRun = false } = {}) {
   const ko = t.knockout || {};
   const rounds = ko.rounds || [];
   if (!rounds.length) {
-    return `<div class="card"><p class="muted">Knockout bracket not generated.</p><p class="muted">Format: ${esc(ko.format || "single_elim")}</p></div>`;
+    return `<div class="card"><p class="muted">Knockout bracket not generated.</p><p class="muted">Format: ${esc(ko.format === "two_leg" ? "Two-legged (Final single match)" : ko.format || "single_elim")}</p></div>`;
   }
   return rounds
     .map((rnd) => {
@@ -189,31 +247,7 @@ function renderKnockout(t, { showRun = false } = {}) {
             tie.home && tie.away
               ? `${esc(tie.home)} vs ${esc(tie.away)}`
               : `<span class="muted">TBD</span>`;
-          const result = resultMeta(t, tie.result_id || tie.id);
-          let res;
-          if (tie.played) {
-            const eid = tie.experiment_id || result?.experiment_id || "";
-            const xgH = result?.expected_xg?.home ?? "";
-            const xgA = result?.expected_xg?.away ?? "";
-            const watch = ` <button type="button" class="btn-ghost btn-sm watch-match-btn"
-              data-match-id="${esc(tie.id)}"
-              data-home="${esc(tie.home)}"
-              data-away="${esc(tie.away)}"
-              data-score="${esc(tie.score)}"
-              data-experiment-id="${esc(eid)}"
-              data-xg-home="${esc(String(xgH))}"
-              data-xg-away="${esc(String(xgA))}"
-            >Watch</button>`;
-            res = `<div><strong>${esc(tie.score)}</strong> · ${esc(tie.winner)}${reviewBadge(result)}${watch}</div>
-              ${typeof knockoutScoreNote === "function" ? knockoutScoreNote(result) : ""}
-              ${analysisControls(tie, result)}
-              ${adminReviewControls(tie, result, { isKnockout: true })}`;
-          } else if (showRun && tie.home && tie.away) {
-            res = `<button type="button" class="btn-ghost btn-sm run-ko-btn" data-match-id="${esc(tie.id)}">Run</button>
-              <a class="btn-link btn-sm" href="/matchday" style="margin-left:0.35rem">Matchday</a>`;
-          } else {
-            res = `<span class="muted">—</span>`;
-          }
+          const res = renderKnockoutTieCell(t, tie, { showRun });
           return `<tr><td class="muted">${esc(tie.id)}</td><td>${teams}</td><td>${res}</td></tr>`;
         })
         .join("");

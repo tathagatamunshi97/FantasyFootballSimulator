@@ -3,7 +3,7 @@
   "name": "Fantasy Cup",
   "status": "group_stage",
   "created_at": "2026-07-12T07:24:03.660798+00:00",
-  "updated_at": "2026-07-12T07:24:03.663809+00:00",
+  "updated_at": "2026-08-04T06:20:36.856381+00:00",
   "team_names": [
     "Sohom+Mayukh",
     "Rishav",
@@ -24,7 +24,7 @@
     "group_count": 2,
     "teams_per_group": 7,
     "advance_per_group": 4,
-    "knockout_format": "single_elim",
+    "knockout_format": "two_leg",
     "simulations_per_match": 10000
   },
   "groups": {
@@ -536,7 +536,7 @@
     }
   },
   "knockout": {
-    "format": "single_elim",
+    "format": "two_leg",
     "rounds": []
   },
   "match_results": {},

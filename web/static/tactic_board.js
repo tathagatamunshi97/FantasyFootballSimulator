@@ -96,6 +96,19 @@
       CF1: [0.62, 0.62],
       CF2: [0.38, 0.62],
     },
+    "4-3-2-1": {
+      GK: [0.5, 0.05],
+      RB: [0.86, 0.2],
+      CB1: [0.62, 0.18],
+      CB2: [0.38, 0.18],
+      LB: [0.14, 0.2],
+      DM: [0.5, 0.3],
+      CM1: [0.7, 0.4],
+      CM2: [0.3, 0.4],
+      AM1: [0.62, 0.52],
+      AM2: [0.38, 0.52],
+      ST: [0.5, 0.64],
+    },
     "3-4-1-2 (flat)": {
       GK: [0.5, 0.05],
       CB1: [0.72, 0.18],
@@ -121,6 +134,19 @@
       AM: [0.5, 0.5],
       CF1: [0.62, 0.62],
       CF2: [0.38, 0.62],
+    },
+    "3-4-2-1": {
+      GK: [0.5, 0.05],
+      CB1: [0.72, 0.18],
+      CB2: [0.5, 0.16],
+      CB3: [0.28, 0.18],
+      LM: [0.12, 0.4],
+      DM1: [0.62, 0.34],
+      DM2: [0.38, 0.34],
+      RM: [0.88, 0.4],
+      AM1: [0.62, 0.5],
+      AM2: [0.38, 0.5],
+      ST: [0.5, 0.64],
     },
     "3-5-2": {
       GK: [0.5, 0.05],
@@ -230,6 +256,12 @@
    */
   const DECISION_INTERVAL_MIN = 0.22;
   const DECISION_INTERVAL_MAX = 0.48;
+  /** Small home-side push in knockout fixtures only (chance creation,
+   * finishing, defending, shot quality) — see isKnockout in createBoard.
+   * Mirrors the Monte-Carlo engine's own (1 + home_adv) multiplicative
+   * pattern; that engine's home_advantage stays at 0 by design, this is
+   * live-engine-only. */
+  const KNOCKOUT_HOME_PUSH = 0.025;
   /** @deprecated alias — shape retargets with the decision tick */
   const SHAPE_RETARGET_EVERY = 0.28;
 
@@ -351,7 +383,7 @@
     if (/^CB/.test(s)) return "CB";
     if (/^(RB|LB|RWB|LWB)$/.test(s)) return "FB";
     if (/^DM/.test(s)) return "DM";
-    if (/^(AM|CAM)$/.test(s)) return "AM";
+    if (/^(AM|CAM)/.test(s)) return "AM";
     if (/^(RW|LW|RM|LM)$/.test(s)) return "W";
     if (/^(ST|CF|FW)/.test(s)) return "ST";
     if (/^CM/.test(s) || s === "CM") return "CM";
@@ -369,6 +401,7 @@
       /^3-4-3/.test(f) ||
       /^3-4-2-1/.test(f) ||
       f === "4-2-3-1" ||
+      f === "4-3-2-1" ||
       /^3-4-1-2/.test(f) ||
       /^4-3-3/.test(f) ||
       /^4-3-1-2/.test(f)
@@ -602,6 +635,16 @@
     const hideControls = Boolean(opts.hideControls) || viewerMode;
     /** Knockout ties: level after 90 → ET (2×15) → pens if still level. Group matches ignore this. */
     const isKnockout = Boolean(opts.isKnockout || opts.knockout) && live && !viewerMode;
+    // Two-legged tie context (leg 2 only — see prepare_board_match in
+    // tournament.py): { leg, twoLegged, enteringAggHome, enteringAggAway }.
+    // Leg 1 of a two-legged tie gets { leg: 1, twoLegged: true } with no
+    // entering-aggregate fields (it never resolves/requires a winner off
+    // its own scoreline). A single-legged tie (the Final, or a legacy
+    // single_elim tournament) gets no aggContext at all — today's exact
+    // plain FT/AET/pens behavior, unchanged.
+    const aggContext = isKnockout && opts.aggContext ? opts.aggContext : null;
+    const isTwoLegLeg1 = Boolean(aggContext && aggContext.twoLegged && aggContext.leg === 1);
+    const isTwoLegLeg2 = Boolean(aggContext && aggContext.twoLegged && aggContext.leg === 2);
     const onBroadcast = typeof opts.onBroadcast === "function" ? opts.onBroadcast : null;
     const broadcastEvery = Math.max(80, Number(opts.broadcastIntervalMs) || 220);
     let lastBroadcastAt = 0;
@@ -1048,6 +1091,10 @@
     // last computed against — see teamBlockLines.
     const teamWidthSmooth = { home: 1, away: 1 };
     const lastElasticityStage = { home: null, away: null };
+    // Engine fix — Milestone 3: continuous per-side "sense of an incoming
+    // counter" — EMA-smoothed, always updating, read by the ST/W depth bias
+    // in updateTeamShape's pending-pin finalization (not a discrete trigger).
+    const counterReadiness = { home: 0, away: 0 };
     /** Decision-layer cadence (sim-seconds). Shape retargets only here. */
     let decisionAcc = DECISION_INTERVAL_MAX;
     let nextDecisionIn = DECISION_INTERVAL_MIN + rng() * (DECISION_INTERVAL_MAX - DECISION_INTERVAL_MIN);
@@ -1234,6 +1281,8 @@
         xg *= clamp(1 + (fq - 0.5) * 0.12, 0.94, 1.14);
         ceil = Math.min(0.75, ceil + (fq >= 0.7 ? 0.04 : 0));
       }
+      // Knockout-only home push (shot quality) — see KNOCKOUT_HOME_PUSH.
+      if (isKnockout && carrier.side === "home") xg *= 1 + KNOCKOUT_HOME_PUSH;
       return clamp(xg, Math.min(floor, 0.02), ceil);
     }
 
@@ -1899,6 +1948,60 @@
       }
       const crowding = nearestMate < 6 ? -0.4 : nearestMate < 10 ? -0.15 : 0;
       return openness * 1.3 + lane + crowding;
+    }
+
+    /**
+     * Experiment — continuous local optimization, ball carrier only. Not a
+     * refactor: the target-based system (updateTeamShape's tx/ty, on the
+     * DECISION_INTERVAL_MIN/MAX 0.22-0.48 match-minute cadence) is completely
+     * untouched for all 21 other players and for this player the instant
+     * they stop carrying. This answers one diagnostic question — does
+     * replacing "steer toward a periodically-assigned target" with "every
+     * frame, re-evaluate a small local neighborhood and drift toward
+     * whichever nearby spot currently scores best" produce more lifelike
+     * movement — using ONLY existing utility signals (scoreOpenSpace, which
+     * already blends pressureAt/laneScore/teammate-crowding), plus a
+     * progress term (REL depth is already 0=own goal/1=opponent's goal, so
+     * candidateDepth - currentDepth IS "progress" with no extra heuristic)
+     * and a momentum term (prefer candidates roughly in line with current
+     * velocity, so the optimum doesn't zig-zag frame to frame). No new
+     * tactical rules — same inputs already used everywhere else in the file.
+     * Samples 12 points on a ring at ~2 pitch-% radius (a "couple of metres"
+     * proxy) plus "stay exactly here", scores each, returns the best.
+     *
+     * Measured stable via a full-match instrumented run (108 carries):
+     * 0 reversals, mean path efficiency 1.014 — see
+     * docs/experiments/carrier-optimizer-prototype1.md. Leave as-is.
+     */
+    function optimizeCarrierPosition(pin) {
+      const baseRel = fromPitchPct(pin.side, pin.left, pin.top);
+      const radius = 2.2;
+      const N = 12;
+      const velMag = Math.hypot(pin.vx || 0, pin.vy || 0);
+      const stayScore = scoreOpenSpace(pin, baseRel.x, baseRel.depth);
+      let bestScore = stayScore;
+      let bestLeft = pin.left;
+      let bestTop = pin.top;
+      for (let i = 0; i < N; i++) {
+        const angle = (i / N) * Math.PI * 2;
+        const candLeft = clamp(pin.left + Math.cos(angle) * radius, 2, 98);
+        const candTop = clamp(pin.top + Math.sin(angle) * radius, 2, 98);
+        const candRel = fromPitchPct(pin.side, candLeft, candTop);
+        const space = scoreOpenSpace(pin, candRel.x, candRel.depth);
+        const progress = (candRel.depth - baseRel.depth) * 1.4;
+        const dx = candLeft - pin.left;
+        const dy = candTop - pin.top;
+        const moveMag = Math.hypot(dx, dy) || 1e-6;
+        const momentum =
+          velMag > 0.5 ? ((dx * pin.vx + dy * pin.vy) / (moveMag * velMag)) * 0.5 : 0;
+        const score = space + progress + momentum;
+        if (score > bestScore) {
+          bestScore = score;
+          bestLeft = candLeft;
+          bestTop = candTop;
+        }
+      }
+      return { left: bestLeft, top: bestTop };
     }
 
     function isMidRole(role) {
@@ -2832,14 +2935,14 @@
         const eligible = progressive.filter(
           (s) => canPlayForward(carrier, s.m, stage, depth) || isMidRole(s.m.role) || s.m.role === "FB"
         );
-        const pick = nearOptimalPick(eligible, 0.6);
+        const pick = nearOptimalPick(eligible, confidenceMargin(carrier, 0.6));
         if (pick) return pick.m;
       }
       {
         const eligible = shortClear.filter(
           (s) => canPlayForward(carrier, s.m, stage, depth) || isMidRole(s.m.role) || isDefRole(s.m.role)
         );
-        const pick = nearOptimalPick(eligible, 0.6);
+        const pick = nearOptimalPick(eligible, confidenceMargin(carrier, 0.6));
         if (pick) return pick.m;
       }
       if (shortClear.length) return shortClear[0].m;
@@ -2853,7 +2956,7 @@
           if (s.d > 32 && Math.abs(s.m.left - carrier.left) > 28) return false;
           return canPlayForward(carrier, s.m, stage, depth) || isMidRole(s.m.role) || isDefRole(s.m.role);
         });
-        const pick = nearOptimalPick(eligible, 0.6);
+        const pick = nearOptimalPick(eligible, confidenceMargin(carrier, 0.6));
         if (pick) return pick.m;
       }
       return scored[0]?.m || mates[0];
@@ -2973,6 +3076,21 @@
       const minS = contenders[contenders.length - 1].score;
       const idx = weightedPick(contenders.map((c, i) => ({ id: i, w: c.score - minS + 0.4 })));
       return contenders[idx];
+    }
+
+    /**
+     * Engine fix — Milestone 3: confidence model. A flat near-optimal margin
+     * treated every passer identically, but the real premise (disguise,
+     * trust, reading pressure a beat ahead) is a skill some players have
+     * more of than others. Widens the margin passed to nearOptimalPick for
+     * a carrier with real vision/creativity (xa90, key_passes90) — a high-
+     * composure playmaker is more willing to deliberately take the
+     * second-best option; an average passer stays closer to strict argmax.
+     */
+    function confidenceMargin(carrier, base) {
+      if (!carrier || !carrier.stats) return base;
+      const creativity = clamp((carrier.stats.xa90 || 0) * 0.55 + (carrier.stats.key_passes90 || 0) * 0.14, 0, 1.1);
+      return base * (1 + creativity * 0.4);
     }
 
     function isWideChannel(pin) {
@@ -3314,7 +3432,7 @@
         return { m, score: hub + centralBias + create + space - dist(carrier, m) * 0.02 + rng() * 0.4 };
       });
       scored.sort((a, b) => b.score - a.score);
-      return nearOptimalPick(scored, 0.5).m;
+      return nearOptimalPick(scored, confidenceMargin(carrier, 0.5)).m;
     }
 
     function throughRunner(carrier, stage, depth) {
@@ -3328,7 +3446,7 @@
         return { m, score: attr + m.stats.xg90 * 1.45 + m.stats.xa90 * 0.75 - Math.abs(m.left - 50) * 0.01 + rng() * 0.25 };
       });
       scored.sort((a, b) => b.score - a.score);
-      return nearOptimalPick(scored, 0.5).m;
+      return nearOptimalPick(scored, confidenceMargin(carrier, 0.5)).m;
     }
 
     /**
@@ -4907,6 +5025,29 @@
         const boxedN = attacking ? countBoxAttackers(side) : 0;
         const deepOk = attacking && allowDeepRun(side);
 
+        // Engine fix — Milestone 3: anticipation ("likely counter"),
+        // continuous edition. The first version was a rare coin-flip (6%
+        // per tick) that fired a one-off dash — mostly nothing happened,
+        // and when it did it read as a random twitch rather than a sensed,
+        // building threat. Real anticipation is continuous: a smoothed
+        // per-side "counter readiness" value that's always being updated
+        // from the live pressure-on-ball/opponent-commitment signal (an EMA
+        // like teamWidthSmooth/defPressureSmooth, not a gated trigger), and
+        // continuously nudges the outlet forward's resting depth every tick
+        // — see the counterReadiness use at the xx/dd finalization below.
+        // triggerTurnoverReactions still covers the reactive burst once the
+        // ball is actually won; this is the ongoing sense of it building.
+        {
+          const ballCarrier = findCarrier();
+          let readinessTarget = 0;
+          if (!attacking && ballCarrier && ballCarrier.side !== side) {
+            const pressureOnBall = pressureAt(ballCarrier.left, ballCarrier.top, ballCarrier.side);
+            const oppCommitment = attackDefendDelta(ballCarrier.side);
+            readinessTarget = clamp(pressureOnBall * 0.55 + Math.max(0, oppCommitment) * 2.2, 0, 1);
+          }
+          counterReadiness[side] = lerp(counterReadiness[side] ?? 0, readinessTarget, 0.1);
+        }
+
         // ST cycle phase shared across strikers (Priority 7)
         const stCycleNames = ["drop", "pin", "drift", "near", "far"];
         const stCycleIdx = Math.floor((shapePulse * 0.18 + (side === "home" ? 0 : 2.1)) % 5);
@@ -5987,6 +6128,27 @@
           // pitch centreline as one coherent unit (GK excluded — keepers
           // don't stretch/compress with team shape).
           if (pin.role !== "GK") xx = clamp(0.5 + (xx - 0.5) * teamWidth, 0.03, 0.97);
+          // Engine fix — Milestone 4: defensive panic, continuous edition.
+          // A coin-flip gate (rng() < boxThreat*0.35) meant most ticks
+          // nothing happened even under real overload — a real back line
+          // under pressure is CONSTANTLY a little scrambled, continuously,
+          // not occasionally. Jitter magnitude now scales directly with
+          // boxThreat instead of being gated on whether it fires at all;
+          // boxThreat is already 0 for the attacking side (only computed in
+          // teamBlockLines' defending branch), so this still only ever
+          // shows up for a genuinely threatened defence.
+          if (pin.role !== "GK" && boxThreat > 0.15) {
+            xx = clamp(xx + (rng() - 0.5) * boxThreat * 0.14, 0.03, 0.97);
+            dd = clamp(dd + (rng() - 0.5) * boxThreat * 0.09, 0.03, 0.96);
+          }
+          // Engine fix — Milestone 3: continuous counter anticipation. See
+          // counterReadiness declaration/update above — this is the actual
+          // effect: the outlet forward's resting depth nudges forward every
+          // tick, smoothly tracking how live the counter threat currently
+          // is, instead of a rare discrete dash.
+          if ((pin.role === "ST" || pin.role === "W") && !attacking && counterReadiness[side] > 0.02) {
+            dd = clamp(dd + counterReadiness[side] * 0.07, 0.03, 0.96);
+          }
           const h = iHash(pin.id);
           const dx = xx - (pin.x ?? pin.baseX);
           const dd0 = dd - (pin.depth ?? pin.baseDepth);
@@ -5994,7 +6156,18 @@
           const perpX = -dd0 / pathLen;
           const perpD = dx / pathLen;
           const arcAmp = (pin._running ? 0.022 : pin._pressing ? 0.012 : 0.008) * (0.75 + h * 0.35);
-          const arc = Math.sin(shapePulse * 0.55 + h * 5.1) * arcAmp;
+          // Experiment — arc-wobble amplitude A/B. Measured (see
+          // docs/experiments/target-drift-alignment.md): this continuous
+          // sin() nudge is 32.1% of gross off-ball target churn and its
+          // direction is statistically uncorrelated with tactical intent
+          // (mean cosine ~0.04 vs the base tactical vector) — i.e. it reads
+          // as background motion, not football. Scaling ONLY `arc` (not
+          // `arcAmp`, which is also reused below for the unrelated
+          // curved-locomotion jump-correction bias) keeps this a
+          // single-variable change — everything else in this function is
+          // untouched.
+          const ARC_WOBBLE_TEST_SCALE = 0.3;
+          const arc = Math.sin(shapePulse * 0.55 + h * 5.1) * arcAmp * ARC_WOBBLE_TEST_SCALE;
           xx = clamp(xx + perpX * arc, 0.04, 0.96);
           dd = clamp(dd + perpD * arc * 0.45, 0.03, 0.96);
           if (pin.role !== "GK" && !pin._pressing) {
@@ -6054,27 +6227,42 @@
         const roleEase = MOTION_EASE[pin.role] ?? 0.7;
         let rate = baseFollow * roleEase * (0.94 + h * 0.02);
         if (pin.id === carrierId && !ballAttached) rate *= 0.45;
-        // Engine fix — tempo layer, carrier only. A carrier's own pace toward
-        // their target was one constant rate whether they were shielding the
-        // ball with time to work or being hounded into an instant release —
-        // real players vary rhythm (a brief hesitation to draw a defender or
-        // wait for support, a sudden burst under real pressure), not a
-        // metronome. Only touches this one pin's own rate, refreshed on a
-        // short randomized cadence, and only while they actually have the
-        // ball — never the shared per-pin easing every other player rides on.
-        if (pin.id === carrierId && ballAttached) {
-          if ((pin._tempoUntil || 0) <= matchMinute) {
-            const localPressure = pressureAt(pin.left, pin.top, pin.side);
-            if (localPressure > 0.55 && rng() < 0.4) {
-              pin._tempoMul = 1.25 + rng() * 0.2;
-            } else if (localPressure <= 0.55 && rng() < 0.3) {
-              pin._tempoMul = 0.55 + rng() * 0.2;
-            } else {
-              pin._tempoMul = 1.0;
-            }
-            pin._tempoUntil = matchMinute + 0.15 + rng() * 0.25;
+        // Engine fix — Milestone 4: match rhythm, continuous edition. The
+        // first version only touched the ball carrier and only changed
+        // anything behind a coin-flip check refreshed every 0.1-0.4 match-
+        // minutes — in practice that meant one dot out of 22 occasionally
+        // twitching, invisible against the whole pitch. Real rhythm is
+        // constant and applies to everyone: every outfield pin continuously
+        // breathes between a context target (patient build-up slows the
+        // whole side down, a counter speeds everyone up, box occupation
+        // widens the swing into genuine chaos) and a per-pin sine wobble
+        // (phase-offset per pin via iHash so 22 players don't move in
+        // lockstep) riding on top of it — always on, every frame, no gate.
+        if (pin.role !== "GK") {
+          const rhythmStage = spell && spell.side === pin.side ? spell.stage : phase;
+          const rhythmUrg = progressionUrgency(spell);
+          let tempoTarget = 1.0;
+          let tempoAmp = 0.12;
+          let tempoFreq = 1.1;
+          if (rhythmUrg >= 1.1 && (rhythmStage === "PROGRESSING" || rhythmStage === "FINAL_THIRD")) {
+            tempoTarget = 1.28;
+            tempoAmp = 0.16;
+            tempoFreq = 1.6;
+          } else if (rhythmStage === "BOX_OCCUPATION" || rhythmStage === "CHANCE_CREATION" || rhythmStage === "FINISH") {
+            tempoTarget = 1.0;
+            tempoAmp = 0.34;
+            tempoFreq = 2.6;
+          } else if ((rhythmStage === "BUILD_UP" || rhythmStage === "PROGRESSING") && rhythmUrg < 0.5) {
+            tempoTarget = 0.78;
+            tempoAmp = 0.14;
+            tempoFreq = 0.85;
           }
-          rate *= pin._tempoMul || 1.0;
+          if (pin._tempoTargetSmooth == null) pin._tempoTargetSmooth = 1;
+          pin._tempoTargetSmooth = lerp(pin._tempoTargetSmooth, tempoTarget, 0.05);
+          const wobble = Math.sin(matchMinute * tempoFreq + iHash(pin.id) * 6.28) * tempoAmp;
+          const localPressure = pressureAt(pin.left, pin.top, pin.side);
+          const pressureBias = (localPressure - 0.4) * 0.12;
+          rate *= clamp(pin._tempoTargetSmooth + wobble + pressureBias, 0.35, 1.8);
         }
         if (pin._pressing) rate *= 1.35;
         else if (pin._running) rate *= 1.28;
@@ -6089,6 +6277,19 @@
           rate = Math.max(rate, 0.08);
         } else if (pin._pathCtrl) {
           pin._pathCtrl = null;
+        }
+        // Experiment — continuous local optimization, ball carrier only (see
+        // optimizeCarrierPosition). Overrides wantL/wantT for THIS FRAME
+        // only, for THIS pin only, while they're actually carrying and no
+        // scripted pathCtrl (e.g. a shot's plant-foot bulge) is running —
+        // pin.tx/pin.ty themselves are never touched, so the instant this
+        // player stops carrying (or a pathCtrl takes over) they fall
+        // straight back to the untouched target-based system below, same as
+        // every other player, every other frame.
+        if (pin.id === carrierId && ballAttached && !pin._pathCtrl) {
+          const opt = optimizeCarrierPosition(pin);
+          wantL = opt.left;
+          wantT = opt.top;
         }
         const prevLeft = pin.left;
         const prevTop = pin.top;
@@ -6325,12 +6526,15 @@
       // attempts for a few minutes right after scoring, same spirit as the
       // pattern-weight shift in pickAttackPattern.
       const leadProtectMul = (leadProtectUntil[side] || 0) > matchMinute ? 0.72 : 1;
+      // Knockout-only home push (chance creation) — see KNOCKOUT_HOME_PUSH.
+      const homePushMul = isKnockout && side === "home" ? 1 + KNOCKOUT_HOME_PUSH : 1;
       return clamp(
         (0.42 + create * 0.24 + atk * 0.18 - def * 0.03 + (rng() - 0.5) * 0.05) *
           vol *
           lerp(1, supp, 0.45) *
           xgPaceMul(side) *
-          leadProtectMul,
+          leadProtectMul *
+          homePushMul,
         0.32,
         0.72
       );
@@ -7021,8 +7225,12 @@
         (backToGoal ? 0.12 : 0) -
         (scrambling ? 0.07 : 0) +
         (rng() - 0.5) * 0.08;
+      // Knockout-only home push (defending) — the home side is tougher to
+      // dribble past. See KNOCKOUT_HOME_PUSH.
+      const defenderIsHome = oppOf(carrier.side) === "home";
+      const pushedSuccessP = isKnockout && defenderIsHome ? successP * (1 - KNOCKOUT_HOME_PUSH) : successP;
 
-      const won = rng() < clamp(successP, 0.1, 0.72);
+      const won = rng() < clamp(pushedSuccessP, 0.1, 0.72);
       if (threat) carrier._lastDribbleOpp = threat.pin.id;
       const attackSign = carrier.side === "home" ? -1 : 1;
       const ahead = 2.2 + carrier.stats.dribbles90 * 0.55 + rng() * 1.5;
@@ -7264,7 +7472,9 @@
         missBoost = clamp(missBoost, 0, 0.4);
       }
       const boostedHi = clamp(hi + missBoost, hi, 0.85);
-      return rng() < clamp(p + missBoost, lo, boostedHi);
+      // Knockout-only home push (finishing) — see KNOCKOUT_HOME_PUSH.
+      const homePush = isKnockout && carrier.side === "home" ? 1 + KNOCKOUT_HOME_PUSH : 1;
+      return rng() < clamp((p + missBoost) * homePush, lo, boostedHi);
     }
 
     function doShot(carrier, mustScore) {
@@ -7804,8 +8014,26 @@
     }
 
     function resolveMatchWinner() {
-      if (homeScore > awayScore) return homeTeam.name;
-      if (awayScore > homeScore) return awayTeam.name;
+      if (isTwoLegLeg1) return null; // leg 1 never decides the tie
+      if (isTwoLegLeg2) {
+        const aggHome = homeScore + (aggContext.enteringAggHome || 0);
+        const aggAway = awayScore + (aggContext.enteringAggAway || 0);
+        if (aggHome > aggAway) return homeTeam.name;
+        if (aggAway > aggHome) return awayTeam.name;
+        // Aggregate level — away-goals rule: home's away goals are fixed
+        // from leg 1 (enteringAggHome, since that's the only leg they
+        // played away); away's away goals are this leg's own live score
+        // (they're the away side right now, in leg 2).
+        const homeAwayGoals = aggContext.enteringAggHome || 0;
+        const awayAwayGoals = awayScore;
+        if (homeAwayGoals > awayAwayGoals) return homeTeam.name;
+        if (awayAwayGoals > homeAwayGoals) return awayTeam.name;
+        // Away goals also level — fall through to this leg's own ET/pens.
+      } else if (homeScore > awayScore) {
+        return homeTeam.name;
+      } else if (awayScore > homeScore) {
+        return awayTeam.name;
+      }
       if (decidedBy === "pens") {
         if (penScore.home > penScore.away) return homeTeam.name;
         if (penScore.away > penScore.home) return awayTeam.name;
@@ -8358,6 +8586,24 @@
       schedule(fireKick, 700);
     }
 
+    // Is the tie still undecided at this instant? For a single-legged tie
+    // (or leg 1, which never decides anything) this is just "level on this
+    // leg's own score". For leg 2 of a two-legged tie, the aggregate and
+    // away-goals rule both have to be exhausted first — see
+    // resolveMatchWinner() for the matching post-decision logic.
+    function tieStillUndecided() {
+      if (isTwoLegLeg1) return false; // leg 1 never goes to ET regardless of its own score
+      if (isTwoLegLeg2) {
+        const aggHome = homeScore + (aggContext.enteringAggHome || 0);
+        const aggAway = awayScore + (aggContext.enteringAggAway || 0);
+        if (aggHome !== aggAway) return false;
+        const homeAwayGoals = aggContext.enteringAggHome || 0;
+        const awayAwayGoals = awayScore;
+        return homeAwayGoals === awayAwayGoals;
+      }
+      return homeScore === awayScore;
+    }
+
     function handleEndOfNinety() {
       if (replayScore) {
         for (const g of scheduled) {
@@ -8371,7 +8617,7 @@
       }
       ft90Home = homeScore;
       ft90Away = awayScore;
-      if (isKnockout && homeScore === awayScore) {
+      if (isKnockout && tieStillUndecided()) {
         enterExtraTimeIntro();
         return;
       }
@@ -8385,7 +8631,7 @@
         return;
       }
       // End of ET2
-      if (homeScore === awayScore) {
+      if (tieStillUndecided()) {
         enterPensBreak();
         return;
       }
@@ -9004,6 +9250,7 @@
         viewerMode: Boolean(meta.viewerMode),
         hideControls: Boolean(meta.hideControls) || Boolean(meta.viewerMode),
         isKnockout: Boolean(meta.isKnockout || meta.knockout),
+        aggContext: meta.aggContext || null,
         onBroadcast: meta.onBroadcast || null,
         broadcastIntervalMs: meta.broadcastIntervalMs,
         onComplete: onDone,

@@ -161,8 +161,30 @@ async function saveFullTime(score, session) {
   const hg = Number(score.homeGoals) || 0;
   const ag = Number(score.awayGoals) || 0;
   let winner = score.winner || null;
-  if (session.is_knockout && !winner) {
-    if (hg > ag) winner = home;
+  const legCtx = session.agg_context || null;
+  const isLeg1OfTwo = legCtx && legCtx.twoLegged && legCtx.leg === 1;
+  if (session.is_knockout && !winner && !isLeg1OfTwo) {
+    if (legCtx && legCtx.twoLegged && legCtx.leg === 2) {
+      // Aggregate-aware fallback (the board should normally already resolve
+      // this correctly — see tactic_board.js's resolveMatchWinner()).
+      const aggHome = hg + (legCtx.enteringAggHome || 0);
+      const aggAway = ag + (legCtx.enteringAggAway || 0);
+      if (aggHome > aggAway) winner = home;
+      else if (aggAway > aggHome) winner = away;
+      else {
+        const homeAwayGoals = legCtx.enteringAggHome || 0; // fixed, from leg 1
+        const awayAwayGoals = ag; // this leg's own away-side goals, live
+        if (homeAwayGoals > awayAwayGoals) winner = home;
+        else if (awayAwayGoals > homeAwayGoals) winner = away;
+        else if (score.decided_by === "pens") {
+          const ph = Number(score.pens_home);
+          const pa = Number(score.pens_away);
+          if (Number.isFinite(ph) && Number.isFinite(pa) && ph !== pa) {
+            winner = ph > pa ? home : away;
+          }
+        }
+      }
+    } else if (hg > ag) winner = home;
     else if (ag > hg) winner = away;
     else if (score.decided_by === "pens") {
       const ph = Number(score.pens_home);
@@ -223,6 +245,7 @@ async function startHostBoard(session) {
       autoplay: true,
       hostMode: true,
       isKnockout: Boolean(session.is_knockout),
+      aggContext: session.agg_context || null,
       broadcastIntervalMs: 220,
       onBroadcast: (frame) => queueBroadcast(frame),
       onFullTime: (score) => saveFullTime(score, session),
