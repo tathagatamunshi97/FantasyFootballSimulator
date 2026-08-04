@@ -319,12 +319,35 @@ function renderAdvancePreview(groupCount, advancePerGroup) {
   return `${advancePerGroup} per group → ${total} teams → ${rounds.join(", ")}`;
 }
 
+function anyKnockoutMatchPlayed(t) {
+  for (const rnd of (t.knockout || {}).rounds || []) {
+    for (const tie of rnd.ties || []) {
+      if (tie.played) return true;
+      for (const leg of tie.legs || []) {
+        if (leg.played) return true;
+      }
+    }
+  }
+  return false;
+}
+
 function renderGroupSettings(t) {
   const n = (t.team_names || []).length;
   const st = t.status;
   const koGenerated = ((t.knockout || {}).rounds || []).length > 0;
-  if (!["draft", "group_draw", "group_stage"].includes(st) || n < 2 || koGenerated) {
+  if (!["draft", "group_draw", "group_stage", "knockout"].includes(st) || n < 2) {
     return "";
+  }
+
+  if (koGenerated) {
+    const played = anyKnockoutMatchPlayed(t);
+    const fmt = t.knockout?.format === "single_elim" ? "Single match" : "Two-legged";
+    return `
+    <div class="form-row inline" style="margin-top:0.5rem">
+      <p class="muted">Knockout bracket generated (${esc(fmt)}).</p>
+      <button type="button" class="btn-ghost" id="resetKnockoutBtn" ${played ? "disabled" : ""}>Reset knockout bracket</button>
+    </div>
+    <p class="muted">${played ? "Cannot reset — a knockout match has already been played." : "Clears the bracket so you can change the knockout format and regenerate."}</p>`;
   }
 
   const gCount = t.settings?.group_count ?? 1;
@@ -359,11 +382,20 @@ function renderGroupSettings(t) {
         })()
       : `<p class="muted">Group layout: ${gCount} groups × ${perGroup} teams (locked after draw)</p>`;
 
+  const curFormat = t.settings?.knockout_format === "single_elim" ? "single_elim" : "two_leg";
+  const formatOptions = `
+      <option value="two_leg"${curFormat === "two_leg" ? " selected" : ""}>Two-legged (Final single match)</option>
+      <option value="single_elim"${curFormat === "single_elim" ? " selected" : ""}>Single match</option>`;
+
   return `
     ${layoutRow}
     <div class="form-row inline" style="margin-top:0.5rem">
       <label for="advancePerGroup">Knockout qualifiers</label>
       <select id="advancePerGroup">${advanceOptions}</select>
+    </div>
+    <div class="form-row inline" style="margin-top:0.5rem">
+      <label for="knockoutFormat">Knockout format</label>
+      <select id="knockoutFormat">${formatOptions}</select>
       <button type="button" class="btn-ghost" id="saveGroupBtn">Save settings</button>
     </div>
     <p class="muted" id="advancePreview">${esc(renderAdvancePreview(gCount, curAdvance))}</p>`;
@@ -393,6 +425,10 @@ function renderControls(t) {
   const saveBtn = document.getElementById("saveGroupBtn");
   if (saveBtn) {
     saveBtn.addEventListener("click", () => saveGroupSettings().catch((e) => tLog(e.message)));
+  }
+  const resetKoBtn = document.getElementById("resetKnockoutBtn");
+  if (resetKoBtn) {
+    resetKoBtn.addEventListener("click", () => resetKnockoutBracket().catch((e) => tLog(e.message)));
   }
   const advanceSel = document.getElementById("advancePerGroup");
   const groupSel = document.getElementById("groupCount");
@@ -427,9 +463,11 @@ async function saveGroupSettings() {
   if (!currentId) return;
   const advanceSel = document.getElementById("advancePerGroup");
   const groupSel = document.getElementById("groupCount");
+  const formatSel = document.getElementById("knockoutFormat");
   const payload = {};
   if (groupSel) payload.group_count = Number(groupSel.value);
   if (advanceSel) payload.advance_per_group = Number(advanceSel.value);
+  if (formatSel) payload.knockout_format = formatSel.value;
   if (!Object.keys(payload).length) return;
   tLog("Saving tournament settings…");
   await adminApi(`/api/tournament/${currentId}/settings`, {
@@ -438,6 +476,17 @@ async function saveGroupSettings() {
   });
   await loadCurrent();
   tLog("Tournament settings saved");
+}
+
+async function resetKnockoutBracket() {
+  if (!currentId) return;
+  if (!confirm("Reset the knockout bracket? This discards the generated (unplayed) fixtures so you can change settings and regenerate.")) {
+    return;
+  }
+  tLog("Resetting knockout bracket…");
+  await adminApi(`/api/tournament/${currentId}/knockout/reset`, { method: "POST" });
+  await loadCurrent();
+  tLog("Knockout bracket reset");
 }
 
 function renderMatchControls(t) {

@@ -2061,6 +2061,34 @@ def generate_knockout_bracket(tournament_id: str) -> dict[str, Any]:
     return t
 
 
+def _knockout_bracket_has_played_match(t: dict[str, Any]) -> bool:
+    for rnd in (t.get("knockout") or {}).get("rounds") or []:
+        for tie in rnd.get("ties") or []:
+            if tie.get("played"):
+                return True
+            for leg in tie.get("legs") or []:
+                if leg.get("played"):
+                    return True
+    return False
+
+
+def reset_knockout_bracket(tournament_id: str) -> dict[str, Any]:
+    """Admin: discard a generated-but-unplayed knockout bracket so settings
+    (e.g. knockout_format) can be changed and the bracket regenerated."""
+    t = load_tournament(tournament_id)
+    if not t:
+        raise KeyError("Tournament not found")
+    if _knockout_bracket_has_played_match(t):
+        raise ValueError(
+            "Cannot reset the knockout bracket: a knockout match has already been played"
+        )
+    t["knockout"] = {"format": t.get("settings", {}).get("knockout_format", "single_elim"), "rounds": []}
+    if t["status"] == "knockout":
+        t["status"] = "group_stage"
+    save_tournament(t)
+    return t
+
+
 def _advance_knockout_winner(t: dict[str, Any], tie: dict[str, Any], winner: str) -> None:
     tie_id = tie["id"]
     for rnd in t["knockout"]["rounds"]:

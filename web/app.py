@@ -93,6 +93,7 @@ class TournamentSettingsRequest(BaseModel):
     group_count: int | None = None
     teams_per_group: int | None = None
     advance_per_group: int | None = None
+    knockout_format: str | None = None
 
 
 class TournamentMatchOverrideRequest(BaseModel):
@@ -1430,6 +1431,24 @@ def generate_knockout_api(
     return {"tournament": t}
 
 
+@app.post("/api/tournament/{tournament_id}/knockout/reset")
+def reset_knockout_bracket_api(
+    tournament_id: str,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Admin: discard a generated-but-unplayed knockout bracket (e.g. to
+    change knockout_format) so settings can be edited and it can be
+    regenerated from scratch."""
+    _check_admin(x_admin_token)
+    try:
+        t = tournament.reset_knockout_bracket(tournament_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"tournament": t}
+
+
 @app.post("/api/tournament/{tournament_id}/knockout/matches/{match_id}/run")
 def run_knockout_match_api(
     tournament_id: str,
@@ -1562,10 +1581,17 @@ def patch_tournament_settings_api(
         payload["teams_per_group"] = body.teams_per_group
     if body.advance_per_group is not None:
         payload["advance_per_group"] = body.advance_per_group
+    if body.knockout_format is not None:
+        if body.knockout_format not in ("two_leg", "single_elim"):
+            raise HTTPException(
+                status_code=400,
+                detail="knockout_format must be 'two_leg' or 'single_elim'",
+            )
+        payload["knockout_format"] = body.knockout_format
     if not payload:
         raise HTTPException(
             status_code=400,
-            detail="Provide group_count, teams_per_group, or advance_per_group",
+            detail="Provide group_count, teams_per_group, advance_per_group, or knockout_format",
         )
     try:
         t = tournament.update_settings(tournament_id, payload)
