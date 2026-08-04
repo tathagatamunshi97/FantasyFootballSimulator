@@ -291,6 +291,38 @@ async function startViewerBoard(session) {
   }
 }
 
+function hideResumeHostPrompt() {
+  const el = document.getElementById("matchdayHostTakeover");
+  if (el) {
+    el.hidden = true;
+    el.innerHTML = "";
+  }
+}
+
+function showResumeHostPrompt(session) {
+  const el = document.getElementById("matchdayHostTakeover");
+  if (!el) return;
+  el.hidden = false;
+  el.innerHTML = `
+    <div class="badge" style="display:block;padding:0.6rem 0.75rem">
+      A live match is already in progress on another tab/device (or this tab
+      reconnected mid-match). You're watching it read-only.
+      <button type="button" id="matchdayResumeHostBtn" class="btn-primary btn-sm" style="margin-left:0.5rem">Resume hosting</button>
+      <span class="muted" style="display:block;margin-top:0.35rem;font-size:0.8rem">
+        This restarts the simulation from kickoff — only use it if the original host is gone for good.
+      </span>
+    </div>`;
+  const btn = document.getElementById("matchdayResumeHostBtn");
+  if (btn) {
+    btn.addEventListener("click", async () => {
+      btn.disabled = true;
+      hideResumeHostPrompt();
+      destroyLiveBoard();
+      await startHostBoard(session);
+    });
+  }
+}
+
 async function ensureLiveBoard(session, { isAdmin }) {
   if (!session) return;
   const phase = session.phase;
@@ -299,6 +331,19 @@ async function ensureLiveBoard(session, { isAdmin }) {
 
   const canHost = Boolean(isAdmin || getAdminToken());
   if (canHost) {
+    // A page reload/reconnect resets this tab's local state, but the server
+    // session may already have a live match in progress (frames already
+    // broadcast). Auto-hosting here would spin up a second, independent
+    // simulation and silently overwrite the real one for every viewer — so
+    // only auto-host when nothing has been broadcast yet (a genuine first
+    // start); otherwise watch read-only until the admin explicitly takes over.
+    const alreadyBroadcasting = Boolean(session.frame_seq) || Boolean(session.board_state);
+    if (alreadyBroadcasting && !_hosting) {
+      await startViewerBoard(session);
+      showResumeHostPrompt(session);
+      return;
+    }
+    hideResumeHostPrompt();
     await startHostBoard(session);
   } else {
     await startViewerBoard(session);

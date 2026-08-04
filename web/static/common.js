@@ -615,6 +615,7 @@ function renderMatchdaySession(status, { isAdmin = false } = {}) {
     </div>`;
 
   const boardMount = `<div class="card" data-matchday-board-card style="margin-top:0.5rem">
+      <div id="matchdayHostTakeover" hidden style="margin-bottom:0.75rem"></div>
       <div data-tactic-mount></div>
     </div>`;
 
