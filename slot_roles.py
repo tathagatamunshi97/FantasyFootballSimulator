@@ -9,7 +9,7 @@ FULLBACK_SLOTS = frozenset({"RB", "LB", "RWB", "LWB"})
 CENTRE_BACK_SLOTS = frozenset({"CB1", "CB2", "CB3"})
 DM_SLOTS = frozenset({"DM", "DM1", "DM2"})
 CM_SLOTS = frozenset({"CM", "CM1", "CM2", "CM3"})
-AM_SLOTS = frozenset({"AM"})
+AM_SLOTS = frozenset({"AM", "AM1", "AM2"})
 WINGER_SLOTS = frozenset({"RW", "LW", "RM", "LM"})
 STRIKER_SLOTS = frozenset({"ST", "ST1", "ST2", "CF", "CF1", "CF2"})
 
@@ -31,7 +31,7 @@ ROLE_FILTER_OPTIONS: dict[str, tuple[str, ...]] = {
 def slot_filter_key(slot: str) -> str:
     """Canonical key for role-filter lookup (CM1→CM, CB2→CB, …)."""
     s = (slot or "").strip().upper()
-    if s == "GK" or s == "AM":
+    if s == "GK":
         return s
     if s.startswith("CB"):
         return "CB"
@@ -41,6 +41,8 @@ def slot_filter_key(slot: str) -> str:
         return "DM"
     if s.startswith("CM"):
         return "CM"
+    if s.startswith("AM"):
+        return "AM"
     return s
 
 

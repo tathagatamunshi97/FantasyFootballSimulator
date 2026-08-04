@@ -465,7 +465,7 @@ def _player_gk_contrib(stats: PlayerStats, fit: float) -> tuple[float, float, bo
 
 TWO_DM_FORMATIONS = frozenset({"3-4-1-2 (flat)", "4-2-3-1"})
 THREE_BACK_FORMATIONS = frozenset(
-    {"3-4-1-2 (flat)", "3-4-1-2 (normal)", "3-5-2", "3-4-3(1)", "3-4-3(2)"}
+    {"3-4-1-2 (flat)", "3-4-1-2 (normal)", "3-5-2", "3-4-3(1)", "3-4-3(2)", "3-4-2-1"}
 )
 # Wingbacks push higher than fullbacks, but a third centre-back holds the line behind them.
 THREE_AT_BACK_EXPOSURE_SCALE = 0.66
@@ -597,7 +597,7 @@ def _transition_mid_cover(
             return sum(shield) / len(shield)
         return 0.38
 
-    if formation == "4-3-3 attacking":
+    if formation in {"4-3-3 attacking", "4-3-2-1"}:
         return 0.68 * dm_avg + 0.32 * cm_avg + 0.14 * am_avg
 
     if formation in TWO_DM_FORMATIONS or len(dm_cover) >= 2:
