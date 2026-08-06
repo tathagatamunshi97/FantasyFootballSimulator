@@ -245,6 +245,7 @@ async function startHostBoard(session) {
       autoplay: true,
       hostMode: true,
       isKnockout: Boolean(session.is_knockout),
+      isFinal: Boolean(session.is_final),
       aggContext: session.agg_context || null,
       broadcastIntervalMs: 220,
       onBroadcast: (frame) => queueBroadcast(frame),

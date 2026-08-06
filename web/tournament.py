@@ -612,6 +612,16 @@ def _find_knockout_leg(t: dict[str, Any], match_id: str) -> tuple[dict[str, Any]
     return None
 
 
+def _is_final_round_tie(t: dict[str, Any], tie: dict[str, Any]) -> bool:
+    """True when ``tie`` belongs to the last knockout round (the Final) —
+    used to exclude it from the knockout-only home push, since a Final is
+    conventionally played at a neutral venue."""
+    rounds = (t.get("knockout") or {}).get("rounds") or []
+    if not rounds:
+        return False
+    return any(ti.get("id") == tie.get("id") for ti in rounds[-1].get("ties") or [])
+
+
 def _find_playable_fixture(t: dict[str, Any], match_id: str) -> tuple[str, dict[str, Any]] | None:
     """Like _find_fixture, but resolves a knockout match_id to its LEG (the
     actual playable/completable match) rather than the parent tie. Group
@@ -1434,6 +1444,7 @@ def prepare_board_match(tournament_id: str, match_id: str) -> dict[str, Any]:
     }
     # Prefer board payloads as the public XI on Matchday
     seed = abs(hash(f"{tournament_id}:{match_id}")) % (2**31)
+    is_final = bool(tie is not None and _is_final_round_tie(t, tie))
     status = matchday_session.start_board_session(
         tournament_id=tournament_id,
         tournament_name=t.get("name") or "Tournament",
@@ -1446,6 +1457,7 @@ def prepare_board_match(tournament_id: str, match_id: str) -> dict[str, Any]:
         board=board,
         seed=seed,
         is_knockout=stage_key == "knockout",
+        is_final=is_final,
         agg_context=leg_context,
     )
     return {

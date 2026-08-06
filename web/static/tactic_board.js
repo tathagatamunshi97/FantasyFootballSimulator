@@ -649,6 +649,10 @@
     const hideControls = Boolean(opts.hideControls) || viewerMode;
     /** Knockout ties: level after 90 → ET (2×15) → pens if still level. Group matches ignore this. */
     const isKnockout = Boolean(opts.isKnockout || opts.knockout) && live && !viewerMode;
+    // Final: still a knockout tie (ET/pens rules apply the same), but
+    // conventionally a neutral-venue match — excluded from KNOCKOUT_HOME_PUSH
+    // specifically (see the four isKnockout && !isFinalRound sites below).
+    const isFinalRound = Boolean(opts.isFinal);
     // Two-legged tie context (leg 2 only — see prepare_board_match in
     // tournament.py): { leg, twoLegged, enteringAggHome, enteringAggAway }.
     // Leg 1 of a two-legged tie gets { leg: 1, twoLegged: true } with no
@@ -1296,7 +1300,7 @@
         ceil = Math.min(0.75, ceil + (fq >= 0.7 ? 0.04 : 0));
       }
       // Knockout-only home push (shot quality) — see KNOCKOUT_HOME_PUSH.
-      if (isKnockout && carrier.side === "home") xg *= 1 + KNOCKOUT_HOME_PUSH;
+      if (isKnockout && !isFinalRound && carrier.side === "home") xg *= 1 + KNOCKOUT_HOME_PUSH;
       return clamp(xg, Math.min(floor, 0.02), ceil);
     }
 
@@ -6541,7 +6545,7 @@
       // pattern-weight shift in pickAttackPattern.
       const leadProtectMul = (leadProtectUntil[side] || 0) > matchMinute ? 0.72 : 1;
       // Knockout-only home push (chance creation) — see KNOCKOUT_HOME_PUSH.
-      const homePushMul = isKnockout && side === "home" ? 1 + KNOCKOUT_HOME_PUSH : 1;
+      const homePushMul = isKnockout && !isFinalRound && side === "home" ? 1 + KNOCKOUT_HOME_PUSH : 1;
       return clamp(
         (0.42 + create * 0.24 + atk * 0.18 - def * 0.03 + (rng() - 0.5) * 0.05) *
           vol *
@@ -7242,7 +7246,7 @@
       // Knockout-only home push (defending) — the home side is tougher to
       // dribble past. See KNOCKOUT_HOME_PUSH.
       const defenderIsHome = oppOf(carrier.side) === "home";
-      const pushedSuccessP = isKnockout && defenderIsHome ? successP * (1 - KNOCKOUT_HOME_PUSH) : successP;
+      const pushedSuccessP = isKnockout && !isFinalRound && defenderIsHome ? successP * (1 - KNOCKOUT_HOME_PUSH) : successP;
 
       const won = rng() < clamp(pushedSuccessP, 0.1, 0.72);
       if (threat) carrier._lastDribbleOpp = threat.pin.id;
@@ -7487,7 +7491,7 @@
       }
       const boostedHi = clamp(hi + missBoost, hi, 0.85);
       // Knockout-only home push (finishing) — see KNOCKOUT_HOME_PUSH.
-      const homePush = isKnockout && carrier.side === "home" ? 1 + KNOCKOUT_HOME_PUSH : 1;
+      const homePush = isKnockout && !isFinalRound && carrier.side === "home" ? 1 + KNOCKOUT_HOME_PUSH : 1;
       return rng() < clamp((p + missBoost) * homePush, lo, boostedHi);
     }
 
@@ -9264,6 +9268,7 @@
         viewerMode: Boolean(meta.viewerMode),
         hideControls: Boolean(meta.hideControls) || Boolean(meta.viewerMode),
         isKnockout: Boolean(meta.isKnockout || meta.knockout),
+        isFinal: Boolean(meta.isFinal),
         aggContext: meta.aggContext || null,
         onBroadcast: meta.onBroadcast || null,
         broadcastIntervalMs: meta.broadcastIntervalMs,

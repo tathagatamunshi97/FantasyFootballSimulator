@@ -109,6 +109,7 @@ def _build_public_session_locked() -> dict[str, Any] | None:
         "home": s.get("home"),
         "away": s.get("away"),
         "is_knockout": bool(s.get("is_knockout")),
+        "is_final": bool(s.get("is_final")),
         "is_experiment": bool(s.get("is_experiment")),
         "agg_context": s.get("agg_context"),
         "seed": s.get("seed"),
@@ -321,10 +322,15 @@ def start_board_session(
     board: dict[str, Any],
     seed: int,
     is_knockout: bool = False,
+    is_final: bool = False,
     is_experiment: bool = False,
     agg_context: dict[str, int] | None = None,
 ) -> dict[str, Any]:
     """Start a shared tactic-board Matchday broadcast (setup → live → result).
+
+    ``is_final`` marks the Final round of a knockout bracket — conventionally
+    a neutral-venue match, so the live engine excludes it from the
+    knockout-only home push even though ``is_knockout`` is still true.
 
     ``is_experiment`` marks an ad-hoc Team Lab experiment rather than a
     tournament fixture — ``fixture_id`` then holds the experiment's own id,
@@ -356,6 +362,7 @@ def start_board_session(
             "team_a": copy.deepcopy(team_a),
             "team_b": copy.deepcopy(team_b),
             "is_knockout": bool(is_knockout),
+            "is_final": bool(is_final),
             "is_experiment": bool(is_experiment),
             "agg_context": dict(agg_context) if agg_context else None,
             "seed": int(seed),
