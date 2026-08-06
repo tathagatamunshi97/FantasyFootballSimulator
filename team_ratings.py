@@ -597,7 +597,7 @@ def _transition_mid_cover(
             return sum(shield) / len(shield)
         return 0.38
 
-    if formation in {"4-3-3 attacking", "4-3-2-1"}:
+    if formation in {"4-3-3 attacking", "4-3-2-1", "4-2-2-2"}:
         return 0.68 * dm_avg + 0.32 * cm_avg + 0.14 * am_avg
 
     if formation in TWO_DM_FORMATIONS or len(dm_cover) >= 2:
