@@ -21,6 +21,10 @@ let _savingFt = false;
 let _publishQueue = null;
 let _publishBusy = false;
 let _refreshInFlight = false;
+// Substitution/formation-change requests from participating teams — only
+// meaningful on the host's tab, which is the one actually running the sim.
+let _appliedActionIds = new Set();
+let _applyingActions = false;
 
 function destroyLiveBoard() {
   if (_liveBoard && typeof _liveBoard.destroy === "function") {
@@ -30,6 +34,40 @@ function destroyLiveBoard() {
   _hosting = false;
   _lastFrameSeq = -1;
   _publishQueue = null;
+  _appliedActionIds = new Set();
+}
+
+async function applyPendingActions(actions) {
+  if (!_liveBoard || _applyingActions || !Array.isArray(actions) || !actions.length) return;
+  const unseen = actions.filter((a) => a && !_appliedActionIds.has(a.id));
+  if (!unseen.length) return;
+  _applyingActions = true;
+  const appliedIds = [];
+  try {
+    for (const action of unseen) {
+      try {
+        if (action.type === "substitute" && typeof _liveBoard.substitutePlayer === "function") {
+          _liveBoard.substitutePlayer(action.side, action.out_pin_id, action.bench_player);
+        } else if (action.type === "formation" && typeof _liveBoard.changeFormation === "function") {
+          _liveBoard.changeFormation(action.side, action.formation);
+        }
+      } catch (_) {
+        // A malformed/stale request (e.g. outgoing player already subbed) —
+        // still ack it below so it doesn't sit in the queue forever.
+      }
+      _appliedActionIds.add(action.id);
+      appliedIds.push(action.id);
+    }
+  } finally {
+    _applyingActions = false;
+  }
+  if (appliedIds.length && getAdminToken()) {
+    try {
+      await api("/api/matchday/action/ack", { method: "POST", json: { ids: appliedIds } });
+    } catch (_) {
+      /* next poll will retry the ack; _appliedActionIds still prevents re-applying */
+    }
+  }
 }
 
 function wireMatchdayActions(session) {
@@ -263,6 +301,9 @@ async function startViewerBoard(session) {
   if (!board) return;
 
   if (!_liveBoard) {
+    const myUser = getUser();
+    const participantSide =
+      myUser && myUser === session.home ? "home" : myUser && myUser === session.away ? "away" : null;
     _liveBoard = TacticBoard.createBoard(mount, {
       home: board.home,
       away: board.away,
@@ -273,6 +314,10 @@ async function startViewerBoard(session) {
       hideControls: true,
       autoplay: false,
       showPrematch: false,
+      participantSide,
+      onAction: participantSide
+        ? (action) => api("/api/matchday/action", { method: "POST", json: action }).catch((e) => alert(e.message))
+        : null,
     });
   }
 
@@ -377,6 +422,10 @@ async function refresh({ force = false } = {}) {
     if (!data?.active || !session) {
       showIdleMatchday(data, { isAdmin, force });
       return;
+    }
+
+    if (_hosting) {
+      await applyPendingActions(session.pending_actions);
     }
 
     const phase = session.phase;

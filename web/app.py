@@ -89,6 +89,20 @@ class TournamentStatusRequest(BaseModel):
     status: str
 
 
+class MatchdayActionRequest(BaseModel):
+    """A participating team requests a substitution or formation change."""
+
+    type: str  # "substitute" | "formation"
+    side: str  # "home" | "away"
+    out_pin_id: str | None = None
+    bench_player: str | None = None
+    formation: str | None = None
+
+
+class MatchdayActionAckRequest(BaseModel):
+    ids: list[int] = Field(default_factory=list)
+
+
 class TournamentSettingsRequest(BaseModel):
     group_count: int | None = None
     teams_per_group: int | None = None
@@ -583,6 +597,58 @@ def matchday_dismiss(
     """Admin clears the result-phase matchday session."""
     _check_admin(x_admin_token)
     matchday_session.clear_session()
+    return {"ok": True}
+
+
+@app.post("/api/matchday/action")
+def matchday_request_action(
+    body: MatchdayActionRequest,
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+) -> dict:
+    """A participating team requests a substitution/formation change.
+
+    The requester's own browser never runs the simulation (it only
+    receives broadcast frames), so this just queues the request — the
+    host's browser applies it and acks via /api/matchday/action/ack. Only
+    the team actually playing the requested side may act for it.
+    """
+    user = _session_user(x_session_token)
+    status = matchday_session.active_status()
+    session = status.get("session") if status.get("active") else None
+    if not session:
+        raise HTTPException(status_code=400, detail="No active matchday session.")
+    if body.side not in ("home", "away"):
+        raise HTTPException(status_code=400, detail="side must be 'home' or 'away'")
+    side_team = session.get(body.side)
+    if user != side_team:
+        raise HTTPException(
+            status_code=403, detail=f"Only {side_team} may act for the {body.side} side."
+        )
+    if body.type == "substitute":
+        if not body.out_pin_id or not body.bench_player:
+            raise HTTPException(status_code=400, detail="out_pin_id and bench_player are required")
+        params = {"out_pin_id": body.out_pin_id, "bench_player": body.bench_player}
+    elif body.type == "formation":
+        if not body.formation:
+            raise HTTPException(status_code=400, detail="formation is required")
+        params = {"formation": body.formation}
+    else:
+        raise HTTPException(status_code=400, detail=f"Unknown action type: {body.type}")
+    try:
+        action = matchday_session.queue_matchday_action(body.type, body.side, params)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"ok": True, "action": action}
+
+
+@app.post("/api/matchday/action/ack")
+def matchday_ack_actions(
+    body: MatchdayActionAckRequest,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Host confirms it applied these queued actions locally."""
+    _check_admin(x_admin_token)
+    matchday_session.consume_matchday_actions(body.ids)
     return {"ok": True}
 
 

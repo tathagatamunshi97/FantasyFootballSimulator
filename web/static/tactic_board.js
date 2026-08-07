@@ -653,6 +653,16 @@
     const viewerMode = Boolean(opts.viewerMode);
     const hostMode = Boolean(opts.hostMode) && !viewerMode;
     const hideControls = Boolean(opts.hideControls) || viewerMode;
+    // A participating team's own browser is still just a passive viewer
+    // (frames only, never runs the sim) — but unlike a spectator, it gets
+    // the subs/formation panel for its OWN side, submitting requests via
+    // onAction instead of mutating pins directly (see substitutePlayer/
+    // changeFormation call sites below).
+    const participantSide =
+      !hostMode && (opts.participantSide === "home" || opts.participantSide === "away")
+        ? opts.participantSide
+        : null;
+    const requestAction = typeof opts.onAction === "function" ? opts.onAction : null;
     /** Knockout ties: level after 90 → ET (2×15) → pens if still level. Group matches ignore this. */
     const isKnockout = Boolean(opts.isKnockout || opts.knockout) && live && !viewerMode;
     // Final: still a knockout tie (ET/pens rules apply the same), but
@@ -934,7 +944,7 @@
           <button type="button" class="btn-ghost btn-sm" data-tb-push="away">Away push</button>
           <button type="button" class="btn-ghost btn-sm" data-tb-sit="away">Away sit</button>
         </div>
-        <div class="tactic-subs" data-tb-subs ${hideControls || viewerMode ? "hidden" : ""}></div>
+        <div class="tactic-subs" data-tb-subs ${hostMode || participantSide ? "" : "hidden"}></div>
         <p class="muted tactic-note" data-tb-note>
           ${
             viewerMode
@@ -9120,14 +9130,19 @@
     });
     if (htResumeBtn) htResumeBtn.addEventListener("click", () => resumeFromBreak());
 
-    // Engine addition — mid-match personnel controls UI (host only). Full
-    // re-render on every change rather than incremental DOM patching — the
-    // dropdown option lists (who's still on the bench, who can be subbed
-    // off) always need to stay in sync with substitutePlayer/changeFormation
-    // mutating homePins/awayPins/benchBySide, and this panel is small.
+    // Engine addition — mid-match personnel controls UI. Host sees both
+    // sides and applies changes directly (it's the browser actually
+    // running the sim). A participating team's own browser only sees its
+    // OWN side and submits a request via onAction instead — the host's
+    // poll loop applies it and the result reaches everyone (including the
+    // requester) through the next broadcast frame, same as any other state
+    // change. Full re-render on every change rather than incremental DOM
+    // patching — the dropdown option lists always need to stay in sync
+    // with substitutePlayer/changeFormation mutating homePins/awayPins/
+    // benchBySide, and this panel is small.
     const subsEl = container.querySelector("[data-tb-subs]");
     function renderSubsPanel() {
-      if (!subsEl || viewerMode) return;
+      if (!subsEl || (!hostMode && !participantSide)) return;
       function sideBlock(side, label) {
         const sidePins = side === "home" ? homePins : awayPins;
         const bench = benchBySide[side] || [];
@@ -9156,22 +9171,34 @@
           <button type="button" class="btn-ghost btn-sm" data-tb-formation-go="${side}">Change</button>
         </div>`;
       }
-      subsEl.innerHTML = sideBlock("home", "Home") + sideBlock("away", "Away");
+      const sides = hostMode ? ["home", "away"] : [participantSide];
+      subsEl.innerHTML = sides.map((s) => sideBlock(s, s === "home" ? "Home" : "Away")).join("");
       subsEl.querySelectorAll("[data-tb-sub-go]").forEach((btn) => {
         btn.addEventListener("click", () => {
           const side = btn.dataset.tbSubGo;
           const outSel = subsEl.querySelector(`[data-tb-sub-out="${side}"]`);
           const inSel = subsEl.querySelector(`[data-tb-sub-in="${side}"]`);
           if (!outSel || !inSel || !inSel.value) return;
-          if (substitutePlayer(side, outSel.value, inSel.value)) renderSubsPanel();
+          if (hostMode) {
+            if (substitutePlayer(side, outSel.value, inSel.value)) renderSubsPanel();
+          } else if (requestAction) {
+            btn.disabled = true;
+            requestAction({ type: "substitute", side, out_pin_id: outSel.value, bench_player: inSel.value });
+          }
         });
       });
       subsEl.querySelectorAll("[data-tb-formation-go]").forEach((btn) => {
         btn.addEventListener("click", () => {
           const side = btn.dataset.tbFormationGo;
           const sel = subsEl.querySelector(`[data-tb-formation="${side}"]`);
-          if (!sel || !sel.value || sel.value === (side === "home" ? homeTeam.formation : awayTeam.formation)) return;
-          if (changeFormation(side, sel.value)) renderSubsPanel();
+          const current = side === "home" ? homeTeam.formation : awayTeam.formation;
+          if (!sel || !sel.value || sel.value === current) return;
+          if (hostMode) {
+            if (changeFormation(side, sel.value)) renderSubsPanel();
+          } else if (requestAction) {
+            btn.disabled = true;
+            requestAction({ type: "formation", side, formation: sel.value });
+          }
         });
       });
     }
