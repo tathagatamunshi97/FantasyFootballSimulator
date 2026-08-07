@@ -7385,6 +7385,60 @@
         if (threat) triggerDefensiveBreachReactions(threat.pin);
       } else {
         const opp = threat?.pin || nearestOpponent(carrier, 30)?.pin || pinsOf(oppOf(carrier.side))[3];
+        // Engine addition — fouls. A defender "winning" this duel wasn't
+        // necessarily a clean tackle; some fraction is a foul instead, more
+        // likely in a dangerous last-man situation (attacker already in the
+        // box). No per-player discipline data exists in the current stat
+        // set (dribbles90/tackles90/etc. have nothing foul-related directly),
+        // so foul-proneness is derived from the defender's own tackle/
+        // interception quality instead: a defender who doesn't win duels
+        // cleanly resorts to fouling more often. Normalized against a
+        // realistic elite ceiling (no true percentile-vs-full-player-pool
+        // lookup exists client-side — this approximates one). Even an
+        // elite defender still fouls sometimes, just at a floor rate, not
+        // zero. Simplified restart: the fouled player takes it themselves
+        // at their own spot (reusing giveBall, same as every other
+        // turnover-style restart in this file) rather than a full dead-ball
+        // set-piece sequence.
+        const duelQuality = clamp(
+          (opp.stats.tackles90 / 3.5) * 0.7 + (opp.stats.interceptions90 / 2.5) * 0.3,
+          0,
+          1
+        );
+        const foulP = (0.22 - duelQuality * 0.14) + (inPenaltyBox(carrier) ? 0.1 : 0);
+        if (opp && rng() < foulP) {
+          pushMatchEvent("foul", opp.side, {
+            player: opp.player,
+            player_short: opp.short,
+            against: carrier.player,
+            detail: `on ${carrier.short}`,
+          });
+          say(`Foul! ${opp.short} on ${carrier.short}`, 1.3);
+          // Bad-foul (yellow card) tier — IFAB Law 12's careless/reckless/
+          // excessive-force split: most fouls are merely careless (free
+          // kick only, no card); a reckless one earns a caution; excessive
+          // force (send-off) is explicitly out of scope for now. Reuses
+          // duelQuality — a poorer defender's fouls skew more reckless, not
+          // just more frequent. Gate: no second yellow yet (send-off/
+          // 10-v-11 isn't built) — a player already on a caution this match
+          // just can't pick up another one for the moment.
+          const recklessP = 0.35 - duelQuality * 0.25;
+          if ((opp._yellowCards || 0) < 1 && rng() < recklessP) {
+            opp._yellowCards = (opp._yellowCards || 0) + 1;
+            pushMatchEvent("yellow_card", opp.side, {
+              player: opp.player,
+              player_short: opp.short,
+              against: carrier.player,
+              detail: `caution on ${carrier.short}`,
+            });
+            say(`Yellow card — ${opp.short}`, 1.4);
+          }
+          clearLastPasser();
+          spell = null;
+          giveBall(carrier, `${carrier.short} takes the free kick`);
+          actionTimer = 0.6 + spellIdlePause() * 0.3;
+          return;
+        }
         pushMatchEvent("dribble_lost", carrier.side, {
           player: carrier.player,
           player_short: carrier.short,
@@ -9104,6 +9158,7 @@
         p.lockUntil = 0;
         p.favorUntil = 0;
         p._bigMissStreak = 0;
+        p._yellowCards = 0;
         const el = pinEls.get(p.id);
         if (el) {
           el.classList.remove("has-ball", "pressing", "favored");
