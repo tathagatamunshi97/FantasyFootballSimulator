@@ -6138,6 +6138,34 @@
           }
         }
 
+        // Engine addition — front-line press trigger. Strikers were never
+        // part of the defensive _defMode hysteresis (pressEligible above
+        // excludes ST/W), so a striker genuinely closing the ball down deep
+        // in the opponent's third had zero effect on the winger next to
+        // them — the same "wingers sat out of any defensive duty" gap as
+        // the tracks-back fix above, just for pressing rather than
+        // recovery. When our own striker is closing the ball down high up
+        // the pitch, the near-side winger reacts by shading into the
+        // passing lane to the opposing ball-side fullback, instead of
+        // independently computing a generic position with no awareness a
+        // teammate has just committed to the press. 0.72 depth reuses the
+        // existing Zone 14 threshold (dangerous attacking third).
+        if (!attacking) {
+          const stPend = pending.find((p) => p.pin.role === "ST");
+          if (stPend && relBall.depth > 0.72 && dist(stPend.pin, { left: ballLeft, top: ballTop }) < 10) {
+            const wEntry = pending.find(
+              (p) => p.pin.role === "W" && (p.pin.left > 50) === (ballLeft > 50)
+            );
+            const oppFB = pinsOf(oppOf(side)).find(
+              (o) => o.role === "FB" && (o.left > 50) === (ballLeft > 50)
+            );
+            if (wEntry && oppFB) {
+              const oppFBRel = fromPitchPct(side, oppFB.left, oppFB.top);
+              wEntry.x = lerp(wEntry.x, (wEntry.x + oppFBRel.x) / 2, 0.3);
+            }
+          }
+        }
+
         for (const { pin, x, depth } of pending) {
           let dd = clamp(depth, 0.03, 0.96);
           let xx = clamp(x, 0.04, 0.96);
