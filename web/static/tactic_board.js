@@ -7433,6 +7433,21 @@
             });
             say(`Yellow card — ${opp.short}`, 1.4);
           }
+          // Engine addition — dangerous-restart branching. A foul inside the
+          // box is a penalty; a foul just outside it is a direct free kick
+          // where the taker can actually shoot (against a wall) or cross,
+          // and the defence regroups deep instead of holding shape. Fouls
+          // further out keep the existing simplified restart (fouled player
+          // just carries on from the spot) — a genuine dead-ball sequence
+          // there isn't worth the complexity since it's rarely threatening.
+          if (inPenaltyBox(carrier)) {
+            resolveInPlayPenalty(carrier.side);
+            return;
+          }
+          if (nearPenaltyBox(carrier)) {
+            resolveDangerousFreeKick(carrier.side, carrier);
+            return;
+          }
           clearLastPasser();
           spell = null;
           giveBall(carrier, `${carrier.short} takes the free kick`);
@@ -7655,8 +7670,169 @@
       return rng() < clamp((p + missBoost) * homePush, lo, boostedHi);
     }
 
-    function doShot(carrier, mustScore) {
+    /**
+     * Dangerous-restart defensive shape. The defending side regroups deep
+     * toward their own goal for a penalty or a near-box direct free kick,
+     * instead of holding normal formation shape — same tx/ty+lockUntil
+     * repositioning pattern flushDeferredRestarts already uses for kickoffs,
+     * just applied to one side only and pulled much deeper (own defensive
+     * third rather than own half).
+     */
+    function retreatDefensiveShape(defSide, excludeIds) {
+      const exclude = excludeIds || new Set();
+      for (const pin of pinsOf(defSide)) {
+        if (pin.role === "GK" || exclude.has(pin.id)) continue;
+        const depthWant = Math.min(pin.baseDepth, 0.2);
+        const pct = toPitchPct(pin.side, pin.baseX, depthWant);
+        pin.tx = pct.left;
+        pin.ty = pct.top;
+        pin.lockUntil = matchMinute + 1.4;
+        pin._running = true;
+      }
+    }
+
+    /**
+     * Lines up the nearest defenders between the ball and goal for a direct
+     * free kick — no prior "wall" concept existed in the engine. Returns the
+     * set of pin ids placed in the wall so retreatDefensiveShape can leave
+     * them where they stand instead of also pulling them back deep.
+     */
+    function formDefensiveWall(defSide, ballLeft, ballTop, goalLeft, goalTop, count) {
+      const dx = goalLeft - ballLeft;
+      const dy = goalTop - ballTop;
+      const lineDist = Math.hypot(dx, dy) || 1;
+      const frac = clamp(9 / lineDist, 0.12, 0.4);
+      const wx = ballLeft + dx * frac;
+      const wy = ballTop + dy * frac;
+      const px = -dy / lineDist;
+      const py = dx / lineDist;
+      const spacing = 2.6;
+      const ballPoint = { left: ballLeft, top: ballTop };
+      const wallPins = pinsOf(defSide)
+        .filter((p) => p.role !== "GK")
+        .sort((a, b) => dist(a, ballPoint) - dist(b, ballPoint))
+        .slice(0, count);
+      const start = -(wallPins.length - 1) / 2;
+      wallPins.forEach((pin, i) => {
+        const off = (start + i) * spacing;
+        pin.tx = clamp(wx + px * off, 2, 98);
+        pin.ty = clamp(wy + py * off, 2, 98);
+        pin.lockUntil = matchMinute + 1.6;
+        pin._running = true;
+      });
+      return new Set(wallPins.map((p) => p.id));
+    }
+
+    /**
+     * A foul inside the box is a penalty. Reuses the shootout's own
+     * pickPenaltyOrder/penConvertChance (pure functions of the taker) rather
+     * than the shootout's sudden-death sequencing machinery, which doesn't
+     * apply to a single in-play kick. Binary scored/saved outcome, matching
+     * how shootout penalties already work — no extra save/wide nuance added.
+     */
+    function resolveInPlayPenalty(fouledSide) {
+      const defSide = oppOf(fouledSide);
+      const taker = pickPenaltyOrder(fouledSide)[0];
+      if (!taker) return;
+      const spot = toPitchPct(fouledSide, 0.5, 0.895);
+      taker.left = spot.left;
+      taker.top = spot.top;
+      taker.tx = spot.left;
+      taker.ty = spot.top;
+      taker.lockUntil = matchMinute + 1.6;
+      retreatDefensiveShape(defSide, new Set());
+      const keeper = gkOf(defSide);
+      const keeperSpot = toPitchPct(defSide, 0.5, 0.02);
+      keeper.tx = keeperSpot.left;
+      keeper.ty = keeperSpot.top;
+      keeper.lockUntil = matchMinute + 1.6;
+
+      clearLastPasser();
+      spell = null;
+      pushMatchEvent("penalty", fouledSide, {
+        player: taker.player,
+        player_short: taker.short,
+        detail: "penalty awarded",
+        xg: 0.76,
+      });
+      say(`Penalty! ${taker.short} steps up`, 1.5);
+      updateHud();
+      maybeBroadcast(true);
+      giveBall(taker, null);
+      ballAttached = false;
+      phase = "FINISH";
+      if (spell) {
+        spell.chanceDone = true;
+        spell.stage = "FINISH";
+      }
+      liveXg[fouledSide] += 0.76;
+      matchLog.counts[fouledSide].xg = Math.round(liveXg[fouledSide] * 1000) / 1000;
+
+      const scored = rng() < penConvertChance(taker);
+      if (scored) {
+        const netLeft = attackGoalLeft();
+        const netTop = attackGoalTop(fouledSide);
+        const arc = passArcFor(spot.left, spot.top, netLeft, netTop, "through");
+        const dur = clamp(arc.dur * 0.85, 0.3, 0.5);
+        setBallTarget(netLeft, netTop, dur, false, arc.ctrl);
+        actionTimer = dur + 0.4;
+        ballFlight = { outcome: "goal", side: fouledSide };
+      } else {
+        const arc = passArcFor(spot.left, spot.top, keeper.left, keeper.top, "through");
+        const dur = clamp(arc.dur * 0.85, 0.3, 0.5);
+        setBallTarget(keeper.left, keeper.top, dur, false, arc.ctrl);
+        actionTimer = dur + 0.4;
+        ballFlight = { outcome: "save", interceptor: keeper, against: fouledSide, shooterShort: taker.short };
+      }
+    }
+
+    /**
+     * A foul just outside the box is a direct free kick in a genuinely
+     * dangerous position — the taker either shoots direct (gated by a wall,
+     * via doShot's wallBoost) or floats it into the box (reusing
+     * crossBoxTarget/cueBoxRuns, the same delivery mechanic wide open play
+     * already uses). How central the spot is drives the shoot-vs-cross
+     * split: central and close reads much more like "have a direct pop at
+     * goal," wide reads much more like "put it in the mixer."
+     */
+    function resolveDangerousFreeKick(fouledSide, carrier) {
+      const defSide = oppOf(fouledSide);
+      const spotLeft = carrier.left;
+      const spotTop = carrier.top;
+      const rel = fromPitchPct(fouledSide, spotLeft, spotTop);
+      const centrality = 1 - clamp(Math.abs(rel.x - 0.5) * 2.4, 0, 1);
+      const taker = pickPenaltyOrder(fouledSide)[0];
+      if (!taker) return;
+      taker.left = spotLeft;
+      taker.top = spotTop;
+      taker.tx = spotLeft;
+      taker.ty = spotTop;
+      taker.lockUntil = matchMinute + 1.5;
+
+      const goalTop = attackGoalTop(fouledSide);
+      const wallCount = clamp(Math.round(2 + centrality * 2), 2, 4);
+      const wallIds = formDefensiveWall(defSide, spotLeft, spotTop, 50, goalTop, wallCount);
+      retreatDefensiveShape(defSide, wallIds);
+
+      clearLastPasser();
+      spell = null;
+      giveBall(taker, `Free kick — ${taker.short} stands over it`);
+
+      const shootP = clamp(0.12 + centrality * 0.55 + (taker.stats.xg90 || 0) * 0.1, 0.08, 0.78);
+      if (rng() < shootP) {
+        doShot(taker, false, { wallBoost: 0.14 + centrality * 0.08 });
+      } else {
+        const mode = rng() < 0.5 ? "near" : "far";
+        cueBoxRuns(taker, mode);
+        const target = crossBoxTarget(taker, mode);
+        say(`${taker.short} whips one into the box`, 1.35);
+        doPass(taker, target, "cross");
+      }
+    }
+
+    function doShot(carrier, mustScore, opts) {
       if (ballFlight) return;
+      const wallBoost = (opts && opts.wallBoost) || 0;
       // Engine rebuild — physics realism (Problem 9). A shot previously had
       // zero wind-up: the ball started flying the instant the decision was
       // made, no plant-foot/backswing motion at all. Give the shooter's own
@@ -7796,8 +7972,15 @@
         // pressure at the shooter (pressureAt) instead of team quality alone.
         const shotPressure = pressureAt(carrier.left, carrier.top, carrier.side);
         const blockP =
-          0.1 + def * 0.18 - atk * 0.06 - carrier.stats.xg90 * 0.05 + (boxed ? 0 : 0.06) + shotPressure * 0.16 + (rng() - 0.5) * 0.06;
-        if (rng() < clamp(blockP, 0.03, shotPressure > 0.3 ? 0.55 : 0.22)) {
+          0.1 +
+          def * 0.18 -
+          atk * 0.06 -
+          carrier.stats.xg90 * 0.05 +
+          (boxed ? 0 : 0.06) +
+          shotPressure * 0.16 +
+          wallBoost +
+          (rng() - 0.5) * 0.06;
+        if (rng() < clamp(blockP, 0.03, shotPressure > 0.3 || wallBoost > 0 ? 0.62 : 0.22)) {
           const blocker =
             nearestOpponent(carrier, 9)?.pin ||
             pinsOf(oppOf(carrier.side)).find((p) => p.role === "CB") ||
