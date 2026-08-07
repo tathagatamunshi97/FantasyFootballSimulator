@@ -1328,40 +1328,48 @@ def execute_matchday_simulation() -> dict[str, Any]:
     }
 
 
+def _board_player_stats_row(st: dict[str, Any]) -> dict[str, Any]:
+    """Shared board-stats shape used for both starting lineup and bench rows."""
+    return {
+        "dribbles90": st.get("dribbles90", 0),
+        "dribble_pct": st.get("dribble_pct", 50),
+        "key_passes90": st.get("key_passes90", 0),
+        "xa90": st.get("xa90", 0),
+        "xg90": st.get("xg90", 0),
+        "npxg90": st.get("npxg90", 0),
+        "goals90": st.get("goals90", 0),
+        "shots90": st.get("shots90", 0),
+        "shots_on_target90": st.get("shots_on_target90", 0),
+        "understat_shots90": st.get("understat_shots90", 0),
+        "aerials_won90": st.get("aerials_won90", 0),
+        "aerials_won_pct": st.get("aerials_won_pct", 0),
+        "tackles90": st.get("tackles90", 0),
+        "interceptions90": st.get("interceptions90", 0),
+        "pass_pct": st.get("pass_pct", 75),
+    }
+
+
 def _board_side_payload(team: FantasyTeam, player_stats: dict[str, Any]) -> dict[str, Any]:
-    """Lineup + per-player board stats + unit ratings for the tactic board."""
+    """Lineup + bench + per-player board stats + unit ratings for the tactic board."""
     profile = build_team_profile(team, player_stats)
     extended = extended_metrics(team, player_stats)
     by_name = {p["player"]: p for p in profile.players}
     lineup = []
     for row in team_lineup_dict(team)["lineup"]:
         st = by_name.get(row["player"]) or {}
-        lineup.append(
-            {
-                **row,
-                "stats": {
-                    "dribbles90": st.get("dribbles90", 0),
-                    "dribble_pct": st.get("dribble_pct", 50),
-                    "key_passes90": st.get("key_passes90", 0),
-                    "xa90": st.get("xa90", 0),
-                    "xg90": st.get("xg90", 0),
-                    "npxg90": st.get("npxg90", 0),
-                    "goals90": st.get("goals90", 0),
-                    "shots90": st.get("shots90", 0),
-                    "shots_on_target90": st.get("shots_on_target90", 0),
-                    "understat_shots90": st.get("understat_shots90", 0),
-                    "aerials_won90": st.get("aerials_won90", 0),
-                    "aerials_won_pct": st.get("aerials_won_pct", 0),
-                    "tackles90": st.get("tackles90", 0),
-                    "interceptions90": st.get("interceptions90", 0),
-                    "pass_pct": st.get("pass_pct", 75),
-                },
-            }
-        )
+        lineup.append({**row, "stats": _board_player_stats_row(st)})
+    # Bench: available for in-match substitutions on the live tactic board.
+    # team.bench already excludes anyone in the starting lineup (see
+    # google_sheets_teams.team_payload_from_roster / team_lineups.apply_*).
+    bench = []
+    for name in team.bench or []:
+        st = by_name.get(name) or {}
+        bench.append({"player": name, "stats": _board_player_stats_row(st)})
     return {
         "name": team.name,
         "formation": team.formation,
         "lineup": lineup,
+        "bench": bench,
         "_unit": {
             "pressing_intensity": extended.get("pressing_intensity"),
             "press_resistance": extended.get("press_resistance"),

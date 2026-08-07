@@ -642,6 +642,12 @@
     const awayPins = buildPins(awayTeam, "away");
     const allPins = [...homePins, ...awayPins];
     const pinById = new Map(allPins.map((p) => [p.id, p]));
+    // Mid-match substitutions pull from here — mutated in place by
+    // substitutePlayer (outgoing player goes back on, incoming comes off).
+    const benchBySide = {
+      home: (homeTeam.bench || []).map((b) => ({ player: b.player, stats: b.stats || {} })),
+      away: (awayTeam.bench || []).map((b) => ({ player: b.player, stats: b.stats || {} })),
+    };
 
     const live = Boolean(opts.live ?? opts.organicGoals ?? opts.mode === "live");
     const viewerMode = Boolean(opts.viewerMode);
@@ -928,6 +934,7 @@
           <button type="button" class="btn-ghost btn-sm" data-tb-push="away">Away push</button>
           <button type="button" class="btn-ghost btn-sm" data-tb-sit="away">Away sit</button>
         </div>
+        <div class="tactic-subs" data-tb-subs ${hideControls || viewerMode ? "hidden" : ""}></div>
         <p class="muted tactic-note" data-tb-note>
           ${
             viewerMode
@@ -8196,6 +8203,15 @@
           top: Math.round(p.top * 100) / 100,
           tx: Math.round(p.tx * 100) / 100,
           ty: Math.round(p.ty * 100) / 100,
+          // Identity — normally static, but a mid-match substitution or
+          // formation change mutates these on the host; carrying them in
+          // every frame lets viewers pick the change up the same way they
+          // pick up any other state change, no separate protocol needed.
+          slot: p.slot,
+          role: p.role,
+          player: p.player,
+          short: p.short,
+          label: p.label,
           hasBall: p.id === carrierId,
           pressing: Boolean(p._pressing),
           running: Boolean(p._running),
@@ -8341,6 +8357,22 @@
           pin._running = Boolean(sp.running);
           if (sp.hasBall) carrierId = pin.id;
           const el = pinEls.get(pin.id);
+          // Identity — only changes on a host-side substitution or
+          // formation change; cheap to check every frame, only touches the
+          // DOM when it actually differs.
+          const identityChanged = sp.player && sp.player !== pin.player;
+          if (identityChanged) {
+            pin.player = sp.player;
+            pin.short = sp.short || pin.short;
+            pin.label = sp.label || pin.label;
+          }
+          if (sp.slot && sp.slot !== pin.slot) pin.slot = sp.slot;
+          if (sp.role && sp.role !== pin.role) pin.role = sp.role;
+          if (el && identityChanged) {
+            el.title = `${pin.player} (${pin.slot}) — click to favor`;
+            const labelEl = el.querySelector(".pin-label");
+            if (labelEl) labelEl.textContent = pin.label;
+          }
           if (el) {
             el.classList.toggle("has-ball", Boolean(sp.hasBall));
             el.classList.toggle("pressing", Boolean(sp.pressing));
@@ -9088,6 +9120,63 @@
     });
     if (htResumeBtn) htResumeBtn.addEventListener("click", () => resumeFromBreak());
 
+    // Engine addition — mid-match personnel controls UI (host only). Full
+    // re-render on every change rather than incremental DOM patching — the
+    // dropdown option lists (who's still on the bench, who can be subbed
+    // off) always need to stay in sync with substitutePlayer/changeFormation
+    // mutating homePins/awayPins/benchBySide, and this panel is small.
+    const subsEl = container.querySelector("[data-tb-subs]");
+    function renderSubsPanel() {
+      if (!subsEl || viewerMode) return;
+      function sideBlock(side, label) {
+        const sidePins = side === "home" ? homePins : awayPins;
+        const bench = benchBySide[side] || [];
+        const outOptions = sidePins
+          .map((p) => `<option value="${escHtml(p.id)}">${escHtml(p.short)} (${escHtml(p.slot)})</option>`)
+          .join("");
+        const inOptions = bench
+          .map((b) => `<option value="${escHtml(b.player)}">${escHtml(b.player)}</option>`)
+          .join("");
+        const teamFormation = side === "home" ? homeTeam.formation : awayTeam.formation;
+        const formOptions = Object.keys(FORMATION_LAYOUTS)
+          .map(
+            (f) =>
+              `<option value="${escHtml(f)}"${f === teamFormation ? " selected" : ""}>${escHtml(f)}</option>`
+          )
+          .join("");
+        const subRow = bench.length
+          ? `<select data-tb-sub-out="${side}">${outOptions}</select>
+             <select data-tb-sub-in="${side}">${inOptions}</select>
+             <button type="button" class="btn-ghost btn-sm" data-tb-sub-go="${side}">Sub</button>`
+          : `<span class="muted" style="font-size:0.78rem">No bench players</span>`;
+        return `<div class="tactic-subs-side">
+          <span class="muted" style="font-size:0.78rem">${escHtml(label)}</span>
+          ${subRow}
+          <select data-tb-formation="${side}">${formOptions}</select>
+          <button type="button" class="btn-ghost btn-sm" data-tb-formation-go="${side}">Change</button>
+        </div>`;
+      }
+      subsEl.innerHTML = sideBlock("home", "Home") + sideBlock("away", "Away");
+      subsEl.querySelectorAll("[data-tb-sub-go]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const side = btn.dataset.tbSubGo;
+          const outSel = subsEl.querySelector(`[data-tb-sub-out="${side}"]`);
+          const inSel = subsEl.querySelector(`[data-tb-sub-in="${side}"]`);
+          if (!outSel || !inSel || !inSel.value) return;
+          if (substitutePlayer(side, outSel.value, inSel.value)) renderSubsPanel();
+        });
+      });
+      subsEl.querySelectorAll("[data-tb-formation-go]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const side = btn.dataset.tbFormationGo;
+          const sel = subsEl.querySelector(`[data-tb-formation="${side}"]`);
+          if (!sel || !sel.value || sel.value === (side === "home" ? homeTeam.formation : awayTeam.formation)) return;
+          if (changeFormation(side, sel.value)) renderSubsPanel();
+        });
+      });
+    }
+    renderSubsPanel();
+
     function fmtUnit(v) {
       const n = Number(v);
       return Number.isFinite(n) ? n.toFixed(2) : "—";
@@ -9148,6 +9237,86 @@
       play();
     }
 
+    // Engine addition — mid-match personnel controls (host-side only; a
+    // substitution/formation change made here gets picked up by viewers
+    // through the next broadcast frame's pin identity fields, same as any
+    // other target/state change).
+    function getBench(side) {
+      return (benchBySide[side] || []).map((b) => b.player);
+    }
+
+    function substitutePlayer(side, outPinId, benchPlayerName) {
+      const pin = pinById.get(outPinId);
+      if (!pin || pin.side !== side) return false;
+      const bench = benchBySide[side] || [];
+      const idx = bench.findIndex((b) => b.player === benchPlayerName);
+      if (idx === -1) return false;
+      const incoming = bench[idx];
+      // Outgoing player takes the vacated bench spot — same shape as the
+      // one being filled, so a sub can be reversed later if needed.
+      bench.splice(idx, 1, { player: pin.player, stats: pin.stats });
+      pin.player = incoming.player;
+      pin.short = shortName(incoming.player);
+      pin.label = initials(incoming.player);
+      pin.stats = mergeStats(pin.roleFilter || pin.slot, incoming.stats || {});
+      const el = pinEls.get(pin.id);
+      if (el) {
+        el.title = `${pin.player} (${pin.slot}) — click to favor`;
+        const labelEl = el.querySelector(".pin-label");
+        if (labelEl) labelEl.textContent = pin.label;
+      }
+      return true;
+    }
+
+    function applyFormationSlot(pin, slot, coord) {
+      pin.slot = slot;
+      pin.role = roleOf(slot);
+      pin.roleFilter = "";
+      pin.baseX = coord[0];
+      pin.baseDepth = coord[1];
+      pin.stats = mergeStats(slot, pin.stats);
+    }
+
+    function changeFormation(side, newFormation) {
+      const layout = FORMATION_LAYOUTS[newFormation];
+      if (!layout) return false;
+      const sidePins = side === "home" ? homePins : awayPins;
+      const newSlots = Object.keys(layout);
+      const byRole = new Map();
+      for (const slot of newSlots) {
+        const role = roleOf(slot);
+        if (!byRole.has(role)) byRole.set(role, []);
+        byRole.get(role).push(slot);
+      }
+      const assigned = new Set();
+      const usedSlots = new Set();
+      // First pass: keep each pin on a same-role slot if one's free — a CB
+      // stays a CB, a winger stays a winger, no positions reshuffled just
+      // because the formation label changed.
+      for (const pin of sidePins) {
+        const candidates = byRole.get(pin.role) || [];
+        const freeSlot = candidates.find((s) => !usedSlots.has(s));
+        if (freeSlot) {
+          usedSlots.add(freeSlot);
+          assigned.add(pin.id);
+          applyFormationSlot(pin, freeSlot, layout[freeSlot]);
+        }
+      }
+      // Second pass: whatever's left (role counts differ between the old
+      // and new formation, e.g. 4-4-2 -> 4-3-3) fills remaining slots in
+      // whatever order — a coarser fallback, but every pin still lands on
+      // a valid slot.
+      const leftoverSlots = newSlots.filter((s) => !usedSlots.has(s));
+      const leftoverPins = sidePins.filter((p) => !assigned.has(p.id));
+      leftoverPins.forEach((pin, i) => {
+        const slot = leftoverSlots[i];
+        if (slot) applyFormationSlot(pin, slot, layout[slot]);
+      });
+      if (side === "home") homeTeam.formation = newFormation;
+      else awayTeam.formation = newFormation;
+      return true;
+    }
+
     return {
       play,
       pause,
@@ -9158,6 +9327,9 @@
       applyBroadcastState,
       getBroadcastFrame: getBroadcastState,
       applyFrame: applyBroadcastState,
+      getBench,
+      substitutePlayer,
+      changeFormation,
       startMirrorLoop: () => {
         if (!viewerMode) return;
         playing = false;
