@@ -6145,7 +6145,18 @@
           // multiplier here, scaling every outfield pin's distance from the
           // pitch centreline as one coherent unit (GK excluded — keepers
           // don't stretch/compress with team shape).
-          if (pin.role !== "GK") xx = clamp(0.5 + (xx - 0.5) * teamWidth, 0.03, 0.97);
+          // Experiment — width-elasticity amplitude A/B (follow-on to the
+          // arc-wobble test). Measured (see
+          // docs/experiments/target-drift-decomposition.md): this per-pin
+          // width multiplier is 30.3% of gross off-ball target churn (active
+          // on 82.7% of calls) and, like wobble, its direction is
+          // statistically uncorrelated with tactical intent (mean cosine
+          // ~0.013). Damping only the multiplier's DEVIATION from 1 (not
+          // `teamWidthSmooth`/`widthTarget` themselves, which stay fully
+          // tactical/stage-aware) keeps this a single-variable change.
+          const ELASTICITY_TEST_SCALE = 0.3;
+          const dampedTeamWidth = 1 + (teamWidth - 1) * ELASTICITY_TEST_SCALE;
+          if (pin.role !== "GK") xx = clamp(0.5 + (xx - 0.5) * dampedTeamWidth, 0.03, 0.97);
           // Engine fix — Milestone 4: defensive panic, continuous edition.
           // A coin-flip gate (rng() < boxThreat*0.35) meant most ticks
           // nothing happened even under real overload — a real back line
