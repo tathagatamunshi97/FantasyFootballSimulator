@@ -6017,6 +6017,56 @@
           if (carrier && carrier.side === side) {
             assignSupportRoles(side, carrier, pins);
             ensurePassingNetwork(side, carrier, pending);
+
+            // Engine addition — front-three relational movement. With a
+            // CM/AM on the ball, the striker and both wingers previously
+            // computed position independently (stCycle/amCycle/pattern
+            // selection are all self-contained, per the off-ball audit) —
+            // no awareness of what the OTHER front players are doing right
+            // now. Read live position (not an internal cycle flag) so this
+            // reacts to the striker/winger actually being short, whatever
+            // caused it, same "read the real situation" approach as the
+            // winger-tracks-back chain above.
+            if (carrier.role === "CM" || carrier.role === "AM") {
+              const offLine = defendingOffsideLine(side);
+              const stEntry = pending.find((p) => p.pin.role === "ST");
+              const wEntries = pending.filter((p) => p.pin.role === "W");
+              const stRel = stEntry ? fromPitchPct(side, stEntry.pin.left, stEntry.pin.top) : null;
+              const stShort = Boolean(stRel && stRel.depth < offLine - 0.14);
+
+              if (stShort && wEntries.length) {
+                // Striker's dropped short — each winger exploits the space
+                // he vacated: run beyond if there's room, or hold the
+                // touchline to isolate their marker 1v1 if tightly held.
+                for (const wEntry of wEntries) {
+                  const nearOpp = nearestOpponent(wEntry.pin, 9);
+                  if (nearOpp && nearOpp.d < 5) {
+                    wEntry.x = lerp(wEntry.x, wEntry.pin.baseX, 0.35);
+                  } else {
+                    wEntry.depth = Math.max(wEntry.depth, lerp(wEntry.depth, offLine + 0.02, 0.4));
+                  }
+                }
+              } else if (wEntries.length) {
+                const shortW = wEntries.find((w) => {
+                  const wRel = fromPitchPct(side, w.pin.left, w.pin.top);
+                  return wRel.depth < offLine - 0.16;
+                });
+                if (shortW) {
+                  // A winger's dropped short — the striker and the OTHER
+                  // winger peel off the resulting central crowding to
+                  // stretch the defense, rather than also drifting inward.
+                  const otherW = wEntries.find((w) => w.pin.id !== shortW.pin.id);
+                  if (otherW) {
+                    otherW.x = lerp(otherW.x, otherW.pin.baseX, 0.3);
+                    otherW.depth = Math.max(otherW.depth, lerp(otherW.depth, offLine, 0.3));
+                  }
+                  if (stEntry) {
+                    stEntry.x = lerp(stEntry.x, 0.5 + (stEntry.pin.baseX - 0.5) * 0.6, 0.3);
+                    stEntry.depth = Math.max(stEntry.depth, lerp(stEntry.depth, offLine, 0.3));
+                  }
+                }
+              }
+            }
           }
         }
 
