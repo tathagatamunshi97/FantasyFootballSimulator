@@ -3650,13 +3650,26 @@
       const last = spell?.lastPattern || spell?.pattern;
       const centralBall = Math.abs(carrier.left - 50) < 20;
 
+      // Engine rebuild — central-carry nerf. wCentral used to pick up the
+      // SAME team-quality/passing terms (create/atk/key_passes90/pass_pct)
+      // no matter who had the ball or where — a CB or DM with decent passing
+      // stats got pulled toward "central" almost as strongly as an actual
+      // playmaker, while wWing/wCut only reached comparable magnitude when
+      // the carrier was genuinely a W/FB. That role-agnostic inflation was
+      // the real source of "central carry is extremely overpowered, wing
+      // carry almost never happens" from a full tournament of real play —
+      // not a doDribble/doCarry success-rate bias (verified neither
+      // function has one). Trimmed the role-agnostic terms here and in
+      // wWing/wCut/wSwitch's own bases below; left the genuinely
+      // situational signals (CM/AM role bonus, hasCM, centralBall, ad,
+      // depth/stage/urgency) untouched.
       let wCentral =
-        1.15 +
-        create * 0.85 +
-        atk * 0.25 +
-        st.key_passes90 * 0.28 +
-        st.pass_pct * 0.004 +
-        (carrier.role === "CM" || carrier.role === "AM" ? 0.95 : 0.15) +
+        0.85 +
+        create * 0.55 +
+        atk * 0.15 +
+        st.key_passes90 * 0.16 +
+        st.pass_pct * 0.003 +
+        (carrier.role === "CM" || carrier.role === "AM" ? 0.95 : 0.08) +
         (hasCM ? 0.35 : -0.4) +
         (centralBall ? 0.35 : -0.15) +
         Math.max(0, ad) * 0.55;
@@ -3665,16 +3678,16 @@
       if (urg >= 0.85) wCentral += 0.45 + Math.max(0, ad) * 0.35;
 
       let wSwitch = hasW
-        ? 0.35 + create * 0.35 + st.xa90 * 0.55 + (centralBall ? 0.45 : 0.08) + (carrier.role === "CM" ? 0.25 : 0)
+        ? 0.45 + create * 0.4 + st.xa90 * 0.6 + (centralBall ? 0.5 : 0.1) + (carrier.role === "CM" ? 0.25 : 0)
         : 0.04;
       if (bestFlankEdge > 0.15 && (edgeL < -0.05 || edgeR < -0.05)) wSwitch += 0.55 + bestFlankEdge * 0.6;
       if (depth >= 0.35 && depth < 0.72) wSwitch += 0.12;
 
       let wWing =
         carrier.role === "W" || carrier.role === "FB"
-          ? 0.95 + st.dribbles90 * 0.4 + st.xa90 * 1.15 + (isWideChannel(carrier) ? 0.55 : 0.1)
+          ? 1.2 + st.dribbles90 * 0.45 + st.xa90 * 1.25 + (isWideChannel(carrier) ? 0.7 : 0.15)
           : hasW
-            ? 0.4 + create * 0.35 + (depth > 0.42 ? 0.3 : 0)
+            ? 0.5 + create * 0.4 + (depth > 0.42 ? 0.35 : 0)
             : 0.08;
       if (isWideChannel(carrier) && depth >= 0.55) wWing += 0.65;
       wWing += bestFlankEdge * 0.75;
@@ -3684,9 +3697,9 @@
 
       let wCut =
         carrier.role === "W"
-          ? 0.75 + st.dribbles90 * 0.32 + st.xg90 * 0.75 + (isWideChannel(carrier) ? 0.45 : 0)
+          ? 0.9 + st.dribbles90 * 0.35 + st.xg90 * 0.8 + (isWideChannel(carrier) ? 0.5 : 0)
           : carrier.role === "AM"
-            ? 0.35 + st.dribbles90 * 0.16 + st.xg90 * 0.2
+            ? 0.4 + st.dribbles90 * 0.16 + st.xg90 * 0.2
             : 0.12;
       if (depth >= 0.5) wCut += 0.2;
       if (ad > 0.1 && isFinalThirdStage(stage)) wCut += 0.35;
