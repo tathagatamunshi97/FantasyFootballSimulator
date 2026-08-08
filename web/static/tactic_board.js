@@ -7528,7 +7528,13 @@
           0,
           1
         );
-        const foulP = (0.22 - duelQuality * 0.14) + (inPenaltyBox(carrier) ? 0.1 : 0);
+        // Secondary signal from real card history -- duelQuality (tackles90/
+        // interceptions90-derived) stays the primary driver per the original
+        // design; this only sharpens it for a defender whose actual
+        // disciplinary record runs worse than their tackling numbers alone
+        // would predict. Bounded well below duelQuality's own swing.
+        const cardNudge = clamp((opp.stats.yellow_cards90 || 0) * 0.06 + (opp.stats.red_cards90 || 0) * 0.1, 0, 0.04);
+        const foulP = (0.22 - duelQuality * 0.14) + (inPenaltyBox(carrier) ? 0.1 : 0) + cardNudge;
         if (opp && rng() < foulP) {
           pushMatchEvent("foul", opp.side, {
             player: opp.player,
@@ -7545,7 +7551,12 @@
           // just more frequent. Gate: no second yellow yet (send-off/
           // 10-v-11 isn't built) — a player already on a caution this match
           // just can't pick up another one for the moment.
-          const recklessP = 0.35 - duelQuality * 0.25;
+          const recklessCardNudge = clamp(
+            (opp.stats.yellow_cards90 || 0) * 0.1 + (opp.stats.red_cards90 || 0) * 0.2,
+            0,
+            0.05
+          );
+          const recklessP = 0.35 - duelQuality * 0.25 + recklessCardNudge;
           if ((opp._yellowCards || 0) < 1 && rng() < recklessP) {
             opp._yellowCards = (opp._yellowCards || 0) + 1;
             pushMatchEvent("yellow_card", opp.side, {
