@@ -474,6 +474,10 @@
       key_passes90: num(s.key_passes90, g.key_passes90),
       xa90: num(s.xa90, g.xa90),
       xg90: numPos(s.xg90 ?? s.npxg90, g.xg90),
+      // Distinct from xg90 above (which folds npxg90 in only as a missing-
+      // data fallback) -- kept separate so open-play decisions can use a
+      // penalty-free threat number. See openPlayXg().
+      npxg90: numPos(s.npxg90 ?? s.xg90, g.xg90),
       shots90: shots,
       shots_on_target90: num(s.shots_on_target90, Math.max(0.4, shots * 0.4)),
       goals90: num(s.goals90, 0),
@@ -1294,35 +1298,47 @@
       if (xgAEl) xgAEl.textContent = liveXg.away.toFixed(2);
     }
 
+    /**
+     * xg90 includes penalty history, which has nothing to do with a specific
+     * open-play look. npxg90 (now its own field on .stats, see mergeStats)
+     * is the right signal for open-play decisions; penalty-specific
+     * functions (penConvertChance, pickPenaltyOrder) keep reading raw xg90
+     * on purpose, since penalty conversion is exactly what that captures.
+     */
+    function openPlayXg(pin) {
+      return (pin && pin.stats && (pin.stats.npxg90 || pin.stats.xg90)) || 0;
+    }
+
     function estimateChanceXg(carrier, chanceType) {
       const d = possessionDepth(carrier);
       const create = sideCreate(carrier.side);
       const boxed = inPenaltyBox(carrier);
       const near = nearPenaltyBox(carrier);
       const ready = boxOccupationReady(carrier.side);
+      const carrierXg = openPlayXg(carrier);
       let kind = chanceType;
       if (kind === "big_chance" && (!boxed || !ready)) kind = "shot";
       let base;
       let floor;
       let ceil;
       if (boxed && ready && kind === "big_chance") {
-        base = 0.28 + carrier.stats.xg90 * 0.2 + create * 0.07;
+        base = 0.28 + carrierXg * 0.2 + create * 0.07;
         floor = 0.16 + create * 0.05;
         ceil = 0.68;
       } else if (boxed && ready) {
-        base = 0.15 + carrier.stats.xg90 * 0.14 + create * 0.05;
+        base = 0.15 + carrierXg * 0.14 + create * 0.05;
         floor = 0.1 + create * 0.03;
         ceil = 0.42;
       } else if (boxed && !ready) {
-        base = 0.1 + carrier.stats.xg90 * 0.06;
+        base = 0.1 + carrierXg * 0.06;
         floor = 0.07;
         ceil = 0.18;
       } else if (near) {
-        base = 0.07 + carrier.stats.xg90 * 0.05 + create * 0.02;
+        base = 0.07 + carrierXg * 0.05 + create * 0.02;
         floor = 0.04;
         ceil = 0.14;
       } else {
-        base = 0.035 + carrier.stats.xg90 * 0.03;
+        base = 0.035 + carrierXg * 0.03;
         floor = 0.025;
         ceil = 0.11;
       }
@@ -1896,7 +1912,17 @@
         if (d >= PRESSURE_RADIUS) continue;
         const proximity = 1 - d / PRESSURE_RADIUS;
         const closing = opp._pressing || opp._running ? 1.2 : 1;
-        const quality = 0.4 + (opp.stats.tackles90 || 0) * 0.08 + (opp.stats.interceptions90 || 0) * 0.04;
+        // ball_recoveries90 (loose-ball wins, distinct from clean tackles)
+        // and clearances90 (CB/FB last-line defending) are secondary nudges
+        // on top of the existing tackles90/interceptions90-driven quality.
+        const clearanceBonus =
+          opp.role === "CB" || opp.role === "FB" ? (opp.stats.clearances90 || 0) * 0.02 : 0;
+        const quality =
+          0.4 +
+          (opp.stats.tackles90 || 0) * 0.08 +
+          (opp.stats.interceptions90 || 0) * 0.04 +
+          (opp.stats.ball_recoveries90 || 0) * 0.02 +
+          clearanceBonus;
         total += proximity * proximity * closing * quality;
       }
       return total;
@@ -2357,6 +2383,11 @@
     /** A real-world clinical finisher: historically outscores their own xG. */
     function isClinicalFinisher(pin) {
       return Boolean(pin && pin.stats && pin.stats.goals90 > pin.stats.xg90);
+    }
+
+    /** Mirrors isClinicalFinisher for creators: historically outscores their own xA. */
+    function isClinicalCreator(pin) {
+      return Boolean(pin && pin.stats && pin.stats.assists90 > pin.stats.xa90);
     }
 
     /** Forward line (ST/W/AM) collectively within 5% of its combined xG, or ahead of it. */
@@ -3065,6 +3096,8 @@
             behind * 0.1 +
             m.stats.pass_pct * 0.016 +
             m.stats.key_passes90 * 0.08 +
+            (m.stats.xg_buildup90 || 0) * 0.2 +
+            (m.stats.xg_chain90 || 0) * 0.1 +
             roleBias -
             dist(carrier, m) * 0.03 +
             rng() * 0.3,
@@ -3087,17 +3120,17 @@
         const fqA = finisherQuality(a) * 0.55;
         const fqB = finisherQuality(b) * 0.55;
         return (
-          b.stats.xg90 * 1.55 +
+          openPlayXg(b) * 1.55 +
           b.stats.shots90 * 0.16 +
           boxB +
           fb +
           roleB +
           fqB -
-          (a.stats.xg90 * 1.55 + a.stats.shots90 * 0.16 + boxA + fa + roleA + fqA)
+          (openPlayXg(a) * 1.55 + a.stats.shots90 * 0.16 + boxA + fa + roleA + fqA)
         );
       });
       const best = mates[0];
-      if (inPenaltyBox(carrier) && carrier.stats.xg90 >= best.stats.xg90 * 0.7) return carrier;
+      if (inPenaltyBox(carrier) && openPlayXg(carrier) >= openPlayXg(best) * 0.7) return carrier;
       // Focal #9 with real shot volume should receive the ball more often
       const feedP =
         best.role === "ST" && finisherQuality(best) >= 0.55
@@ -3496,6 +3529,13 @@
           m.stats.key_passes90 * 0.38 +
           m.stats.xa90 * 1.55 +
           m.stats.pass_pct * 0.005 +
+          // How central this player really is to buildup that ends in a
+          // shot -- a more direct signal than key_passes90/pass_pct alone.
+          (m.stats.xg_buildup90 || 0) * 0.6 +
+          (m.stats.xg_chain90 || 0) * 0.3 +
+          // A teammate who reliably sets up a genuine big chance next is a
+          // better progression target than raw creativity stats capture.
+          (m.stats.big_chances_created90 || 0) * 0.5 +
           (m.role === "ST" || m.role === "AM" ? m.stats.xg90 * 0.55 : 0);
         const space = m._running ? 0.9 : 0;
         return { m, score: hub + centralBias + create + space - dist(carrier, m) * 0.02 + rng() * 0.4 };
@@ -3731,9 +3771,9 @@
 
       let wCut =
         carrier.role === "W"
-          ? 0.9 + st.dribbles90 * 0.35 + st.xg90 * 0.8 + (isWideChannel(carrier) ? 0.5 : 0)
+          ? 0.9 + st.dribbles90 * 0.35 + openPlayXg(carrier) * 0.8 + (isWideChannel(carrier) ? 0.5 : 0)
           : carrier.role === "AM"
-            ? 0.4 + st.dribbles90 * 0.16 + st.xg90 * 0.2
+            ? 0.4 + st.dribbles90 * 0.16 + openPlayXg(carrier) * 0.2
             : 0.12;
       if (depth >= 0.5) wCut += 0.2;
       if (ad > 0.1 && isFinalThirdStage(stage)) wCut += 0.35;
@@ -7124,7 +7164,12 @@
 
       if (threat && !(replayScore && nextScheduledGoal(possession, matchMinute))) {
         const def = threat.pin;
-        const longPen = passKind === "long" || isLongSkip(from, to) ? 0.2 : 0;
+        // A real long-ball specialist (volume + accuracy) is genuinely
+        // better at hitting this pass than the flat penalty assumed.
+        const longSpecialist = passKind === "long" || isLongSkip(from, to);
+        const longPen = longSpecialist
+          ? clamp(0.2 - (from.stats.long_balls90 || 0) * 0.006 - ((from.stats.long_ball_pct || 55) - 55) * 0.002, 0.06, 0.22)
+          : 0;
         // Engine fix — through balls had no risk premium of their own at
         // all: the interception cap and formula treated "slips it through"
         // identically to a routine short pass (capped at the same 0.3, no
@@ -7157,7 +7202,13 @@
           possQ * 0.055 -
           atkU * 0.04 -
           from.stats.pass_pct * 0.0015 -
-          from.stats.key_passes90 * 0.008 +
+          from.stats.key_passes90 * 0.008 -
+          // A creator who genuinely outscores their own xA in assists
+          // threads passes better than pass_pct/key_passes90 alone predict.
+          (isClinicalCreator(from) ? 0.015 : 0) +
+          // Generic ball-security signal — a passer who loses possession a
+          // lot in real matches is a bit sloppier even before live pressure.
+          (from.stats.possession_lost90 || 0) * 0.0015 +
           longPen +
           throughPen +
           lanePen +
@@ -7390,7 +7441,12 @@
         Math.max(0, fieldPressure - resist * 1.6) * 0.16 -
         defU * 0.08 -
         (threat ? threat.pin.stats.tackles90 * 0.07 : 0) -
-        (threat ? threat.pin.stats.interceptions90 * 0.02 : 0) -
+        (threat ? threat.pin.stats.interceptions90 * 0.02 : 0) +
+        // General physical-duel modifier, centered on the 50 neutral
+        // fallback -- additive to dribble_pct (attack-specific) and
+        // tackles90 (defence-specific) above, not a replacement for either.
+        (carrier.stats.duels_won_pct - 50) * 0.003 -
+        (threat ? (threat.pin.stats.duels_won_pct - 50) * 0.003 : 0) -
         Math.min(streak, 4) * 0.11 -
         (freshDefender ? 0.16 : 0) -
         (backToGoal ? 0.12 : 0) -
@@ -7558,6 +7614,10 @@
             resist * 0.08 -
             carrier.stats.dribbles90 * 0.03 +
             fieldPressure * 0.09 +
+            // Generic ball-security baseline (see doPass's pIntercept for
+            // the passer-side equivalent) -- sloppier real-match carriers
+            // lose the ball more even before live pressure is applied.
+            (carrier.stats.possession_lost90 || 0) * 0.0015 +
             (scrambling ? 0.07 : 0) +
             (backToGoal ? 0.06 : 0) +
             (rng() - 0.5) * 0.04) *
@@ -7668,12 +7728,21 @@
         : 0;
       const eliteBoost = roleFin ? clamp((fq - 0.42) * 0.24, 0, 0.2) : 0;
       const roleBox = roleFin && boxed ? 0.045 : 0;
+      // Real profligacy rate on big chances specifically -- independent of
+      // the live anti-drought missBoost below (which only reacts to THIS
+      // match's own streak), a real wasteful-in-front-of-goal history nudges
+      // the baseline down a little.
+      const profligacy =
+        roleFin && chanceType === "big_chance"
+          ? clamp((carrier.stats.big_chances_missed90 || 0) * 0.015, 0, 0.1)
+          : 0;
       const p =
         (0.05 +
           carrier.stats.xg90 * xgW +
           carrier.stats.shots90 * shW +
           goals * goalsW +
-          clinical +
+          clinical -
+          profligacy +
           atk * 0.16 -
           def * 0.14 +
           skillGap * 0.14 +
@@ -8018,6 +8087,13 @@
         // requires someone genuinely in the lane, so gate/scale it on real
         // pressure at the shooter (pressureAt) instead of team quality alone.
         const shotPressure = pressureAt(carrier.left, carrier.top, carrier.side);
+        // Resolved before blockP so the actual candidate blocker's own
+        // shot-blocking rate (blocks90) can factor into the probability,
+        // not just team-level `def`.
+        const blockerCandidate =
+          nearestOpponent(carrier, 9)?.pin ||
+          pinsOf(oppOf(carrier.side)).find((p) => p.role === "CB") ||
+          keeper;
         const blockP =
           0.1 +
           def * 0.18 -
@@ -8025,13 +8101,11 @@
           carrier.stats.xg90 * 0.05 +
           (boxed ? 0 : 0.06) +
           shotPressure * 0.16 +
+          (blockerCandidate?.stats?.blocks90 || 0) * 0.03 +
           wallBoost +
           (rng() - 0.5) * 0.06;
         if (rng() < clamp(blockP, 0.03, shotPressure > 0.3 || wallBoost > 0 ? 0.62 : 0.22)) {
-          const blocker =
-            nearestOpponent(carrier, 9)?.pin ||
-            pinsOf(oppOf(carrier.side)).find((p) => p.role === "CB") ||
-            keeper;
+          const blocker = blockerCandidate;
           const blockArc = passArcFor(carrier.left, carrier.top, blocker.left, blocker.top, "through");
           setBallTarget(blocker.left, blocker.top, clamp(blockArc.dur * 0.7, 0.2, 0.38), false, blockArc.ctrl);
           actionTimer = clamp(blockArc.dur * 0.7, 0.2, 0.38) + 0.3;
@@ -8898,6 +8972,8 @@
       const rank = (p) =>
         (p.stats.xg90 || 0) * 2.2 +
         (p.stats.shots90 || 0) * 0.08 +
+        // Specialist-taker signal, distinct from open-play threat.
+        (p.stats.penalty_goals90 || 0) * 1.5 +
         (p.role === "ST" ? 0.35 : p.role === "AM" ? 0.22 : p.role === "W" ? 0.15 : 0);
       return [...pins].sort((a, b) => rank(b) - rank(a));
     }
@@ -8909,6 +8985,7 @@
         0.7 +
         (taker.stats.xg90 || 0) * 0.1 +
         fin * 0.1 +
+        (taker.stats.penalty_goals90 || 0) * 0.06 +
         (taker.role === "ST" || taker.role === "AM" ? 0.04 : 0);
       return clamp(base * (0.85 + 0.15 * form), 0.52, 0.9);
     }
