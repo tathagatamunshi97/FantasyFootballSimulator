@@ -1299,6 +1299,24 @@
     }
 
     /**
+     * Team-context adjustment from goals_conceded90 (via the server-computed
+     * goals_conceded_percentile, ranked against the full match player pool
+     * -- see web/tournament.py's _percentile_ranks). Per the user's own
+     * framing: a player who posted good individual numbers for a leaky-
+     * defense team is quietly better than their raw stats suggest, since
+     * their team gave them a worse platform. Bounded to a modest nudge
+     * (0.92-1.10), not a dominant factor. Scoped to openPlayXg (below) --
+     * the single, already-reused "how threatening is this attacker really"
+     * signal from Batch B -- rather than sprinkled across every formula.
+     */
+    function sideContextMul(side) {
+      const pins = pinsOf(side).filter((p) => p.role !== "GK");
+      if (!pins.length) return 1;
+      const avg = pins.reduce((s, p) => s + (p.stats.goals_conceded_percentile ?? 0.5), 0) / pins.length;
+      return clamp(0.92 + avg * 0.18, 0.92, 1.1);
+    }
+
+    /**
      * xg90 includes penalty history, which has nothing to do with a specific
      * open-play look. npxg90 (now its own field on .stats, see mergeStats)
      * is the right signal for open-play decisions; penalty-specific
@@ -1306,7 +1324,9 @@
      * on purpose, since penalty conversion is exactly what that captures.
      */
     function openPlayXg(pin) {
-      return (pin && pin.stats && (pin.stats.npxg90 || pin.stats.xg90)) || 0;
+      if (!pin || !pin.stats) return 0;
+      const raw = pin.stats.npxg90 || pin.stats.xg90 || 0;
+      return raw * sideContextMul(pin.side);
     }
 
     function estimateChanceXg(carrier, chanceType) {
