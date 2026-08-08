@@ -1346,7 +1346,43 @@ def _board_player_stats_row(st: dict[str, Any]) -> dict[str, Any]:
         "tackles90": st.get("tackles90", 0),
         "interceptions90": st.get("interceptions90", 0),
         "pass_pct": st.get("pass_pct", 75),
+        # Wired in for the live tactic-board engine (previously stopped here).
+        "rating": st.get("rating", 0),
+        "assists90": st.get("assists90", 0),
+        "clearances90": st.get("clearances90", 0),
+        "blocks90": st.get("blocks90", 0),
+        "ball_recoveries90": st.get("ball_recoveries90", 0),
+        "duels_won_pct": st.get("duels_won_pct", 0),
+        "long_balls90": st.get("long_balls90", 0),
+        "long_ball_pct": st.get("long_ball_pct", 0),
+        "big_chances_created90": st.get("big_chances_created90", 0),
+        "big_chances_missed90": st.get("big_chances_missed90", 0),
+        "possession_lost90": st.get("possession_lost90", 0),
+        "penalty_goals90": st.get("penalty_goals90", 0),
+        "xg_chain90": st.get("xg_chain90", 0),
+        "xg_buildup90": st.get("xg_buildup90", 0),
+        "saves90": st.get("saves90", 0),
+        "goals_prevented90": st.get("goals_prevented90", 0),
+        "goals_conceded90": st.get("goals_conceded90", 0),
+        "clean_sheet_pct": st.get("clean_sheet_pct", 0),
+        "yellow_cards90": st.get("yellow_cards90", 0),
+        "red_cards90": st.get("red_cards90", 0),
     }
+
+
+def _percentile_ranks(values: dict[str, float]) -> dict[str, float]:
+    """0-1 percentile rank per key, among entries with a real (nonzero) value.
+
+    Missing/zero data is excluded from the ranking pool rather than forced to
+    the bottom percentile -- callers should treat an absent key as "no
+    signal", not "worst possible".
+    """
+    present = {k: v for k, v in values.items() if v}
+    if len(present) < 2:
+        return {}
+    ordered = sorted(present.items(), key=lambda kv: kv[1])
+    n = len(ordered)
+    return {k: i / (n - 1) for i, (k, _v) in enumerate(ordered)}
 
 
 def _board_side_payload(team: FantasyTeam, player_stats: dict[str, Any]) -> dict[str, Any]:
@@ -1354,17 +1390,29 @@ def _board_side_payload(team: FantasyTeam, player_stats: dict[str, Any]) -> dict
     profile = build_team_profile(team, player_stats)
     extended = extended_metrics(team, player_stats)
     by_name = {p["player"]: p for p in profile.players}
+    # player_stats already covers both sides of this match (prepare_match_player_stats
+    # resolves team_a + team_b together) -- a real percentile against that combined
+    # pool, not a fixed-reference guess like elsewhere in the engine.
+    rating_pct = _percentile_ranks({name: p.rating for name, p in player_stats.items()})
+    conceded_pct = _percentile_ranks({name: p.goals_conceded90 for name, p in player_stats.items()})
+
+    def _row(name: str, st: dict[str, Any]) -> dict[str, Any]:
+        row = _board_player_stats_row(st)
+        row["rating_percentile"] = rating_pct.get(name, 0.5)
+        row["goals_conceded_percentile"] = conceded_pct.get(name, 0.5)
+        return row
+
     lineup = []
     for row in team_lineup_dict(team)["lineup"]:
         st = by_name.get(row["player"]) or {}
-        lineup.append({**row, "stats": _board_player_stats_row(st)})
+        lineup.append({**row, "stats": _row(row["player"], st)})
     # Bench: available for in-match substitutions on the live tactic board.
     # team.bench already excludes anyone in the starting lineup (see
     # google_sheets_teams.team_payload_from_roster / team_lineups.apply_*).
     bench = []
     for name in team.bench or []:
         st = by_name.get(name) or {}
-        bench.append({"player": name, "stats": _board_player_stats_row(st)})
+        bench.append({"player": name, "stats": _row(name, st)})
     return {
         "name": team.name,
         "formation": team.formation,

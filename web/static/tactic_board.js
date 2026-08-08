@@ -482,6 +482,40 @@
       tackles90: num(s.tackles90, g.tackles90),
       interceptions90: num(s.interceptions90, g.interceptions90),
       pass_pct: numPos(s.pass_pct, g.pass_pct),
+      // Wired in from the previously-unused stat fields (see memory: the
+      // wire-in-22-stats project). Flat, role-agnostic fallbacks — these are
+      // secondary/nudge signals in every mechanic that reads them, not
+      // primary drivers, so unlike the 13 fields above they don't warrant
+      // per-role tuning in ROLE_GENERIC.
+      assists90: num(s.assists90, 0),
+      clearances90: num(s.clearances90, 0),
+      blocks90: num(s.blocks90, 0),
+      ball_recoveries90: num(s.ball_recoveries90, 0),
+      duels_won_pct: numPos(s.duels_won_pct, 50),
+      long_balls90: num(s.long_balls90, 0),
+      long_ball_pct: numPos(s.long_ball_pct, 55),
+      big_chances_created90: num(s.big_chances_created90, 0),
+      big_chances_missed90: num(s.big_chances_missed90, 0),
+      possession_lost90: num(s.possession_lost90, 7),
+      penalty_goals90: num(s.penalty_goals90, 0),
+      xg_chain90: num(s.xg_chain90, 0),
+      xg_buildup90: num(s.xg_buildup90, 0),
+      saves90: num(s.saves90, role === "GK" ? 2.5 : 0),
+      goals_prevented90: num(s.goals_prevented90, 0),
+      goals_conceded90: num(s.goals_conceded90, 0),
+      clean_sheet_pct: numPos(s.clean_sheet_pct, role === "GK" ? 30 : 0),
+      yellow_cards90: num(s.yellow_cards90, 0),
+      red_cards90: num(s.red_cards90, 0),
+      // 0 deliberately means "no rating data" (see isMaestroPin-adjacent
+      // Batch F usage) -- excluded from averages downstream, not treated as
+      // a real bottom-of-the-scale rating.
+      rating: num(s.rating, 0),
+      // Percentiles are computed server-side (web/tournament.py) against the
+      // full match player pool -- 0 is a legitimate rank (the single worst
+      // player), so num() not numPos() here; 0.5 fallback = "no signal,
+      // treat as average" when the server couldn't rank this player.
+      rating_percentile: num(s.rating_percentile, 0.5),
+      goals_conceded_percentile: num(s.goals_conceded_percentile, 0.5),
     };
   }
 

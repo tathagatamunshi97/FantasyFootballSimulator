@@ -92,6 +92,26 @@ def build_team_profile(
                 "minutes": int(p.minutes),
                 "trophy_bonus": tp.bonus,
                 "trophy_notes": tp.details,
+                # Wired in for the live tactic-board engine (previously computed
+                # here but dropped before reaching web/tournament.py).
+                "assists90": round(p.assists90, 2),
+                "clearances90": round(p.clearances90, 2),
+                "blocks90": round(p.blocks90, 2),
+                "ball_recoveries90": round(p.ball_recoveries90, 2),
+                "duels_won_pct": round(p.duels_won_pct, 1),
+                "long_balls90": round(p.long_balls90, 2),
+                "long_ball_pct": round(p.long_ball_pct, 1),
+                "big_chances_created90": round(p.big_chances_created90, 2),
+                "big_chances_missed90": round(p.big_chances_missed90, 2),
+                "possession_lost90": round(p.possession_lost90, 2),
+                "penalty_goals90": round(p.penalty_goals90, 2),
+                "xg_chain90": round(p.xg_chain90, 2),
+                "saves90": round(p.saves90, 2),
+                "goals_prevented90": round(p.goals_prevented90, 2),
+                "goals_conceded90": round(p.goals_conceded90, 2),
+                "clean_sheet_pct": round(p.clean_sheet_pct, 1),
+                "yellow_cards90": round(p.yellow_cards90, 2),
+                "red_cards90": round(p.red_cards90, 2),
             }
         )
 
