@@ -7692,6 +7692,21 @@
     }
 
     /**
+     * Average rating_percentile (server-computed, see web/tournament.py)
+     * across a side's finishing-relevant pins (ST/AM/W -- the roles this
+     * feeds into via drawFinishingForm/organicWillScore). 0.5 is the
+     * neutral "no signal" value the server already falls back to for a
+     * player it couldn't rank, so a side with no real rating data anywhere
+     * averages out to exactly 0.5 here too -- no special-casing needed for
+     * "if absent, behave as before".
+     */
+    function sideFormReliability(side) {
+      const pins = pinsOf(side).filter((p) => p.role === "ST" || p.role === "AM" || p.role === "W");
+      if (!pins.length) return 0.5;
+      return pins.reduce((s, p) => s + (p.stats.rating_percentile ?? 0.5), 0) / pins.length;
+    }
+
+    /**
      * Skewed day-form draw for one side, biased by that side's finishing unit.
      * Baseline (fin≈0.55): P(cold)≈0.08, P(hot)≈0.12, P(normal)≈0.80.
      * High finishing → more hot / fewer cold (+ slight normal mean lift);
@@ -7701,8 +7716,16 @@
       const fin = sideFinishing(side);
       // bias ∈ [-0.45, 0.45]: fin 0→−0.45, 0.55→0, 1→+0.45
       const bias = clamp((fin - 0.55) * 1.0, -0.45, 0.45);
-      const pCold = clamp(0.08 - bias * 0.12, 0.02, 0.18);
-      const pHot = clamp(0.12 + bias * 0.16, 0.04, 0.28);
+      let pCold = clamp(0.08 - bias * 0.12, 0.02, 0.18);
+      let pHot = clamp(0.12 + bias * 0.16, 0.04, 0.28);
+      // rating -- a genuinely reliable finishing line (high real rating
+      // percentile) plays more consistently: narrows the hot/cold draw
+      // toward "normal" rather than shifting the mean. A below-average or
+      // unranked (0.5 neutral) line leaves the spread exactly as before --
+      // per the user's own framing, this only ever narrows, never widens.
+      const varianceMul = clamp(1 - Math.max(0, sideFormReliability(side) - 0.5) * 0.6, 0.7, 1);
+      pCold *= varianceMul;
+      pHot *= varianceMul;
       const u = rng();
       if (u < pCold) {
         // Cold day — was 0.32-0.72 (drawn once, held for the whole match).
