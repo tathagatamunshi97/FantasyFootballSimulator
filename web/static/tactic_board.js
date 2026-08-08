@@ -8434,7 +8434,17 @@
         }
       }
 
-      if (stage === "BOX_OCCUPATION" && rng() < (carrier.role === "DM" ? 0.28 : 0.12) * clamp(1.1 - progressionUrgency(spell) * 0.55, 0.25, 1)) {
+      // Engine addition — DM stat coefficient. Every other role's flat base
+      // probabilities got a stat-scaled term at some point this session
+      // (CM/AM via pickAttackPattern, W via wCut/wWing, CB via pressureAt,
+      // ST/AM via organicWillScore); DM never did — its decision code was
+      // all fixed-probability role gates, unlike its plentiful but purely
+      // positional (not decision) role branches elsewhere. A defensively-
+      // minded destroyer (high tackles90) plays it safer and recycles more
+      // under pressure than a base flat rate assumes.
+      const dmRecycleP =
+        carrier.role === "DM" ? clamp(0.2 + (carrier.stats.tackles90 || 0) * 0.035, 0.16, 0.4) : 0.12;
+      if (stage === "BOX_OCCUPATION" && rng() < dmRecycleP * clamp(1.1 - progressionUrgency(spell) * 0.55, 0.25, 1)) {
         if (commentaryHold <= 0) say(`${carrier.short} recycles possession`, 1.1);
         actionTimer = spellIdlePause();
         return;
@@ -8442,7 +8452,10 @@
 
       if (carrier.role === "DM" && (stage === "BUILD_UP" || stage === "PROGRESSING")) {
         const cms = teammates(carrier).filter((m) => m.role === "CM");
-        if (cms.length && rng() < 0.78) {
+        // A technically better passer (pass_pct) looks beyond the safe
+        // nearest-CM default more often instead of always taking it.
+        const cmFunnelP = clamp(0.78 - ((carrier.stats.pass_pct || 75) - 75) * 0.006, 0.55, 0.88);
+        if (cms.length && rng() < cmFunnelP) {
           cms.sort((a, b) => dist(carrier, a) - dist(carrier, b) + (rng() - 0.5) * 2);
           doPass(carrier, cms[0], "pass");
           actionTimer = Math.max(actionTimer, spellIdlePause());
