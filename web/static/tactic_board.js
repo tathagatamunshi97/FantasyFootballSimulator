@@ -7884,7 +7884,7 @@
       liveXg[fouledSide] += 0.76;
       matchLog.counts[fouledSide].xg = Math.round(liveXg[fouledSide] * 1000) / 1000;
 
-      const scored = rng() < penConvertChance(taker);
+      const scored = rng() < penConvertChance(taker, keeper);
       if (scored) {
         const netLeft = attackGoalLeft();
         const netTop = attackGoalTop(fouledSide);
@@ -7946,6 +7946,27 @@
       }
     }
 
+    /**
+     * Real per-keeper quality, replacing the team-level sideGoalkeeper()
+     * composite for save probability specifically (that composite is still
+     * used everywhere else it was, e.g. approxXgTarget's pacing anchor --
+     * this is scoped to the actual save mechanic only). Blends shot-stopping
+     * volume (saves90), the standard post-shot-xG-minus-goals-conceded skill
+     * signal (goals_prevented90, can be negative for an underperforming
+     * keeper), and game-level reliability (clean_sheet_pct). Normalized
+     * against the same reference ceilings formation_fit.py's STAT_CAPS
+     * already uses for these exact fields (saves90: 4.5, goals_prevented90:
+     * 0.8), for consistency even though that's a separate Python file.
+     */
+    function gkPinQuality(keeper) {
+      if (!keeper || !keeper.stats) return 0.5;
+      const st = keeper.stats;
+      const savesTerm = clamp((st.saves90 || 0) / 4.5, 0, 1);
+      const gpTerm = clamp(((st.goals_prevented90 || 0) + 0.4) / 1.2, 0, 1);
+      const csTerm = clamp((st.clean_sheet_pct || 0) / 100, 0, 1);
+      return clamp(savesTerm * 0.35 + gpTerm * 0.45 + csTerm * 0.2, 0.15, 0.95);
+    }
+
     function doShot(carrier, mustScore, opts) {
       if (ballFlight) return;
       const wallBoost = (opts && opts.wallBoost) || 0;
@@ -7972,7 +7993,6 @@
       const keeper = gkOf(oppOf(carrier.side));
       const atk = sideAttack(carrier.side);
       const def = sideDefend(oppOf(carrier.side));
-      const gk = sideGoalkeeper(oppOf(carrier.side));
       ballAttached = false;
       phase = "FINISH";
       if (spell) {
@@ -8042,7 +8062,7 @@
             carrier.stats.shots90 * (roleFin ? 0.018 : 0.012) -
             (roleFin ? fq * 0.06 : 0) +
             (boxed ? 0 : 0.12) +
-            gk * 0.14 +
+            gkPinQuality(keeper) * 0.14 +
             shotPressure * 0.06 +
             (rng() - 0.5) * 0.06) *
           saveScale;
@@ -8978,14 +8998,19 @@
       return [...pins].sort((a, b) => rank(b) - rank(a));
     }
 
-    function penConvertChance(taker) {
+    function penConvertChance(taker, keeper) {
       const form = clamp(finishingForm[taker.side] ?? 1, 0.55, 1.45);
       const fin = sideFinishing(taker.side);
+      // Previously zero opposing-keeper signal existed here at all (team or
+      // individual) -- an above-average real keeper now trims conversion
+      // odds a little, a below-average one nudges them up.
+      const gkAdj = keeper ? (0.5 - gkPinQuality(keeper)) * 0.12 : 0;
       const base =
         0.7 +
         (taker.stats.xg90 || 0) * 0.1 +
         fin * 0.1 +
         (taker.stats.penalty_goals90 || 0) * 0.06 +
+        gkAdj +
         (taker.role === "ST" || taker.role === "AM" ? 0.04 : 0);
       return clamp(base * (0.85 + 0.15 * form), 0.52, 0.9);
     }
@@ -9052,7 +9077,7 @@
         }
 
         const kick = kicks[idx++];
-        const scored = rng() < penConvertChance(kick.pin);
+        const scored = rng() < penConvertChance(kick.pin, gkOf(oppOf(kick.side)));
         if (kick.side === "home") {
           homeTaken += 1;
           if (scored) penScore.home += 1;
