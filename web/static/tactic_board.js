@@ -1752,7 +1752,11 @@
           if (
             !inPenaltyBox(c) &&
             !c._boxDriveDone &&
-            (c.role === "ST" || c.role === "AM") &&
+            // Engine addition — goal-scoring midfielder archetype (a
+            // Lampard/Gerrard arriving late to shoot). CM/DM eligibility is
+            // self-correcting: their own xg90 still drives the roll below,
+            // so a real passer (low xg90) rarely triggers this regardless.
+            (c.role === "ST" || c.role === "AM" || c.role === "CM" || c.role === "DM") &&
             rng() < 0.7 + c.stats.xg90 * 0.2
           ) {
             c._boxDriveDone = true;
@@ -2397,7 +2401,19 @@
     }
 
     function isAttackFinisher(pin) {
-      return Boolean(pin && (pin.role === "ST" || pin.role === "W" || pin.role === "AM"));
+      // Engine addition — goal-scoring midfielder archetype. Widened from
+      // ST/W/AM to also include CM/DM so a real box-to-box scoring
+      // midfielder (Lampard/Gerrard) gets the same finisher-tier
+      // conversion math (organicWillScore's xgW/shW/goalsW/clinical/
+      // eliteBoost terms) their own real xg90/shots90/goals90 earn --
+      // previously those stats were structurally inert for any CM/DM no
+      // matter how elevated. A genuine passer (Xavi/Iniesta-tier, low
+      // xg90) still converts poorly regardless, since the formula stays
+      // multiplicative on their own stats -- this only unlocks the
+      // *quality* of treatment, not a free boost.
+      return Boolean(
+        pin && (pin.role === "ST" || pin.role === "W" || pin.role === "AM" || pin.role === "CM" || pin.role === "DM")
+      );
     }
 
     /** A real-world clinical finisher: historically outscores their own xG. */
@@ -2412,7 +2428,9 @@
 
     /** Forward line (ST/W/AM) collectively within 5% of its combined xG, or ahead of it. */
     function sideForwardLineClinical(side) {
-      const fwd = pinsOf(side).filter((p) => p.role === "ST" || p.role === "W" || p.role === "AM");
+      const fwd = pinsOf(side).filter(
+        (p) => p.role === "ST" || p.role === "W" || p.role === "AM" || p.role === "CM" || p.role === "DM"
+      );
       if (!fwd.length) return false;
       let goals = 0;
       let xg = 0;
@@ -3128,7 +3146,14 @@
     }
 
     function shooterTarget(carrier) {
-      const mates = teammates(carrier).filter((m) => m.role === "ST" || m.role === "AM" || m.role === "W");
+      // Engine addition — goal-scoring midfielder archetype. CM/DM added
+      // so a real box-to-box scoring midfielder can be picked to receive
+      // the ball for a shot; the sort below is already stat-weighted
+      // (openPlayXg/shots90/finisherQuality), so a genuine passer with low
+      // shooting stats still rarely wins this over a real forward.
+      const mates = teammates(carrier).filter(
+        (m) => m.role === "ST" || m.role === "AM" || m.role === "W" || m.role === "CM" || m.role === "DM"
+      );
       if (!mates.length) return carrier;
       mates.sort((a, b) => {
         const fa = a.id === favoredId ? 0.35 : 0;
@@ -3521,8 +3546,15 @@
     }
 
     function crossBoxTarget(carrier, mode) {
+      // Engine addition — goal-scoring midfielder archetype (a CM/DM
+      // arriving late to meet a cross/cutback, e.g. Gerrard/Lampard).
       const mates = teammates(carrier).filter(
-        (m) => m.role === "ST" || m.role === "AM" || (m.role === "W" && Math.abs(m.left - carrier.left) > 18)
+        (m) =>
+          m.role === "ST" ||
+          m.role === "AM" ||
+          m.role === "CM" ||
+          m.role === "DM" ||
+          (m.role === "W" && Math.abs(m.left - carrier.left) > 18)
       );
       if (!mates.length) return progressiveTarget(carrier);
       const fromLeft = carrier.left < 50;
@@ -3556,7 +3588,11 @@
           // A teammate who reliably sets up a genuine big chance next is a
           // better progression target than raw creativity stats capture.
           (m.stats.big_chances_created90 || 0) * 0.5 +
-          (m.role === "ST" || m.role === "AM" ? m.stats.xg90 * 0.55 : 0);
+          // Engine addition — a CM/DM's own goal threat now counts toward
+          // how attractive they are as a progression target too, not just
+          // ST/AM. Smaller coefficient than ST/AM's since arriving late to
+          // shoot is a secondary, not primary, job for these roles.
+          (m.role === "ST" || m.role === "AM" ? m.stats.xg90 * 0.55 : (m.role === "CM" || m.role === "DM") ? m.stats.xg90 * 0.3 : 0);
         const space = m._running ? 0.9 : 0;
         return { m, score: hub + centralBias + create + space - dist(carrier, m) * 0.02 + rng() * 0.4 };
       });
@@ -3565,8 +3601,11 @@
     }
 
     function throughRunner(carrier, stage, depth) {
+      // Engine addition — goal-scoring midfielder archetype (a late CM/DM
+      // run through the middle, e.g. Gerrard/Lampard bursting past the
+      // last line).
       const runners = teammates(carrier)
-        .filter((m) => m.role === "ST" || m.role === "AM" || m.role === "W")
+        .filter((m) => m.role === "ST" || m.role === "AM" || m.role === "W" || m.role === "CM" || m.role === "DM")
         .filter((m) => canPlayForward(carrier, m, stage, depth))
         .filter((m) => throughBallLegal(carrier, m));
       if (!runners.length) return null;
@@ -4699,7 +4738,7 @@
       const runner = mates
         .filter(
           (m) =>
-            (m.role === "ST" || m.role === "W" || m.role === "AM") &&
+            (m.role === "ST" || m.role === "W" || m.role === "AM" || m.role === "CM" || m.role === "DM") &&
             !m._running &&
             (m.lockUntil || 0) <= matchMinute
         )
@@ -6987,7 +7026,7 @@
       // Without box occupation, refuse high-xG path — recycle instead
       if (!ready && !inPenaltyBox(carrier)) {
         if (
-          (carrier.role === "ST" || carrier.role === "AM" || maestroShine) &&
+          (carrier.role === "ST" || carrier.role === "AM" || carrier.role === "CM" || carrier.role === "DM" || maestroShine) &&
           rng() < 0.55 + carrier.stats.xg90 * 0.2 + (maestroShine ? 0.22 : 0)
         ) {
           spell.awaitingBoxShot = true;
@@ -7013,7 +7052,11 @@
 
       if (
         spell.awaitingBoxShot ||
-        ((carrier.role === "ST" || carrier.role === "AM" || maestroShine) &&
+        ((carrier.role === "ST" ||
+          carrier.role === "AM" ||
+          carrier.role === "CM" ||
+          carrier.role === "DM" ||
+          maestroShine) &&
           !inPenaltyBox(carrier) &&
           rng() < 0.72 + carrier.stats.xg90 * 0.25 + (maestroShine ? 0.12 : 0))
       ) {
@@ -7085,7 +7128,11 @@
         decideWideFinalThird(carrier);
         return;
       }
-      if (!inPenaltyBox(carrier) && (carrier.role === "ST" || carrier.role === "AM") && rng() < 0.55) {
+      if (
+        !inPenaltyBox(carrier) &&
+        (carrier.role === "ST" || carrier.role === "AM" || carrier.role === "CM" || carrier.role === "DM") &&
+        rng() < 0.55
+      ) {
         spell.awaitingBoxShot = true;
         spell.chanceDone = false;
         if (driveIntoBox(carrier)) return;
@@ -9084,7 +9131,18 @@
         (p.stats.shots90 || 0) * 0.08 +
         // Specialist-taker signal, distinct from open-play threat.
         (p.stats.penalty_goals90 || 0) * 1.5 +
-        (p.role === "ST" ? 0.35 : p.role === "AM" ? 0.22 : p.role === "W" ? 0.15 : 0);
+        // Engine addition — a real set-piece-taking midfielder (Lampard,
+        // Pirlo on some sides) is a recognized role; smaller than ST/AM/W
+        // since it's a secondary job for a CM/DM, not primary.
+        (p.role === "ST"
+          ? 0.35
+          : p.role === "AM"
+            ? 0.22
+            : p.role === "W"
+              ? 0.15
+              : p.role === "CM" || p.role === "DM"
+                ? 0.1
+                : 0);
       return [...pins].sort((a, b) => rank(b) - rank(a));
     }
 
@@ -9101,7 +9159,7 @@
         fin * 0.1 +
         (taker.stats.penalty_goals90 || 0) * 0.06 +
         gkAdj +
-        (taker.role === "ST" || taker.role === "AM" ? 0.04 : 0);
+        (taker.role === "ST" || taker.role === "AM" ? 0.04 : taker.role === "CM" || taker.role === "DM" ? 0.02 : 0);
       return clamp(base * (0.85 + 0.15 * form), 0.52, 0.9);
     }
 
