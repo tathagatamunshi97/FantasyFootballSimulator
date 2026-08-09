@@ -7466,7 +7466,14 @@
         // fallback -- additive to dribble_pct (attack-specific) and
         // tackles90 (defence-specific) above, not a replacement for either.
         (carrier.stats.duels_won_pct - 50) * 0.003 -
-        (threat ? (threat.pin.stats.duels_won_pct - 50) * 0.003 : 0) -
+        // Engine addition — the defender's OWN duel-winning ability is what
+        // actually stops a dribbler (a physical, in-the-moment contest),
+        // distinct from interceptions90 above (reading/cutting a pass,
+        // already correctly the dominant defensive lever in doPass instead).
+        // 0.0041 solved so the pool's best pure tackler (duels_won_pct)
+        // vs its most complete dribbler lands at a genuine 50/50, not
+        // lopsided toward the attacker the way the shared 0.003 left it.
+        (threat ? (threat.pin.stats.duels_won_pct - 50) * 0.0041 : 0) -
         Math.min(streak, 4) * 0.11 -
         (freshDefender ? 0.16 : 0) -
         (backToGoal ? 0.12 : 0) -
@@ -8047,6 +8054,16 @@
       const keeper = gkOf(oppOf(carrier.side));
       const atk = sideAttack(carrier.side);
       const def = sideDefend(oppOf(carrier.side));
+      // Engine addition — the outfield defender closing this shooter down
+      // previously had zero individual say in save/block probability, only
+      // the keeper and the diffuse team `def` composite did. tackles90 +
+      // duels_won_pct (not interceptions -- this is a physical, in-the-
+      // moment contest, same family as doDribble's defender term) reused
+      // as blockerCandidate below so there's only one nearestOpponent call.
+      const closingDefender = nearestOpponent(carrier, 9)?.pin;
+      const closingQuality = closingDefender
+        ? closingDefender.stats.tackles90 * 0.025 + Math.max(0, closingDefender.stats.duels_won_pct - 50) * 0.002
+        : 0;
       ballAttached = false;
       phase = "FINISH";
       if (spell) {
@@ -8117,6 +8134,7 @@
             (roleFin ? fq * 0.06 : 0) +
             (boxed ? 0 : 0.12) +
             gkPinQuality(keeper) * 0.14 +
+            closingQuality +
             shotPressure * 0.06 +
             (rng() - 0.5) * 0.06) *
           saveScale;
@@ -8161,11 +8179,12 @@
         // requires someone genuinely in the lane, so gate/scale it on real
         // pressure at the shooter (pressureAt) instead of team quality alone.
         const shotPressure = pressureAt(carrier.left, carrier.top, carrier.side);
-        // Resolved before blockP so the actual candidate blocker's own
-        // shot-blocking rate (blocks90) can factor into the probability,
-        // not just team-level `def`.
+        // Reuses closingDefender (resolved once, above) so the actual
+        // candidate blocker's own shot-blocking rate (blocks90) and
+        // duel-winning ability can factor into the probability, not just
+        // team-level `def`.
         const blockerCandidate =
-          nearestOpponent(carrier, 9)?.pin ||
+          closingDefender ||
           pinsOf(oppOf(carrier.side)).find((p) => p.role === "CB") ||
           keeper;
         const blockP =
@@ -8176,6 +8195,10 @@
           (boxed ? 0 : 0.06) +
           shotPressure * 0.16 +
           (blockerCandidate?.stats?.blocks90 || 0) * 0.03 +
+          // Blocking is a reactive, physical action -- duels_won_pct fits
+          // the same family as blocks90, not interceptions (a passing-lane
+          // read, the wrong skill for smothering a shot).
+          Math.max(0, (blockerCandidate?.stats?.duels_won_pct || 50) - 50) * 0.004 +
           wallBoost +
           (rng() - 0.5) * 0.06;
         if (rng() < clamp(blockP, 0.03, shotPressure > 0.3 || wallBoost > 0 ? 0.62 : 0.22)) {
