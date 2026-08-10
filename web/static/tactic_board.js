@@ -2440,6 +2440,90 @@
      * is this player actively moving into a scoring position right now).
      * Updated each tick during position calculations.
      */
+    /**
+     * Phase 2: Open-space reader. Score each potential receiver on how good
+     * a target they are RIGHT NOW: combines arrival momentum + real pressure
+     * + finishing threat + distance + angle. Returns 0-1 value; highest score
+     * in the pool is the best receiving option at this moment.
+     */
+    function scoreDynamicReceiver(carrier, candidate, stage, relBall) {
+      if (!carrier || !candidate || candidate.id === carrier.id) return 0;
+      if (candidate.role === "GK") return 0; // GK never receives
+
+      // Base score from arrival momentum: a player genuinely moving into space is more valuable
+      const arrivalScore = candidate._arrivalStrength ?? 0;
+
+      // Pressure at candidate's current position: lower pressure = better target
+      const pressure = pressureAt(candidate.left, candidate.top, candidate.side);
+      const openness = 1 / (1 + pressure); // 0-1, higher = more open
+
+      // Finishing threat: can this player actually do something with the ball?
+      // For attackers (ST/W/AM), use finisher quality. For midfielders, use creative output.
+      let finishingThreat = 0;
+      if (candidate.role === "ST" || candidate.role === "W" || candidate.role === "AM") {
+        finishingThreat = finisherQuality(candidate) * 1.2; // ST/W/AM finishing is primary threat
+      } else if (candidate.role === "CM" || candidate.role === "DM") {
+        // Midfielders: value their creative output + finishing upside (after archetype fix, CM/DM can finish)
+        const creative = (candidate.stats.xa90 || 0) * 0.4;
+        const cmFinish = finisherQuality(candidate) * 0.3; // secondary threat
+        finishingThreat = creative + cmFinish;
+      } else if (candidate.role === "FB") {
+        // Fullbacks: overlapping + creating is the threat
+        finishingThreat = fbAttackThreat(candidate) * 0.8;
+      }
+      finishingThreat = clamp(finishingThreat, 0, 1);
+
+      // Distance penalty: closer targets are easier to pass to
+      const dist_to_candidate = dist(carrier, candidate);
+      const distPenalty = clamp((dist_to_candidate - 5) / 25, 0, 0.5); // max -0.5 for very distant
+
+      // Passing lane: can we actually reach this player without interception?
+      // (simplified: use laneScore from ball to candidate's position)
+      const candidatePct = toPitchPct(candidate.side, candidate.left, candidate.top);
+      const laneQuality = laneScore({ left: ball.left, top: ball.top, side: candidate.side }, candidatePct) / 3.6;
+
+      // Stage weighting: in box-occupation, finishing threat matters more. In build-up, arrival matters more.
+      let stageWeight = 1.0;
+      if (stage === "BOX_OCCUPATION" || stage === "FINISH") {
+        stageWeight = 1.3; // finishing matters most
+        finishingThreat *= 1.2;
+      } else if (stage === "FINAL_THIRD") {
+        stageWeight = 1.15;
+      }
+
+      // Combine all factors
+      const score =
+        arrivalScore * 0.35 +
+        openness * 0.25 +
+        finishingThreat * 0.25 +
+        laneQuality * 0.15 -
+        distPenalty * 0.1;
+
+      return clamp(score * stageWeight, 0, 1);
+    }
+
+    function findBestArrivingReceiver(carrier, stage, depth) {
+      // Of all teammates, find the one with highest scoreDynamicReceiver()
+      // Returns the candidate pin or null if no one scores above threshold
+      if (!carrier || !stage) return null;
+
+      const mates = teammates(carrier);
+      if (!mates.length) return null;
+
+      let best = null;
+      let bestScore = 0.15; // threshold: must score above this to be considered a real option
+
+      for (const m of mates) {
+        const score = scoreDynamicReceiver(carrier, m, stage, { x: 0.5, depth }); // rough relBall
+        if (score > bestScore) {
+          bestScore = score;
+          best = m;
+        }
+      }
+
+      return best;
+    }
+
     function updateArrivalStrength(pin, newDepth, stage, side) {
       if (!pin || !stage) return;
       // Initialize depth history on first call
