@@ -1395,11 +1395,13 @@ def _board_side_payload(team: FantasyTeam, player_stats: dict[str, Any]) -> dict
     # pool, not a fixed-reference guess like elsewhere in the engine.
     rating_pct = _percentile_ranks({name: p.rating for name, p in player_stats.items()})
     conceded_pct = _percentile_ranks({name: p.goals_conceded90 for name, p in player_stats.items()})
+    goals90_pct = _percentile_ranks({name: p.goals90 for name, p in player_stats.items()})
 
     def _row(name: str, st: dict[str, Any]) -> dict[str, Any]:
         row = _board_player_stats_row(st)
         row["rating_percentile"] = rating_pct.get(name, 0.5)
         row["goals_conceded_percentile"] = conceded_pct.get(name, 0.5)
+        row["goals90_percentile"] = goals90_pct.get(name, 0.5)
         return row
 
     lineup = []

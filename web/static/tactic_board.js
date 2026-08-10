@@ -520,6 +520,7 @@
       // treat as average" when the server couldn't rank this player.
       rating_percentile: num(s.rating_percentile, 0.5),
       goals_conceded_percentile: num(s.goals_conceded_percentile, 0.5),
+      goals90_percentile: num(s.goals90_percentile, 0.5),
     };
   }
 
@@ -1993,7 +1994,7 @@
     const INTENT_MENUS = {
       W: ["stretch", "attack_gap", "underlap"],
       FB: ["overlap", "hold_width", "tuck_support"],
-      AM: ["attack_gap", "support", "back_post"],
+      AM: ["attack_gap", "support", "back_post", "box_crash"],
       ST: ["pin_last_line", "drop_short", "far_post"],
       CM: ["support", "progressive_run", "hold_width"],
       DM: ["screen", "support"],
@@ -2001,7 +2002,9 @@
     const INTENT_WEIGHTS = {
       W: { central: [0.3, 0.45, 0.25], wide: [0.55, 0.3, 0.15] },
       FB: { central: [0.35, 0.35, 0.3], wide: [0.5, 0.3, 0.2] },
-      AM: { central: [0.4, 0.35, 0.25], wide: [0.4, 0.35, 0.25] },
+      // AM's 4th slot (box_crash) is 0 by default -- only a clinical AM
+      // (see clinicalBoxThreat in ensureIntent) ever draws it.
+      AM: { central: [0.4, 0.35, 0.25, 0], wide: [0.4, 0.35, 0.25, 0] },
       ST: { central: [0.5, 0.3, 0.2], wide: [0.5, 0.3, 0.2] },
       CM: { central: [0.4, 0.32, 0.28], wide: [0.4, 0.32, 0.28] },
       DM: { central: [0.55, 0.45], wide: [0.55, 0.45] },
@@ -2026,7 +2029,23 @@
         pin._intent = null;
       }
       const central = Math.abs(relBall.x - 0.5) < 0.22;
-      const weights = INTENT_WEIGHTS[pin.role][central ? "central" : "wide"];
+      let weights = INTENT_WEIGHTS[pin.role][central ? "central" : "wide"];
+      // Engine addition — clinical W/AM box entry. A wide player or AM whose
+      // own finishing output earns a real clinicalBoxThreat steals
+      // probability mass from their other intents toward the one that
+      // actually targets the box zone ("underlap" for W, "box_crash" for
+      // AM). 0 for a genuine creator, so this only ever redistributes away
+      // from the default shape for players whose own stats justify it.
+      const boxThreat = clinicalBoxThreat(pin);
+      if (boxThreat > 0) {
+        const boxIdx = pin.role === "W" ? 2 : pin.role === "AM" ? 3 : -1;
+        if (boxIdx >= 0) {
+          const boost = boxThreat * (pin.role === "W" ? 0.35 : 0.45);
+          const othersSum = weights.reduce((s, w, i) => (i === boxIdx ? s : s + w), 0);
+          const shrink = othersSum > 0 ? boost / othersSum : 0;
+          weights = weights.map((w, i) => (i === boxIdx ? w + boost : w * (1 - shrink)));
+        }
+      }
       const roll = rng();
       let acc = 0;
       let chosen = menu[menu.length - 1];
@@ -2398,6 +2417,21 @@
       const sot = st.shots_on_target90 || st.shots90 * 0.4;
       const goals = st.goals90 || 0;
       return clamp(st.xg90 * 0.82 + st.shots90 * 0.055 + sot * 0.07 + goals * 0.12, 0, 1.35);
+    }
+
+    /**
+     * 0-1 gate: how much a W/AM's own finishing output (finisherQuality,
+     * goals90_percentile against this match's full player pool) earns them
+     * extra box-entry tendency, on top of their default wide/pocket shape.
+     * 0 for a genuine creator (Fàbregas/Xavi-tier, average-or-below scoring
+     * rate) even if they're a good passer -- this only reacts to their own
+     * finishing signal, same self-correcting design as isAttackFinisher.
+     */
+    function clinicalBoxThreat(pin) {
+      if (!pin || (pin.role !== "W" && pin.role !== "AM")) return 0;
+      const fq = finisherQuality(pin);
+      const gPct = pin.stats.goals90_percentile ?? 0.5;
+      return clamp((fq - 0.35) * 0.9 + (gPct - 0.55) * 1.1, 0, 1);
     }
 
     function isAttackFinisher(pin) {
@@ -3836,6 +3870,10 @@
             : 0.12;
       if (depth >= 0.5) wCut += 0.2;
       if (ad > 0.1 && isFinalThirdStage(stage)) wCut += 0.35;
+      // A clinical W/AM (own finishing quality + goals90 percentile) drives
+      // toward goal themselves more readily than a creator-profile teammate
+      // with otherwise similar dribble/xG inputs would.
+      wCut += clinicalBoxThreat(carrier) * 0.5;
 
       let wRecycle =
         0.32 +
@@ -5373,6 +5411,12 @@
                     const farX = relBall.x < 0.5 ? 0.7 : 0.3;
                     x = lerp(x, farX, 0.4);
                     depth = clamp(0.72 + bias, 0.66, 0.8);
+                  } else if (intent === "box_crash") {
+                    // Engine addition — clinical AM box entry. Only drawn by
+                    // a genuine finisher (clinicalBoxThreat); a pure
+                    // playmaker AM never reaches this depth by default.
+                    x = clamp(0.5 + (pin.baseX - 0.5) * 0.3, 0.36, 0.64);
+                    depth = clamp(0.82 + h * 0.05, 0.78, 0.88);
                   } else {
                     // attack_gap (default) — existing half-space pocket behaviour
                     const osc = (Math.sin(shapePulse * 0.85 + h * 3.1) + 1) * 0.5;
@@ -5471,6 +5515,13 @@
                   } else if (intent === "back_post") {
                     x = relBall.x < 0.5 ? 0.72 : 0.28;
                     depth = clamp(0.7 + bias, 0.62, 0.78);
+                  } else if (intent === "box_crash") {
+                    // Engine addition — clinical AM box entry. Reaches genuine
+                    // inPenaltyBox depth (>=0.86) and central x, unlike every
+                    // other AM intent here -- gated behind clinicalBoxThreat
+                    // so only a real finisher-type AM draws it.
+                    x = clamp(0.5 + (pin.baseX - 0.5) * 0.3, 0.36, 0.64);
+                    depth = clamp(0.86 + h * 0.04, 0.84, 0.92);
                   } else {
                     const osc = (Math.sin(shapePulse * 0.95 + h * 2.6) + 1) * 0.5;
                     // Was two branches — amCamStack (4-3-3 attacking) deliberately stacked
