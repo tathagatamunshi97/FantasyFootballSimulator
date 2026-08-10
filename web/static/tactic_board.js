@@ -2524,6 +2524,45 @@
       return best;
     }
 
+    /**
+     * Phase 3: Organic decision-making. Replace pickAttackPattern's decision
+     * tree with live "what's open right now" evaluation. Check in priority order:
+     * 1. Is there a high-value arriving receiver? → Pass to them
+     * 2. Is there open space to dribble? → Dribble
+     * 3. Can I shoot? → Shoot
+     * 4. Otherwise → Recycle / safe pass
+     *
+     * Returns: { type: 'pass', target } | { type: 'dribble' } | { type: 'shoot' } | { type: 'recycle' }
+     */
+    function evaluateArrivals(carrier, stage, depth) {
+      if (!carrier || !stage) return { type: "recycle" };
+
+      // Priority 1: Is there a high-value arriving receiver?
+      const bestReceiver = findBestArrivingReceiver(carrier, stage, depth);
+      if (bestReceiver) {
+        return { type: "pass", target: bestReceiver };
+      }
+
+      // Priority 2: Is there open space to dribble into?
+      const relBall = fromPitchPct(carrier.side, carrier.left, carrier.top);
+      const dribblePressure = pressureAt(carrier.left, carrier.top, carrier.side);
+      const dribbleOpenness = 1 / (1 + dribblePressure);
+      const canDribble = dribbleOpenness > 0.4 && depth >= 0.3; // only dribble if we have space and depth
+      if (canDribble && rng() < clamp(dribbleOpenness * 0.6, 0.2, 0.8)) {
+        return { type: "dribble" };
+      }
+
+      // Priority 3: Can I shoot?
+      const boxed = inPenaltyBox(carrier);
+      const canShoot = (boxed || nearPenaltyBox(carrier)) && isAttackFinisher(carrier);
+      if (canShoot && rng() < 0.45) {
+        return { type: "shoot" };
+      }
+
+      // Priority 4: Recycle / safe pass
+      return { type: "recycle" };
+    }
+
     function updateArrivalStrength(pin, newDepth, stage, side) {
       if (!pin || !stage) return;
       // Initialize depth history on first call
@@ -8587,6 +8626,15 @@
       const fav = carrier.id === favoredId && carrier.favorUntil > matchMinute;
       const stage = spell?.stage || "PROGRESSING";
       const threat = nearestOpponent(carrier, 11);
+      const depth = possessionDepth(carrier);
+
+      // Phase 3: Organic arrival-based decision (early gate before pattern logic)
+      // Check if there's a high-value arriving receiver; if so, pass to them immediately
+      const arrivalDecision = evaluateArrivals(carrier, stage, depth);
+      if (arrivalDecision.type === "pass" && arrivalDecision.target) {
+        doPass(carrier, arrivalDecision.target, "through");
+        return;
+      }
 
       if (spell && matchMinute >= spell.end && !spell.chanceDone) {
         if (spell.willAttemptChance || possessionDepth(carrier) > 0.45) {
