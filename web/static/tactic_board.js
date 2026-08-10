@@ -2434,6 +2434,55 @@
       return clamp((fq - 0.35) * 0.9 + (gPct - 0.55) * 1.1, 0, 1);
     }
 
+    /**
+     * Phase 1: Arrival detection. Track depth velocity (momentum toward goal)
+     * and combine with intent flags to compute _arrivalStrength (0-1, how much
+     * is this player actively moving into a scoring position right now).
+     * Updated each tick during position calculations.
+     */
+    function updateArrivalStrength(pin, newDepth, stage, side) {
+      if (!pin || !stage) return;
+      // Initialize depth history on first call
+      if (!pin._depthHistory) {
+        pin._depthHistory = [newDepth, newDepth, newDepth];
+        pin._prevDepth = newDepth;
+      }
+      // Shift history and add new depth
+      pin._depthHistory[0] = pin._depthHistory[1];
+      pin._depthHistory[1] = pin._depthHistory[2];
+      pin._depthHistory[2] = newDepth;
+
+      const prev2 = pin._depthHistory[0];
+      const prev1 = pin._depthHistory[1];
+      const curr = pin._depthHistory[2];
+
+      // Depth velocity: trend over last 2 ticks (moving toward goal = positive)
+      const vel1 = curr - prev1; // most recent tick
+      const vel2 = prev1 - prev2; // previous tick
+      const depthVelocity = (vel1 + vel2) * 0.5; // average
+
+      // Base arrival strength from depth velocity
+      // Moving forward (toward goal/box) = high; static or retreating = low
+      let arrivalStrength = clamp(depthVelocity * 8, 0, 1); // scaled so 0.125 depth/tick = 1.0
+
+      // Boost if player has _running flag (intent-driven forward movement)
+      if (pin._running) {
+        arrivalStrength = Math.max(arrivalStrength, 0.6);
+      }
+
+      // Boost if FB overlapping (explicit arrival signal)
+      if (pin.role === "FB" && pin._overlapRun) {
+        arrivalStrength = Math.max(arrivalStrength, 0.7);
+      }
+
+      // In attacking final third/box occupation stages, arrival is more relevant
+      if (stage === "FINAL_THIRD" || stage === "BOX_OCCUPATION") {
+        arrivalStrength *= 1.15;
+      }
+
+      pin._arrivalStrength = clamp(arrivalStrength, 0, 1);
+    }
+
     function isAttackFinisher(pin) {
       // Engine addition — goal-scoring midfielder archetype. Widened from
       // ST/W/AM to also include CM/DM so a real box-to-box scoring
@@ -6522,6 +6571,9 @@
             pin.tx = smoothDamp(pin.tx, pct.left + latBias * 0.35, dampRate);
             pin.ty = smoothDamp(pin.ty, pct.top + depthBias * 0.35, dampRate);
           }
+          // Phase 1 arrival detection: update _arrivalStrength based on depth momentum
+          const atkStageForArrival = attacking ? phase : "defending";
+          updateArrivalStrength(pin, dd, atkStageForArrival, pin.side);
           pin.x = xx;
           pin.depth = dd;
         }
