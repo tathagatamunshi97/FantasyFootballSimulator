@@ -3121,6 +3121,67 @@
     }
 
     /**
+     * Center back archetype profiling: classify CBs into defensive variants
+     * Dominant: physical, aggressive tackler
+     * Positioning: reader of game, cuts out passes
+     */
+    function computeCBArchetype(pin) {
+      if (!pin || !pin.stats || pin.role !== "CB") {
+        return { archetype: "unknown", dominanceIndex: 0, positioningIndex: 0 };
+      }
+
+      const tackles90 = pin.stats.tackles90 || 0;
+      const interceptions90 = pin.stats.interceptions90 || 0;
+      const blocks90 = pin.stats.blocks90 || 0;
+      const duelsWonPct = pin.stats.duels_won_pct || 50;
+      const clearances90 = pin.stats.clearances90 || 0;
+
+      const dominanceIndex = clamp((tackles90 * 0.2 + (duelsWonPct - 50) * 0.015 + blocks90 * 0.15), 0, 2);
+      const positioningIndex = clamp((interceptions90 * 0.3 + clearances90 * 0.1), 0, 2);
+
+      let archetype = "balanced";
+      if (dominanceIndex > positioningIndex + 0.3 && tackles90 > 1.8) {
+        archetype = "dominant"; // Physical, aggressive
+      } else if (positioningIndex > dominanceIndex + 0.3 && interceptions90 > 1.2) {
+        archetype = "positioning"; // Reader of game, cuts out passes
+      }
+
+      return {
+        archetype,
+        dominanceIndex: clamp(dominanceIndex, 0, 2),
+        positioningIndex: clamp(positioningIndex, 0, 2)
+      };
+    }
+
+    /**
+     * Hybrid player archetypes: players who excel in unconventional combinations
+     * Goal-Scoring Attacker: W/AM with high goals90 + high xa90 (shoots more)
+     * Box-Crashing Midfielder: CM with high goals90 + high tackles90 (runs into box)
+     */
+    function computeHybridArchetype(pin) {
+      if (!pin || !pin.stats) {
+        return { archetype: "standard" };
+      }
+
+      const role = pin.role;
+      const goals90 = pin.stats.goals90 || 0;
+      const xa90 = pin.stats.xa90 || 0;
+      const tackles90 = pin.stats.tackles90 || 0;
+
+      // Goal-scoring winger/AM: scores like a striker but creates like a midfielder
+      if ((role === "W" || role === "AM") && goals90 > 0.25 && xa90 > 0.18) {
+        return { archetype: "goal_scoring_attacker" };
+      }
+
+      // Box-crashing midfielder: scores significantly but also tackles (paradox player)
+      if (role === "CM" && goals90 > 0.15 && tackles90 > 1.5) {
+        return { archetype: "box_crashing_midfielder" };
+      }
+
+      return { archetype: "standard" };
+    }
+
+    /**
      * Lane control: how much does a defender control the passing lane to a receiver?
      * Used in pass interception calculations.
      */
@@ -6067,7 +6128,16 @@
               // --- Ideal positions by possession STATE (before ball attraction) ---
               if (atkStage === "BUILD_UP") {
                 if (pin.role === "CB") depth = clamp(0.18 + bias, 0.14, 0.28);
-                if (pin.role === "FB") depth = clamp(0.22 + bias, 0.16, 0.34);
+                if (pin.role === "FB") {
+                  // Phase 5: Fullback archetype-based positioning
+                  const fbMod = fullbackArchetypeModifiers(pin);
+                  const defensiveDepth = fbMod.defensiveDepth / 100; // Convert to 0-1
+                  depth = clamp(0.22 + bias, 0.16, 0.34);
+                  // Defensive FB sits deeper, attacking FB slightly higher even in build-up
+                  if (pin._fbArchetype === "defensive") {
+                    depth = clamp(defensiveDepth + bias, 0.14, 0.28);
+                  }
+                }
                 if (pin.role === "DM") depth = clamp(0.3 + bias, 0.24, 0.4);
                 if (pin.role === "CM") depth = clamp(0.36 + bias, 0.3, 0.46);
                 if (pin.role === "AM") {
@@ -6081,7 +6151,14 @@
                 }
                 if (pin.role === "ST") depth = clamp(0.52 + bias, 0.46, 0.6);
               } else if (atkStage === "PROGRESSING") {
-                if (pin.role === "FB") depth = lerp(depth, midLine + 0.04, 0.45);
+                if (pin.role === "FB") {
+                  // Phase 5: Attacking FB pushes higher, defensive FB stays back
+                  const fbMod = fullbackArchetypeModifiers(pin);
+                  const targetDepth = fbMod.archetype === "attacking"
+                    ? lerp(depth, midLine + 0.08, 0.55)
+                    : lerp(depth, midLine + 0.01, 0.35);
+                  depth = targetDepth;
+                }
                 if (pin.role === "CM") depth = lerp(depth, midLine + 0.06, 0.5);
                 if (pin.role === "AM") {
                   // Pocket ahead of CMs, behind ST — not on the striker line.
@@ -6131,6 +6208,21 @@
                     x = lerp(nearPost, farPost, osc * 0.35 + 0.32);
                     depth = clamp(onsideDepth, midLine + 0.1, 0.9);
                     if (ballWide) x = lerp(x, relBall.x, 0.12);
+                  }
+                } else if (pin.role === "FB") {
+                  // Phase 5: Fullback overlap/underlay in attacking moves
+                  const fbMod = fullbackArchetypeModifiers(pin);
+                  if (fbMod.archetype === "attacking" && rng() < fbMod.overlapFrequency) {
+                    // Attacking fullback makes an overlap run with nearby winger
+                    const offlineDepth = fbMod.offensiveDepth / 100;
+                    depth = clamp(offlineDepth, 0.65, 0.85);
+                    // Move into wider attacking position
+                    x = lerp(x, pin.baseX, 0.4);
+                    pin._overlapRun = true;
+                  } else if (fbMod.archetype === "defensive") {
+                    // Defensive fullback holds width but stays back
+                    const defDepth = fbMod.defensiveDepth / 100;
+                    depth = clamp(defDepth, 0.18, 0.35);
                   }
                 } else if (pin.role === "W") {
                   // Engine rebuild Phase 2 — was a pure sine wave of elapsed
