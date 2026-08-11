@@ -1122,6 +1122,11 @@
     // recycle) and spellChanceP (fewer forced chance attempts) for the
     // scoring side only.
     let leadProtectUntil = { home: 0, away: 0 };
+    // Phase 3: Track defensive shape exposure when defenders step out of position
+    // central: 0-1 scale of how exposed the central midfield zone is (DM/CM beaten)
+    // wide: 0-1 scale of how exposed the wing zones are (FB beaten)
+    // Decays over time as defenders reset shape
+    let defensiveShapeExposure = { home: { central: 0, wide: 0 }, away: { central: 0, wide: 0 } };
     /**
      * Per-team finishing form for this match (drawn once at reset/kickoff).
      * Multiplies shot conversion; does not invent goals without shots.
@@ -1937,18 +1942,51 @@
         if (d >= PRESSURE_RADIUS) continue;
         const proximity = 1 - d / PRESSURE_RADIUS;
         const closing = opp._pressing || opp._running ? 1.2 : 1;
-        // ball_recoveries90 (loose-ball wins, distinct from clean tackles)
-        // and clearances90 (CB/FB last-line defending) are secondary nudges
-        // on top of the existing tackles90/interceptions90-driven quality.
-        const clearanceBonus =
-          opp.role === "CB" || opp.role === "FB" ? (opp.stats.clearances90 || 0) * 0.02 : 0;
+
+        // Role-based pressure multiplier: DM/CM apply different defensive weight
+        const defMod = defensiveArchetypeModifiers(opp);
+        const rolePressureMultiplier =
+          opp.role === "DM" ? 1.3 :
+          opp.role === "CM" ? 1.1 :
+          opp.role === "CB" ? 1.2 :
+          opp.role === "FB" ? 1.0 :
+          0.75; // W, AM, ST
+
+        // Defensive quality: tackles + interceptions, scaled by archetype
+        const defArchetype = computeDefensiveArchetype(opp);
         const quality =
           0.4 +
-          (opp.stats.tackles90 || 0) * 0.08 +
-          (opp.stats.interceptions90 || 0) * 0.04 +
-          (opp.stats.ball_recoveries90 || 0) * 0.02 +
-          clearanceBonus;
-        total += proximity * proximity * closing * quality;
+          (opp.stats.tackles90 || 0) * 0.08 * defMod.pressureMultiplier +
+          (opp.stats.interceptions90 || 0) * 0.04 * defMod.laneControlStrength +
+          (opp.stats.ball_recoveries90 || 0) * 0.02;
+
+        // Clearance bonus for defensive line
+        const clearanceBonus =
+          opp.role === "CB" || opp.role === "FB" ? (opp.stats.clearances90 || 0) * 0.02 : 0;
+
+        // Centrality bonus: DM/CM exert more pressure centrally (x: 40-60)
+        const centralityDistance = Math.abs(opp.left - 50);
+        const centralityBonus =
+          (opp.role === "DM" || opp.role === "CM") ?
+            Math.max(0, 1 - centralityDistance / 20) * 0.08 : 0;
+
+        total +=
+          proximity * proximity *
+          closing *
+          (quality + clearanceBonus + centralityBonus) *
+          rolePressureMultiplier;
+      }
+      // Phase 3: Defensive shape exposure reduces pressure in exposed zones
+      // When defenders have stepped out and lost duels, the zones they exposed have less pressure
+      if (defensiveShapeExposure && defensiveShapeExposure[oppOf(side)]) {
+        const exposure = defensiveShapeExposure[oppOf(side)];
+        const isCentral = x >= 40 && x <= 60;
+        const isWide = x < 40 || x > 60;
+        if (isCentral && exposure.central > 0) {
+          total *= (1 - exposure.central * 0.4); // Up to 40% reduction in central zone
+        } else if (isWide && exposure.wide > 0) {
+          total *= (1 - exposure.wide * 0.4); // Up to 40% reduction in wide zones
+        }
       }
       return total;
     }
@@ -7941,6 +7979,9 @@
         const coverAnticipating =
           def._defMode === "cover" && (to._supportRole === "progressive" || to._supportRole === "third_man");
         const anticipationBonus = markAnticipating ? 0.05 : coverAnticipating ? 0.04 : 0;
+        // Lane control bonus: DMs screening the passing lane significantly increase interception probability
+        const laneControl = computeLaneControl(def, from, to);
+
         const pIntercept =
           0.035 +
           def.stats.interceptions90 * 0.05 +
@@ -7961,6 +8002,7 @@
           longPen +
           throughPen +
           lanePen +
+          laneControl +
           anticipationBonus;
         const cap = passKind === "long" ? 0.48 : passKind === "through" ? 0.4 : 0.3;
         if (rng() < clamp(pIntercept, 0.025, cap)) {
@@ -8181,6 +8223,10 @@
       // outcome) hasn't had a real touch to get the ball under control
       // facing forward yet.
       const backToGoal = (carrier._backToGoalUntil || 0) > matchMinute;
+      // Phase 2 integration: defensive commitment modifies tackle/interception effectiveness
+      // A defender who isn't willing/able to engage (low commitment) has reduced duel effectiveness
+      const defCommitment = threat ? defensiveCommitment(threat.pin, carrier.left, carrier.top, threat) : 1;
+      const defCommitmentMult = clamp(0.5 + defCommitment * 0.5, 0.5, 1.0); // Range 0.5-1.0 based on commitment
       const successP =
         0.28 +
         carrier.stats.dribbles90 * 0.07 +
@@ -8189,8 +8235,8 @@
         atkU * 0.06 -
         Math.max(0, fieldPressure - resist * 1.6) * 0.16 -
         defU * 0.08 -
-        (threat ? threat.pin.stats.tackles90 * 0.07 : 0) -
-        (threat ? threat.pin.stats.interceptions90 * 0.02 : 0) +
+        (threat ? threat.pin.stats.tackles90 * 0.07 * defCommitmentMult : 0) -
+        (threat ? threat.pin.stats.interceptions90 * 0.02 * defCommitmentMult : 0) +
         // General physical-duel modifier, centered on the 50 neutral
         // fallback -- additive to dribble_pct (attack-specific) and
         // tackles90 (defence-specific) above, not a replacement for either.
@@ -8241,7 +8287,26 @@
         });
         say(`${carrier.short} dribbles past ${threat?.pin.short || "the press"}`, 1.4);
         ballFlight = { outcome: "dribble_won" };
-        if (threat) triggerDefensiveBreachReactions(threat.pin);
+        if (threat) {
+          triggerDefensiveBreachReactions(threat.pin);
+          // Phase 3 consequence: defender stepped out and got beaten, exposing their zone
+          // Track which defensive archetype lost the duel to inform shape updates
+          const threatArchetype = computeDefensiveArchetype(threat.pin);
+          if (defCommitment > 0.5) {
+            // High commitment defender was beaten — they stepped out
+            if (threat.pin.role === "DM" || threat.pin.role === "CM") {
+              // Central midfield zone now exposed
+              if (!defensiveShapeExposure) defensiveShapeExposure = {};
+              if (!defensiveShapeExposure[oppOf(carrier.side)]) defensiveShapeExposure[oppOf(carrier.side)] = { central: 0, wide: 0 };
+              defensiveShapeExposure[oppOf(carrier.side)].central = Math.min(1.0, defensiveShapeExposure[oppOf(carrier.side)].central + 0.3);
+            } else if (threat.pin.role === "FB") {
+              // Wide zone now exposed
+              if (!defensiveShapeExposure) defensiveShapeExposure = {};
+              if (!defensiveShapeExposure[oppOf(carrier.side)]) defensiveShapeExposure[oppOf(carrier.side)] = { central: 0, wide: 0 };
+              defensiveShapeExposure[oppOf(carrier.side)].wide = Math.min(1.0, defensiveShapeExposure[oppOf(carrier.side)].wide + 0.3);
+            }
+          }
+        }
       } else {
         const opp = threat?.pin || nearestOpponent(carrier, 30)?.pin || pinsOf(oppOf(carrier.side))[3];
         // Engine addition — fouls. A defender "winning" this duel wasn't
@@ -10179,6 +10244,14 @@
       if (flashTimer > 0) {
         flashTimer -= dt;
         if (flashTimer <= 0) clearFlash();
+      }
+      // Phase 3: Decay defensive shape exposure over time as defenders reset position
+      if (defensiveShapeExposure) {
+        const exposureDecay = dt * 0.5; // Decays to 0 in ~2 seconds if not refreshed
+        defensiveShapeExposure.home.central = Math.max(0, defensiveShapeExposure.home.central - exposureDecay);
+        defensiveShapeExposure.home.wide = Math.max(0, defensiveShapeExposure.home.wide - exposureDecay);
+        defensiveShapeExposure.away.central = Math.max(0, defensiveShapeExposure.away.central - exposureDecay);
+        defensiveShapeExposure.away.wide = Math.max(0, defensiveShapeExposure.away.wide - exposureDecay);
       }
 
       actionTimer -= dt;
