@@ -2632,6 +2632,102 @@
       return Boolean(pin && pin.stats && pin.stats.assists90 > pin.stats.xa90);
     }
 
+    /**
+     * Finisher archetype profiling: decompose finishing pattern into big-chance
+     * vs half-chance efficiency. A player with high big_chances_missed but high
+     * goals90 is a "half-chance scorer"; one with low misses and high goals is
+     * "clinical on big chances"; wasteful finishers have high misses + low goals.
+     */
+    function computeFinisherArchetype(pin) {
+      if (!pin || !pin.stats) return { archetype: "unknown", bigChanceEff: 0, halfChanceEff: 0, wasteRate: 0 };
+
+      const npxg = pin.stats.xg90 || 0;
+      const goals = pin.stats.goals90 || 0;
+      const shots = pin.stats.shots90 || 0;
+      const bigChancesMissed = pin.stats.big_chances_missed90 || 0;
+
+      // Expected big chances ≈ npxg / 0.60 (standard big-chance xG value)
+      const expectedBigChances = npxg > 0 ? npxg / 0.60 : 0;
+
+      // Implied big chances scored (npxg - value lost to misses)
+      // Assume each miss costs ~0.60 xG on average
+      const impliedBigChancesScored = Math.max(0, npxg - bigChancesMissed * 0.60);
+
+      // Big-chance efficiency: goals from 0.6+ xG opportunities
+      const bigChanceEff = expectedBigChances > 0 ? impliedBigChancesScored / expectedBigChances : 0;
+
+      // Half-chance efficiency: goals from <0.6 xG opportunities
+      // Inferred as: total goals - big-chance goals; half-chances ≈ shots - big-chances
+      const estimatedBigChanceShots = expectedBigChances * 0.8; // rough correlation
+      const estimatedHalfChanceShots = Math.max(0, shots - estimatedBigChanceShots);
+      const impliedHalfChanceGoals = Math.max(0, goals - impliedBigChancesScored);
+      const halfChanceEff = estimatedHalfChanceShots > 0 ? impliedHalfChanceGoals / estimatedHalfChanceShots : 0;
+
+      // Waste rate: missed big chances vs expected
+      const wasteRate = expectedBigChances > 0 ? bigChancesMissed / expectedBigChances : 0;
+
+      // Archetype classification: primarily based on big-chance miss rate + overall finishing
+      let archetype = "balanced";
+
+      // Direct big-chance miss rate signal (per 90 basis)
+      // Clinical finishers: low misses (< 0.25/90), good conversion on what they do attempt
+      // Half-chance scorers: higher misses (0.3+/90) but compensate with overall goals
+      // Wasteful: high misses AND low goals (underperforms xG)
+
+      if (bigChancesMissed < 0.25 && goals >= npxg * 0.95) {
+        archetype = "clinical_big_chance"; // Few big-chance misses, converts well overall
+      } else if (bigChancesMissed >= 0.32 && goals >= npxg * 0.90) {
+        archetype = "half_chance_scorer"; // Higher big-chance miss rate but scores overall
+      } else if (bigChancesMissed >= 0.40 && goals < npxg * 0.85) {
+        archetype = "wasteful"; // Many misses AND underperforms xG
+      } else if (goals > npxg * 1.20) {
+        archetype = "over_performer"; // Significantly outscores xG (>20%)
+      }
+
+      return {
+        archetype,
+        bigChanceEff: clamp(bigChanceEff, 0, 1),
+        halfChanceEff: clamp(halfChanceEff, 0, 1),
+        wasteRate: clamp(wasteRate, 0, 1),
+        expectedBigChances
+      };
+    }
+
+    /** Dynamic profligacy based on finisher archetype and chance type. */
+    function profligacyByArchetype(pin, chanceType) {
+      if (!pin || !pin.stats) return 0;
+
+      const archetype = computeFinisherArchetype(pin);
+      const bigChancesMissed = (pin.stats.big_chances_missed90 || 0) * 0.015;
+
+      // Base profligacy (same as before)
+      let profligacy = chanceType === "big_chance" ? clamp(bigChancesMissed, 0, 0.1) : 0;
+
+      // Archetype-specific adjustments
+      if (chanceType === "big_chance") {
+        if (archetype.archetype === "clinical_big_chance") {
+          // Reduce penalty: they're actually good at big chances
+          profligacy *= 0.5;
+        } else if (archetype.archetype === "half_chance_scorer") {
+          // Increase penalty: they struggle with big chances specifically
+          profligacy *= 1.3;
+        } else if (archetype.archetype === "wasteful") {
+          // Heavy penalty: consistently miss big chances
+          profligacy *= 1.5;
+        }
+      } else if (chanceType === "half_chance" || chanceType === undefined) {
+        // Boost half-chance scorers on lower-xG opportunities
+        if (archetype.archetype === "half_chance_scorer") {
+          profligacy -= clamp(archetype.halfChanceEff * 0.08, 0, 0.12);
+        } else if (archetype.archetype === "clinical_big_chance") {
+          // Slight penalty on half-chances if they're pure big-chance specialists
+          profligacy += clamp((0.6 - archetype.halfChanceEff) * 0.03, 0, 0.06);
+        }
+      }
+
+      return clamp(profligacy, -0.15, 0.2);
+    }
+
     /** Forward line (ST/W/AM) collectively within 5% of its combined xG, or ahead of it. */
     function sideForwardLineClinical(side) {
       const fwd = pinsOf(side).filter(
@@ -8065,11 +8161,9 @@
       // Real profligacy rate on big chances specifically -- independent of
       // the live anti-drought missBoost below (which only reacts to THIS
       // match's own streak), a real wasteful-in-front-of-goal history nudges
-      // the baseline down a little.
-      const profligacy =
-        roleFin && chanceType === "big_chance"
-          ? clamp((carrier.stats.big_chances_missed90 || 0) * 0.015, 0, 0.1)
-          : 0;
+      // the baseline down a little. Archetype-aware: half-chance scorers get
+      // boosted on non-big-chances, clinical finishers penalized less on big chances.
+      const profligacy = roleFin ? profligacyByArchetype(carrier, chanceType) : 0;
       const p =
         (0.05 +
           carrier.stats.xg90 * xgW +
