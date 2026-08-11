@@ -2856,6 +2856,236 @@
       };
     }
 
+    /**
+     * Defensive archetype profiling: classify DMs and CMs into defensive archetypes
+     * that drive positioning, lane control, and commitment behavior.
+     *
+     * DM archetypes:
+     * - anchor: high interceptions/positioning, low aggression → screening specialist
+     * - ball_winner: high tackles/duels, high aggression → proactive ball recovery
+     *
+     * CM archetypes:
+     * - box_to_box: high tackles/duels/stamina → mobile coverage specialist
+     * - playmaker: high passing/xa90, lower defensive stats → creative focus
+     */
+    function computeDefensiveArchetype(pin) {
+      if (!pin || !pin.stats || !pin.role) {
+        return { archetype: "unknown", defensiveIndex: 0, mobilityIndex: 0, aggressionIndex: 0 };
+      }
+
+      const role = pin.role;
+      const tackles90 = pin.stats.tackles90 || 0;
+      const interceptions90 = pin.stats.interceptions90 || 0;
+      const recoveries90 = pin.stats.ball_recoveries90 || 0;
+      const duelsWonPct = pin.stats.duels_won_pct || 50;
+      const dribbles90 = pin.stats.dribbles90 || 0;
+      const xa90 = pin.stats.xa90 || 0;
+      const passAccuracy = pin.stats.pass_pct || 75;
+      const yellowCards90 = pin.stats.yellow_cards90 || 0;
+
+      // Defensive positioning index: reading the game (interceptions + recoveries)
+      const defensiveIndex = clamp((interceptions90 + recoveries90 * 0.5) * 0.4, 0, 2);
+
+      // Mobility index: ability to cover ground (dribbles + pass accuracy + work rate proxy)
+      const mobilityIndex = clamp(dribbles90 * 0.3 + ((passAccuracy - 75) * 0.02), 0, 2);
+
+      // Aggression index: physical engagement (tackles + duels + cards)
+      const aggressionIndex = clamp(
+        tackles90 * 0.15 + (duelsWonPct - 50) * 0.02 + yellowCards90 * 0.3,
+        0,
+        2.5
+      );
+
+      // Archetype classification
+      let archetype = "balanced";
+
+      if (role === "DM") {
+        // DM: classify as anchor vs ball-winner
+        if (interceptions90 > 1.5 && aggressionIndex < 0.8) {
+          archetype = "anchor"; // High positioning, low aggression → screening
+        } else if (tackles90 > 2.2 && aggressionIndex > 1.0) {
+          archetype = "ball_winner"; // High tackles/aggression → proactive
+        }
+      } else if (role === "CM") {
+        // CM: classify as box-to-box vs playmaker
+        if (mobilityIndex > 0.8 && tackles90 > 1.5) {
+          archetype = "box_to_box"; // Mobile, defensive → coverage
+        } else if (xa90 > 0.22 && passAccuracy > 80) {
+          archetype = "playmaker"; // Creative focus
+        }
+      }
+
+      return {
+        archetype,
+        defensiveIndex: clamp(defensiveIndex, 0, 2),
+        mobilityIndex: clamp(mobilityIndex, 0, 2),
+        aggressionIndex: clamp(aggressionIndex, 0, 2.5),
+        positioningStrength: interceptions90 / (tackles90 + 0.1) // High = reads game well
+      };
+    }
+
+    /**
+     * Defensive archetype behavioral modifiers for role-specific actions.
+     */
+    function defensiveArchetypeModifiers(pin) {
+      if (!pin || !pin.stats) {
+        return {
+          pressureMultiplier: 1.0,
+          laneControlStrength: 0.5,
+          commitmentThreshold: 0.5,
+          coverageRadius: 8,
+          aggressionBias: 0
+        };
+      }
+
+      const archetype = computeDefensiveArchetype(pin);
+      const arch = archetype.archetype;
+
+      let pressureMultiplier = 1.0;
+      let laneControlStrength = 0.5;
+      let commitmentThreshold = 0.5;
+      let coverageRadius = 8;
+      let aggressionBias = 0;
+
+      if (arch === "anchor") {
+        // Anchor DM: high pressure, strong lane control, patient (high commitment threshold)
+        pressureMultiplier = 1.4; // Very strong pressure in own zone
+        laneControlStrength = 1.3; // Excellent at controlling passing lanes
+        commitmentThreshold = 0.7; // Waits for clear threat before engaging
+        coverageRadius = 10; // Covers large central zone
+        aggressionBias = -0.2; // Prefers positioning over tackling
+      } else if (arch === "ball_winner") {
+        // Ball-winning DM: aggressive, good lane control, low commitment threshold
+        pressureMultiplier = 1.25;
+        laneControlStrength = 1.1;
+        commitmentThreshold = 0.3; // Engages aggressively, early
+        coverageRadius = 9;
+        aggressionBias = 0.3; // Actively attacks the ball
+      } else if (arch === "box_to_box") {
+        // Box-to-box CM: mobile, good coverage, balanced commitment
+        pressureMultiplier = 1.15;
+        laneControlStrength = 0.9;
+        commitmentThreshold = 0.45;
+        coverageRadius = 11; // Can cover more ground due to mobility
+        aggressionBias = 0.1;
+      } else if (arch === "playmaker") {
+        // Playmaking CM: lower pressure, minimal lane control, patient
+        pressureMultiplier = 0.95;
+        laneControlStrength = 0.6;
+        commitmentThreshold = 0.6;
+        coverageRadius = 7; // Tighter positioning
+        aggressionBias = -0.15; // Prefers structure over pressing
+      }
+
+      return {
+        pressureMultiplier,
+        laneControlStrength,
+        commitmentThreshold,
+        coverageRadius,
+        aggressionBias
+      };
+    }
+
+    /**
+     * Lane control: how much does a defender control the passing lane to a receiver?
+     * Used in pass interception calculations.
+     */
+    function computeLaneControl(defender, passer, receiver) {
+      if (!defender || !passer || !receiver) return 0;
+
+      const defMod = defensiveArchetypeModifiers(defender);
+      const dToLane = dist(defender, { left: (passer.left + receiver.left) / 2, top: (passer.top + receiver.top) / 2 });
+      const laneLength = dist(passer, receiver);
+
+      // How "in the lane" is the defender? (0 = far from lane, 1 = perfectly positioned)
+      const lanePenetration = clamp(1 - dToLane / laneLength * 1.5, 0, 1);
+
+      // Defender's positioning ability
+      const positioningQuality = computeDefensiveArchetype(defender).positioningStrength;
+
+      // Final lane control: proximity × positioning × role modifier
+      return lanePenetration * positioningQuality * defMod.laneControlStrength * 0.15;
+    }
+
+    /**
+     * Defensive coverage: how much area is this defender realistically covering?
+     * Used for transition and press resistance calculations.
+     */
+    function defensiveCoverage(pin, ballX, ballY) {
+      if (!pin || !pin.stats) return 0;
+
+      const defMod = defensiveArchetypeModifiers(pin);
+      const dToBall = dist(pin, { left: ballX, top: ballY });
+
+      // Base coverage decreases with distance (exponential falloff)
+      const baseCoverage = Math.max(0, 1 - dToBall / defMod.coverageRadius);
+
+      // Mobility bonus: faster players cover more ground
+      const mobilityBonus = pin.stats.dribbles90 * 0.08;
+
+      return clamp(baseCoverage * (1 + mobilityBonus), 0, 1);
+    }
+
+    /**
+     * Defensive commitment: should this defender step out aggressively?
+     * Returns 0-1: how committed the defender is to engaging the ball carrier.
+     */
+    function defensiveCommitment(pin, ballX, ballY, threat) {
+      if (!pin || !threat) return 0;
+
+      const defMod = defensiveArchetypeModifiers(pin);
+      const dToBall = dist(pin, { left: ballX, top: ballY });
+      const threatPower = threat.pin.stats.dribbles90 * 0.15 + (threat.pin.stats.duels_won_pct - 50) * 0.008;
+
+      // Base commitment: closer = more committed
+      const proximityCommitment = clamp(1 - dToBall / defMod.coverageRadius, 0, 1);
+
+      // Threat commitment: bigger threat = more commitment needed
+      const threatCommitment = clamp(threatPower * 0.8, 0, 1);
+
+      // Final commitment, accounting for archetype aggression
+      return clamp(
+        (proximityCommitment * 0.6 + threatCommitment * 0.4) +
+          defMod.aggressionBias -
+          defMod.commitmentThreshold * 0.2,
+        0,
+        1
+      );
+    }
+
+    /**
+     * Defensive shape state: track which zones are currently exposed.
+     * This creates the "consequences" when defenders step out.
+     */
+    function computeDefensiveShape(side) {
+      const defenders = pinsOf(side).filter((p) => p.role === "DM" || p.role === "CM" || p.role === "CB");
+      if (!defenders.length) return { centralExposure: 0, wideExposure: 0 };
+
+      let centralCoverage = 0;
+      let wideCoverage = 0;
+
+      for (const def of defenders) {
+        if (def.role === "DM" || def.role === "CM") {
+          // Midfielders cover central zone (x: 40-60)
+          const centralDist = Math.abs(def.left - 50);
+          centralCoverage += Math.max(0, 1 - centralDist / 15);
+
+          // And contribute to wide coverage
+          wideCoverage += defensiveCoverage(def, def.left, def.top) * 0.3;
+        }
+        if (def.role === "CB" || def.role === "DM") {
+          // CBs + DM cover central
+          const centralDist = Math.abs(def.left - 50);
+          centralCoverage += Math.max(0, 1 - centralDist / 20) * 0.6;
+        }
+      }
+
+      return {
+        centralExposure: clamp(1 - centralCoverage / Math.max(1, defenders.length * 0.7), 0, 1),
+        wideExposure: clamp(1 - wideCoverage / Math.max(1, defenders.length * 0.3), 0, 1)
+      };
+    }
+
     /** Forward line (ST/W/AM) collectively within 5% of its combined xG, or ahead of it. */
     function sideForwardLineClinical(side) {
       const fwd = pinsOf(side).filter(
