@@ -3025,6 +3025,102 @@
     }
 
     /**
+     * Fullback archetype profiling: classify left/right backs into attacking vs defensive variants
+     * based on their stats. Driving decision for off-ball positioning and wide play participation.
+     *
+     * Attacking Fullback: high pace + high tackles90 + crossing ability → aggressive overlap/underlay
+     * Defensive Fullback: high interceptions90 + high blocks90 + lower pace → protective, deep positioning
+     */
+    function computeFullbackArchetype(pin) {
+      if (!pin || !pin.stats || (pin.role !== "FB")) {
+        return { archetype: "unknown", attackingIndex: 0, defensiveIndex: 0 };
+      }
+
+      const pace = pin.stats.pace || 75;
+      const tackles90 = pin.stats.tackles90 || 0;
+      const interceptions90 = pin.stats.interceptions90 || 0;
+      const blocks90 = pin.stats.blocks90 || 0;
+      const crossing = pin.stats.crossing || 60;
+      const dribbles90 = pin.stats.dribbles90 || 0;
+      const duelsWonPct = pin.stats.duels_won_pct || 50;
+
+      // Attacking index: pace + dribbling + crossing ability
+      const attackingIndex = clamp((pace - 70) * 0.02 + dribbles90 * 0.2 + (crossing - 60) * 0.01, 0, 2);
+
+      // Defensive index: tackling + interceptions + blocks
+      const defensiveIndex = clamp((tackles90 + interceptions90) * 0.3 + (blocks90 * 0.2), 0, 2);
+
+      // Classification
+      let archetype = "balanced";
+      if (attackingIndex > defensiveIndex + 0.3 && pace > 78) {
+        archetype = "attacking"; // Pace + dribbling + crossing > defensive duties
+      } else if (defensiveIndex > attackingIndex + 0.3 && tackles90 > 1.8) {
+        archetype = "defensive"; // Defensive solidity > attacking contribution
+      }
+
+      return {
+        archetype,
+        attackingIndex: clamp(attackingIndex, 0, 2),
+        defensiveIndex: clamp(defensiveIndex, 0, 2),
+        recoveryPace: pace // How quickly can recover if caught out
+      };
+    }
+
+    /**
+     * Fullback behavioral modifiers based on archetype.
+     * Controls positioning depth, overlap tendency, defensive commitment.
+     */
+    function fullbackArchetypeModifiers(pin) {
+      if (!pin || !pin.stats) {
+        return {
+          attackingTendency: 0.5,
+          offensiveDepth: 60, // How far forward they push (y coordinate)
+          defensiveDepth: 20, // How far back they sit (y coordinate)
+          overlapFrequency: 0.5,
+          underlapFrequency: 0.3,
+          widthCoverage: 8
+        };
+      }
+
+      const archetype = computeFullbackArchetype(pin);
+      const arch = archetype.archetype;
+
+      let attackingTendency = 0.5;
+      let offensiveDepth = 60;
+      let defensiveDepth = 20;
+      let overlapFrequency = 0.5;
+      let underlapFrequency = 0.3;
+      let widthCoverage = 8;
+
+      if (arch === "attacking") {
+        // Attacking fullback: push high, overlap often, less concern for defensive depth
+        attackingTendency = 0.85; // Very likely to join attack
+        offensiveDepth = 70; // Push very high when attacking
+        defensiveDepth = 25; // Still protect goal, but less conservative
+        overlapFrequency = 0.8; // Frequent overlaps with winger
+        underlapFrequency = 0.5; // Also cuts inside sometimes
+        widthCoverage = 9; // Wider area of control due to positioning
+      } else if (arch === "defensive") {
+        // Defensive fullback: stay deep, cover center backs, less attacking
+        attackingTendency = 0.3; // Rarely join attack
+        offensiveDepth = 45; // Stay in middle when team attacks
+        defensiveDepth = 15; // Sit very deep for protection
+        overlapFrequency = 0.2; // Rare overlaps
+        underlapFrequency = 0.1; // Almost never underlap
+        widthCoverage = 10; // Wider defensive area to compensate for lack of width in attack
+      }
+
+      return {
+        attackingTendency,
+        offensiveDepth,
+        defensiveDepth,
+        overlapFrequency,
+        underlapFrequency,
+        widthCoverage
+      };
+    }
+
+    /**
      * Lane control: how much does a defender control the passing lane to a receiver?
      * Used in pass interception calculations.
      */
