@@ -2279,7 +2279,9 @@
       }
       const prog = progressiveTarget(carrier);
       if (prog && prog.id !== carrier.id) {
-        doPass(carrier, prog, throughBallLegal(carrier, prog) ? "through" : "pass");
+        const creatorMod = creatorBehaviorModifiers(carrier);
+        const passType = throughBallLegal(carrier, prog) && rng() < creatorMod.throughBallMultiplier ? "through" : "pass";
+        doPass(carrier, prog, passType);
         return true;
       }
       doDribble(carrier);
@@ -2726,6 +2728,132 @@
       }
 
       return clamp(profligacy, -0.15, 0.2);
+    }
+
+    /**
+     * Creator archetype profiling: decompose creation into big-chance quality,
+     * volume, and conversion efficiency. Classifies into archetypes (elite_chance_creator,
+     * volume_creator, selective_elite_creator, progressive_creator, etc.) that drive
+     * behavioral decisions during chance-creation phases.
+     */
+    function computeCreatorArchetype(pin) {
+      if (!pin || !pin.stats) return { archetype: "unknown", bigChanceCreationPower: 0, volumeIndex: 0, progressionIndex: 0 };
+
+      const xa90 = pin.stats.xa90 || 0;
+      const keyPasses90 = pin.stats.key_passes90 || 0;
+      const assists90 = pin.stats.assists90 || 0;
+      const dribbles90 = pin.stats.dribbles90 || 0;
+      const passAccuracy = pin.stats.pass_pct || 75;
+
+      // Big-chance creation power: xa90 is primary; scale up if high key_passes (volume) and high accuracy
+      const bigChanceCreationPower = clamp(xa90 + keyPasses90 * 0.08, 0, 1.5);
+
+      // Volume index: key_passes90 + through_balls, adjusted for pass accuracy
+      const volumeIndex = clamp((keyPasses90 + (pin.stats.through_balls90 || 0)) * ((passAccuracy - 75) * 0.005 + 1), 0, 5);
+
+      // Quality per pass: xa90 / key_passes90; high quality means selective elite
+      const xaPerKeyPass = keyPasses90 > 0 ? xa90 / keyPasses90 : 0;
+
+      // Progression index: dribbles90 + progressive intent
+      const progressionIndex = clamp(dribbles90 + (pin.stats.long_balls90 || 0) * 0.15, 0, 3);
+
+      // Assist conversion: do assists match xA expectation?
+      const assistConversion = xa90 > 0 ? assists90 / xa90 : 0;
+
+      // Archetype classification
+      let archetype = "balanced";
+
+      if (xa90 > 0.28 && keyPasses90 > 1.8) {
+        archetype = "elite_chance_creator"; // High xA + high volume = elite
+      } else if (keyPasses90 > 2.2 && xa90 > 0.15) {
+        archetype = "volume_creator"; // Very high key_passes, moderate xA
+      } else if (xaPerKeyPass > 0.22 && keyPasses90 < 1.8 && xa90 > 0.15) {
+        archetype = "selective_elite_creator"; // High quality per pass, selective volume
+      } else if (progressionIndex > 1.2 && xa90 > 0.12) {
+        archetype = "progressive_creator"; // Ball carrier, progressive threat
+      } else if (xa90 > 0.22 && assistConversion < 0.7) {
+        archetype = "under_converting_creator"; // Creates but teammates don't finish
+      }
+
+      return {
+        archetype,
+        bigChanceCreationPower: clamp(bigChanceCreationPower, 0, 1.5),
+        volumeIndex: clamp(volumeIndex, 0, 5),
+        xaPerKeyPass: clamp(xaPerKeyPass, 0, 0.5),
+        progressionIndex: clamp(progressionIndex, 0, 3),
+        assistConversion: clamp(assistConversion, 0, 2)
+      };
+    }
+
+    /**
+     * Archetype-driven behavior modifiers for creator decision-making.
+     * Returns multipliers for the five key decision points.
+     */
+    function creatorBehaviorModifiers(pin) {
+      if (!pin || !pin.stats) {
+        return {
+          spellProbeBoost: 0,
+          throughBallMultiplier: 1.0,
+          amGateBoost: 0,
+          progressiveBoost: 0,
+          dmFunnelAdjust: 0
+        };
+      }
+
+      const archetype = computeCreatorArchetype(pin);
+      const arch = archetype.archetype;
+
+      // Base modifiers
+      let spellProbeBoost = 0;
+      let throughBallMultiplier = 1.0;
+      let amGateBoost = 0;
+      let progressiveBoost = 0;
+      let dmFunnelAdjust = 0;
+
+      if (arch === "elite_chance_creator") {
+        // Aggressive creator: frequent attempts, through-ball focus, high gate boost
+        spellProbeBoost = 0.03; // +3% spell probe chance
+        throughBallMultiplier = 1.4; // 40% higher through-ball tendency
+        amGateBoost = 0.08; // Higher creative edge gate
+        progressiveBoost = 0.04; // Forward-focused
+        dmFunnelAdjust = 0.08; // More willing to funnel forward (higher cmFunnelP)
+      } else if (arch === "volume_creator") {
+        // Frequent passer: high volume, safe pass preference, quick tempo
+        spellProbeBoost = 0.025; // +2.5% spell probe
+        throughBallMultiplier = 0.85; // Slightly favor safe pass over through
+        amGateBoost = 0.04; // Moderate gate boost
+        progressiveBoost = 0; // Balanced
+        dmFunnelAdjust = -0.12; // Lower cmFunnelP, more willing to recycle
+      } else if (arch === "selective_elite_creator") {
+        // Patient elite: wait for perfect moment, high-quality through balls
+        spellProbeBoost = 0.01; // Minimal probe boost, waits for openings
+        throughBallMultiplier = 1.35; // Very high through-ball tendency when committed
+        amGateBoost = 0.12; // High gate, but only when creativeEdge truly high
+        progressiveBoost = 0.02; // Selective progressive
+        dmFunnelAdjust = 0.05; // Slightly forward-focused
+      } else if (arch === "progressive_creator") {
+        // Ball carrier: dribble-first, progressive passes, forward momentum
+        spellProbeBoost = 0.015; // Moderate probe
+        throughBallMultiplier = 1.2; // Forward through-balls
+        amGateBoost = 0.06; // Balanced
+        progressiveBoost = 0.06; // Strong progressive preference
+        dmFunnelAdjust = 0.06; // Forward-minded
+      } else if (arch === "under_converting_creator") {
+        // Maintains high xA despite assist output; not penalized
+        spellProbeBoost = 0.02; // Normal probe (doesn't get discouraged)
+        throughBallMultiplier = 1.0; // Balanced
+        amGateBoost = 0.05; // Normal
+        progressiveBoost = 0; // Balanced
+        dmFunnelAdjust = 0; // Normal
+      }
+
+      return {
+        spellProbeBoost,
+        throughBallMultiplier,
+        amGateBoost,
+        progressiveBoost,
+        dmFunnelAdjust
+      };
     }
 
     /** Forward line (ST/W/AM) collectively within 5% of its combined xG, or ahead of it. */
@@ -7330,12 +7458,13 @@
       // still plays like a shooting threat instead of being forced to pass.
       if (carrier.role === "AM" && !inPenaltyBox(carrier) && !maestroShine) {
         const amStats = carrier.stats;
-        const creativeEdge = amStats.xa90 * 1.3 + amStats.key_passes90 * 0.35 - amStats.xg90 * 0.9;
+        const creatorMod = creatorBehaviorModifiers(carrier);
+        const creativeEdge = amStats.xa90 * 1.3 + amStats.key_passes90 * 0.35 - amStats.xg90 * 0.9 + creatorMod.amGateBoost;
         if (creativeEdge > 0.05) {
           const shooter = shooterTarget(carrier);
           if (shooter.id !== carrier.id && rng() < 0.5 + amStats.xa90 * 0.5 + amStats.key_passes90 * 0.1) {
             const kind =
-              throughBallLegal(carrier, shooter) && rng() < 0.5 + amStats.key_passes90 * 0.14 + amStats.xa90 * 0.25
+              throughBallLegal(carrier, shooter) && rng() < (0.5 + amStats.key_passes90 * 0.14 + amStats.xa90 * 0.25) * creatorMod.throughBallMultiplier
                 ? "through"
                 : "pass";
             spell.awaitingShot = true;
@@ -7359,7 +7488,8 @@
           return;
         }
         // Probe toward box / recycle
-        if (rng() < 0.45 + (maestroShine ? 0.2 : 0) || forwardInFinalThird(carrier) || maestroShine) {
+        const creatorMod = creatorBehaviorModifiers(carrier);
+        if (rng() < 0.45 + (maestroShine ? 0.2 : 0) + creatorMod.progressiveBoost || forwardInFinalThird(carrier) || maestroShine) {
           if (forwardInFinalThird(carrier) || maestroShine) {
             forwardFinalThirdAction(carrier);
             return;
@@ -8816,6 +8946,7 @@
         const vol = possChanceVolumeMul(carrier.side);
         const supp = possessionSuppressionMul(carrier.side);
         const maestroBoost = isMaestroPin(carrier) ? 0.05 : 0;
+        const creatorMod = creatorBehaviorModifiers(carrier);
         const probeP =
           ((stage === "BOX_OCCUPATION" ? 0.09 : stage === "FINAL_THIRD" ? 0.075 : 0.045) +
             create * 0.07 +
@@ -8823,7 +8954,8 @@
             (spell.willAttemptChance ? 0.03 : 0.014) +
             urg * 0.045 +
             Math.max(0, ad) * 0.06 +
-            maestroBoost) *
+            maestroBoost +
+            creatorMod.spellProbeBoost) *
           vol *
           lerp(1, supp, 0.7);
         if (rng() < clamp(probeP, 0.03, 0.28)) {
@@ -8853,7 +8985,10 @@
         const cms = teammates(carrier).filter((m) => m.role === "CM");
         // A technically better passer (pass_pct) looks beyond the safe
         // nearest-CM default more often instead of always taking it.
-        const cmFunnelP = clamp(0.78 - ((carrier.stats.pass_pct || 75) - 75) * 0.006, 0.55, 0.88);
+        // Creator archetype modifies this: volume creators recycle more,
+        // progressive creators look for forward CMs.
+        const creatorMod = creatorBehaviorModifiers(carrier);
+        const cmFunnelP = clamp(0.78 - ((carrier.stats.pass_pct || 75) - 75) * 0.006 + creatorMod.dmFunnelAdjust, 0.55, 0.88);
         if (cms.length && rng() < cmFunnelP) {
           cms.sort((a, b) => dist(carrier, a) - dist(carrier, b) + (rng() - 0.5) * 2);
           doPass(carrier, cms[0], "pass");
