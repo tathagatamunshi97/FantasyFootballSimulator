@@ -2567,7 +2567,18 @@
         // the direct cause of the Yamal<->Diomande-style infinite through-ball
         // loop (see _lastPasserFrom note in resolveBallFlight).
         if (carrier._lastPasserFrom != null && m.id === carrier._lastPasserFrom) continue;
-        const score = scoreDynamicReceiver(carrier, m, stage, { x: 0.5, depth }); // rough relBall
+        let score = scoreDynamicReceiver(carrier, m, stage, { x: 0.5, depth }); // rough relBall
+        // Bug fix — the single-passer exclusion above only breaks a 2-player
+        // ping-pong; a small group (e.g. RW/LW/both full-backs) can still
+        // carousel possession among themselves indefinitely since each
+        // individual pass has a different immediate source. Reuse the same
+        // lastReceivers memory scorePassingOption already relies on
+        // elsewhere, damping (not banning -- legitimate recycling still
+        // happens in real football) anyone who's touched the ball recently
+        // in this spell.
+        if (spell && spell.side === carrier.side && spell.lastReceivers && spell.lastReceivers.includes(m.id)) {
+          score *= 0.55;
+        }
         if (score > bestScore) {
           bestScore = score;
           best = m;
