@@ -9439,6 +9439,32 @@
       const threat = nearestOpponent(carrier, 11);
       const depth = possessionDepth(carrier);
 
+      // Bug fix — the spell-timeout resolution below ("you've had the ball
+      // long enough, commit to a chance or lose it") used to be checked
+      // AFTER evaluateArrivals's pass dispatch. Since evaluateArrivals
+      // returns immediately whenever any teammate clears its low 0.15
+      // score threshold, a genuinely open group of players (e.g. both
+      // wing-backs plus both wingers plus a deep-lying mid) could keep
+      // satisfying it indefinitely and the timeout never got a chance to
+      // fire -- a small group would carousel possession for 10+ real
+      // match-minutes near the box without ever being forced into a shot
+      // or losing the ball. Check the timeout first so it always wins once
+      // a spell has genuinely overstayed its welcome, regardless of how
+      // open the next pass looks.
+      if (spell && matchMinute >= spell.end && !spell.chanceDone) {
+        if (spell.willAttemptChance || possessionDepth(carrier) > 0.45) {
+          attemptSpellChance(carrier);
+          return;
+        }
+        const create = sideCreate(carrier.side);
+        if (rng() < 0.55 + create * 0.35) {
+          attemptSpellChance(carrier);
+          return;
+        }
+        doTurnover(carrier, "spell broken by the press");
+        return;
+      }
+
       // Phase 3: Organic arrival-based decision (early gate before pattern logic)
       // Check if there's a high-value arriving receiver; if so, pass to them immediately
       const arrivalDecision = evaluateArrivals(carrier, stage, depth);
@@ -9463,20 +9489,6 @@
       }
       if (arrivalDecision.type === "dribble") {
         doDribble(carrier);
-        return;
-      }
-
-      if (spell && matchMinute >= spell.end && !spell.chanceDone) {
-        if (spell.willAttemptChance || possessionDepth(carrier) > 0.45) {
-          attemptSpellChance(carrier);
-          return;
-        }
-        const create = sideCreate(carrier.side);
-        if (rng() < 0.55 + create * 0.35) {
-          attemptSpellChance(carrier);
-          return;
-        }
-        doTurnover(carrier, "spell broken by the press");
         return;
       }
 
