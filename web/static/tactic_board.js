@@ -2590,26 +2590,31 @@
     function evaluateArrivals(carrier, stage, depth) {
       if (!carrier || !stage) return { type: "recycle" };
 
-      // Priority 1: Is there a high-value arriving receiver?
+      // Bug fix — shooting used to be checked LAST, after the arriving-
+      // receiver pass. That meant a finisher standing in the box with the
+      // ball could get redirected into a pass to a merely-decent teammate
+      // instead of taking the shot himself (the Ronaldo-in-the-box-passes-
+      // back symptom), since findBestArrivingReceiver's 0.15 threshold is
+      // low enough that almost any reasonably open teammate qualifies.
+      // Priority 1: Can I shoot?
+      const boxed = inPenaltyBox(carrier);
+      const canShoot = (boxed || nearPenaltyBox(carrier)) && isAttackFinisher(carrier);
+      if (canShoot && rng() < 0.45) {
+        return { type: "shoot" };
+      }
+
+      // Priority 2: Is there a high-value arriving receiver?
       const bestReceiver = findBestArrivingReceiver(carrier, stage, depth);
       if (bestReceiver) {
         return { type: "pass", target: bestReceiver };
       }
 
-      // Priority 2: Is there open space to dribble into?
-      const relBall = fromPitchPct(carrier.side, carrier.left, carrier.top);
+      // Priority 3: Is there open space to dribble into?
       const dribblePressure = pressureAt(carrier.left, carrier.top, carrier.side);
       const dribbleOpenness = 1 / (1 + dribblePressure);
       const canDribble = dribbleOpenness > 0.4 && depth >= 0.3; // only dribble if we have space and depth
       if (canDribble && rng() < clamp(dribbleOpenness * 0.6, 0.2, 0.8)) {
         return { type: "dribble" };
-      }
-
-      // Priority 3: Can I shoot?
-      const boxed = inPenaltyBox(carrier);
-      const canShoot = (boxed || nearPenaltyBox(carrier)) && isAttackFinisher(carrier);
-      if (canShoot && rng() < 0.45) {
-        return { type: "shoot" };
       }
 
       // Priority 4: Recycle / safe pass
@@ -5133,10 +5138,40 @@
             if (rng() < 0.5 + st.dribbles90 * 0.12) {
               const attackSign = carrier.side === "home" ? -1 : 1;
               const sideSign = carrier.left < 50 ? 1 : -1;
-              const midX = clamp(carrier.left + sideSign * (6 + rng() * 5), 18, 82);
-              const midY = clamp(carrier.top + attackSign * (2 + rng() * 2), 5, 95);
-              const nx = clamp(lerp(midX, 50, 0.35) + (rng() - 0.5) * 2, 20, 80);
-              const ny = clamp(carrier.top + attackSign * (3.5 + rng() * 2.5), 5, 95);
+              // Engine fix — this used one fixed geometric template every
+              // time (shift sideways a bit, curve back toward centre),
+              // regardless of where the actual space or the marker was, so
+              // every cut inside looked identical. Sample a few real
+              // candidate directions (sharp diagonal, shallow horizontal
+              // drift, diagonal-forward) using the same pressureAt field
+              // everything else in the file already uses for "how open is
+              // this spot", biased away from the nearest marker, and pick
+              // whichever direction is actually free -- the objective is
+              // finding space, not walking one scripted shape.
+              const marker = nearestOpponent(carrier, 10);
+              const reach = 9 + rng() * 5;
+              const candidates = [
+                { ax: 0.85, ay: 0.25 }, // sharp diagonal cut toward centre
+                { ax: 1.0, ay: 0.05 }, // shallow horizontal drift for space
+                { ax: 0.55, ay: 0.65 }, // diagonal while still driving forward
+              ];
+              let best = null;
+              let bestOpenness = -Infinity;
+              for (const c of candidates) {
+                const px = clamp(carrier.left + sideSign * c.ax * reach, 12, 88);
+                const py = clamp(carrier.top + attackSign * c.ay * reach, 5, 95);
+                const markerPull =
+                  marker && marker.d < 8 ? clamp(1 - dist({ left: px, top: py }, marker.pin) / 12, 0, 1) : 0;
+                const openness = 1 / (1 + pressureAt(px, py, carrier.side)) - markerPull * 0.5;
+                if (openness > bestOpenness) {
+                  bestOpenness = openness;
+                  best = { px, py };
+                }
+              }
+              const midX = clamp(lerp(carrier.left, best.px, 0.5 + (rng() - 0.5) * 0.2), 15, 85);
+              const midY = clamp(lerp(carrier.top, best.py, 0.45 + (rng() - 0.5) * 0.2), 5, 95);
+              const nx = clamp(best.px + (rng() - 0.5) * 3, 15, 85);
+              const ny = clamp(best.py + (rng() - 0.5) * 3, 5, 95);
               carrier._pathCtrl = { left: midX, top: midY, from: matchMinute, until: matchMinute + 0.5 };
               carrier.tx = nx;
               carrier.ty = ny;
@@ -9396,6 +9431,16 @@
       // Phase 3: Organic arrival-based decision (early gate before pattern logic)
       // Check if there's a high-value arriving receiver; if so, pass to them immediately
       const arrivalDecision = evaluateArrivals(carrier, stage, depth);
+      // Bug fix — this only ever acted on "pass"; evaluateArrivals's "shoot"
+      // and "dribble" outcomes were computed and then silently discarded,
+      // falling through to older decision logic that doesn't reliably cover
+      // either case. That's the direct cause of isolated wingers never
+      // attempting a dribble (canDribble fired internally but nothing
+      // happened) and boxed finishers never getting a shot from this path.
+      if (arrivalDecision.type === "shoot") {
+        doShot(carrier, false);
+        return;
+      }
       if (arrivalDecision.type === "pass" && arrivalDecision.target) {
         // Bug fix — scoreDynamicReceiver never checked whether the target is
         // actually ahead of the carrier with a clear lane (throughBallLegal),
@@ -9403,6 +9448,10 @@
         // a normal pass when it isn't a real through-ball position instead of
         // mislabeling a routine pass as "slips it through" every tick.
         doPass(carrier, arrivalDecision.target, throughBallLegal(carrier, arrivalDecision.target) ? "through" : "pass");
+        return;
+      }
+      if (arrivalDecision.type === "dribble") {
+        doDribble(carrier);
         return;
       }
 
