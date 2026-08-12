@@ -2531,6 +2531,19 @@
       const candidatePct = toPitchPct(candidate.side, candidate.left, candidate.top);
       const laneQuality = laneScore({ left: ball.left, top: ball.top, side: candidate.side }, candidatePct) / 3.6;
 
+      // Bug fix — the objective of an attack is to threaten the opponent's
+      // goal against real resistance; nothing here previously measured
+      // whether a candidate is actually MORE ADVANCED than the carrier.
+      // Flanks are structurally less congested than the centre/box (fewer
+      // defenders per unit area out there), so a stationary wide option's
+      // openness alone could consistently outscore a genuinely progressive
+      // central option -- the direct cause of possession recycling along
+      // the touchline (RW<->LW<->both wing-backs) instead of players
+      // working the ball toward an actual attempt on goal. Reward real
+      // advancement, penalize sideways/backward options unless they
+      // clearly earn it on other axes.
+      const progression = clamp((possessionDepth(candidate) - possessionDepth(carrier)) * 2.2, -0.3, 0.5);
+
       // Stage weighting: in box-occupation, finishing threat matters more. In build-up, arrival matters more.
       let stageWeight = 1.0;
       if (stage === "BOX_OCCUPATION" || stage === "FINISH") {
@@ -2542,10 +2555,11 @@
 
       // Combine all factors
       const score =
-        arrivalScore * 0.35 +
-        openness * 0.25 +
-        finishingThreat * 0.25 +
-        laneQuality * 0.15 -
+        arrivalScore * 0.28 +
+        openness * 0.18 +
+        finishingThreat * 0.22 +
+        laneQuality * 0.12 +
+        progression * 0.25 -
         distPenalty * 0.1;
 
       return clamp(score * stageWeight, 0, 1);
