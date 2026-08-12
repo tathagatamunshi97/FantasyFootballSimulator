@@ -1190,6 +1190,7 @@
     let pendingClear = null;
     let pendingKickoffCarrier = null;
     let pendingShot = null;
+    let freeKickUntil = 0; // Block dribbling during free kick situations
     /** Last successful passer before shot/goal — used for assist attribution. */
     let lastPasser = null;
 
@@ -3156,7 +3157,7 @@
     /**
      * Hybrid player archetypes: players who excel in unconventional combinations
      * Goal-Scoring Attacker: W/AM with high goals90 + high xa90 (shoots more)
-     * Box-Crashing Midfielder: CM with high goals90 + high tackles90 (runs into box)
+     * Box-Crashing Midfielder: CM with high xg90 + high goals90 + high shots90 (attacking threat)
      */
     function computeHybridArchetype(pin) {
       if (!pin || !pin.stats) {
@@ -3166,15 +3167,16 @@
       const role = pin.role;
       const goals90 = pin.stats.goals90 || 0;
       const xa90 = pin.stats.xa90 || 0;
-      const tackles90 = pin.stats.tackles90 || 0;
+      const xg90 = pin.stats.xg90 || 0;
+      const shots90 = pin.stats.shots90 || 0;
 
       // Goal-scoring winger/AM: scores like a striker but creates like a midfielder
       if ((role === "W" || role === "AM") && goals90 > 0.25 && xa90 > 0.18) {
         return { archetype: "goal_scoring_attacker" };
       }
 
-      // Box-crashing midfielder: scores significantly but also tackles (paradox player)
-      if (role === "CM" && goals90 > 0.15 && tackles90 > 1.5) {
+      // Box-crashing midfielder: high scoring threat (xg90 + goals90 + shot volume)
+      if (role === "CM" && xg90 > 0.23 && goals90 > 0.2 && shots90 > 1.8) {
         return { archetype: "box_crashing_midfielder" };
       }
 
@@ -8372,6 +8374,7 @@
 
     function doDribble(carrier) {
       if (ballFlight) return;
+      if (matchMinute < freeKickUntil) return; // Block dribbling during free kick
       // Engine fix — this contest never got the scrambling-window treatment
       // doCarry/driveIntoBox already have. A covering defender mid-recovery
       // (triggerDefensiveBreachReactions just fired against this side) is
@@ -8415,6 +8418,14 @@
       // A defender who isn't willing/able to engage (low commitment) has reduced duel effectiveness
       const defCommitment = threat ? defensiveCommitment(threat.pin, carrier.left, carrier.top, threat) : 1;
       const defCommitmentMult = clamp(0.5 + defCommitment * 0.5, 0.5, 1.0); // Range 0.5-1.0 based on commitment
+      // DM/CM archetype-aware blend: aggressionBias shifts a defender's stopping
+      // power between tackling and reading the game instead of a flat, role-blind
+      // split. aggressionBias is 0 for CB/FB (computeDefensiveArchetype only
+      // classifies DM/CM), so this is a no-op there -- tackleWeight/interceptWeight
+      // reduce to exactly the original 0.07/0.02 constants for every other role.
+      const threatMod = threat ? defensiveArchetypeModifiers(threat.pin) : null;
+      const tackleWeight = 0.07 * (1 + (threatMod ? threatMod.aggressionBias : 0));
+      const interceptWeight = 0.02 * (1 + (threatMod ? -threatMod.aggressionBias * 0.6 : 0));
       const successP =
         0.28 +
         carrier.stats.dribbles90 * 0.07 +
@@ -8523,7 +8534,31 @@
         // disciplinary record runs worse than their tackling numbers alone
         // would predict. Bounded well below duelQuality's own swing.
         const cardNudge = clamp((opp.stats.yellow_cards90 || 0) * 0.06 + (opp.stats.red_cards90 || 0) * 0.1, 0, 0.04);
-        const foulP = (0.22 - duelQuality * 0.14) + (inPenaltyBox(carrier) ? 0.1 : 0) + cardNudge;
+
+        // Tactical foul consideration: increase foul probability based on danger level
+        // Never commit tactical fouls in penalty box — penalty risk too high
+        const inBox = inPenaltyBox(carrier);
+
+        // Clear run (isolation): count how many other defenders are nearby
+        const nearDefenders = pinsOf(oppOf(carrier.side)).filter(
+          d => d.role !== "GK" && dist(d, carrier) < 12
+        ).length;
+        const isClear = nearDefenders <= 1; // Isolated or 1-on-1
+
+        // Proximity to goal: closer to goal = more dangerous
+        const oppGoalTop = attackGoalTop(carrier.side);
+        const distToGoal = Math.abs(carrier.top - oppGoalTop);
+        const dangerProximity = clamp(1 - distToGoal / 25, 0, 1); // Max danger within 25 units of goal
+
+        // Tactical motivation: trailing team more willing to foul
+        const scoreDiff = goals[oppOf(opp.side)] - goals[opp.side]; // Positive = defending team trailing
+        const isTrailing = scoreDiff > 0;
+
+        // Tactical foul boost: only applies outside box and in clear, dangerous situations
+        const tacticalFoulBoost = !inBox && ((isClear && dangerProximity > 0.3 && isTrailing) ? 0.08 :
+                                             (isClear && dangerProximity > 0.5) ? 0.05 : 0);
+
+        const foulP = (0.22 - duelQuality * 0.14) + (inPenaltyBox(carrier) ? 0.1 : 0) + cardNudge + tacticalFoulBoost;
         if (opp && rng() < foulP) {
           pushMatchEvent("foul", opp.side, {
             player: opp.player,
@@ -8974,6 +9009,7 @@
       clearLastPasser();
       spell = null;
       giveBall(taker, `Free kick — ${taker.short} stands over it`);
+      freeKickUntil = matchMinute + 2; // Block dribbling until free kick is taken
 
       const shootP = clamp(0.12 + centrality * 0.55 + (taker.stats.xg90 || 0) * 0.1, 0.08, 0.78);
       if (rng() < shootP) {
@@ -8985,6 +9021,7 @@
         say(`${taker.short} whips one into the box`, 1.35);
         doPass(taker, target, "cross");
       }
+      freeKickUntil = 0; // Clear free kick flag after kick is taken
     }
 
     /**
@@ -9041,8 +9078,17 @@
       // moment contest, same family as doDribble's defender term) reused
       // as blockerCandidate below so there's only one nearestOpponent call.
       const closingDefender = nearestOpponent(carrier, 9)?.pin;
+      // DM/CM covering back into the box is a recovery-run/positioning contest,
+      // not a settled physical duel -- reuse the existing archetype coverage
+      // model (coverageRadius + mobility) rather than the flat tackles90 term
+      // alone. Zero for CB/FB (this only fires on role check), so their path
+      // is unchanged.
+      const closingCoverage =
+        closingDefender && (closingDefender.role === "DM" || closingDefender.role === "CM")
+          ? defensiveCoverage(closingDefender, carrier.left, carrier.top) * 0.025
+          : 0;
       const closingQuality = closingDefender
-        ? closingDefender.stats.tackles90 * 0.025 + Math.max(0, closingDefender.stats.duels_won_pct - 50) * 0.002
+        ? closingDefender.stats.tackles90 * 0.025 + Math.max(0, closingDefender.stats.duels_won_pct - 50) * 0.002 + closingCoverage
         : 0;
       ballAttached = false;
       phase = "FINISH";
@@ -10577,6 +10623,7 @@
       pendingClear = null;
       pendingKickoffCarrier = null;
       pendingShot = null;
+      freeKickUntil = 0;
       decisionAcc = DECISION_INTERVAL_MAX;
       nextDecisionIn = DECISION_INTERVAL_MIN + rng() * (DECISION_INTERVAL_MAX - DECISION_INTERVAL_MIN);
       scoreEl.textContent = "0 – 0";
