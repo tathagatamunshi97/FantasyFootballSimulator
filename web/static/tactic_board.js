@@ -1615,6 +1615,14 @@
         ballAttached = true;
         to._dribbleStreak = 0;
         to._lastDribbleOpp = null;
+        // Bug fix — the organic arrival-based decision (evaluateArrivals/
+        // scoreDynamicReceiver) had no memory of who just passed to this
+        // player, so a receiver with residual high arrival momentum could
+        // immediately look like the best target back to their own passer,
+        // producing an unbounded through-ball ping-pong (two players
+        // trading "slips it through" every tick, never shooting, since
+        // evaluateArrivals is checked before any shot logic runs).
+        to._lastPasserFrom = from ? from.id : null;
         // Engine fix — player orientation (Problem 11), first concrete
         // consumer. A receiver's real facing direction (tracked in
         // applyPinMotion from actual movement, not a proxy) tells us
@@ -2555,6 +2563,10 @@
       let bestScore = 0.15; // threshold: must score above this to be considered a real option
 
       for (const m of mates) {
+        // Never immediately return the ball to whoever just passed it to us --
+        // the direct cause of the Yamal<->Diomande-style infinite through-ball
+        // loop (see _lastPasserFrom note in resolveBallFlight).
+        if (carrier._lastPasserFrom != null && m.id === carrier._lastPasserFrom) continue;
         const score = scoreDynamicReceiver(carrier, m, stage, { x: 0.5, depth }); // rough relBall
         if (score > bestScore) {
           bestScore = score;
@@ -9385,7 +9397,12 @@
       // Check if there's a high-value arriving receiver; if so, pass to them immediately
       const arrivalDecision = evaluateArrivals(carrier, stage, depth);
       if (arrivalDecision.type === "pass" && arrivalDecision.target) {
-        doPass(carrier, arrivalDecision.target, "through");
+        // Bug fix — scoreDynamicReceiver never checked whether the target is
+        // actually ahead of the carrier with a clear lane (throughBallLegal),
+        // unlike every other through-ball dispatch in the file. Downgrade to
+        // a normal pass when it isn't a real through-ball position instead of
+        // mislabeling a routine pass as "slips it through" every tick.
+        doPass(carrier, arrivalDecision.target, throughBallLegal(carrier, arrivalDecision.target) ? "through" : "pass");
         return;
       }
 
