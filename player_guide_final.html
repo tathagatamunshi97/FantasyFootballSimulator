@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>How Players Make Decisions</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f0f0f0;
+            color: #333;
+            line-height: 1.6;
+        }
+        .page {
+            background: white;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 40px;
+            page-break-after: always;
+        }
+        h1 {
+            text-align: center;
+            color: #1a3a5c;
+            font-size: 26px;
+            margin: 0 0 5px 0;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 15px;
+        }
+        h2 {
+            color: #2c3e50;
+            font-size: 16px;
+            margin: 25px 0 12px 0;
+            border-left: 4px solid #3498db;
+            padding-left: 12px;
+        }
+        h3 {
+            color: #34495e;
+            font-size: 13px;
+            margin: 15px 0 8px 0;
+            font-weight: bold;
+        }
+        p {
+            margin: 8px 0;
+            font-size: 13px;
+        }
+        ul {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+        li {
+            margin: 4px 0;
+            font-size: 13px;
+        }
+        strong {
+            color: #2c3e50;
+        }
+        em {
+            color: #666;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 12px;
+        }
+        th {
+            background: #3498db;
+            color: white;
+            padding: 8px;
+            text-align: left;
+            font-weight: bold;
+        }
+        td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            vertical-align: top;
+        }
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        .role-box {
+            background: #f0f8ff;
+            border-left: 4px solid #3498db;
+            padding: 12px;
+            margin: 12px 0;
+            font-size: 12px;
+        }
+        .role-box strong {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+
+        .decision-flow {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 12px;
+            margin: 15px 0;
+            font-size: 12px;
+            font-family: monospace;
+        }
+
+        .archetype-row {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 12px;
+        }
+
+        @media print {
+            body { background: white; }
+            .page { box-shadow: none; margin: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- PAGE 1: DECISION HIERARCHY -->
+<div class="page">
+    <h1>How Players Make Decisions</h1>
+    <div class="subtitle">Match Logic & Decision-Making Process</div>
+
+    <h2>The Decision-Making Hierarchy</h2>
+    <p>Every match follows a constant cycle of decisions:</p>
+    <div class="decision-flow">
+1. SYNC STATE
+   Update possession and match status
+
+2. UPDATE TEAM SHAPE (BOTH TEAMS)
+   Every player gets a target position
+   Attackers support carrier, defenders mark opponents
+
+3. DECIDE ACTION (Ball Carrier Only)
+   Pick: Chance attempt? Shot? Through ball? Pass? Dribble?
+   Each option has a success probability
+
+4. RESOLVE ACTION
+   Pass: Does receiver catch it or defender intercept?
+   Shot: Does goalkeeper save or does it go in?
+   Dribble: Does carrier beat defender one-on-one?
+   Chance: Does risky opportunity create a goal-scoring chance?
+
+5. ANIMATE
+   Show the action playing out on screen
+
+6. NEXT DECISION TICK (Every 0.2-0.3 seconds)
+   Repeat cycle
+    </div>
+
+    <h2>Player Roles</h2>
+
+    <div class="role-box">
+        <strong>GOALKEEPER (GK)</strong>
+        Decides: Should I attempt to save this shot?<br>
+    </div>
+
+    <div class="role-box">
+        <strong>CENTER BACKS (CB)</strong>
+        Decides: Should I tackle this dribbler? Clear the ball?<br>
+    </div>
+
+    <div class="role-box">
+        <strong>FULLBACKS (FB) — Left/Right</strong>
+        Decides: Help defend wing? Push forward to cross? Cut inside?<br>
+    </div>
+
+    <div class="role-box">
+        <strong>DEFENSIVE MIDFIELDER (DM)</strong>
+        Decides: Stay deep and screen? Press forward? Recycle possession? Support attack?<br>
+    </div>
+
+    <div class="role-box">
+        <strong>CENTER MIDFIELDER (CM)</strong>
+        Decides: Support attack or defense? Make a pass? Drive forward? Box run?<br>
+    </div>
+
+    <div class="role-box">
+        <strong>ATTACKING MIDFIELDER (AM)</strong>
+        Decides: Create a chance? Play a through ball? Attempt a risky pass? Score?<br>
+    </div>
+
+    <div class="role-box">
+        <strong>WINGER (W) — Left/Right</strong>
+        Decides: Cross from wing? Cut inside? Take defender on? Shoot?<br>
+    </div>
+
+    <div class="role-box">
+        <strong>STRIKER (ST)</strong>
+        Decides: Shoot now? Wait for better chance? Make a pass?<br>
+    </div>
+
+    <h2>What is "Probing"?</h2>
+    <p><em>Probing</em> means attempting a risky, creative chance — not a regular pass or shot, but a "chance attempt" that might create something special.</p>
+    <p>When probing: Player tries something ambitious (a risky pass, a flick over defender, a sudden shot from distance). Success rate is lower, but if it works, creates a high-quality chance.</p>
+    <p>More likely when: Attacking midfielder/creator has the ball in final third with confidence.</p>
+
+</div>
+
+<!-- PAGE 2: HOW DECISIONS ARE MADE -->
+<div class="page">
+    <h1>How Each Decision is Made</h1>
+    <div class="subtitle">The actual logic behind actions</div>
+
+    <h2>Decision 1: Should I Attempt a Risky Chance (Probe)?</h2>
+    <table>
+        <tr>
+            <th>Condition</th>
+            <th>Result</th>
+        </tr>
+        <tr>
+            <td>Only in FINAL THIRD (attacking nearest goal)</td>
+            <td>Check this decision</td>
+        </tr>
+        <tr>
+            <td>Am I an attacker archetype? (high xa90, key_passes90)</td>
+            <td>More likely to probe</td>
+        </tr>
+        <tr>
+            <td>Did my last few probes succeed?</td>
+            <td>More likely to probe again</td>
+        </tr>
+        <tr>
+            <td>How many actions have I taken in this possession?</td>
+            <td>Pressure builds to be creative</td>
+        </tr>
+    </table>
+    <p><strong>If probing succeeds:</strong> Chance is created for striker in box.</p>
+    <p><strong>If probing fails:</strong> Possession lost, turnover to defense.</p>
+
+    <h2>Decision 2: Should I Shoot?</h2>
+    <table>
+        <tr>
+            <th>Condition</th>
+            <th>Result</th>
+        </tr>
+        <tr>
+            <td>Am I in the penalty box (y > 80)?</td>
+            <td>Can shoot</td>
+        </tr>
+        <tr>
+            <td>Do I have space to shoot? How close is defender?</td>
+            <td>Better space = higher shot probability</td>
+        </tr>
+        <tr>
+            <td>My shooting ability (goals90, composure)</td>
+            <td>Better shooters take more shots</td>
+        </tr>
+        <tr>
+            <td>Am I a goal-scorer? (high goals90)</td>
+            <td>Strikers, goal-scoring wingers/midfielders shoot more</td>
+        </tr>
+    </table>
+    <p><strong>If shot succeeds:</strong> Goalkeeper tries to save. If save fails, GOAL.</p>
+    <p><strong>If shot fails:</strong> Miss or saved, possession to defense.</p>
+
+    <h2>Decision 3: Should I Play a Through Ball?</h2>
+    <table>
+        <tr>
+            <th>Condition</th>
+            <th>Result</th>
+        </tr>
+        <tr>
+            <td>Is a teammate making a run (arriving into space)?</td>
+            <td>Through ball option available</td>
+        </tr>
+        <tr>
+            <td>Are defenders between me and the running teammate?</td>
+            <td>Higher risk, higher reward</td>
+        </tr>
+        <tr>
+            <td>My passing accuracy and vision (xa90, key_passes90)</td>
+            <td>Better creators execute through balls more</td>
+        </tr>
+        <tr>
+            <td>Am I an attacker archetype?</td>
+            <td>Elite creators attempt more through balls</td>
+        </tr>
+    </table>
+    <p><strong>If through ball succeeds:</strong> Teammate receives in good position, can shoot.</p>
+    <p><strong>If through ball fails:</strong> Intercepted by defender, turnover.</p>
+
+    <h2>Decision 4: Should I Pass?</h2>
+    <p>Default action. Find the best receiver:</p>
+    <ul>
+        <li>Who is open? (away from defenders)</li>
+        <li>Who has good positioning? (ready to receive)</li>
+        <li>How far is the pass? (shorter is safer)</li>
+        <li>Is a defender blocking the passing lane?</li>
+    </ul>
+    <p><strong>If pass succeeds:</strong> Receiver gets the ball, cycle continues.</p>
+    <p><strong>If pass intercepted:</strong> Defender gets ball, possession changes.</p>
+
+    <h2>Decision 5: Should I Dribble?</h2>
+    <p>When no good passing option exists, try to beat the nearest defender one-on-one:</p>
+    <table>
+        <tr>
+            <th>Factor</th>
+            <th>Helps You Win</th>
+            <th>Helps Defender Win</th>
+        </tr>
+        <tr>
+            <td>Dribbling skill</td>
+            <td>High dribbles90, dribble_pct</td>
+            <td>N/A</td>
+        </tr>
+        <tr>
+            <td>Confidence (recent wins)</td>
+            <td>Just beat someone</td>
+            <td>Been beaten recently</td>
+        </tr>
+        <tr>
+            <td>Defender's tackling</td>
+            <td>Low tackles90</td>
+            <td>High tackles90</td>
+        </tr>
+        <tr>
+            <td>Defender's duel-winning</td>
+            <td>Low duels_won_pct</td>
+            <td>High duels_won_pct</td>
+        </tr>
+        <tr>
+            <td>Defender's positioning</td>
+            <td>Far away</td>
+            <td>Close and reading play</td>
+        </tr>
+    </table>
+    <p><strong>If dribble succeeds:</strong> You beat defender, advance the ball. Defender exposed for 2 seconds.</p>
+    <p><strong>If dribble fails:</strong> Defender wins tackle, possession lost. May be a foul (depends on situation).</p>
+
+</div>
+
+<!-- PAGE 3: MIDFIELDER & ATTACKER ARCHETYPES -->
+<div class="page">
+    <h1>Midfielder & Attacker Archetypes</h1>
+    <div class="subtitle">How different player types behave</div>
+
+    <h2>MIDFIELDER ARCHETYPES (DM/CM)</h2>
+    <p>These midfielders focus on controlling the game, defending, and supporting play. Not primarily about scoring.</p>
+
+    <div class="archetype-row">
+        <strong>Anchor DM</strong><br>
+        Positioning specialist who reads the game well<br>
+        Engages only when timing is perfect<br>
+        Best for: Screening central zone, protecting defense
+    </div>
+
+    <div class="archetype-row">
+        <strong>Ball-Winner DM</strong><br>
+        Aggressive, attacks the ball immediately, wins possession back quickly<br>
+        Can be exposed if beaten<br>
+        Best for: Pressing high, disrupting play
+    </div>
+
+    <div class="archetype-row">
+        <strong>Box-to-Box CM</strong><br>
+        High mobility, balanced defense<br>
+        Covers ground, supports both attack and defense<br>
+        Flexible positional coverage<br>
+        Best for: Transition play, adapting to match flow
+    </div>
+
+    <div class="archetype-row">
+        <strong>Playmaking CM</strong><br>
+        Prefers positioning over physical engagement<br>
+        Breaks up play through intelligence<br>
+        Best for: Possession-based defenses, tempo control
+    </div>
+
+    <h2>ATTACKER ARCHETYPES (AM/W/ST)</h2>
+    <p>These players focus on creating chances and scoring goals. Primary job is chance creation and finishing.</p>
+
+    <div class="archetype-row">
+        <strong>Elite Chance Creator</strong><br>
+        Probes frequently, plays through balls often, takes risks<br>
+        Best for: Breaking down organized defenses
+    </div>
+
+    <div class="archetype-row">
+        <strong>Volume Creator</strong><br>
+        Safe, recycling passes, builds possession steadily<br>
+        Best for: Controlling tempo, wearing down opponents
+    </div>
+
+    <div class="archetype-row">
+        <strong>Selective Elite Creator</strong><br>
+        Patient, waits for perfect moment, then commits fully<br>
+        Best for: Creating high-quality chances, less volume
+    </div>
+
+    <div class="archetype-row">
+        <strong>Progressive Creator</strong><br>
+        Carries ball forward, drives attack from deep, ball-carrier focused<br>
+        Best for: Transitioning from defense to attack
+    </div>
+
+    <h2>HYBRID ARCHETYPES</h2>
+    <p>Some players have unconventional stat combinations, creating unique tactical profiles:</p>
+
+    <div class="archetype-row">
+        <strong>Goal-Scoring Attacker (Winger/AM)</strong><br>
+        Creates chances AND scores frequently, not just one or the other<br>
+        Shoots more than typical wingers/AMs — a dual threat<br>
+        Best for: Teams needing attacking overload, one-player threats
+    </div>
+
+    <div class="archetype-row">
+        <strong>Box-Crashing Midfielder (CM)</strong><br>
+        Scores like a striker but defends like a midfielder<br>
+        Makes forward runs into box AND wins physical contests<br>
+        Best for: Adding attacking threat from midfield without losing defense
+    </div>
+
+</div>
+
+<!-- PAGE 4: DEFENDER ARCHETYPES & BALANCE -->
+<div class="page">
+    <h1>Defender Archetypes & Squad Balance</h1>
+    <div class="subtitle">Building a complete team</div>
+
+    <h2>DEFENDER ARCHETYPES (CB/FB)</h2>
+
+    <h3>Center Backs</h3>
+
+    <div class="archetype-row">
+        <strong>Dominant Defender</strong><br>
+        Aggressive, commits to challenges immediately<br>
+        Physical presence in defense, wins aerial duels<br>
+        Best for: Man-marking systems, aggressive pressing
+    </div>
+
+    <div class="archetype-row">
+        <strong>Positioning Specialist</strong><br>
+        Stands in right place, cuts out passes before they arrive<br>
+        Lower tackle rate but very effective reading<br>
+        Best for: Zonal defense, protecting goal, deep defending
+    </div>
+
+    <h3>Fullbacks (Left/Right Back)</h3>
+
+    <div class="archetype-row">
+        <strong>Attacking Fullback</strong><br>
+        Joins attack constantly, overlaps with winger<br>
+        Can cut inside (underlap) for combinations<br>
+        Pushes high when team attacks<br>
+        Still covers defensively but less conservative<br>
+        Best for: Attacking teams, dynamic width play
+    </div>
+
+    <div class="archetype-row">
+        <strong>Defensive Fullback</strong><br>
+        Stays deep to protect center backs<br>
+        Tucks into midfield when needed<br>
+        Sits back even when team attacks<br>
+        Provides width but doesn't leave flank unguarded<br>
+        Rare overlap attempts, prefers underlapping<br>
+        Best for: Defensive teams, protecting goal
+    </div>
+
+    <h3>Fullback Combinations with Wingers</h3>
+
+    <table>
+        <tr>
+            <th>Fullback Type</th>
+            <th>Overlap Tendency</th>
+            <th>Underlap Tendency</th>
+            <th>With Attacking Winger</th>
+            <th>With Defensive Winger</th>
+        </tr>
+        <tr>
+            <td><strong>Attacking FB</strong></td>
+            <td>80% frequent</td>
+            <td>50% sometimes</td>
+            <td>Double threat, constant width</td>
+            <td>FB provides attacking outlet</td>
+        </tr>
+        <tr>
+            <td><strong>Defensive FB</strong></td>
+            <td>20% rare</td>
+            <td>10% almost never</td>
+            <td>Winger does more alone</td>
+            <td>Solid coverage, less attacking</td>
+        </tr>
+    </table>
+
+    <h2>What Makes Decisions Work</h2>
+    <table>
+        <tr>
+            <th>Decision Type</th>
+            <th>Depends On</th>
+            <th>Success Rate</th>
+        </tr>
+        <tr>
+            <td><strong>Pass</strong></td>
+            <td>Passer accuracy, receiver positioning, pressure</td>
+            <td>~70-85% base</td>
+        </tr>
+        <tr>
+            <td><strong>Through Ball</strong></td>
+            <td>Passer quality, teammate run timing, defender density</td>
+            <td>~50-75%</td>
+        </tr>
+        <tr>
+            <td><strong>Probe/Chance</strong></td>
+            <td>Player confidence, finisher type, team momentum</td>
+            <td>~30-50%</td>
+        </tr>
+        <tr>
+            <td><strong>Shot</strong></td>
+            <td>Shooter finishing ability, space, goalkeeper quality</td>
+            <td>~20-45%</td>
+        </tr>
+        <tr>
+            <td><strong>Dribble</strong></td>
+            <td>Dribbler vs defender skill comparison, positioning</td>
+            <td>~45-55%</td>
+        </tr>
+    </table>
+
+    <h2>Squad Composition Guidelines</h2>
+    <ul>
+        <li><strong>Attacker + Finisher Match:</strong> Elite creator needs clinical finisher to convert chances.</li>
+        <li><strong>Hybrid Players Add Value:</strong> Goal-scoring winger doesn't need a striker. Box-crashing midfielder increases midfield threat.</li>
+        <li><strong>Defense Stability:</strong> Anchor DM + positioning CBs = solid base. Ball-winner DM needs good supporting defenders.</li>
+        <li><strong>Tempo Control:</strong> Playmaking CM + volume creator = possession. Progressive creator + aggressive defense = transitions.</li>
+        <li><strong>Width:</strong> Fullbacks should complement wingers (crossing support, covering).</li>
+    </ul>
+
+    <h2>Key Principles</h2>
+    <ul>
+        <li>Every decision depends on the player's actual stats, not just archetype.</li>
+        <li>Archetypes modify behavior, not replace it.</li>
+        <li>A clinical finisher without good supply will underperform.</li>
+        <li>An anchor DM without defensive protection can be exploited.</li>
+        <li>Hybrid players (goal-scoring wingers, box-crashing midfielders) add unpredictability and flexibility.</li>
+        <li>Team balance matters more than individual stars.</li>
+    </ul>
+
+</div>
+
+</body>
+</html>
