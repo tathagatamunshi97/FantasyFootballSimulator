@@ -68,7 +68,7 @@ function renderLineupBuilder(data) {
   return `
     <div class="card" style="margin-bottom:1rem">
       <h2>Lineup builder — ${esc(data.team_name)}</h2>
-      <p class="muted">Select your starting XI from your ${roster.length}-player roster. Role dropdowns appear on AM/CM/DM and wide/fullback slots (GK/CB/ST stay locked). Live fit scores use the current engine. Finalize locks your XI for the current tournament matchday.</p>
+      <p class="muted">Select your starting XI from your ${roster.length}-player roster. Role dropdowns appear on AM/CM/DM and wide/fullback slots (GK/CB/ST stay locked). Finalize locks your XI for the current tournament matchday.</p>
       <p style="margin:0.5rem 0;display:flex;gap:0.5rem;flex-wrap:wrap">${savedBadge}${finalizedBadge}</p>
       <div class="form-row" style="margin-top:0.75rem">
         <label for="lineupFormation">Formation</label>
@@ -146,15 +146,6 @@ function roleFilterControl(slot, formation, selected, locked = false) {
     </label>`;
 }
 
-function slotFitBadge(slot) {
-  const fitMap = lineupData?.slot_fits || {};
-  const fit = fitMap[slot];
-  if (fit == null || Number.isNaN(Number(fit))) return "";
-  const n = Number(fit);
-  const cls = n >= 0.9 ? "fit-good" : n >= 0.62 ? "fit-ok" : "fit-weak";
-  return `<span class="slot-fit ${cls}" title="Live formation fit">${n.toFixed(2)}</span>`;
-}
-
 function renderSlotRow(slot, val, roster, formation, roleFilter, locked) {
   const filterCtrl = roleFilterControl(slot, formation, roleFilter, locked);
   return `<div class="form-row slot-row">
@@ -162,7 +153,6 @@ function renderSlotRow(slot, val, roster, formation, roleFilter, locked) {
       <div class="slot-controls">
         ${slotPlayerControl(slot, val, roster, locked)}
         ${filterCtrl}
-        ${slotFitBadge(slot)}
       </div>
     </div>`;
 }
