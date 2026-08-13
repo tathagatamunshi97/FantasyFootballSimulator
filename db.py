@@ -1,126 +1,60 @@
-"""PostgreSQL database abstraction for persistent state storage on Render.
+"""Structured persistent state storage, backed by Cloudflare R2.
 
-Only active when DATABASE_URL environment variable is set (Render environment).
-Falls back to JSON files for local development.
+Formerly PostgreSQL-backed; Render's free-tier Postgres database expired
+(a known 90-day limit), so this now stores the same 3 collections
+(manual_profiles, team_lineups, seed_seasons) as JSON blobs in R2 via
+r2_storage.py, behind the exact same public function signatures so no
+caller needed to change. Falls back to local JSON files (handled by each
+caller, not here) when R2 is not configured.
 """
 from __future__ import annotations
 
-import json
-import os
 from typing import Any
-from contextlib import contextmanager
 
-# Only import psycopg2 if DATABASE_URL is set (i.e., running on Render)
-_DB_URL = os.environ.get("DATABASE_URL", "")
-_USE_DB = bool(_DB_URL)
+import r2_storage
 
-if _USE_DB:
-    try:
-        import psycopg2
-        from psycopg2.extras import RealDictCursor
-    except ImportError:
-        _USE_DB = False
+_MANUAL_PROFILES_KEY = "db/manual_profiles.json"
+_TEAM_LINEUPS_KEY = "db/team_lineups.json"
+_SEED_SEASONS_KEY = "db/seed_seasons.json"
 
 
 def is_db_enabled() -> bool:
-    """Check if database is enabled (running on Render with DATABASE_URL)."""
-    return _USE_DB
+    """Check if the (R2-backed) database is enabled."""
+    return r2_storage.is_r2_enabled()
 
 
 def check_connection() -> dict[str, Any]:
-    """Diagnostic round-trip: actually run a query, not just check DATABASE_URL is set."""
-    if not _USE_DB:
-        return {"enabled": False, "ok": False, "message": "DATABASE_URL not set"}
+    """Diagnostic round-trip: actually write/read/delete a test blob, not just check config."""
+    if not is_db_enabled():
+        return {"enabled": False, "ok": False, "message": "R2 not configured"}
+
+    import time
+
+    test_key = "_healthcheck/db_ping.json"
+    payload = {"ts": time.time()}
     try:
-        with _get_conn() as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT 1")
-                cur.fetchone()
+        if not r2_storage.save_json_blob(test_key, payload):
+            return {"enabled": True, "ok": False, "bucket": None, "message": "Failed to write test blob"}
+        readback = r2_storage.load_json_blob(test_key)
+        r2_storage.delete_json_blob(test_key)
+        if not readback or readback.get("ts") != payload["ts"]:
+            return {"enabled": True, "ok": False, "message": "Read-back value did not match what was written"}
         return {"enabled": True, "ok": True, "message": "Connected"}
     except Exception as e:
         return {"enabled": True, "ok": False, "message": f"{type(e).__name__}: {e}"}
 
 
-@contextmanager
-def _get_conn():
-    """Context manager for database connections. Only works if DATABASE_URL is set."""
-    if not _USE_DB:
-        raise RuntimeError("DATABASE_URL not set; database is disabled (local mode)")
-    conn = psycopg2.connect(_DB_URL)
-    try:
-        yield conn
-        conn.commit()
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
-
-
 def init_db() -> None:
-    """Create tables if they don't exist. Only runs on Render (when DATABASE_URL is set)."""
-    if not _USE_DB:
-        return  # Silently skip if database is disabled
+    """Ensure the 3 backing blobs exist. Silently skips if R2 is disabled."""
+    if not is_db_enabled():
+        return
 
-    with _get_conn() as conn:
-        with conn.cursor() as cur:
-            # Manual profiles table
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS manual_profiles (
-                    id SERIAL PRIMARY KEY,
-                    player_name VARCHAR(255) NOT NULL,
-                    profile_type VARCHAR(50) NOT NULL,
-                    season_suffix VARCHAR(10) NOT NULL,
-                    season_label VARCHAR(20),
-                    stats JSONB NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE(player_name, profile_type, season_suffix)
-                )
-            """)
-
-            # Team lineups table
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS team_lineups (
-                    id SERIAL PRIMARY KEY,
-                    team_name VARCHAR(255) NOT NULL UNIQUE,
-                    formation VARCHAR(50),
-                    lineup JSONB,
-                    bench JSONB,
-                    prime_player VARCHAR(255),
-                    peak_season JSONB,
-                    finalized BOOLEAN DEFAULT FALSE,
-                    finalized_at TIMESTAMP,
-                    finalized_round VARCHAR(100),
-                    finalized_round_label VARCHAR(100),
-                    finalized_snapshot JSONB,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
-
-            # Seed seasons table (player_id -> season -> stats)
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS seed_seasons (
-                    id SERIAL PRIMARY KEY,
-                    player_id INTEGER NOT NULL,
-                    season_suffix VARCHAR(10) NOT NULL,
-                    stats JSONB NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE(player_id, season_suffix)
-                )
-            """)
-
-            # Indexes for common queries
-            cur.execute("""
-                CREATE INDEX IF NOT EXISTS idx_manual_profiles_player_type
-                ON manual_profiles(player_name, profile_type)
-            """)
-            cur.execute("""
-                CREATE INDEX IF NOT EXISTS idx_seed_seasons_player
-                ON seed_seasons(player_id)
-            """)
+    if r2_storage.load_json_blob(_MANUAL_PROFILES_KEY) is None:
+        r2_storage.save_json_blob(_MANUAL_PROFILES_KEY, {"profiles": []})
+    if r2_storage.load_json_blob(_TEAM_LINEUPS_KEY) is None:
+        r2_storage.save_json_blob(_TEAM_LINEUPS_KEY, {})
+    if r2_storage.load_json_blob(_SEED_SEASONS_KEY) is None:
+        r2_storage.save_json_blob(_SEED_SEASONS_KEY, {})
 
 
 # ============================================================================
@@ -128,28 +62,14 @@ def init_db() -> None:
 # ============================================================================
 
 def load_all_manual_profiles() -> list[dict[str, Any]]:
-    """Load all manual profiles from database. Returns empty list if database is disabled."""
-    if not _USE_DB:
+    """Load all manual profiles. Returns empty list if R2 is disabled."""
+    if not is_db_enabled():
         return []
-
-    with _get_conn() as conn:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute("""
-                SELECT player_name, profile_type, season_suffix, season_label, stats
-                FROM manual_profiles
-                ORDER BY player_name, profile_type, season_suffix
-            """)
-            rows = cur.fetchall()
-    return [
-        {
-            "player_name": r["player_name"],
-            "profile_type": r["profile_type"],
-            "season_suffix": r["season_suffix"],
-            "season_label": r["season_label"],
-            "stats": r["stats"],
-        }
-        for r in rows
-    ]
+    blob = r2_storage.load_json_blob(_MANUAL_PROFILES_KEY)
+    profiles = (blob or {}).get("profiles", [])
+    return sorted(
+        profiles, key=lambda r: (r.get("player_name", ""), r.get("profile_type", ""), r.get("season_suffix", ""))
+    )
 
 
 def save_manual_profile(
@@ -159,19 +79,30 @@ def save_manual_profile(
     season_label: str,
     stats: dict[str, Any],
 ) -> None:
-    """Insert or update a manual profile. No-op if database is disabled."""
-    if not _USE_DB:
+    """Insert or update a manual profile. No-op if R2 is disabled."""
+    if not is_db_enabled():
         return
 
-    with _get_conn() as conn:
-        with conn.cursor() as cur:
-            cur.execute("""
-                INSERT INTO manual_profiles
-                (player_name, profile_type, season_suffix, season_label, stats, updated_at)
-                VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
-                ON CONFLICT (player_name, profile_type, season_suffix)
-                DO UPDATE SET stats = EXCLUDED.stats, updated_at = CURRENT_TIMESTAMP
-            """, (player_name, profile_type, season_suffix, season_label, json.dumps(stats)))
+    blob = r2_storage.load_json_blob(_MANUAL_PROFILES_KEY) or {"profiles": []}
+    profiles = blob.setdefault("profiles", [])
+    entry = {
+        "player_name": player_name,
+        "profile_type": profile_type,
+        "season_suffix": season_suffix,
+        "season_label": season_label,
+        "stats": stats,
+    }
+    for i, row in enumerate(profiles):
+        if (
+            row.get("player_name") == player_name
+            and row.get("profile_type") == profile_type
+            and row.get("season_suffix") == season_suffix
+        ):
+            profiles[i] = entry
+            break
+    else:
+        profiles.append(entry)
+    r2_storage.save_json_blob(_MANUAL_PROFILES_KEY, blob)
 
 
 def delete_manual_profile(
@@ -179,16 +110,24 @@ def delete_manual_profile(
     profile_type: str,
     season_suffix: str,
 ) -> None:
-    """Delete a manual profile. No-op if database is disabled."""
-    if not _USE_DB:
+    """Delete a manual profile. No-op if R2 is disabled."""
+    if not is_db_enabled():
         return
 
-    with _get_conn() as conn:
-        with conn.cursor() as cur:
-            cur.execute("""
-                DELETE FROM manual_profiles
-                WHERE player_name = %s AND profile_type = %s AND season_suffix = %s
-            """, (player_name, profile_type, season_suffix))
+    blob = r2_storage.load_json_blob(_MANUAL_PROFILES_KEY)
+    if not blob:
+        return
+    profiles = blob.get("profiles", [])
+    blob["profiles"] = [
+        row
+        for row in profiles
+        if not (
+            row.get("player_name") == player_name
+            and row.get("profile_type") == profile_type
+            and row.get("season_suffix") == season_suffix
+        )
+    ]
+    r2_storage.save_json_blob(_MANUAL_PROFILES_KEY, blob)
 
 
 # ============================================================================
@@ -196,83 +135,32 @@ def delete_manual_profile(
 # ============================================================================
 
 def load_all_team_lineups() -> dict[str, Any]:
-    """Load all team lineups from database, keyed by team name. Returns empty dict if database is disabled."""
-    if not _USE_DB:
+    """Load all team lineups, keyed by team name. Returns empty dict if R2 is disabled."""
+    if not is_db_enabled():
         return {}
-
-    with _get_conn() as conn:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute("SELECT * FROM team_lineups ORDER BY team_name")
-            rows = cur.fetchall()
-
-    result = {}
-    for r in rows:
-        result[r["team_name"]] = {
-            "team_name": r["team_name"],
-            "formation": r["formation"],
-            "lineup": r["lineup"] or [],
-            "bench": r["bench"] or [],
-            "prime_player": r["prime_player"] or "",
-            "peak_season": r["peak_season"] or {"player": "", "season": ""},
-            "finalized": r["finalized"],
-            "finalized_at": r["finalized_at"].isoformat() if r["finalized_at"] else None,
-            "finalized_round": r["finalized_round"],
-            "finalized_round_label": r["finalized_round_label"],
-            "finalized_snapshot": r["finalized_snapshot"],
-            "updated_at": r["updated_at"].isoformat() if r["updated_at"] else None,
-        }
-    return result
+    return r2_storage.load_json_blob(_TEAM_LINEUPS_KEY) or {}
 
 
 def save_team_lineup(team_name: str, lineup_data: dict[str, Any]) -> None:
-    """Insert or update a team lineup. No-op if database is disabled."""
-    if not _USE_DB:
+    """Insert or update a team lineup. No-op if R2 is disabled."""
+    if not is_db_enabled():
         return
 
-    with _get_conn() as conn:
-        with conn.cursor() as cur:
-            cur.execute("""
-                INSERT INTO team_lineups
-                (team_name, formation, lineup, bench, prime_player, peak_season,
-                 finalized, finalized_at, finalized_round, finalized_round_label,
-                 finalized_snapshot, updated_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
-                ON CONFLICT (team_name)
-                DO UPDATE SET
-                  formation = EXCLUDED.formation,
-                  lineup = EXCLUDED.lineup,
-                  bench = EXCLUDED.bench,
-                  prime_player = EXCLUDED.prime_player,
-                  peak_season = EXCLUDED.peak_season,
-                  finalized = EXCLUDED.finalized,
-                  finalized_at = EXCLUDED.finalized_at,
-                  finalized_round = EXCLUDED.finalized_round,
-                  finalized_round_label = EXCLUDED.finalized_round_label,
-                  finalized_snapshot = EXCLUDED.finalized_snapshot,
-                  updated_at = CURRENT_TIMESTAMP
-            """, (
-                team_name,
-                lineup_data.get("formation"),
-                json.dumps(lineup_data.get("lineup") or []),
-                json.dumps(lineup_data.get("bench") or []),
-                lineup_data.get("prime_player") or "",
-                json.dumps(lineup_data.get("peak_season") or {"player": "", "season": ""}),
-                lineup_data.get("finalized", False),
-                lineup_data.get("finalized_at"),
-                lineup_data.get("finalized_round"),
-                lineup_data.get("finalized_round_label"),
-                json.dumps(lineup_data.get("finalized_snapshot")) if lineup_data.get("finalized_snapshot") else None,
-            ))
+    blob = r2_storage.load_json_blob(_TEAM_LINEUPS_KEY) or {}
+    blob[team_name] = lineup_data
+    r2_storage.save_json_blob(_TEAM_LINEUPS_KEY, blob)
 
 
 def delete_team_lineup(team_name: str) -> None:
-    """Delete a team lineup. No-op if database is disabled."""
-    if not _USE_DB:
+    """Delete a team lineup. No-op if R2 is disabled."""
+    if not is_db_enabled():
         return
 
-    with _get_conn() as conn:
-        with conn.cursor() as cur:
-            cur.execute("DELETE FROM team_lineups WHERE team_name = %s", (team_name,))
+    blob = r2_storage.load_json_blob(_TEAM_LINEUPS_KEY)
+    if not blob or team_name not in blob:
+        return
+    del blob[team_name]
+    r2_storage.save_json_blob(_TEAM_LINEUPS_KEY, blob)
 
 
 # ============================================================================
@@ -280,52 +168,34 @@ def delete_team_lineup(team_name: str) -> None:
 # ============================================================================
 
 def load_all_seed_seasons() -> dict[str, dict[str, Any]]:
-    """Load all seed seasons from database, keyed by player_id then season_suffix. Returns empty dict if database is disabled."""
-    if not _USE_DB:
+    """Load all seed seasons, keyed by player_id then season_suffix. Returns empty dict if R2 is disabled."""
+    if not is_db_enabled():
         return {}
-
-    with _get_conn() as conn:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute("""
-                SELECT player_id, season_suffix, stats
-                FROM seed_seasons
-                ORDER BY player_id, season_suffix
-            """)
-            rows = cur.fetchall()
-
-    result: dict[str, dict[str, Any]] = {}
-    for r in rows:
-        pid_str = str(r["player_id"])
-        if pid_str not in result:
-            result[pid_str] = {}
-        result[pid_str][r["season_suffix"]] = r["stats"]
-    return result
+    return r2_storage.load_json_blob(_SEED_SEASONS_KEY) or {}
 
 
 def save_seed_season(player_id: int, season_suffix: str, stats: dict[str, Any]) -> None:
-    """Insert or update a seed season entry. No-op if database is disabled."""
-    if not _USE_DB:
+    """Insert or update a seed season entry. No-op if R2 is disabled."""
+    if not is_db_enabled():
         return
 
-    with _get_conn() as conn:
-        with conn.cursor() as cur:
-            cur.execute("""
-                INSERT INTO seed_seasons (player_id, season_suffix, stats, updated_at)
-                VALUES (%s, %s, %s, CURRENT_TIMESTAMP)
-                ON CONFLICT (player_id, season_suffix)
-                DO UPDATE SET stats = EXCLUDED.stats, updated_at = CURRENT_TIMESTAMP
-            """, (player_id, season_suffix, json.dumps(stats)))
+    blob = r2_storage.load_json_blob(_SEED_SEASONS_KEY) or {}
+    pid_str = str(player_id)
+    blob.setdefault(pid_str, {})[season_suffix] = stats
+    r2_storage.save_json_blob(_SEED_SEASONS_KEY, blob)
 
 
 def delete_seed_season(player_id: int, season_suffix: str) -> None:
-    """Delete a seed season entry. No-op if database is disabled."""
-    if not _USE_DB:
+    """Delete a seed season entry. No-op if R2 is disabled."""
+    if not is_db_enabled():
         return
 
-    with _get_conn() as conn:
-        with conn.cursor() as cur:
-            cur.execute("""
-                DELETE FROM seed_seasons
-                WHERE player_id = %s AND season_suffix = %s
-            """, (player_id, season_suffix))
-
+    blob = r2_storage.load_json_blob(_SEED_SEASONS_KEY)
+    if not blob:
+        return
+    pid_str = str(player_id)
+    if pid_str in blob and season_suffix in blob[pid_str]:
+        del blob[pid_str][season_suffix]
+        if not blob[pid_str]:
+            del blob[pid_str]
+        r2_storage.save_json_blob(_SEED_SEASONS_KEY, blob)
