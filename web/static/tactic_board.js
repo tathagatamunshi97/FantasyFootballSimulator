@@ -2628,6 +2628,23 @@
         return { type: "shoot" };
       }
 
+      // Priority 1.5: Is the carrier personally isolated with real space?
+      // findBestArrivingReceiver's 0.15 bar (Priority 2 below) only scores
+      // teammates — it never looks at the carrier's OWN situation, so a
+      // genuinely open 1v0 carrier was passing almost every time instead of
+      // taking a defender on (bug: isolated players never dribbled). Check
+      // this before the receiver search so real isolation reliably produces
+      // a carry rather than being drowned out by an always-clears-the-bar
+      // pass option.
+      const dribblePressure = pressureAt(carrier.left, carrier.top, carrier.side);
+      const dribbleOpenness = 1 / (1 + dribblePressure);
+      const carrierThreat = nearestOpponent(carrier, 10);
+      const trulyIsolated =
+        (!carrierThreat || carrierThreat.d >= 7) && dribbleOpenness > 0.55 && depth >= 0.25;
+      if (trulyIsolated && rng() < clamp(dribbleOpenness * 0.65, 0.35, 0.8)) {
+        return { type: "dribble" };
+      }
+
       // Priority 2: Is there a high-value arriving receiver?
       const bestReceiver = findBestArrivingReceiver(carrier, stage, depth);
       if (bestReceiver) {
@@ -2635,8 +2652,6 @@
       }
 
       // Priority 3: Is there open space to dribble into?
-      const dribblePressure = pressureAt(carrier.left, carrier.top, carrier.side);
-      const dribbleOpenness = 1 / (1 + dribblePressure);
       const canDribble = dribbleOpenness > 0.4 && depth >= 0.3; // only dribble if we have space and depth
       if (canDribble && rng() < clamp(dribbleOpenness * 0.6, 0.2, 0.8)) {
         return { type: "dribble" };
@@ -6577,11 +6592,19 @@
                 const pressOnCarrier = carrierPin ? nearestOpponent(carrierPin, 6) : null;
                 const canRelease = passImminent && !(pressOnCarrier && pressOnCarrier.d < 4.2);
 
-                if (stCycle === "drop") {
+                // stCycle is a time-driven roll, independent of the striker's
+                // held intent (ensureIntent) computed earlier this tick — so
+                // a "drop" roll used to override a held "pin_last_line"/
+                // "far_post" intent regardless of whether the situation
+                // actually called for it. Treat "drop" as "pin" whenever the
+                // held intent says to hold the line, so the two systems
+                // don't fight each other.
+                const holdIntent = pin._intent === "pin_last_line" || pin._intent === "far_post";
+                if (stCycle === "drop" && !holdIntent) {
                   depth = lerp(depth, clamp(relBall.depth - 0.02, midLine, onsideDepth), 0.45);
                   x = lerp(x, relBall.x, 0.25);
                   pin._running = false;
-                } else if (stCycle === "pin") {
+                } else if (stCycle === "pin" || (stCycle === "drop" && holdIntent)) {
                   depth = lerp(depth, onsideDepth, 0.55);
                   x = lerp(x, 0.5 + (pin.baseX - 0.5) * 0.4, 0.35);
                 } else if (stCycle === "drift") {
@@ -7178,13 +7201,22 @@
                 // Striker's dropped short — each winger exploits the space
                 // he vacated: run beyond if there's room, or hold the
                 // touchline to isolate their marker 1v1 if tightly held.
+                // The wingers' push target is capped at the striker's own
+                // effective ceiling (offLine, not offLine+0.02) and the
+                // striker himself is nudged back up in the same pass — the
+                // earlier version only ever advanced the wingers, so a
+                // short striker had nothing pulling him level again and
+                // could end up reading as the deepest of the front three.
                 for (const wEntry of wEntries) {
                   const nearOpp = nearestOpponent(wEntry.pin, 9);
                   if (nearOpp && nearOpp.d < 5) {
                     wEntry.x = lerp(wEntry.x, wEntry.pin.baseX, 0.35);
                   } else {
-                    wEntry.depth = Math.max(wEntry.depth, lerp(wEntry.depth, offLine + 0.02, 0.4));
+                    wEntry.depth = Math.max(wEntry.depth, lerp(wEntry.depth, offLine, 0.4));
                   }
+                }
+                if (stEntry) {
+                  stEntry.depth = Math.max(stEntry.depth, lerp(stEntry.depth, offLine - 0.05, 0.35));
                 }
               } else if (wEntries.length) {
                 const shortW = wEntries.find((w) => {
