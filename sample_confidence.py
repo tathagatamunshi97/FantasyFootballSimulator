@@ -12,8 +12,10 @@ MIN_TRUSTED_MINUTES = 2200
 # User-requested floor: at/above this many blended minutes, skip credibility
 # dampening entirely (no Bayesian shrink, no staleness cut, no percentile
 # dampener) — judged too aggressive/deflating for players with a genuinely
-# substantial sample. See apply_credibility_dampening.
-MINUTES_EXEMPTION_THRESHOLD = 1800
+# substantial sample. See apply_credibility_dampening. Lowered from 1800 to
+# 1500 per follow-up request; below this, a missing season still blends
+# toward the role baseline via STALE_SEASON_CREDIBILITY_FACTOR (unchanged).
+MINUTES_EXEMPTION_THRESHOLD = 1500
 
 # Bayesian credibility prior strength for normal (non-prime / non-peak) per-90 rates.
 # c = m / (m + m0); m0 ≈ one season of substantial play (~11 full matches).
