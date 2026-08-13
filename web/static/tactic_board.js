@@ -10575,7 +10575,28 @@
       applyPinMotion(dt);
     }
 
+    // Hardening — tick() drives the whole match via a self-rescheduling
+    // requestAnimationFrame loop, and the reschedule call used to be the
+    // very last line of the function: any uncaught exception ANYWHERE in
+    // the decision tree it calls into (tickDecision/decideAction and
+    // everything under them) would exit before that line ever ran, and
+    // requestAnimationFrame does not retry on its own — a single bad tick
+    // silently froze the match forever, with no server-side trace and no
+    // visible error unless devtools happened to be open. Wrapping the body
+    // means one bad tick logs and gets skipped instead of permanently
+    // killing the match; the loop still reschedules itself either way.
     function tick(ts) {
+      try {
+        _tickBody(ts);
+      } catch (err) {
+        console.error("tactic_board: tick() threw, skipping this frame and continuing", err);
+        if (playing && !finished) {
+          raf = requestAnimationFrame(tick);
+        }
+      }
+    }
+
+    function _tickBody(ts) {
       if (viewerMode) {
         // Viewer: interpolate toward host targets + ball path (no decisions)
         if (!lastTs) lastTs = ts;
