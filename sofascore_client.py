@@ -5,6 +5,7 @@ import json
 import threading
 import time
 import unicodedata
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -291,6 +292,7 @@ def _season_suffix_matches(season_name: str, suffix: str) -> bool:
     return suffix in str(season_name)
 
 
+@lru_cache(maxsize=None)
 def _fetch_career_season_index(player_id: int) -> list[dict[str, Any]]:
     from datafc.utils._client import SofascoreClient
     from datafc.utils._config import API_URLS
@@ -451,24 +453,207 @@ def _find_player_in_league_season(
     return None
 
 
-def _fetch_player_season_stats(player_id: int) -> dict[str, dict[str, Any]]:
-    """Scan supported leagues for this player's 24/25 and 25/26 stats."""
-    season_stats: dict[str, dict[str, Any]] = {}
-    target_seasons = {f"20{s[:2]}-20{s[3:]}" for s in SEASON_SUFFIXES}
+def _row_for_league_season(
+    player_id: int, league: str, season_suffix: str
+) -> pd.Series | None:
+    """Raw (pre-per90) row for one player/league/season via the paginated table, or None."""
+    tournament_id = _tournament_ids()[league]
+    season_id = _season_id(tournament_id, league, season_suffix)
+    for sofascore_pos in ("G", "D", "M", "F"):
+        df = league_player_stats_data(
+            tournament_id=tournament_id,
+            season_id=season_id,
+            accumulation="total",
+            max_players=1000,
+            fields=SOFASCORE_FIELDS,
+            position=sofascore_pos,
+            order="-minutesPlayed",
+        )
+        if df is None or df.empty:
+            continue
+        match = df[df["player_id"] == player_id]
+        if match.empty:
+            continue
+        row = match.iloc[0].copy()
+        row["league"] = league
+        return row
+    return None
 
-    for league in LEAGUES:
-        for suffix in SEASON_SUFFIXES:
-            season_label = f"20{suffix[:2]}-20{suffix[3:]}"
-            if season_label in season_stats:
-                continue
+
+def _fetch_one_season_row(
+    player_id: int, tournament_id: int, season_id: int, tournament_name: str
+) -> pd.Series | None:
+    """Raw (pre-per90) row for one player/tournament/season via the direct per-player endpoint."""
+    from datafc.utils._client import SofascoreClient
+    from datafc.utils._config import API_URLS
+
+    base = API_URLS["sofascore"]
+    with SofascoreClient(rate_limit=2.0) as client:
+        try:
+            stats_data = client.get(
+                f"{base}/api/v1/player/{player_id}"
+                f"/unique-tournament/{tournament_id}/season/{season_id}/statistics/overall"
+            )
+        except Exception:
+            return None
+    stats = stats_data.get("statistics") or {}
+    team = stats_data.get("team") or {}
+    if not stats:
+        return None
+    return pd.Series(
+        {
+            **{k: stats.get(k) for k in SOFASCORE_FIELDS},
+            "player_id": player_id,
+            "player_name": "",
+            "team_name": team.get("name", ""),
+            "league": tournament_name,
+        }
+    )
+
+
+_SUM_FIELDS = (
+    "goals",
+    "assists",
+    "expectedGoals",
+    "expectedAssists",
+    "totalShots",
+    "shotsOnTarget",
+    "keyPasses",
+    "tackles",
+    "interceptions",
+    "clearances",
+    "successfulDribbles",
+    "accuratePasses",
+    "accurateLongBalls",
+    "saves",
+    "goalsPrevented",
+    "bigChancesCreated",
+    "bigChancesMissed",
+    "possessionLost",
+    "penaltyGoals",
+    "freeKickGoal",
+    "yellowCards",
+    "redCards",
+    "minutesPlayed",
+    "appearances",
+)
+_PCT_FIELDS = (
+    ("successfulDribbles", "successfulDribblesPercentage"),
+    ("accuratePasses", "accuratePassesPercentage"),
+    ("accurateLongBalls", "accurateLongBallsPercentage"),
+)
+
+
+def _combine_rows(rows: list[pd.Series], preferred_league: str | None = None) -> pd.Series:
+    """Combine multiple club stints within one season into a single row.
+
+    Countable totals (minutes, tackles, goals, ...) are summed so a player
+    who split a season across two clubs gets credit for all of it, not just
+    whichever stint the lookup happened to find first. Percentage fields are
+    recombined via implied attempt counts (success / (pct/100)) rather than
+    naively averaged, so a stint with more attempts is weighted correctly.
+    """
+    if len(rows) == 1:
+        return rows[0]
+
+    combined: dict[str, Any] = {f: sum(_num(r.get(f)) for r in rows) for f in _SUM_FIELDS}
+
+    for success_field, pct_field in _PCT_FIELDS:
+        total_success = 0.0
+        total_attempts = 0.0
+        for r in rows:
+            succ = _num(r.get(success_field))
+            pct = _num(r.get(pct_field))
+            if pct > 0:
+                total_attempts += succ / (pct / 100.0)
+            total_success += succ
+        combined[pct_field] = (total_success / total_attempts * 100.0) if total_attempts > 0 else 0.0
+
+    total_minutes = combined["minutesPlayed"]
+    rating_num = sum(_num(r.get("rating"), default=6.5) * _num(r.get("minutesPlayed")) for r in rows)
+    combined["rating"] = (rating_num / total_minutes) if total_minutes > 0 else 6.5
+
+    combined["player_id"] = rows[0].get("player_id")
+    combined["player_name"] = rows[0].get("player_name", "")
+
+    representative = None
+    if preferred_league:
+        representative = next((r for r in rows if r.get("league") == preferred_league), None)
+    if representative is None:
+        representative = max(rows, key=lambda r: _num(r.get("minutesPlayed")))
+    combined["team_name"] = representative.get("team_name", "")
+    combined["league"] = representative.get("league", "")
+
+    return pd.Series(combined)
+
+
+def _fetch_player_season_stats(
+    player_id: int, player_name: str = ""
+) -> dict[str, dict[str, Any]]:
+    """Resolve this player's stats for every configured season, combining every
+    club stint within a season (mid-season transfers) into one entry.
+
+    Resolves most-recent season first, then older seasons — once a league is
+    known from a more recent season, stints in that league are preferred as
+    the "representative" team/league label for older seasons too, so a
+    transfer-season player's `team` reads as their current club rather than
+    whichever stint has more minutes.
+
+    The per-league table lookup is fast but paginated (~200-300 rows per
+    position, sorted by minutes), so a stint near that cutoff (e.g. a
+    just-arrived transfer) can be invisible to it even with real minutes.
+    The per-player career index is used to find any such missed stint and
+    pull it via the slower direct per-player endpoint.
+    """
+    season_stats: dict[str, dict[str, Any]] = {}
+    preferred_league: str | None = None
+
+    for suffix in reversed(SEASON_SUFFIXES):
+        season_label = f"20{suffix[:2]}-20{suffix[3:]}"
+        rows: list[pd.Series] = []
+        seen_leagues: set[str] = set()
+
+        for league in LEAGUES:
             try:
-                entry = _find_player_in_league_season(player_id, league, suffix)
+                row = _row_for_league_season(player_id, league, suffix)
             except Exception:
-                continue
-            if entry:
-                season_stats[season_label] = entry
-        if target_seasons.issubset(season_stats.keys()):
-            break
+                row = None
+            if row is not None:
+                rows.append(row)
+                seen_leagues.add(league)
+
+        if player_name:
+            try:
+                index = _fetch_career_season_index(player_id)
+            except Exception:
+                index = []
+            for item in index:
+                tname = item["tournament_name"]
+                if tname not in LEAGUES or tname in seen_leagues:
+                    continue
+                if not _season_suffix_matches(item["season_name"], suffix):
+                    continue
+                try:
+                    row = _fetch_one_season_row(
+                        player_id, item["tournament_id"], item["season_id"], tname
+                    )
+                except Exception:
+                    row = None
+                if row is not None:
+                    rows.append(row)
+                    seen_leagues.add(tname)
+
+        if not rows:
+            continue
+
+        combined = _combine_rows(rows, preferred_league=preferred_league)
+        sofascore_pos = _sofascore_position_code(player_name or str(player_id), player_id)
+        entry = _row_to_entry(combined, sofascore_pos, season_label)
+        if entry:
+            season_stats[season_label] = entry
+            if preferred_league is None:
+                preferred_league = entry.get("league") or None
+
     return season_stats
 
 
@@ -567,7 +752,7 @@ def fetch_player_from_sofascore(raw_name: str) -> tuple[str, dict[str, Any]]:
     """Search Sofascore and pull blended stats for one player. Returns (cache_key, data)."""
     player_id, display_name = _lookup_player_id(raw_name)
 
-    season_stats = _fetch_player_season_stats(player_id)
+    season_stats = _fetch_player_season_stats(player_id, display_name)
     if not season_stats:
         raise KeyError(
             f"No stats for '{display_name}' in supported leagues (Sofascore id {player_id}). "
