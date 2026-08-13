@@ -82,6 +82,12 @@ FOTMOB_STAT_KEYS = frozenset(
 
         "aerials_source",
 
+        "blocks90",
+
+        "ball_recoveries90",
+
+        "blocks_source",
+
         "fotmob_seasons_blended",
 
         "fotmob_season_minutes",
@@ -623,6 +629,10 @@ def _extract_season_stats_payload(payload: dict[str, Any]) -> dict[str, float]:
 
     aerial_won = _stat_item(stats_section, "aerials_won")
 
+    blocked_shots = _stat_item(stats_section, "blocked_shots")
+
+    recoveries = _stat_item(stats_section, "recoveries")
+
 
 
     if duel_pct is not None:
@@ -636,6 +646,14 @@ def _extract_season_stats_payload(payload: dict[str, Any]) -> dict[str, float]:
     if aerial_won is not None:
 
         out["aerials_won90"] = _num(aerial_won.get("per90"))
+
+    if blocked_shots is not None:
+
+        out["blocks90"] = _num(blocked_shots.get("per90"))
+
+    if recoveries is not None:
+
+        out["ball_recoveries90"] = _num(recoveries.get("per90"))
 
     return out
 
@@ -768,6 +786,10 @@ def _blend_season_stats(season_rows: list[dict[str, Any]]) -> dict[str, Any]:
         "aerials_won_pct": _weighted("aerials_won_pct"),
 
         "aerials_won90": _weighted("aerials_won90"),
+
+        "blocks90": _weighted("blocks90"),
+
+        "ball_recoveries90": _weighted("ball_recoveries90"),
 
         "fotmob_seasons_blended": [row.get("season_name", "") for row in usable],
 
@@ -1042,6 +1064,18 @@ def merge_fotmob_for_player(display_name: str, data: dict[str, Any], *, use_cach
         if pct > 0:
 
             data["aerials_lost90"] = won * (1.0 - pct) / pct
+
+
+
+    if profile.get("blocks90", 0) > 0:
+
+        data["blocks90"] = profile["blocks90"]
+
+        data["blocks_source"] = "fotmob"
+
+    if profile.get("ball_recoveries90", 0) > 0:
+
+        data["ball_recoveries90"] = profile["ball_recoveries90"]
 
 
 
