@@ -29,9 +29,9 @@ SEED_SEASONS_FILE = Path(__file__).resolve().parent / "data" / "seed_seasons.jso
 
 
 def list_selectable_seasons() -> list[dict[str, str]]:
-    """Seasons from 2013-14 through 2025-26 for UI dropdowns."""
+    """Seasons from 2013-14 through 2026-27 for UI dropdowns."""
     rows: list[dict[str, str]] = []
-    for start in range(MIN_SEASON_START_YEAR, 2026):
+    for start in range(MIN_SEASON_START_YEAR, 2027):
         yy = start % 100
         ny = (start + 1) % 100
         suffix = f"{yy:02d}/{ny:02d}"
