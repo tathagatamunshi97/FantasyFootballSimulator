@@ -9,6 +9,12 @@ from models import PlayerStats
 FULL_STARTER_MINUTES = 3060
 MIN_TRUSTED_MINUTES = 2200
 
+# User-requested floor: at/above this many blended minutes, skip credibility
+# dampening entirely (no Bayesian shrink, no staleness cut, no percentile
+# dampener) — judged too aggressive/deflating for players with a genuinely
+# substantial sample. See apply_credibility_dampening.
+MINUTES_EXEMPTION_THRESHOLD = 1800
+
 # Bayesian credibility prior strength for normal (non-prime / non-peak) per-90 rates.
 # c = m / (m + m0); m0 ≈ one season of substantial play (~11 full matches).
 CREDIBILITY_M0 = 1000.0
@@ -666,12 +672,24 @@ def apply_credibility_dampening(data: dict[str, Any]) -> dict[str, Any]:
     non-prime/peak player also gets percentile_dampener() applied (see above) —
     full credit at/above the 90th percentile of minutes, small further shrink
     every 5 percentiles below that.
+
+    User-requested floor: a player at/above MINUTES_EXEMPTION_THRESHOLD in the
+    blended `minutes` figure is exempt from all of the above (Bayesian shrink,
+    staleness cut, percentile dampener) -- at that sample size the shrink was
+    judged to be misleading and deflating real, established production rather
+    than protecting against genuine small-sample noise.
+
     Idempotent via credibility_damped flag.
     """
     if is_undamped_profile(data):
         return data
 
     minutes = float(data.get("minutes") or 0.0)
+    if minutes >= MINUTES_EXEMPTION_THRESHOLD:
+        data["credibility_damped"] = False
+        data["credibility_weight"] = 1.0
+        return data
+
     c = credibility_weight(minutes)
     if _is_stale_profile(data):
         c *= STALE_SEASON_CREDIBILITY_FACTOR
