@@ -2043,17 +2043,29 @@
       FB: ["overlap", "hold_width", "tuck_support"],
       AM: ["attack_gap", "support", "back_post", "box_crash"],
       ST: ["pin_last_line", "drop_short", "far_post"],
-      CM: ["support", "progressive_run", "hold_width"],
+      // Engine fix — CM previously had no box_crash option at all, and every
+      // other CM intent is depth-capped below the inPenaltyBox() threshold
+      // (0.86) by construction (see BOX_OCCUPATION branch below). A real CM
+      // does sometimes break forward into the box on a sustained attack, not
+      // only the rare stat-defined "box_crashing_midfielder" archetype.
+      CM: ["support", "progressive_run", "hold_width", "box_crash"],
       DM: ["screen", "support"],
     };
     const INTENT_WEIGHTS = {
       W: { central: [0.3, 0.45, 0.25], wide: [0.55, 0.3, 0.15] },
       FB: { central: [0.35, 0.35, 0.3], wide: [0.5, 0.3, 0.2] },
-      // AM's 4th slot (box_crash) is 0 by default -- only a clinical AM
-      // (see clinicalBoxThreat in ensureIntent) ever draws it.
-      AM: { central: [0.4, 0.35, 0.25, 0], wide: [0.4, 0.35, 0.25, 0] },
+      // Engine fix — AM's 4th slot (box_crash) used to be 0 by default, i.e.
+      // literally impossible to draw unless clinicalBoxThreat (an elite-
+      // scorer-only signal) was already > 0 -- a normal playmaking AM could
+      // never make a genuine box run regardless of match state. Given a
+      // modest non-zero floor here instead; clinicalBoxThreat still boosts
+      // it further on top of this floor for real finisher-type AMs.
+      AM: { central: [0.36, 0.32, 0.2, 0.12], wide: [0.36, 0.32, 0.2, 0.12] },
       ST: { central: [0.5, 0.3, 0.2], wide: [0.5, 0.3, 0.2] },
-      CM: { central: [0.4, 0.32, 0.28], wide: [0.4, 0.32, 0.28] },
+      // Engine fix — same floor added for CM's new box_crash slot (see
+      // INTENT_MENUS.CM above). Kept modest since this should still be the
+      // exception, not the norm, for a CM's positioning.
+      CM: { central: [0.35, 0.28, 0.22, 0.15], wide: [0.35, 0.28, 0.22, 0.15] },
       DM: { central: [0.55, 0.45], wide: [0.55, 0.45] },
     };
 
@@ -6490,7 +6502,14 @@
                   pin._running = true;
                 } else if (pin.role === "CM") {
                   const intent = ensureIntent(pin, relBall);
-                  if (intent === "progressive_run") {
+                  if (intent === "box_crash") {
+                    // Engine fix — CM's only genuine path to inPenaltyBox()
+                    // depth (>=0.86); every other CM branch here is capped
+                    // at 0.84, below the box threshold, by construction.
+                    // Mirrors AM's box_crash target math for consistency.
+                    x = clamp(0.5 + (pin.baseX - 0.5) * 0.3, 0.36, 0.64);
+                    depth = clamp(0.86 + h * 0.04, 0.84, 0.9);
+                  } else if (intent === "progressive_run") {
                     x = clamp(relBall.x + (relBall.x > 0.5 ? 0.12 : -0.12), 0.26, 0.74);
                     depth = clamp(0.76 + bias, 0.7, 0.84);
                   } else if (intent === "hold_width") {
@@ -6524,9 +6543,13 @@
                     x = lerp(pin.baseX, relBall.x, 0.25);
                   }
                 }
-                // Ensure enough crashers when occupation thin
-                if (boxedN < 2 && (pin.role === "W" || pin.role === "CM") && h > 0.45) {
-                  depth = Math.max(depth, 0.8);
+                // Ensure enough crashers when occupation thin. Engine fix —
+                // this used to only push depth to 0.8, still short of
+                // inPenaltyBox()'s 0.86 threshold, so it could never actually
+                // produce a real box occupant no matter how thin things got.
+                // Also extended to AM, which the original check skipped.
+                if (boxedN < 2 && (pin.role === "W" || pin.role === "CM" || pin.role === "AM") && h > 0.45) {
+                  depth = Math.max(depth, 0.87);
                   pin._running = true;
                 }
               }
@@ -7237,6 +7260,33 @@
                     stEntry.depth = Math.max(stEntry.depth, lerp(stEntry.depth, offLine, 0.3));
                   }
                 }
+              }
+            }
+
+            // Engine fix — winger + fullback wide-position collision. Each
+            // role's default wide x-target is computed completely
+            // independently (FINAL_THIRD/BOX_OCCUPATION branches above),
+            // and the only place they're ever made aware of each other is
+            // the ball-carrier network-offset block later in this function,
+            // which is inert unless one of them is literally the ball
+            // carrier right now. For the rest of a possession they land on
+            // near-identical touchline x -- the "wingers and fullbacks
+            // occupying the same position outwide" symptom. When a same-
+            // flank W/FB pair has converged and neither currently has the
+            // ball, tuck the W into the half-space (its own underlap
+            // target) so the flank offers two distinct options again.
+            const flankSides = [0, 1];
+            for (const flankIsRight of flankSides) {
+              const wEntry = pending.find(
+                (p) => p.pin.role === "W" && (p.pin.baseX >= 0.5) === Boolean(flankIsRight)
+              );
+              const fbEntry = pending.find(
+                (p) => p.pin.role === "FB" && (p.pin.baseX >= 0.5) === Boolean(flankIsRight)
+              );
+              if (!wEntry || !fbEntry) continue;
+              if (wEntry.pin.id === carrier.id || fbEntry.pin.id === carrier.id) continue;
+              if (Math.abs(wEntry.x - fbEntry.x) < 0.08) {
+                wEntry.x = clamp(0.5 + (wEntry.pin.baseX - 0.5) * 0.35, 0.36, 0.64);
               }
             }
           }
