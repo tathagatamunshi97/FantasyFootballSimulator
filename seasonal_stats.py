@@ -14,6 +14,7 @@ from sofascore_client import (
     TOP5_EUROPEAN_LEAGUES,
     StatsStore,
     _career_top5_table_from_api,
+    _combine_league_entries,
     _fetch_player_season_via_career_api,
     _find_player_in_league_season,
     _num,
@@ -198,7 +199,12 @@ def fetch_sofascore_season_entry(
     player_name: str = "",
 ) -> dict[str, Any] | None:
     season_label = season_label_from_suffix(season_suffix)
-    best: dict[str, Any] | None = None
+    # Bug fix — a mid-season transfer (e.g. Serie A -> Premier League) means
+    # a player has a real, separate entry per club in the SAME season. The
+    # old "keep whichever has more minutes" logic silently discarded
+    # playing time at the OTHER club entirely. Combine (minutes-weighted,
+    # via the same helper refresh_cache uses) instead of picking one.
+    found: list[dict[str, Any]] = []
     for league in TOP5_EUROPEAN_LEAGUES:
         try:
             entry = _find_player_in_league_season(
@@ -208,11 +214,15 @@ def fetch_sofascore_season_entry(
             continue
         if not entry:
             continue
-        entry = dict(entry)
-        entry["seasons_used"] = [season_label]
-        entry["teams_by_season"] = {season_label: entry.get("team", "")}
-        if best is None or entry.get("minutes", 0) > best.get("minutes", 0):
-            best = entry
+        found.append(dict(entry))
+
+    best: dict[str, Any] | None = None
+    if found:
+        best = found[0]
+        for extra in found[1:]:
+            best = _combine_league_entries(best, extra)
+        best["seasons_used"] = [season_label]
+        best["teams_by_season"] = {season_label: best.get("team", "")}
     if best is None and player_name:
         entry = _fetch_player_season_via_career_api(player_id, player_name, season_suffix)
         if entry:

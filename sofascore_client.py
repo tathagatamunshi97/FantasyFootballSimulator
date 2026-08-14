@@ -831,6 +831,41 @@ def blend_seasons(season_stats: dict[str, dict[str, Any]]) -> dict[str, Any]:
     return out
 
 
+def _combine_league_entries(a: dict[str, Any], b: dict[str, Any]) -> dict[str, Any]:
+    """Combine two league entries for the SAME player in the SAME season --
+    a mid-season transfer (e.g. Serie A -> Premier League) -- by real
+    minutes weighting. Without this, refresh_cache's merge loop silently
+    kept only whichever league was processed last and threw away the
+    other club's real playing time entirely (confirmed on Patrick Dorgu:
+    his Man Utd minutes after a January move vanished, leaving only Lecce).
+    """
+    ma = _num(a.get("minutes"))
+    mb = _num(b.get("minutes"))
+    total = ma + mb
+    if total <= 0:
+        return b
+    wa, wb = ma / total, mb / total
+    numeric = [
+        "goals90", "assists90", "xg90", "xa90", "shots90", "shots_on_target90",
+        "key_passes90", "tackles90", "interceptions90", "clearances90", "dribbles90",
+        "dribble_pct", "passes_completed90", "pass_pct", "long_balls90", "long_ball_pct",
+        "big_chances_created90", "big_chances_missed90", "possession_lost90", "penalty_goals90",
+        "saves90", "goals_prevented90", "goals_conceded90",
+        "clean_sheet_pct", "yellow_cards90", "red_cards90", "rating",
+    ]
+    out = dict(b)
+    out["team"] = (
+        f"{a.get('team', '')} / {b.get('team', '')}" if a.get("team") != b.get("team") else b.get("team", "")
+    )
+    out["minutes"] = total
+    out["games"] = int(_num(a.get("games")) + _num(b.get("games")))
+    out["starts"] = int(_num(a.get("starts")) + _num(b.get("starts")))
+    out["positions"] = list(dict.fromkeys((a.get("positions") or []) + (b.get("positions") or [])))
+    for k in numeric:
+        out[k] = wa * _num(a.get(k)) + wb * _num(b.get(k))
+    return out
+
+
 def refresh_cache(
     *,
     leagues: tuple[str, ...] = LEAGUES,
@@ -847,7 +882,10 @@ def refresh_cache(
             try:
                 batch = _fetch_league_season(league, suffix)
                 for pid, entry in batch.items():
-                    merged.setdefault(pid, {})[season_label] = entry
+                    existing = merged.setdefault(pid, {}).get(season_label)
+                    merged[pid][season_label] = (
+                        _combine_league_entries(existing, entry) if existing else entry
+                    )
                 log.append(f"{league} {suffix}: {len(batch)} players")
                 print(f"  {league} {suffix}: {len(batch)} players", flush=True)
             except Exception as exc:
