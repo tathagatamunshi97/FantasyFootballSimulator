@@ -8356,7 +8356,16 @@
         if (driveIntoBox(carrier)) return;
         spell.chanceDone = true;
       }
-      if (!boxOccupationReady(carrier.side) && !inPenaltyBox(carrier)) {
+      // Bug fix — this used to gate the naked doShot below on team box
+      // occupation only (!boxOccupationReady), not the carrier's own
+      // position. That let a carrier who was himself still outside the box
+      // (and not even near it) take a genuine long-range shot whenever
+      // teammates happened to already be positioned inside — the source of
+      // low-xG (~0.11) long shots with "nobody getting chances in the box."
+      // Gate on the carrier's own proximity instead: only let the naked
+      // shot through when he's boxed or near-box; otherwise keep driving in
+      // or recycle possession.
+      if (!inPenaltyBox(carrier) && !nearPenaltyBox(carrier)) {
         if (forwardInFinalThird(carrier)) {
           forwardFinalThirdAction(carrier);
           return;
