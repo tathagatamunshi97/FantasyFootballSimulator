@@ -8297,7 +8297,10 @@
           if (driveIntoBox(carrier)) return;
           spell.chanceDone = true;
         }
-        if (!boxOccupationReady(carrier.side)) {
+        // Bug fix — same class as the attemptSpellChance final-fallback fix:
+        // gate on the carrier's own proximity, not team box-readiness, so a
+        // failed/skipped drive-in doesn't fall through to a naked long shot.
+        if (!inPenaltyBox(carrier) && !nearPenaltyBox(carrier)) {
           if (forwardInFinalThird(carrier)) {
             forwardFinalThirdAction(carrier);
             return;
@@ -9732,7 +9735,11 @@
         spell.awaitingBoxShot = false;
         spell.chanceDone = true;
         carrier._boxDriveDone = false;
-        if (!boxOccupationReady(carrier.side)) {
+        // Bug fix — same class as the attemptSpellChance fixes above: this
+        // point is only reached once we already know the carrier isn't
+        // boxed/sufficiently near (the branch above returns otherwise), so
+        // gate the recycle on his own proximity, not team box-readiness.
+        if (!inPenaltyBox(carrier) && !nearPenaltyBox(carrier)) {
           if (forwardInFinalThird(carrier)) {
             forwardFinalThirdAction(carrier);
             return;
