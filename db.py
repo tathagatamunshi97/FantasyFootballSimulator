@@ -9,6 +9,7 @@ caller, not here) when R2 is not configured.
 """
 from __future__ import annotations
 
+import time
 from typing import Any
 
 import r2_storage
@@ -16,6 +17,46 @@ import r2_storage
 _MANUAL_PROFILES_KEY = "db/manual_profiles.json"
 _TEAM_LINEUPS_KEY = "db/team_lineups.json"
 _SEED_SEASONS_KEY = "db/seed_seasons.json"
+
+# Short in-process cache over R2 reads. A single R2 blob fetch is a real
+# network round-trip (unlike the old Postgres query it replaced), and some
+# callers load the same blob multiple times per request -- e.g.
+# apply_team_lineup() calls get_team_lineup() once per team, so preparing
+# a single match previously meant 2 separate full-blob R2 fetches with no
+# caching at all. A few seconds of staleness is a non-issue for these
+# collections; writes update the cache directly (not just invalidate it)
+# so a save is immediately visible to the next read.
+_CACHE_TTL_S = 8.0
+_cache: dict[str, tuple[float, Any]] = {}
+
+
+def _cache_get(key: str) -> Any:
+    entry = _cache.get(key)
+    if entry is None:
+        return None
+    ts, value = entry
+    if time.monotonic() - ts > _CACHE_TTL_S:
+        return None
+    return value
+
+
+def _cache_put(key: str, value: Any) -> None:
+    _cache[key] = (time.monotonic(), value)
+
+
+def _load_blob_cached(key: str) -> Any:
+    cached = _cache_get(key)
+    if cached is not None:
+        return cached
+    value = r2_storage.load_json_blob(key)
+    if value is not None:
+        _cache_put(key, value)
+    return value
+
+
+def _save_blob(key: str, value: Any) -> None:
+    r2_storage.save_json_blob(key, value)
+    _cache_put(key, value)
 
 
 def is_db_enabled() -> bool:
@@ -65,7 +106,7 @@ def load_all_manual_profiles() -> list[dict[str, Any]]:
     """Load all manual profiles. Returns empty list if R2 is disabled."""
     if not is_db_enabled():
         return []
-    blob = r2_storage.load_json_blob(_MANUAL_PROFILES_KEY)
+    blob = _load_blob_cached(_MANUAL_PROFILES_KEY)
     profiles = (blob or {}).get("profiles", [])
     return sorted(
         profiles, key=lambda r: (r.get("player_name", ""), r.get("profile_type", ""), r.get("season_suffix", ""))
@@ -83,7 +124,7 @@ def save_manual_profile(
     if not is_db_enabled():
         return
 
-    blob = r2_storage.load_json_blob(_MANUAL_PROFILES_KEY) or {"profiles": []}
+    blob = _load_blob_cached(_MANUAL_PROFILES_KEY) or {"profiles": []}
     profiles = blob.setdefault("profiles", [])
     entry = {
         "player_name": player_name,
@@ -102,7 +143,7 @@ def save_manual_profile(
             break
     else:
         profiles.append(entry)
-    r2_storage.save_json_blob(_MANUAL_PROFILES_KEY, blob)
+    _save_blob(_MANUAL_PROFILES_KEY, blob)
 
 
 def delete_manual_profile(
@@ -114,7 +155,7 @@ def delete_manual_profile(
     if not is_db_enabled():
         return
 
-    blob = r2_storage.load_json_blob(_MANUAL_PROFILES_KEY)
+    blob = _load_blob_cached(_MANUAL_PROFILES_KEY)
     if not blob:
         return
     profiles = blob.get("profiles", [])
@@ -127,7 +168,7 @@ def delete_manual_profile(
             and row.get("season_suffix") == season_suffix
         )
     ]
-    r2_storage.save_json_blob(_MANUAL_PROFILES_KEY, blob)
+    _save_blob(_MANUAL_PROFILES_KEY, blob)
 
 
 # ============================================================================
@@ -138,7 +179,7 @@ def load_all_team_lineups() -> dict[str, Any]:
     """Load all team lineups, keyed by team name. Returns empty dict if R2 is disabled."""
     if not is_db_enabled():
         return {}
-    return r2_storage.load_json_blob(_TEAM_LINEUPS_KEY) or {}
+    return _load_blob_cached(_TEAM_LINEUPS_KEY) or {}
 
 
 def save_team_lineup(team_name: str, lineup_data: dict[str, Any]) -> None:
@@ -146,9 +187,9 @@ def save_team_lineup(team_name: str, lineup_data: dict[str, Any]) -> None:
     if not is_db_enabled():
         return
 
-    blob = r2_storage.load_json_blob(_TEAM_LINEUPS_KEY) or {}
+    blob = _load_blob_cached(_TEAM_LINEUPS_KEY) or {}
     blob[team_name] = lineup_data
-    r2_storage.save_json_blob(_TEAM_LINEUPS_KEY, blob)
+    _save_blob(_TEAM_LINEUPS_KEY, blob)
 
 
 def delete_team_lineup(team_name: str) -> None:
@@ -156,11 +197,11 @@ def delete_team_lineup(team_name: str) -> None:
     if not is_db_enabled():
         return
 
-    blob = r2_storage.load_json_blob(_TEAM_LINEUPS_KEY)
+    blob = _load_blob_cached(_TEAM_LINEUPS_KEY)
     if not blob or team_name not in blob:
         return
     del blob[team_name]
-    r2_storage.save_json_blob(_TEAM_LINEUPS_KEY, blob)
+    _save_blob(_TEAM_LINEUPS_KEY, blob)
 
 
 # ============================================================================
@@ -171,7 +212,7 @@ def load_all_seed_seasons() -> dict[str, dict[str, Any]]:
     """Load all seed seasons, keyed by player_id then season_suffix. Returns empty dict if R2 is disabled."""
     if not is_db_enabled():
         return {}
-    return r2_storage.load_json_blob(_SEED_SEASONS_KEY) or {}
+    return _load_blob_cached(_SEED_SEASONS_KEY) or {}
 
 
 def save_seed_season(player_id: int, season_suffix: str, stats: dict[str, Any]) -> None:
@@ -179,10 +220,10 @@ def save_seed_season(player_id: int, season_suffix: str, stats: dict[str, Any]) 
     if not is_db_enabled():
         return
 
-    blob = r2_storage.load_json_blob(_SEED_SEASONS_KEY) or {}
+    blob = _load_blob_cached(_SEED_SEASONS_KEY) or {}
     pid_str = str(player_id)
     blob.setdefault(pid_str, {})[season_suffix] = stats
-    r2_storage.save_json_blob(_SEED_SEASONS_KEY, blob)
+    _save_blob(_SEED_SEASONS_KEY, blob)
 
 
 def delete_seed_season(player_id: int, season_suffix: str) -> None:
@@ -190,7 +231,7 @@ def delete_seed_season(player_id: int, season_suffix: str) -> None:
     if not is_db_enabled():
         return
 
-    blob = r2_storage.load_json_blob(_SEED_SEASONS_KEY)
+    blob = _load_blob_cached(_SEED_SEASONS_KEY)
     if not blob:
         return
     pid_str = str(player_id)
@@ -198,4 +239,4 @@ def delete_seed_season(player_id: int, season_suffix: str) -> None:
         del blob[pid_str][season_suffix]
         if not blob[pid_str]:
             del blob[pid_str]
-        r2_storage.save_json_blob(_SEED_SEASONS_KEY, blob)
+        _save_blob(_SEED_SEASONS_KEY, blob)

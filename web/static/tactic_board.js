@@ -2534,9 +2534,14 @@
       }
       finishingThreat = clamp(finishingThreat, 0, 1);
 
-      // Distance penalty: closer targets are easier to pass to
+      // Distance penalty: closer targets are easier to pass to. Engine fix
+      // — this used to cap out at 0.5 by dist=17.5, so a candidate 40 units
+      // away (most of the pitch) got penalized exactly the same as one 18
+      // units away, letting a genuinely huge cross-field option win purely
+      // on being open/high-stat with nothing left to weigh it down. Steeper
+      // slope and a higher ceiling so real distance keeps mattering.
       const dist_to_candidate = dist(carrier, candidate);
-      const distPenalty = clamp((dist_to_candidate - 5) / 25, 0, 0.5); // max -0.5 for very distant
+      const distPenalty = clamp((dist_to_candidate - 5) / 20, 0, 0.85);
 
       // Passing lane: can we actually reach this player without interception?
       // (simplified: use laneScore from ball to candidate's position)
@@ -2554,7 +2559,20 @@
       // working the ball toward an actual attempt on goal. Reward real
       // advancement, penalize sideways/backward options unless they
       // clearly earn it on other axes.
-      const progression = clamp((possessionDepth(candidate) - possessionDepth(carrier)) * 2.2, -0.3, 0.5);
+      //
+      // Engine fix — a backward pass used to be capped at the same -0.3
+      // penalty regardless of context, so a striker at the box edge and a
+      // CB near his own goal were treated identically for giving the ball
+      // away backward. Giving up a genuinely dangerous position is far
+      // worse than recycling from a harmless one; scale the penalty by how
+      // advanced the carrier already is instead of a flat cap (this is
+      // what let an unpressured deep fullback outscore a shot/forward
+      // option when the carrier was already at the box edge).
+      const depthDelta = possessionDepth(candidate) - possessionDepth(carrier);
+      const progression =
+        depthDelta >= 0
+          ? clamp(depthDelta * 2.2, 0, 0.5)
+          : clamp(depthDelta * (1.6 + possessionDepth(carrier) * 2.4), -1.1, 0);
 
       // Stage weighting: in box-occupation, finishing threat matters more. In build-up, arrival matters more.
       let stageWeight = 1.0;
@@ -2634,9 +2652,17 @@
       // back symptom), since findBestArrivingReceiver's 0.15 threshold is
       // low enough that almost any reasonably open teammate qualifies.
       // Priority 1: Can I shoot?
+      // Engine fix — 0.45 meant a genuine finisher at the box edge skipped
+      // shooting more often than not, falling through to Priority 2 (pass)
+      // -- and nothing there flags "I was just in a great shooting
+      // position" as a reason to refuse a bad backward option (see the
+      // progression term below). Raised so a clear finisher's chance
+      // actually gets taken more often than not, matching the real
+      // complaint (a striker at the box edge passing backward instead of
+      // shooting).
       const boxed = inPenaltyBox(carrier);
       const canShoot = (boxed || nearPenaltyBox(carrier)) && isAttackFinisher(carrier);
-      if (canShoot && rng() < 0.45) {
+      if (canShoot && rng() < 0.62) {
         return { type: "shoot" };
       }
 
@@ -2655,6 +2681,46 @@
         (!carrierThreat || carrierThreat.d >= 7) && dribbleOpenness > 0.55 && depth >= 0.25;
       if (trulyIsolated && rng() < clamp(dribbleOpenness * 0.65, 0.35, 0.8)) {
         return { type: "dribble" };
+      }
+
+      // Priority 1.6: a genuinely good 1v1 (or 1v2) to take the defender(s)
+      // on, even with marking present (not full isolation — that's 1.5
+      // above). The isolation check only fires with no threat nearby at
+      // all, so a good dribbler with the ball in a dangerous area facing a
+      // beatable defender had nothing pushing back against defaulting
+      // straight to the safest backward pass — real football's "take him
+      // on" moment never had a code path. Stat-scaled on the same duel
+      // family doDribble already uses (attacker dribbling vs defender
+      // tackling/duels), not a flat chance, so a real mismatch (Messi vs a
+      // part-timer) attempts it far more than an even one. Explicitly
+      // includes wide/touchline positions (a winger in the wing areas is
+      // exactly who should be trying this, not just central FINAL_THIRD
+      // play), and a second marker only lowers the odds -- it doesn't
+      // block the attempt outright, since real wingers do still sometimes
+      // go at two men and just fail more often.
+      if (
+        stage === "FINAL_THIRD" ||
+        stage === "BOX_OCCUPATION" ||
+        nearPenaltyBox(carrier) ||
+        (carrier.role === "W" && depth >= 0.5)
+      ) {
+        const markers = nearestOpponents(carrier, 8, 2);
+        const marker = markers[0];
+        if (marker && marker.d >= 2.2) {
+          let attackerEdge =
+            (carrier.stats.dribbles90 || 0) * 0.14 +
+            Math.max(0, (carrier.stats.dribble_pct || 50) - 50) * 0.01 -
+            (marker.pin.stats.tackles90 || 0) * 0.1 -
+            Math.max(0, (marker.pin.stats.duels_won_pct || 50) - 50) * 0.01;
+          const second = markers[1];
+          if (second) {
+            attackerEdge -= (second.pin.stats.tackles90 || 0) * 0.06 + 0.05;
+          }
+          const takeOnP = clamp(0.22 + attackerEdge, 0.06, 0.55);
+          if (rng() < takeOnP) {
+            return { type: "dribble" };
+          }
+        }
       }
 
       // Priority 2: Is there a high-value arriving receiver?
@@ -4049,6 +4115,16 @@
         const noCB = mates.filter((m) => m.role !== "CB");
         if (noCB.length) mates = noCB;
       }
+      // Engine fix — a real back pass is a short, safe out-ball, not a
+      // cross-field diagonal. The old -0.03/unit distance term was too
+      // weak to stop a distant, high-stat teammate (e.g. a winger on the
+      // far flank) from outscoring a genuinely nearby option purely on
+      // being open and well-statted -- that's what "huge diagonal passes
+      // happen too often" actually traces to. Restrict the pool to a
+      // realistic passing radius first; only fall back to the full pool if
+      // that leaves nobody at all.
+      const nearby = mates.filter((m) => dist(carrier, m) <= 32);
+      if (nearby.length) mates = nearby;
       const attackSign = carrier.side === "home" ? -1 : 1;
       const scored = mates.map((m) => {
         const behind = -attackSign * (m.top - carrier.top);
@@ -4063,7 +4139,7 @@
             (m.stats.xg_buildup90 || 0) * 0.2 +
             (m.stats.xg_chain90 || 0) * 0.1 +
             roleBias -
-            dist(carrier, m) * 0.03 +
+            dist(carrier, m) * 0.09 +
             rng() * 0.3,
         };
       });
@@ -5407,6 +5483,7 @@
       const postMode = modePick === "cutback" ? "cutback" : rng() < 0.55 ? "near" : "far";
       const target = crossBoxTarget(carrier, postMode);
       cueBoxRuns(carrier, postMode);
+      cueDefensiveBoxCover(oppOf(carrier.side));
       if (spell) {
         spell.awaitingShot = true;
         if (spell.stage === "FINAL_THIRD" || spell.stage === "BOX_OCCUPATION") {
@@ -5424,7 +5501,11 @@
       const farX = fromLeft ? 0.64 : 0.36;
       const cutX = fromLeft ? 0.44 : 0.56;
       for (const pin of teammates(carrier)) {
-        if (pin.role !== "ST" && pin.role !== "AM") continue;
+        // Engine fix — only ST/AM used to get sent into the box for a cross;
+        // the OTHER winger (not the one delivering it) stayed put at the
+        // edge instead of making a far-post run, so "everyone standing at
+        // the edge" included a player who should clearly be arriving too.
+        if (pin.role !== "ST" && pin.role !== "AM" && pin.role !== "W") continue;
         const useNear =
           mode === "near" || mode === "cutback" ? pin.baseX < 0.5 === fromLeft : pin.baseX < 0.5 !== fromLeft;
         const tx = mode === "cutback" ? cutX : useNear ? nearX : farX;
@@ -5433,6 +5514,25 @@
         const safePct = toPitchPct(pin.side, tx, depthWant);
         pin.tx = safePct.left;
         pin.ty = safePct.top;
+        pin.lockUntil = matchMinute + 1.15;
+        pin._running = true;
+      }
+    }
+
+    // Engine fix — nothing on the defending side reacted at all when a
+    // cross was cued; only the attacking box runs (cueBoxRuns above) were
+    // wired up, so defenders just stood at the edge of the box instead of
+    // tracking back to actually mark the incoming runners. Pulls CB/FB/DM
+    // toward their own goal (not the whole side -- own attackers shouldn't
+    // retreat for a regular open-play cross the way retreatDefensiveShape
+    // pulls everyone back for a penalty/dangerous free kick).
+    function cueDefensiveBoxCover(defSide) {
+      for (const pin of pinsOf(defSide)) {
+        if (pin.role !== "CB" && pin.role !== "FB" && pin.role !== "DM") continue;
+        const depthWant = Math.min(pin.baseDepth, 0.12);
+        const pct = toPitchPct(pin.side, pin.baseX, depthWant);
+        pin.tx = pct.left;
+        pin.ty = pct.top;
         pin.lockUntil = matchMinute + 1.15;
         pin._running = true;
       }
@@ -7287,6 +7387,34 @@
               if (wEntry.pin.id === carrier.id || fbEntry.pin.id === carrier.id) continue;
               if (Math.abs(wEntry.x - fbEntry.x) < 0.08) {
                 wEntry.x = clamp(0.5 + (wEntry.pin.baseX - 0.5) * 0.35, 0.36, 0.64);
+              }
+            }
+
+            // Engine fix — off-ball teammates converging on the ball
+            // carrier's own spot instead of making a separate run. Several
+            // "support" branches above deliberately lerp a W/AM's target
+            // toward the carrier's live position (relBall.x/relBall.depth)
+            // -- correct for build-up, where staying close offers a short
+            // out-ball, wrong once the carrier is genuinely advanced: real
+            // teammates spread into different attacking options (a run in
+            // behind, near/far post) rather than stand beside the man on
+            // the ball. When a W/AM's computed target has converged within
+            // a tight radius of the advanced carrier, push it sideways and
+            // forward (toward/beyond the carrier's depth, capped at the
+            // offside line) instead of leaving it stacked on the same spot.
+            if (possessionDepth(carrier) >= 0.62) {
+              const carrierRel = fromPitchPct(side, carrier.left, carrier.top);
+              const offLine3 = defendingOffsideLine(side);
+              for (const entry of pending) {
+                if (entry.pin.id === carrier.id) continue;
+                if (entry.pin.role !== "W" && entry.pin.role !== "AM") continue;
+                const dx = entry.x - carrierRel.x;
+                const dd = entry.depth - carrierRel.depth;
+                if (Math.hypot(dx, dd) >= 0.1) continue;
+                const pushSign = dx !== 0 ? Math.sign(dx) : entry.pin.baseX >= 0.5 ? 1 : -1;
+                entry.x = clamp(carrierRel.x + pushSign * 0.16, 0.12, 0.88);
+                entry.depth = Math.max(entry.depth, Math.min(offLine3, carrierRel.depth + 0.08));
+                entry.pin._running = true;
               }
             }
           }
