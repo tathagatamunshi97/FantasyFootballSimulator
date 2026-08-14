@@ -2794,7 +2794,13 @@
       const carrierThreat = nearestOpponent(carrier, 10);
       const trulyIsolated =
         (!carrierThreat || carrierThreat.d >= 7) && dribbleOpenness > 0.55 && depth >= 0.25;
-      if (trulyIsolated && rng() < clamp(dribbleOpenness * 0.65, 0.35, 0.8)) {
+      // Bug fix — a carrier with genuinely nobody near him is exactly the
+      // "acres of space, why is he passing backward" case; a modest
+      // 0.35-0.8 coin flip still let a real winger-in-space default to a
+      // backward pass (via Priority 2's low 0.15 receiver bar) far too
+      // often. Real isolation should read as a near-certainty to carry it
+      // forward, not a toss-up.
+      if (trulyIsolated && rng() < clamp(dribbleOpenness * 0.85, 0.55, 0.92)) {
         return { type: "dribble" };
       }
 
@@ -4210,7 +4216,13 @@
     function longBallTarget(carrier) {
       const runners = teammates(carrier)
         .filter((m) => isFwdRole(m.role) || m.role === "AM")
-        .filter((m) => !wouldPassBeOffside(carrier, m));
+        .filter((m) => !wouldPassBeOffside(carrier, m))
+        // Bug fix — this used to hand back the best-statted forward
+        // regardless of whether there was any real opportunity to hit them,
+        // so a long ball fired just because an attacker existed somewhere
+        // upfield. Require an actual read of space: the runner is actively
+        // making the move, or the lane to find them is genuinely clear.
+        .filter((m) => m._running || defendersInLane(carrier, m) === 0);
       if (!runners.length) return null;
       runners.sort(
         (a, b) =>
@@ -9595,6 +9607,12 @@
         spell.awaitingBoxShot = false;
       }
       const boxed = inPenaltyBox(carrier);
+      // Bug fix — labeling only checked `boxed`, so a legitimate, correctly-
+      // gated near-box effort (edge of the D — a real, fair shooting
+      // position, not a bug) still got tagged "long_shot"/"from range" in
+      // both the event log and commentary, same as a genuine speculative
+      // effort from distance. Only the latter should read as "from range."
+      const nearBox = !boxed && nearPenaltyBox(carrier);
       const chanceType =
         boxed &&
         boxOccupationReady(carrier.side) &&
@@ -9608,7 +9626,7 @@
       pushMatchEvent(chanceType, carrier.side, {
         player: carrier.player,
         player_short: carrier.short,
-        detail: boxed ? "shot" : "long_shot",
+        detail: boxed || nearBox ? "shot" : "long_shot",
         xg: Math.round(chanceXg * 1000) / 1000,
         in_box: boxed,
       });
@@ -9616,7 +9634,7 @@
       say(
         chanceType === "big_chance"
           ? `Big chance! ${carrier.short} shoots — xG ${xgLabel}`
-          : boxed
+          : boxed || nearBox
             ? `${carrier.short} shoots — xG ${xgLabel}`
             : `${carrier.short} from range — xG ${xgLabel}`,
         1.55
@@ -10059,7 +10077,7 @@
       }
 
       if (stage === "BUILD_UP") {
-        if (isDefRole(carrier.role) && rng() < 0.04) {
+        if (isDefRole(carrier.role) && rng() < 0.02) {
           const longTo = longBallTarget(carrier);
           if (longTo) {
             doPass(carrier, longTo, "long");
@@ -10143,7 +10161,7 @@
           actionTimer = Math.max(actionTimer, spellIdlePause());
           return;
         }
-        if (isDefRole(carrier.role) && rng() < 0.04) {
+        if (isDefRole(carrier.role) && rng() < 0.02) {
           const longTo = longBallTarget(carrier);
           if (longTo) {
             doPass(carrier, longTo, "long");
