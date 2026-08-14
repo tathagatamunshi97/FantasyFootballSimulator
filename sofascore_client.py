@@ -1077,6 +1077,26 @@ class StatsStore:
                     else:
                         raise
             if blended is None:
+                # Fallback hook — an unrecognized roster name (typically a
+                # legend/historical player with no current Sofascore/fbref
+                # record at all) used to always fall through to an all-zero
+                # placeholder here, regardless of whether a real manual
+                # "prime" profile existed for them. Check manual_profiles
+                # first; only fall back to the placeholder if genuinely
+                # nothing is there either.
+                try:
+                    from manual_profiles import lookup_manual_prime
+
+                    manual_hit = lookup_manual_prime(raw, cache_only=True)
+                except Exception:
+                    manual_hit = None
+                if manual_hit is not None:
+                    manual_name, manual_stats, _season_label = manual_hit
+                    cache_key = _cache_key_for_player(manual_name, manual_stats.get("team", ""), set(self._players.keys()))
+                    self._add_player_to_cache(cache_key, manual_stats)
+                    print(f"  Using manual profile for {raw} -> {cache_key}", flush=True)
+                    return cache_key
+
                 placeholder = {
                     "primary_position": "MF",
                     "fpl_position": "MID",
