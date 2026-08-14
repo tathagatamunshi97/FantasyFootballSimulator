@@ -2835,8 +2835,15 @@
       const dribblePressure = pressureAt(carrier.left, carrier.top, carrier.side);
       const dribbleOpenness = 1 / (1 + dribblePressure);
       const carrierThreat = nearestOpponent(carrier, 10);
+      // Bug fix — "free on goal, why pass back?": the 0.25 depth floor
+      // excluded a genuinely uncontested carrier receiving deep (e.g. a
+      // striker dropping to help build, or right after winning the ball
+      // back) from ever just advancing it himself -- evaluateArrivals had
+      // no self-carry option at all below this line, only pass targets.
+      // A truly open carrier should size up driving forward regardless of
+      // how deep he is; only the very edge of his own box stays excluded.
       const trulyIsolated =
-        (!carrierThreat || carrierThreat.d >= 7) && dribbleOpenness > 0.55 && depth >= 0.25;
+        (!carrierThreat || carrierThreat.d >= 7) && dribbleOpenness > 0.55 && depth >= 0.1;
       // Bug fix — a carrier with genuinely nobody near him is exactly the
       // "acres of space, why is he passing backward" case; a modest
       // 0.35-0.8 coin flip still let a real winger-in-space default to a
@@ -2862,15 +2869,26 @@
       // play), and a second marker only lowers the odds -- it doesn't
       // block the attempt outright, since real wingers do still sometimes
       // go at two men and just fail more often.
+      // Bug fix — "winger passing back, why?" this only ever applied to the
+      // literal role==="W" — a genuine winger playing centrally that match
+      // (or an ST/AM who has dropped deep to collect, which real attackers
+      // do constantly) got zero take-on consideration outside FINAL_THIRD/
+      // near-box, no matter how advanced or how beatable the marker was.
+      // Any attacking-minded role gets the same real look once past
+      // halfway. Also loosened the marker-distance floor (2.2->1.4) and
+      // raised the baseline probability -- a tight 1v1 facing-up situation
+      // is exactly when a real attacker sizes up the defender, not a case
+      // to exclude, and the old ceiling (0.55) still let a clear mismatch
+      // default to the safe pass more often than not.
       if (
         stage === "FINAL_THIRD" ||
         stage === "BOX_OCCUPATION" ||
         nearPenaltyBox(carrier) ||
-        (carrier.role === "W" && depth >= 0.5)
+        ((carrier.role === "W" || carrier.role === "ST" || carrier.role === "AM") && depth >= 0.5)
       ) {
         const markers = nearestOpponents(carrier, 8, 2);
         const marker = markers[0];
-        if (marker && marker.d >= 2.2) {
+        if (marker && marker.d >= 1.4) {
           let attackerEdge =
             (carrier.stats.dribbles90 || 0) * 0.14 +
             Math.max(0, (carrier.stats.dribble_pct || 50) - 50) * 0.01 -
@@ -2880,7 +2898,7 @@
           if (second) {
             attackerEdge -= (second.pin.stats.tackles90 || 0) * 0.06 + 0.05;
           }
-          const takeOnP = clamp(0.22 + attackerEdge, 0.06, 0.55);
+          const takeOnP = clamp(0.32 + attackerEdge, 0.14, 0.68);
           if (rng() < takeOnP) {
             return { type: "dribble" };
           }
