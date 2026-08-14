@@ -2917,8 +2917,74 @@
         return { type: "dribble" };
       }
 
+      // Priority 3.5 — hold-up play. Nothing above fired: no shot, no
+      // isolation, no beatable marker, no receiver already worth finding,
+      // no space to just carry it. Real football's answer here isn't
+      // always "recycle backward" — a composed carrier reads that a
+      // teammate COULD be dangerous a beat from now and holds the ball to
+      // let that develop, instead of only ever reacting to a run that's
+      // already happening. throughBallLegal (used by throughRunner
+      // elsewhere) requires the runner to already be _running — nothing
+      // in the engine ever started that run on the carrier's behalf. This
+      // cues it: pick a genuine runner, send them, and have the carrier
+      // shield the ball for this tick so the next decision (a beat later,
+      // via normal actionTimer pacing) can find them legally through.
+      // Chance of even recognizing the moment scales with the carrier's
+      // own vision (xa90/key_passes90), same signal confidenceMargin uses
+      // — a genuine playmaker holds it up far more than an average passer.
+      if (depth >= 0.4 && dribbleOpenness > 0.32) {
+        const vision = clamp((carrier.stats.xa90 || 0) * 0.6 + (carrier.stats.key_passes90 || 0) * 0.15, 0, 1);
+        if (rng() < clamp(0.22 + vision * 0.45, 0.15, 0.62)) {
+          const cued = cueThroughRun(carrier, stage, depth);
+          if (cued) {
+            return { type: "dribble" };
+          }
+        }
+      }
+
       // Priority 4: Recycle / safe pass
       return { type: "recycle" };
+    }
+
+    /**
+     * Sends the best-positioned forward on a run in behind, for a carrier
+     * who's holding the ball up rather than releasing immediately (see
+     * Priority 3.5 above). This is what makes hold-up play actually work:
+     * throughBallLegal only ever recognized a run already in progress,
+     * nothing initiated one. Targets the space just onside of the real
+     * offside line, in the runner's current channel, so the very next
+     * throughRunner check (a tick later) finds a legal, live option.
+     */
+    function cueThroughRun(carrier, stage, depth) {
+      const candidates = teammates(carrier)
+        .filter((m) => (m.role === "ST" || m.role === "AM" || m.role === "W") && m.id !== carrier.id)
+        .filter((m) => !m._running && !(m.lockUntil > matchMinute))
+        .filter((m) => canPlayForward(carrier, m, stage, depth));
+      if (!candidates.length) return null;
+
+      let best = null;
+      let bestScore = -Infinity;
+      for (const m of candidates) {
+        const mRel = fromPitchPct(m.side, m.left, m.top);
+        const score =
+          (m.stats.xg90 || 0) * 1.3 + (m.stats.xa90 || 0) * 0.4 - Math.abs(mRel.x - 0.5) * 0.2 + rng() * 0.3;
+        if (score > bestScore) {
+          bestScore = score;
+          best = m;
+        }
+      }
+      if (!best) return null;
+
+      const bestRel = fromPitchPct(best.side, best.left, best.top);
+      const line = defendingOffsideLine(best.side);
+      const runDepth = clamp(line - 0.03, bestRel.depth + 0.06, 0.9);
+      const runX = clamp(bestRel.x, 0.15, 0.85);
+      const pct = toPitchPct(best.side, runX, runDepth);
+      best.tx = pct.left;
+      best.ty = pct.top;
+      best.lockUntil = matchMinute + 0.9;
+      best._running = true;
+      return best;
     }
 
     function updateArrivalStrength(pin, newDepth, stage, side) {
