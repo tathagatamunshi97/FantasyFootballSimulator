@@ -2100,6 +2100,21 @@
       return total;
     }
 
+    /** Shared by executeAttackPattern's pressure-adaptive method ordering
+     * (wide_switch/wing_carry/cut_inside/central each pick between two
+     * hand-written try-order arrays off this same threshold). */
+    function isUnderPressure(carrier) {
+      return pressureAt(carrier.left, carrier.top, carrier.side) > 0.5;
+    }
+
+    /** Try each method in order until one reports success. */
+    function tryInOrder(methods) {
+      for (const attempt of methods) {
+        if (attempt()) return true;
+      }
+      return false;
+    }
+
     /**
      * Engine rebuild — real aerial-duel presence, replacing the static
      * sideAerial/strikerAerialThreat squad-wide scalars in the cross/header
@@ -5217,13 +5232,10 @@
           }
           return false;
         };
-        const underPressureWS = pressureAt(carrier.left, carrier.top, carrier.side) > 0.5;
-        const orderWS = underPressureWS
+        const orderWS = isUnderPressure(carrier)
           ? [tryLocalPass, tryFarSwitch, tryCmFallback]
           : [tryFarSwitch, tryLocalPass, tryCmFallback];
-        for (const attempt of orderWS) {
-          if (attempt()) return true;
-        }
+        if (tryInOrder(orderWS)) return true;
       }
 
       if (pattern === "wing_carry") {
@@ -5241,7 +5253,6 @@
           // untouched below; only the ORDER they're tried in adapts to real
           // pressure — under a swarm, reach for the quick simple release
           // first instead of still looking for the fancy combination.
-          const underPressure = pressureAt(carrier.left, carrier.top, carrier.side) > 0.5;
           const tryLink = () => {
             if (
               (sameFlankPartners(carrier, carrier.role === "FB" ? "W" : "FB").length || spell?.patternHint === "fb_to_w") &&
@@ -5278,12 +5289,10 @@
             }
             return false;
           };
-          const order = underPressure
+          const order = isUnderPressure(carrier)
             ? [tryCarry, tryDribble, tryPass, tryLink]
             : [tryLink, tryPass, tryDribble, tryCarry];
-          for (const attempt of order) {
-            if (attempt()) return true;
-          }
+          if (tryInOrder(order)) return true;
           if (decideFbWingLink(carrier, stage, depth)) return true;
           const flank = teammates(carrier)
             .filter((m) => (m.role === "W" || m.role === "FB") && Math.abs(m.left - carrier.left) < 22)
@@ -5429,13 +5438,10 @@
             }
             return false;
           };
-          const underPressureCI = pressureAt(carrier.left, carrier.top, carrier.side) > 0.5;
-          const orderCI = underPressureCI
+          const orderCI = isUnderPressure(carrier)
             ? [tryPassToShooter, tryCutDribble, tryShootSeq]
             : [tryShootSeq, tryCutDribble, tryPassToShooter];
-          for (const attempt of orderCI) {
-            if (attempt()) return true;
-          }
+          if (tryInOrder(orderCI)) return true;
         } else {
           const winger = teammates(carrier)
             .filter((m) => m.role === "W")
@@ -5508,13 +5514,10 @@
           }
           return false;
         };
-        const underPressureC = pressureAt(carrier.left, carrier.top, carrier.side) > 0.5;
-        const orderC = underPressureC
+        const orderC = isUnderPressure(carrier)
           ? [tryDribbleClose, tryCarryGated, tryThrough, tryPass]
           : [tryDribbleClose, tryThrough, tryPass, tryCarryGated];
-        for (const attempt of orderC) {
-          if (attempt()) return true;
-        }
+        if (tryInOrder(orderC)) return true;
         doCarry(carrier);
         return true;
       }
