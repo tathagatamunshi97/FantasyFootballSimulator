@@ -2812,7 +2812,15 @@
       // shooting).
       const boxed = inPenaltyBox(carrier);
       const canShoot = (boxed || nearPenaltyBox(carrier)) && isAttackFinisher(carrier);
-      if (canShoot && rng() < 0.62) {
+      // Bug fix — "hot potato in the box": a flat 0.62 meant a genuinely
+      // boxed carrier with the ball still passed it away well over a third
+      // of the time, falling straight into Priority 2's low (0.15) receiver
+      // bar with nothing forcing a second look at the shot he was just in
+      // position for. Real players shoot the clear majority of clean looks
+      // once actually in the box; edge-of-the-D (near, not boxed) stays a
+      // genuine judgment call, so it keeps the old, more moderate rate.
+      const shootP = boxed ? 0.82 : 0.62;
+      if (canShoot && rng() < shootP) {
         return { type: "shoot" };
       }
 
@@ -9902,7 +9910,14 @@
         if (inPenaltyBox(carrier) || (nearPenaltyBox(carrier) && possessionDepth(carrier) >= 0.78)) {
           if (!boxOccupationReady(carrier.side) && countBoxAttackers(carrier.side) < 1) {
             spell.awaitingBoxShot = false;
-            if (forwardInFinalThird(carrier)) {
+            // Bug fix — "hot potato in the box" (part 2): this only gave
+            // forward roles (forwardInFinalThird = ST/W) a real shot/dribble
+            // look via forwardFinalThirdAction; a CM/AM/DM in this exact
+            // same boxed/near-box position (already established by the
+            // outer check above) got an unconditional backward pass with no
+            // shot ever considered. Everyone finisher-eligible gets the same
+            // real look here, not just ST/W.
+            if (isAttackFinisher(carrier)) {
               forwardFinalThirdAction(carrier);
               return;
             }
