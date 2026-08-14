@@ -1717,6 +1717,15 @@
           against: flight.against,
           detail: `denied ${flight.shooterShort || "the shot"}`,
         });
+        // Engine addition — corners. A save isn't always a clean catch;
+        // sometimes the keeper can only push it behind. Not every save, or
+        // this becomes a corner-fest, but a real fraction.
+        if (rng() < 0.3) {
+          say(`${keeper.short} can only palm it behind!`, 1.3);
+          spell = null;
+          resolveCorner(flight.against);
+          return;
+        }
         say(`${keeper.short} saves`, 1.3);
         spell = null;
         giveBall(keeper, `${keeper.short} clears`);
@@ -1739,6 +1748,14 @@
             detail: `blocked ${flight.shooterShort || "the shot"}`,
           });
         }
+        // Engine addition — corners. A last-ditch block is hard to control
+        // the direction of; often it goes behind rather than staying in play.
+        if (blocker && rng() < 0.42) {
+          say(`Blocked behind! ${blocker.short} turns it behind for a corner`, 1.3);
+          spell = null;
+          resolveCorner(flight.against);
+          return;
+        }
         say(`Blocked! ${blocker?.short || "defender"} gets across`, 1.3);
         spell = null;
         if (blocker) giveBall(blocker, `${blocker.short} clears the danger`);
@@ -1749,6 +1766,15 @@
       if (flight.outcome === "wide") {
         const defPin = flight.interceptor;
         clearLastPasser();
+        // Engine addition — corners. Most wide shots just go out for a
+        // goal kick, but a shot close enough to curl just past the post
+        // (rather than sail well wide) can take a deflection behind too.
+        if (rng() < 0.18) {
+          say(`${flight.shooterShort || "Shot"} goes wide — off the post and behind`, 1.2);
+          spell = null;
+          resolveCorner(flight.against);
+          return;
+        }
         say(`${flight.shooterShort || "Shot"} goes wide`, 1.2);
         spell = null;
         if (defPin) giveBall(defPin, `${defPin.short} starts again`);
@@ -9307,6 +9333,91 @@
     }
 
     /**
+     * Engine addition — corners. Best crosser on the side, not the
+     * penalty-taking order (a different skill: dead-ball delivery from
+     * width, not finishing under pressure from the spot). Weighted toward
+     * W/FB, who are the real-football default corner takers, but any
+     * outfield player with genuine delivery numbers can win it.
+     */
+    function pickCornerTaker(side) {
+      const pins = pinsOf(side).filter((p) => p.role !== "GK");
+      const rank = (p) =>
+        (p.stats.long_ball_pct || 0) * 0.02 +
+        (p.stats.key_passes90 || 0) * 0.45 +
+        (p.stats.xa90 || 0) * 1.4 +
+        (p.stats.long_balls90 || 0) * 0.12 +
+        (p.role === "W" ? 0.4 : p.role === "FB" ? 0.32 : p.role === "AM" ? 0.15 : p.role === "CM" ? 0.08 : 0);
+      return [...pins].sort((a, b) => rank(b) - rank(a))[0] || null;
+    }
+
+    /**
+     * Engine addition — corners. The ball going behind the byline off a
+     * defender previously always just handed possession back cleanly (see
+     * the save/blocked/wide outcome handlers) -- no corner ever existed in
+     * the engine. Mirrors resolveDangerousFreeKick's structure: position
+     * the taker, set up both boxes, deliver a cross.
+     */
+    function resolveCorner(attackingSide) {
+      if (!attackingSide) return;
+      const defSide = oppOf(attackingSide);
+      const taker = pickCornerTaker(attackingSide);
+      if (!taker) return;
+
+      // Which flag: whichever side of goal the ball actually went out on,
+      // read in the attacking side's own frame (x<0.5 = left flag).
+      const ballRel = fromPitchPct(attackingSide, ball.left, ball.top);
+      const cornerX = ballRel.x < 0.5 ? 0 : 1;
+      const flagSpot = toPitchPct(attackingSide, cornerX, 0.99);
+      taker.left = flagSpot.left;
+      taker.top = flagSpot.top;
+      taker.tx = flagSpot.left;
+      taker.ty = flagSpot.top;
+      taker.lockUntil = matchMinute + 1.6;
+
+      cueDefensiveBoxCover(defSide);
+      const keeper = gkOf(defSide);
+      if (keeper) {
+        const keeperSpot = toPitchPct(defSide, 0.5, 0.02);
+        keeper.tx = keeperSpot.left;
+        keeper.ty = keeperSpot.top;
+        keeper.lockUntil = matchMinute + 1.6;
+      }
+
+      const boxMode = rng() < 0.55 ? "near" : "far";
+      cueBoxRuns(taker, boxMode);
+      // A real detail: a CB joins the attack for a corner, unlike any
+      // other cross -- cueBoxRuns deliberately doesn't include CB since
+      // that would be wrong for open-play crosses. Only one, not both:
+      // real teams still keep a spare man back for the counter.
+      const joiningCb = pinsOf(attackingSide)
+        .filter((p) => p.role === "CB")
+        .sort(() => rng() - 0.5)[0];
+      if (joiningCb) {
+        const cbTarget = toPitchPct(attackingSide, 0.5 + (rng() - 0.5) * 0.22, 0.87);
+        joiningCb.tx = cbTarget.left;
+        joiningCb.ty = cbTarget.top;
+        joiningCb.lockUntil = matchMinute + 1.3;
+        joiningCb._running = true;
+      }
+
+      clearLastPasser();
+      spell = null;
+      pushMatchEvent("corner", attackingSide, {
+        player: taker.player,
+        player_short: taker.short,
+        detail: "corner awarded",
+      });
+      say(`Corner! ${taker.short} to the flag`, 1.3);
+      giveBall(taker, null);
+      freeKickUntil = matchMinute + 2;
+
+      const target = crossBoxTarget(taker, boxMode);
+      say(`${taker.short} swings it in`, 1.35);
+      doPass(taker, target, "cross");
+      freeKickUntil = 0;
+    }
+
+    /**
      * Real per-keeper quality, replacing the team-level sideGoalkeeper()
      * composite for save probability specifically (that composite is still
      * used everywhere else it was, e.g. approxXgTarget's pacing anchor --
@@ -9541,6 +9652,7 @@
           ballFlight = {
             outcome: "wide",
             interceptor: defPin,
+            against: carrier.side,
             shooterShort: carrier.short,
           };
         }
