@@ -447,6 +447,21 @@
     return { x: 1 - left / 100, depth: (top - 4) / 92 };
   }
 
+  /**
+   * Pure render-space transpose: every gameplay coordinate (pin.left/top,
+   * pin.rx/ry, ball.left/top) stays in the original vertical-pitch logical
+   * space untouched — toPitchPct/fromPitchPct, offside lines, box geometry,
+   * everything upstream is unaffected. Only DOM writes/reads go through
+   * this, so the pitch renders landscape (home defends/attacks left→right,
+   * away right→left) without touching any engine math.
+   */
+  function toRenderXY(left, top) {
+    return { left: 100 - top, top: left };
+  }
+  function fromRenderXY(renderLeft, renderTop) {
+    return { left: renderTop, top: 100 - renderLeft };
+  }
+
   function num(v, fallback) {
     const n = Number(v);
     return Number.isFinite(n) ? n : fallback;
@@ -902,10 +917,17 @@
 
     container.innerHTML = `
       <div class="tactic-board" data-tactic-board>
-        <div class="tactic-scorebar">
-          <span class="team-name home">${escHtml(homeTeam.name)}</span>
-          <span class="tactic-score" data-tb-score>0 – 0</span>
-          <span class="team-name away">${escHtml(awayTeam.name)}</span>
+        <div class="tactic-topbar">
+          <span class="tactic-clock" data-tb-clock>0'</span>
+          <div class="tactic-score-block">
+            <span class="team-name home">${escHtml(homeTeam.name)}</span>
+            <span class="tactic-score" data-tb-score>0 – 0</span>
+            <span class="team-name away">${escHtml(awayTeam.name)}</span>
+          </div>
+          <div class="tactic-topbar-controls" ${hideControls ? "hidden" : ""}>
+            <button type="button" class="btn-primary btn-sm" data-tb-play>Play</button>
+            <button type="button" class="btn-ghost btn-sm" data-tb-pause>Pause</button>
+          </div>
         </div>
         <div class="tactic-hud" data-tb-hud>
           <div class="tactic-hud-cell" title="Possession">
@@ -917,31 +939,35 @@
             <span class="tactic-hud-value"><span data-tb-xg-h>0.00</span> – <span data-tb-xg-a>0.00</span></span>
           </div>
         </div>
-        <div class="tactic-meta">
-          <span data-tb-clock>0'</span>
-          <span class="tactic-ticker" data-tb-phase>Kick-off</span>
-        </div>
-        <div class="tactic-stage">
-          <div class="tactic-pitch-wrap">
-            <div class="tactic-pitch" data-tb-pitch>
-              <div class="pitch-lines" aria-hidden="true">
-                <div class="pitch-halfway"></div>
-                <div class="pitch-circle"></div>
-                <div class="pitch-box top"></div>
-                <div class="pitch-box bottom"></div>
-                <div class="pitch-goal top"></div>
-                <div class="pitch-goal bottom"></div>
-                <div class="pitch-spot center"></div>
+        <div class="tactic-pitch-wrap">
+          <div class="tactic-pitch" data-tb-pitch>
+            <div class="pitch-lines" aria-hidden="true">
+              <div class="pitch-halfway"></div>
+              <div class="pitch-circle"></div>
+              <div class="pitch-box top"></div>
+              <div class="pitch-box bottom"></div>
+              <div class="pitch-goal top"></div>
+              <div class="pitch-goal bottom"></div>
+              <div class="pitch-spot center"></div>
+            </div>
+            <div class="tactic-ball" data-tb-ball></div>
+            <div class="tactic-flash" data-tb-flash hidden></div>
+            <div class="tactic-goalcard" data-tb-goalcard hidden>
+              <span class="goalcard-badge" data-tb-goalcard-badge></span>
+              <div class="goalcard-text">
+                <span class="goalcard-name" data-tb-goalcard-name></span>
+                <span class="goalcard-sub" data-tb-goalcard-sub></span>
               </div>
-              <div class="tactic-ball" data-tb-ball></div>
-              <div class="tactic-flash" data-tb-flash hidden></div>
             </div>
           </div>
-          <aside class="tactic-commentary" aria-label="Match commentary">
-            <div class="tactic-commentary-head">Commentary</div>
-            <div class="tactic-commentary-list" data-tb-feed></div>
-          </aside>
         </div>
+        <div class="tactic-bottombar" data-tb-bottombar>
+          <span class="tactic-ticker" data-tb-phase>Kick-off</span>
+        </div>
+        <aside class="tactic-commentary" aria-label="Match commentary">
+          <div class="tactic-commentary-head">Commentary</div>
+          <div class="tactic-commentary-list" data-tb-feed></div>
+        </aside>
         <div class="tactic-overlay" data-tb-ht hidden>
           <div class="tactic-overlay-card" style="text-align:center;max-width:22rem">
             <h3 data-tb-ht-title>Half time</h3>
@@ -961,8 +987,6 @@
           <div class="tactic-overlay-card" data-tb-prematch-body></div>
         </div>
         <div class="tactic-controls" ${hideControls ? "hidden" : ""}>
-          <button type="button" class="btn-primary btn-sm" data-tb-play>Play</button>
-          <button type="button" class="btn-ghost btn-sm" data-tb-pause>Pause</button>
           <button type="button" class="btn-ghost btn-sm" data-tb-replay>Replay</button>
           <label class="tactic-speed muted">
             Speed
@@ -1003,6 +1027,10 @@
     const clockEl = container.querySelector("[data-tb-clock]");
     const phaseEl = container.querySelector("[data-tb-phase]");
     const flashEl = container.querySelector("[data-tb-flash]");
+    const goalCardEl = container.querySelector("[data-tb-goalcard]");
+    const goalCardBadgeEl = container.querySelector("[data-tb-goalcard-badge]");
+    const goalCardNameEl = container.querySelector("[data-tb-goalcard-name]");
+    const goalCardSubEl = container.querySelector("[data-tb-goalcard-sub]");
     const feedEl = container.querySelector("[data-tb-feed]");
     const possHEl = container.querySelector("[data-tb-poss-h]");
     const possAEl = container.querySelector("[data-tb-poss-a]");
@@ -1033,12 +1061,13 @@
       if (pin.rx == null) pin.rx = pin.left;
       if (pin.ry == null) pin.ry = pin.top;
       const el = document.createElement("div");
-      el.className = `tactic-pin ${pin.side}`;
+      el.className = `tactic-pin ${pin.side} role-${pin.role}`;
       el.dataset.pinId = pin.id;
       el.title = `${pin.player} (${pin.slot}) — click to favor`;
-      el.innerHTML = `<span class="pin-dot"></span><span class="pin-label">${escHtml(pin.label)}</span>`;
-      el.style.left = `${pin.rx}%`;
-      el.style.top = `${pin.ry}%`;
+      el.innerHTML = `<span class="pin-dot">${escHtml(pin.label)}</span>`;
+      const rPos0 = toRenderXY(pin.rx, pin.ry);
+      el.style.left = `${rPos0.left}%`;
+      el.style.top = `${rPos0.top}%`;
       el.addEventListener("click", (ev) => {
         ev.stopPropagation();
         if (viewerMode) return;
@@ -1053,8 +1082,9 @@
         dot.style.cssText =
           "position:absolute;width:7px;height:7px;border-radius:50%;background:#e53935;border:1px solid rgba(255,255,255,0.85);" +
           "transform:translate(-50%,-50%);z-index:6;pointer-events:none;box-shadow:0 0 0 1px rgba(0,0,0,0.35)";
-        dot.style.left = `${pin.left}%`;
-        dot.style.top = `${pin.top}%`;
+        const rDbg0 = toRenderXY(pin.left, pin.top);
+        dot.style.left = `${rDbg0.left}%`;
+        dot.style.top = `${rDbg0.top}%`;
         pitch.appendChild(dot);
         debugDotEls.set(pin.id, dot);
       }
@@ -1063,9 +1093,10 @@
     pitch.addEventListener("click", (ev) => {
       if (viewerMode || finished || !playing) return;
       const rect = pitch.getBoundingClientRect();
-      const left = ((ev.clientX - rect.left) / rect.width) * 100;
-      const top = ((ev.clientY - rect.top) / rect.height) * 100;
-      triggerZoneSwitch(left, top);
+      const renderLeft = ((ev.clientX - rect.left) / rect.width) * 100;
+      const renderTop = ((ev.clientY - rect.top) / rect.height) * 100;
+      const logical = fromRenderXY(renderLeft, renderTop);
+      triggerZoneSwitch(logical.left, logical.top);
     });
 
     let playing = false;
@@ -1161,6 +1192,7 @@
     let ballAttached = true;
 
     let flashTimer = 0;
+    let goalCardTimer = 0;
     let shapePulse = 0;
     /** Smoothed 0–1 defensive box/chance pressure per side (gradual drop-back). */
     const defPressureSmooth = { home: 0, away: 0 };
@@ -1456,12 +1488,37 @@
       }
     }
 
-    /** Hide GOAL!/OFFSIDE! overlay (display:grid otherwise beats [hidden]). */
+    /** Hide OFFSIDE! overlay (display:grid otherwise beats [hidden]). */
     function clearFlash() {
       flashTimer = 0;
       if (flashEl) {
         flashEl.hidden = true;
         flashEl.textContent = "";
+      }
+    }
+
+    /** Slide-in goal-scorer card — badge + name + minute/assist/scoreline. */
+    function showGoalCard(side, scorerName, badgeText, subText) {
+      if (!goalCardEl) return;
+      goalCardTimer = 2.4;
+      goalCardEl.hidden = false;
+      goalCardEl.className = `tactic-goalcard ${side}`;
+      if (goalCardBadgeEl) {
+        goalCardBadgeEl.textContent = badgeText || "";
+        goalCardBadgeEl.style.background = side === "home" ? "var(--home)" : "var(--away)";
+      }
+      if (goalCardNameEl) goalCardNameEl.textContent = scorerName || "Goal!";
+      if (goalCardSubEl) goalCardSubEl.textContent = subText || "";
+      // Force reflow so the slide-in transition replays on back-to-back goals.
+      void goalCardEl.offsetWidth;
+      goalCardEl.classList.add("show");
+    }
+
+    function clearGoalCard() {
+      goalCardTimer = 0;
+      if (goalCardEl) {
+        goalCardEl.classList.remove("show");
+        goalCardEl.hidden = true;
       }
     }
 
@@ -1566,8 +1623,9 @@
         ball.left = lerp(ballFrom.left, ballTo.left, u);
         ball.top = lerp(ballFrom.top, ballTo.top, u);
       }
-      ballEl.style.left = `${ball.left}%`;
-      ballEl.style.top = `${ball.top}%`;
+      const rTween = toRenderXY(ball.left, ball.top);
+      ballEl.style.left = `${rTween.left}%`;
+      ballEl.style.top = `${rTween.top}%`;
       if (ballTween >= 1) {
         ballCtrl = null;
         return false;
@@ -1582,8 +1640,9 @@
       ballFlight = null;
       ball.left = ballTo.left;
       ball.top = ballTo.top;
-      ballEl.style.left = `${ball.left}%`;
-      ballEl.style.top = `${ball.top}%`;
+      const rResolve = toRenderXY(ball.left, ball.top);
+      ballEl.style.left = `${rResolve.left}%`;
+      ballEl.style.top = `${rResolve.top}%`;
       ballTween = 1;
       ballCtrl = null;
 
@@ -1816,6 +1875,7 @@
         const side = pendingRestart.side;
         pendingRestart = null;
         clearFlash();
+      clearGoalCard();
         const c = pickKickoffCarrier(side);
         spell = null;
         possession = side;
@@ -7871,8 +7931,9 @@
         pin.ry = rendered.top;
         const el = pinEls.get(pin.id);
         if (el) {
-          el.style.left = `${pin.rx}%`;
-          el.style.top = `${pin.ry}%`;
+          const rPos = toRenderXY(pin.rx, pin.ry);
+          el.style.left = `${rPos.left}%`;
+          el.style.top = `${rPos.top}%`;
           el.classList.toggle("has-ball", pin.id === carrierId);
           el.classList.toggle(
             "pressing",
@@ -7882,8 +7943,9 @@
         }
         const dbg = debugDotEls.get(pin.id);
         if (dbg) {
-          dbg.style.left = `${pin.left}%`;
-          dbg.style.top = `${pin.top}%`;
+          const rDbg = toRenderXY(pin.left, pin.top);
+          dbg.style.left = `${rDbg.left}%`;
+          dbg.style.top = `${rDbg.top}%`;
         }
       }
     }
@@ -7903,13 +7965,15 @@
       pin._pathCtrl = null;
       const el = pinEls.get(pin.id);
       if (el) {
-        el.style.left = `${L}%`;
-        el.style.top = `${T}%`;
+        const rSnap = toRenderXY(L, T);
+        el.style.left = `${rSnap.left}%`;
+        el.style.top = `${rSnap.top}%`;
       }
       const dbg = debugDotEls.get(pin.id);
       if (dbg) {
-        dbg.style.left = `${L}%`;
-        dbg.style.top = `${T}%`;
+        const rDbgSnap = toRenderXY(L, T);
+        dbg.style.left = `${rDbgSnap.left}%`;
+        dbg.style.top = `${rDbgSnap.top}%`;
       }
     }
 
@@ -7923,8 +7987,9 @@
       // Ease onto feet — never hard-snap when possession transfers
       ball.left = smoothDamp(ball.left, wantL, 0.38);
       ball.top = smoothDamp(ball.top, wantT, 0.38);
-      ballEl.style.left = `${ball.left}%`;
-      ballEl.style.top = `${ball.top}%`;
+      const rBall = toRenderXY(ball.left, ball.top);
+      ballEl.style.left = `${rBall.left}%`;
+      ballEl.style.top = `${rBall.top}%`;
     }
 
     function giveBall(pin, comment) {
@@ -8406,10 +8471,6 @@
       // Engine fix — protect-the-lead mentality. See declaration.
       leadProtectUntil[side] = matchMinute + 3;
       scoreEl.textContent = `${homeScore} – ${awayScore}`;
-      flashEl.hidden = false;
-      flashEl.className = `tactic-flash ${side}`;
-      flashEl.textContent = "GOAL!";
-      flashTimer = 1.35;
       const scorer = findCarrier();
       const scorerName = shortName(scorer?.player || "");
       const assistEligible =
@@ -8420,6 +8481,11 @@
       const assistExtra = assistEligible
         ? { assist: lastPasser.player, assist_short: lastPasser.player_short || shortName(lastPasser.player) }
         : {};
+      const goalMinuteLabel = `${Math.max(0, Math.floor(matchMinute))}'`;
+      const goalSubParts = [goalMinuteLabel];
+      if (assistExtra.assist_short) goalSubParts.push(`Assist: ${assistExtra.assist_short}`);
+      goalSubParts.push(`${homeScore}–${awayScore}`);
+      showGoalCard(side, scorerName || "Goal!", initials(scorer?.player || scorerName || ""), goalSubParts.join(" · "));
       pushMatchEvent("goal", side, {
         player: scorer?.player || null,
         player_short: scorer?.short || scorerName || null,
@@ -8871,7 +8937,8 @@
         const dangerProximity = clamp(1 - distToGoal / 25, 0, 1); // Max danger within 25 units of goal
 
         // Tactical motivation: trailing team more willing to foul
-        const scoreDiff = goals[oppOf(opp.side)] - goals[opp.side]; // Positive = defending team trailing
+        const scoreOf = (s) => (s === "home" ? homeScore : awayScore);
+        const scoreDiff = scoreOf(oppOf(opp.side)) - scoreOf(opp.side); // Positive = defending team trailing
         const isTrailing = scoreDiff > 0;
 
         // Tactical foul boost: only applies outside box and in clear, dangerous situations
@@ -10465,6 +10532,7 @@
       raf = 0;
       lastTs = 0;
       clearFlash();
+      clearGoalCard();
       fillBreakOverlay(kind);
       if (htOverlay) htOverlay.hidden = false;
       const playBtn = container.querySelector("[data-tb-play]");
@@ -10524,6 +10592,7 @@
       breakKind = null;
       if (htOverlay) htOverlay.hidden = true;
       clearFlash();
+      clearGoalCard();
       if (kind === "ht") {
         matchMinute = 45.05;
         clockCap = 90;
@@ -10764,6 +10833,7 @@
       halfTimePaused = false;
       breakKind = null;
       clearFlash();
+      clearGoalCard();
       if (replayScore) {
         homeScore = homeGoalsTarget;
         awayScore = awayGoalsTarget;
@@ -10941,6 +11011,10 @@
         flashTimer -= dt;
         if (flashTimer <= 0) clearFlash();
       }
+      if (goalCardTimer > 0) {
+        goalCardTimer -= dt;
+        if (goalCardTimer <= 0) clearGoalCard();
+      }
       // Phase 3: Decay defensive shape exposure over time as defenders reset position
       if (defensiveShapeExposure) {
         const exposureDecay = dt * 0.5; // Decays to 0 in ~2 seconds if not refreshed
@@ -11092,6 +11166,7 @@
       clockEl.textContent = "0'";
       phaseEl.textContent = "Ready";
       clearFlash();
+      clearGoalCard();
       updateHud();
       scheduled.forEach((g) => {
         g.scored = false;
