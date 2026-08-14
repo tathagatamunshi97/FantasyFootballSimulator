@@ -1867,6 +1867,20 @@
             if (driveIntoBox(c)) return;
           }
           c._boxDriveDone = false;
+          // Bug fix — same class as the shoot-decision fixes elsewhere: the
+          // drive-in attempt above only fires for ST/AM/CM/DM on a
+          // probability roll, so a W/FB pendingShot carrier (or a failed
+          // roll/drive-in) fell straight through to a naked shot with no
+          // box-proximity check at all. Gate on the carrier's own position.
+          if (!inPenaltyBox(c) && !nearPenaltyBox(c)) {
+            if (forwardInFinalThird(c)) {
+              forwardFinalThirdAction(c);
+              return;
+            }
+            doPass(c, backPassTarget(c), "pass");
+            dropPossessionState(1);
+            return;
+          }
           doShot(c, false);
         }
         return;
@@ -5331,7 +5345,14 @@
               Math.abs(carrier.left - 50) < 28 &&
               rng() < 0.4 + st.xg90 * 0.45 + Math.max(0, ad) * 0.35 + urg * 0.08
             ) {
-              if (!boxOccupationReady(carrier.side)) {
+              // Bug fix — same class as the attemptSpellChance/decideAction
+              // fixes: gate the shot on the carrier's own box proximity, not
+              // team box-readiness. The outer depth/left check above is a
+              // loose "final third, central-ish" gate, not a real box-
+              // proximity check, so without this a CM/DM with modest attacking
+              // stats could shoot from genuine range once teammates were
+              // already positioned inside the box.
+              if (!inPenaltyBox(carrier) && !nearPenaltyBox(carrier)) {
                 const slip = throughRunner(carrier, stage, depth);
                 if (slip && urg >= 0.7) {
                   doPass(carrier, slip, "through");
