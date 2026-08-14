@@ -5052,15 +5052,27 @@
       // wWing/wCut/wSwitch's own bases below; left the genuinely
       // situational signals (CM/AM role bonus, hasCM, centralBall, ad,
       // depth/stage/urgency) untouched.
+      // Bug fix — the central-carry nerf (see comment above) overcorrected:
+      // a CB/FB/W/ST carrier -- which is most of the match, since
+      // defenders start every buildup and wingers/strikers receive the
+      // final ball -- had central play crushed by role/position penalties
+      // regardless of whether a real midfield outlet actually existed.
+      // That's the direct cause of "midfielders almost never involved,
+      // it's all CB/FB/W/ST" -- a self-reinforcing loop where the wide
+      // carrier's own low wCentral kept choosing wide patterns again.
+      // Softened (not reverted) the three worst offenders: the CM/AM role
+      // gap, and the two flat penalties for not already being a
+      // midfielder/central. Real buildup finds a central outlet from a
+      // CB/FB reasonably often; it shouldn't be structurally avoided.
       let wCentral =
         0.85 +
         create * 0.55 +
         atk * 0.15 +
         st.key_passes90 * 0.16 +
         st.pass_pct * 0.003 +
-        (carrier.role === "CM" || carrier.role === "AM" ? 0.95 : 0.08) +
-        (hasCM ? 0.35 : -0.4) +
-        (centralBall ? 0.35 : -0.15) +
+        (carrier.role === "CM" || carrier.role === "AM" ? 0.75 : 0.28) +
+        (hasCM ? 0.4 : -0.12) +
+        (centralBall ? 0.3 : -0.05) +
         Math.max(0, ad) * 0.55;
       if (depth < 0.5) wCentral += 0.25;
       if (stage === "PROGRESSING") wCentral += 0.2;
