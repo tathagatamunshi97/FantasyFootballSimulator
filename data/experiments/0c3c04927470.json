@@ -1,0 +1,2392 @@
+{
+  "id": "0c3c04927470",
+  "user": "admin",
+  "matchday": false,
+  "created_at": "2026-08-12T06:18:30.398137+00:00",
+  "updated_at": "2026-08-12T06:19:23.741189+00:00",
+  "status": "ready",
+  "message": "Completed 5,000 simulations.",
+  "running": false,
+  "simulations": 5000,
+  "seed": null,
+  "team_a": {
+    "name": "Team A",
+    "formation": "4-3-3 attacking",
+    "lineup": [
+      {
+        "player": "David Raya",
+        "slot": "GK",
+        "captain": false,
+        "vice_captain": false,
+        "role_filter": ""
+      },
+      {
+        "player": "Jules Koundé",
+        "slot": "RB",
+        "captain": false,
+        "vice_captain": false,
+        "role_filter": ""
+      },
+      {
+        "player": "William Saliba",
+        "slot": "CB1",
+        "captain": false,
+        "vice_captain": false,
+        "role_filter": ""
+      },
+      {
+        "player": "Pau Cubarsí",
+        "slot": "CB2",
+        "captain": false,
+        "vice_captain": false,
+        "role_filter": ""
+      },
+      {
+        "player": "Piero Hincapié",
+        "slot": "LB",
+        "captain": false,
+        "vice_captain": false,
+        "role_filter": ""
+      },
+      {
+        "player": "Vitinha (Paris Saint-Germain)",
+        "slot": "DM",
+        "captain": false,
+        "vice_captain": false,
+        "role_filter": ""
+      },
+      {
+        "player": "Pedri",
+        "slot": "CM",
+        "captain": false,
+        "vice_captain": false,
+        "role_filter": ""
+      },
+      {
+        "player": "Bruno Guimarães",
+        "slot": "AM",
+        "captain": false,
+        "vice_captain": false,
+        "role_filter": ""
+      },
+      {
+        "player": "Lamine Yamal",
+        "slot": "RW",
+        "captain": false,
+        "vice_captain": true,
+        "role_filter": ""
+      },
+      {
+        "player": "Kai Havertz",
+        "slot": "ST",
+        "captain": false,
+        "vice_captain": false,
+        "role_filter": ""
+      },
+      {
+        "player": "Kylian Mbappé",
+        "slot": "LW",
+        "captain": true,
+        "vice_captain": false,
+        "role_filter": ""
+      }
+    ],
+    "prime_player": "",
+    "peak_season": {
+      "player": "",
+      "season": ""
+    },
+    "sheet_meta": {}
+  },
+  "team_b": {
+    "name": "Team B",
+    "formation": "4-2-3-1",
+    "lineup": [
+      {
+        "player": "Joan García",
+        "slot": "GK",
+        "captain": false,
+        "vice_captain": false,
+        "role_filter": ""
+      },
+      {
+        "player": "Achraf Hakimi",
+        "slot": "RB",
+        "captain": false,
+        "vice_captain": false,
+        "role_filter": ""
+      },
+      {
+        "player": "Gabriel Magalhães",
+        "slot": "CB1",
+        "captain": false,
+        "vice_captain": false,
+        "role_filter": ""
+      },
+      {
+        "player": "Dayot Upamecano",
+        "slot": "CB2",
+        "captain": false,
+        "vice_captain": false,
+        "role_filter": ""
+      },
+      {
+        "player": "Nuno Mendes",
+        "slot": "LB",
+        "captain": false,
+        "vice_captain": false,
+        "role_filter": ""
+      },
+      {
+        "player": "Declan Rice",
+        "slot": "DM1",
+        "captain": false,
+        "vice_captain": false,
+        "role_filter": ""
+      },
+      {
+        "player": "João Neves",
+        "slot": "DM2",
+        "captain": false,
+        "vice_captain": false,
+        "role_filter": ""
+      },
+      {
+        "player": "Bruno Fernandes",
+        "slot": "AM",
+        "captain": true,
+        "vice_captain": false,
+        "role_filter": ""
+      },
+      {
+        "player": "Khvicha Kvaratskhelia",
+        "slot": "LW",
+        "captain": false,
+        "vice_captain": false,
+        "role_filter": ""
+      },
+      {
+        "player": "Erling Haaland",
+        "slot": "ST",
+        "captain": false,
+        "vice_captain": true,
+        "role_filter": ""
+      },
+      {
+        "player": "Ousmane Dembélé",
+        "slot": "RW",
+        "captain": false,
+        "vice_captain": false,
+        "role_filter": ""
+      }
+    ],
+    "prime_player": "",
+    "peak_season": {
+      "player": "",
+      "season": ""
+    },
+    "sheet_meta": {}
+  },
+  "report": {
+    "generated_at": "2026-08-12T06:19:23.720734+00:00",
+    "engine_version": "slot-aware-v2",
+    "matchup": {
+      "home": {
+        "name": "Team A",
+        "formation": "4-3-3 attacking",
+        "lineup": [
+          {
+            "player": "David Raya",
+            "slot": "GK",
+            "captain": false,
+            "vice_captain": false,
+            "role_filter": ""
+          },
+          {
+            "player": "Jules Koundé",
+            "slot": "RB",
+            "captain": false,
+            "vice_captain": false,
+            "role_filter": ""
+          },
+          {
+            "player": "William Saliba",
+            "slot": "CB1",
+            "captain": false,
+            "vice_captain": false,
+            "role_filter": ""
+          },
+          {
+            "player": "Pau Cubarsí",
+            "slot": "CB2",
+            "captain": false,
+            "vice_captain": false,
+            "role_filter": ""
+          },
+          {
+            "player": "Piero Hincapié",
+            "slot": "LB",
+            "captain": false,
+            "vice_captain": false,
+            "role_filter": ""
+          },
+          {
+            "player": "Vitinha (Paris Saint-Germain)",
+            "slot": "DM",
+            "captain": false,
+            "vice_captain": false,
+            "role_filter": ""
+          },
+          {
+            "player": "Pedri",
+            "slot": "CM",
+            "captain": false,
+            "vice_captain": false,
+            "role_filter": ""
+          },
+          {
+            "player": "Bruno Guimarães",
+            "slot": "AM",
+            "captain": false,
+            "vice_captain": false,
+            "role_filter": ""
+          },
+          {
+            "player": "Lamine Yamal",
+            "slot": "RW",
+            "captain": false,
+            "vice_captain": true,
+            "role_filter": ""
+          },
+          {
+            "player": "Kai Havertz",
+            "slot": "ST",
+            "captain": false,
+            "vice_captain": false,
+            "role_filter": ""
+          },
+          {
+            "player": "Kylian Mbappé",
+            "slot": "LW",
+            "captain": true,
+            "vice_captain": false,
+            "role_filter": ""
+          }
+        ]
+      },
+      "away": {
+        "name": "Team B",
+        "formation": "4-2-3-1",
+        "lineup": [
+          {
+            "player": "Joan García",
+            "slot": "GK",
+            "captain": false,
+            "vice_captain": false,
+            "role_filter": ""
+          },
+          {
+            "player": "Achraf Hakimi",
+            "slot": "RB",
+            "captain": false,
+            "vice_captain": false,
+            "role_filter": ""
+          },
+          {
+            "player": "Gabriel Magalhães",
+            "slot": "CB1",
+            "captain": false,
+            "vice_captain": false,
+            "role_filter": ""
+          },
+          {
+            "player": "Dayot Upamecano",
+            "slot": "CB2",
+            "captain": false,
+            "vice_captain": false,
+            "role_filter": ""
+          },
+          {
+            "player": "Nuno Mendes",
+            "slot": "LB",
+            "captain": false,
+            "vice_captain": false,
+            "role_filter": ""
+          },
+          {
+            "player": "Declan Rice",
+            "slot": "DM1",
+            "captain": false,
+            "vice_captain": false,
+            "role_filter": ""
+          },
+          {
+            "player": "João Neves",
+            "slot": "DM2",
+            "captain": false,
+            "vice_captain": false,
+            "role_filter": ""
+          },
+          {
+            "player": "Bruno Fernandes",
+            "slot": "AM",
+            "captain": true,
+            "vice_captain": false,
+            "role_filter": ""
+          },
+          {
+            "player": "Khvicha Kvaratskhelia",
+            "slot": "LW",
+            "captain": false,
+            "vice_captain": false,
+            "role_filter": ""
+          },
+          {
+            "player": "Erling Haaland",
+            "slot": "ST",
+            "captain": false,
+            "vice_captain": true,
+            "role_filter": ""
+          },
+          {
+            "player": "Ousmane Dembélé",
+            "slot": "RW",
+            "captain": false,
+            "vice_captain": false,
+            "role_filter": ""
+          }
+        ]
+      }
+    },
+    "profiles": {
+      "home": {
+        "extended": {
+          "defensive_unit": 0.564,
+          "possession_control": 0.704,
+          "chance_creation": 0.448,
+          "attacking_effectiveness": 0.654,
+          "midfield_control": 0.562,
+          "finishing_threat": 0.775,
+          "formation_fit": 0.864,
+          "pressing_intensity": 0.414,
+          "press_resistance": 0.188,
+          "transition_threat": 0.644,
+          "aerial_defence": 0.488,
+          "team_composites": {
+            "creativity": 0.448,
+            "midfield_control": 0.562,
+            "possession_control": 0.704,
+            "finishing_threat": 0.775,
+            "defensive_solidity": 0.564,
+            "attacking_effectiveness": 0.654,
+            "pressing_intensity": 0.414,
+            "press_resistance": 0.188,
+            "transition_threat": 0.644,
+            "aerial_defence": 0.488,
+            "overall": 0.63
+          },
+          "units": {
+            "attack": 0.55,
+            "finishing": 0.762,
+            "chance_creation": 0.492,
+            "midfield": 0.588,
+            "defence": 0.45,
+            "midfield_defence": 0.262,
+            "transition_risk": 0.203,
+            "goalkeeper": 0.373,
+            "overall": 0.506,
+            "gk_confidence": 0.953,
+            "gk_is_backup": false
+          },
+          "xga_suppression": 0.747,
+          "xg_split": {
+            "finishing": 2.24,
+            "creation": 0.18,
+            "total_raw": 2.42
+          },
+          "fwd_xg90": 0.53,
+          "avg_pass_pct": 83.6,
+          "formation_fit_players": [
+            {
+              "player": "David Raya",
+              "slot": "GK",
+              "role_filter": "",
+              "fit": 1.0,
+              "position": "GK"
+            },
+            {
+              "player": "Jules Koundé",
+              "slot": "RB",
+              "role_filter": "",
+              "fit": 0.614,
+              "position": "CB"
+            },
+            {
+              "player": "William Saliba",
+              "slot": "CB1",
+              "role_filter": "",
+              "fit": 0.912,
+              "position": "CB"
+            },
+            {
+              "player": "Pau Cubarsí",
+              "slot": "CB2",
+              "role_filter": "",
+              "fit": 0.919,
+              "position": "CB"
+            },
+            {
+              "player": "Piero Hincapié",
+              "slot": "LB",
+              "role_filter": "",
+              "fit": 0.599,
+              "position": "CB"
+            },
+            {
+              "player": "Vitinha (Paris Saint-Germain)",
+              "slot": "DM",
+              "role_filter": "",
+              "fit": 0.9,
+              "position": "CM"
+            },
+            {
+              "player": "Pedri",
+              "slot": "CM",
+              "role_filter": "",
+              "fit": 0.937,
+              "position": "CM"
+            },
+            {
+              "player": "Bruno Guimarães",
+              "slot": "AM",
+              "role_filter": "",
+              "fit": 0.9,
+              "position": "CM"
+            },
+            {
+              "player": "Lamine Yamal",
+              "slot": "RW",
+              "role_filter": "",
+              "fit": 0.927,
+              "position": "CM"
+            },
+            {
+              "player": "Kai Havertz",
+              "slot": "ST",
+              "role_filter": "",
+              "fit": 0.9,
+              "position": "ST"
+            },
+            {
+              "player": "Kylian Mbappé",
+              "slot": "LW",
+              "role_filter": "",
+              "fit": 0.9,
+              "position": "ST"
+            }
+          ]
+        },
+        "fullbacks": {
+          "fullbacks": [
+            {
+              "player": "Jules Koundé",
+              "slot": "RB",
+              "xa90": 0.1,
+              "key_passes90": 0.75,
+              "creation_score": 0.287,
+              "attack_exposure": 0.208,
+              "fit": 0.614
+            },
+            {
+              "player": "Piero Hincapié",
+              "slot": "LB",
+              "xa90": 0.07,
+              "key_passes90": 0.49,
+              "creation_score": 0.168,
+              "attack_exposure": 0.129,
+              "fit": 0.599
+            }
+          ],
+          "transition_risk": 0.203,
+          "xga_suppression_base": 0.839,
+          "xga_suppression_with_transition": 0.848
+        },
+        "trophy_multiplier": 1.0725,
+        "players": [
+          {
+            "player": "David Raya",
+            "slot": "GK",
+            "team": "Arsenal",
+            "xg90": 0.0,
+            "npxg90": 0.0,
+            "xa90": 0.0,
+            "xg_buildup90": 0.15,
+            "shots90": 0.0,
+            "shots_on_target90": 0.0,
+            "understat_shots90": 0.0,
+            "key_passes90": 0.05,
+            "dribbles90": 0.02,
+            "dribble_pct": 77.1,
+            "tackles90": 0.01,
+            "interceptions90": 0.03,
+            "pass_pct": 68.0,
+            "aerials_won90": 0.09,
+            "aerials_won_pct": 55.0,
+            "rating": 6.97,
+            "minutes": 3375,
+            "trophy_bonus": 0.07,
+            "trophy_notes": [
+              "2025-2026: league winner (Arsenal)",
+              "2025-2026: UCL finalist (Arsenal)"
+            ],
+            "assists90": 0.0,
+            "clearances90": 0.91,
+            "blocks90": 0.0,
+            "ball_recoveries90": 0.0,
+            "duels_won_pct": 0.0,
+            "long_balls90": 5.72,
+            "long_ball_pct": 35.0,
+            "big_chances_created90": 0.0,
+            "big_chances_missed90": 0.0,
+            "possession_lost90": 10.66,
+            "penalty_goals90": 0.0,
+            "xg_chain90": 0.16,
+            "saves90": 2.16,
+            "goals_prevented90": 0.02,
+            "goals_conceded90": 1.09,
+            "clean_sheet_pct": 28.6,
+            "yellow_cards90": 0.05,
+            "red_cards90": 0.0
+          },
+          {
+            "player": "Jules Koundé",
+            "slot": "RB",
+            "team": "FC Barcelona",
+            "xg90": 0.05,
+            "npxg90": 0.07,
+            "xa90": 0.1,
+            "xg_buildup90": 0.53,
+            "shots90": 0.55,
+            "shots_on_target90": 0.17,
+            "understat_shots90": 0.56,
+            "key_passes90": 0.75,
+            "dribbles90": 0.58,
+            "dribble_pct": 53.4,
+            "tackles90": 1.86,
+            "interceptions90": 0.98,
+            "pass_pct": 88.5,
+            "aerials_won90": 1.55,
+            "aerials_won_pct": 56.2,
+            "rating": 6.96,
+            "minutes": 2437,
+            "trophy_bonus": 0.09,
+            "trophy_notes": [
+              "2024-2025: league winner (FC Barcelona)",
+              "2025-2026: league winner (FC Barcelona)"
+            ],
+            "assists90": 0.08,
+            "clearances90": 2.84,
+            "blocks90": 0.0,
+            "ball_recoveries90": 0.0,
+            "duels_won_pct": 0.0,
+            "long_balls90": 2.49,
+            "long_ball_pct": 49.7,
+            "big_chances_created90": 0.16,
+            "big_chances_missed90": 0.11,
+            "possession_lost90": 10.38,
+            "penalty_goals90": 0.0,
+            "xg_chain90": 0.62,
+            "saves90": 0.0,
+            "goals_prevented90": 0.0,
+            "goals_conceded90": 0.0,
+            "clean_sheet_pct": 11.1,
+            "yellow_cards90": 0.18,
+            "red_cards90": 0.0
+          },
+          {
+            "player": "William Saliba",
+            "slot": "CB1",
+            "team": "Arsenal",
+            "xg90": 0.05,
+            "npxg90": 0.06,
+            "xa90": 0.04,
+            "xg_buildup90": 0.34,
+            "shots90": 0.27,
+            "shots_on_target90": 0.09,
+            "understat_shots90": 0.27,
+            "key_passes90": 0.3,
+            "dribbles90": 0.28,
+            "dribble_pct": 64.3,
+            "tackles90": 1.54,
+            "interceptions90": 0.74,
+            "pass_pct": 91.4,
+            "aerials_won90": 2.08,
+            "aerials_won_pct": 55.9,
+            "rating": 6.97,
+            "minutes": 2828,
+            "trophy_bonus": 0.07,
+            "trophy_notes": [
+              "2025-2026: league winner (Arsenal)",
+              "2025-2026: UCL finalist (Arsenal)"
+            ],
+            "assists90": 0.01,
+            "clearances90": 4.02,
+            "blocks90": 0.0,
+            "ball_recoveries90": 0.0,
+            "duels_won_pct": 0.0,
+            "long_balls90": 2.65,
+            "long_ball_pct": 55.0,
+            "big_chances_created90": 0.04,
+            "big_chances_missed90": 0.06,
+            "possession_lost90": 6.49,
+            "penalty_goals90": 0.0,
+            "xg_chain90": 0.36,
+            "saves90": 0.0,
+            "goals_prevented90": 0.0,
+            "goals_conceded90": 0.0,
+            "clean_sheet_pct": 12.4,
+            "yellow_cards90": 0.1,
+            "red_cards90": 0.01
+          },
+          {
+            "player": "Pau Cubarsí",
+            "slot": "CB2",
+            "team": "FC Barcelona",
+            "xg90": 0.03,
+            "npxg90": 0.03,
+            "xa90": 0.03,
+            "xg_buildup90": 0.48,
+            "shots90": 0.37,
+            "shots_on_target90": 0.07,
+            "understat_shots90": 0.37,
+            "key_passes90": 0.27,
+            "dribbles90": 0.16,
+            "dribble_pct": 76.7,
+            "tackles90": 1.39,
+            "interceptions90": 0.86,
+            "pass_pct": 91.5,
+            "aerials_won90": 2.05,
+            "aerials_won_pct": 56.0,
+            "rating": 6.99,
+            "minutes": 2664,
+            "trophy_bonus": 0.09,
+            "trophy_notes": [
+              "2024-2025: league winner (FC Barcelona)",
+              "2025-2026: league winner (FC Barcelona)"
+            ],
+            "assists90": 0.04,
+            "clearances90": 3.95,
+            "blocks90": 0.0,
+            "ball_recoveries90": 0.0,
+            "duels_won_pct": 0.0,
+            "long_balls90": 3.18,
+            "long_ball_pct": 55.8,
+            "big_chances_created90": 0.06,
+            "big_chances_missed90": 0.03,
+            "possession_lost90": 6.42,
+            "penalty_goals90": 0.0,
+            "xg_chain90": 0.5,
+            "saves90": 0.0,
+            "goals_prevented90": 0.0,
+            "goals_conceded90": 0.0,
+            "clean_sheet_pct": 11.8,
+            "yellow_cards90": 0.13,
+            "red_cards90": 0.0
+          },
+          {
+            "player": "Piero Hincapié",
+            "slot": "LB",
+            "team": "Arsenal",
+            "xg90": 0.05,
+            "npxg90": 0.03,
+            "xa90": 0.07,
+            "xg_buildup90": 0.29,
+            "shots90": 0.47,
+            "shots_on_target90": 0.12,
+            "understat_shots90": 0.31,
+            "key_passes90": 0.49,
+            "dribbles90": 0.26,
+            "dribble_pct": 47.6,
+            "tackles90": 1.87,
+            "interceptions90": 1.13,
+            "pass_pct": 87.7,
+            "aerials_won90": 2.11,
+            "aerials_won_pct": 56.3,
+            "rating": 6.95,
+            "minutes": 2231,
+            "trophy_bonus": 0.07,
+            "trophy_notes": [
+              "2025-2026: league winner (Arsenal)",
+              "2025-2026: UCL finalist (Arsenal)"
+            ],
+            "assists90": 0.06,
+            "clearances90": 3.94,
+            "blocks90": 0.0,
+            "ball_recoveries90": 0.0,
+            "duels_won_pct": 0.0,
+            "long_balls90": 2.76,
+            "long_ball_pct": 44.6,
+            "big_chances_created90": 0.09,
+            "big_chances_missed90": 0.05,
+            "possession_lost90": 8.65,
+            "penalty_goals90": 0.0,
+            "xg_chain90": 0.36,
+            "saves90": 0.0,
+            "goals_prevented90": 0.0,
+            "goals_conceded90": 0.0,
+            "clean_sheet_pct": 10.9,
+            "yellow_cards90": 0.18,
+            "red_cards90": 0.0
+          },
+          {
+            "player": "Vitinha (Paris Saint-Germain)",
+            "slot": "DM",
+            "team": "Paris Saint-Germain",
+            "xg90": 0.14,
+            "npxg90": 0.11,
+            "xa90": 0.17,
+            "xg_buildup90": 0.63,
+            "shots90": 1.55,
+            "shots_on_target90": 0.58,
+            "understat_shots90": 1.56,
+            "key_passes90": 1.46,
+            "dribbles90": 1.03,
+            "dribble_pct": 62.6,
+            "tackles90": 1.28,
+            "interceptions90": 0.67,
+            "pass_pct": 87.1,
+            "aerials_won90": 0.29,
+            "aerials_won_pct": 48.7,
+            "rating": 7.25,
+            "minutes": 2078,
+            "trophy_bonus": 0.18,
+            "trophy_notes": [
+              "2024-2025: league winner (Paris Saint-Germain)",
+              "2024-2025: UCL winner (Paris Saint-Germain)",
+              "2025-2026: league winner (Paris Saint-Germain)",
+              "2025-2026: UCL winner (Paris Saint-Germain)"
+            ],
+            "assists90": 0.18,
+            "clearances90": 0.69,
+            "blocks90": 0.0,
+            "ball_recoveries90": 0.0,
+            "duels_won_pct": 0.0,
+            "long_balls90": 4.33,
+            "long_ball_pct": 65.0,
+            "big_chances_created90": 0.27,
+            "big_chances_missed90": 0.1,
+            "possession_lost90": 10.4,
+            "penalty_goals90": 0.03,
+            "xg_chain90": 0.81,
+            "saves90": 0.0,
+            "goals_prevented90": 0.0,
+            "goals_conceded90": 0.0,
+            "clean_sheet_pct": 5.6,
+            "yellow_cards90": 0.1,
+            "red_cards90": 0.0
+          },
+          {
+            "player": "Pedri",
+            "slot": "CM",
+            "team": "FC Barcelona",
+            "xg90": 0.11,
+            "npxg90": 0.12,
+            "xa90": 0.23,
+            "xg_buildup90": 0.59,
+            "shots90": 1.2,
+            "shots_on_target90": 0.48,
+            "understat_shots90": 1.18,
+            "key_passes90": 2.14,
+            "dribbles90": 1.35,
+            "dribble_pct": 61.6,
+            "tackles90": 1.68,
+            "interceptions90": 0.74,
+            "pass_pct": 86.5,
+            "aerials_won90": 0.24,
+            "aerials_won_pct": 50.2,
+            "rating": 7.34,
+            "minutes": 2499,
+            "trophy_bonus": 0.09,
+            "trophy_notes": [
+              "2024-2025: league winner (FC Barcelona)",
+              "2025-2026: league winner (FC Barcelona)"
+            ],
+            "assists90": 0.24,
+            "clearances90": 0.61,
+            "blocks90": 0.0,
+            "ball_recoveries90": 0.0,
+            "duels_won_pct": 0.0,
+            "long_balls90": 3.24,
+            "long_ball_pct": 62.1,
+            "big_chances_created90": 0.35,
+            "big_chances_missed90": 0.13,
+            "possession_lost90": 12.06,
+            "penalty_goals90": 0.01,
+            "xg_chain90": 0.84,
+            "saves90": 0.0,
+            "goals_prevented90": 0.0,
+            "goals_conceded90": 0.0,
+            "clean_sheet_pct": 7.6,
+            "yellow_cards90": 0.08,
+            "red_cards90": 0.02
+          },
+          {
+            "player": "Bruno Guimarães",
+            "slot": "AM",
+            "team": "Newcastle United",
+            "xg90": 0.17,
+            "npxg90": 0.16,
+            "xa90": 0.17,
+            "xg_buildup90": 0.34,
+            "shots90": 1.51,
+            "shots_on_target90": 0.63,
+            "understat_shots90": 1.5,
+            "key_passes90": 1.58,
+            "dribbles90": 0.91,
+            "dribble_pct": 48.2,
+            "tackles90": 1.94,
+            "interceptions90": 0.61,
+            "pass_pct": 83.5,
+            "aerials_won90": 0.3,
+            "aerials_won_pct": 51.3,
+            "rating": 7.22,
+            "minutes": 2868,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ],
+            "assists90": 0.18,
+            "clearances90": 1.0,
+            "blocks90": 0.0,
+            "ball_recoveries90": 0.0,
+            "duels_won_pct": 0.0,
+            "long_balls90": 2.33,
+            "long_ball_pct": 54.8,
+            "big_chances_created90": 0.29,
+            "big_chances_missed90": 0.11,
+            "possession_lost90": 13.17,
+            "penalty_goals90": 0.03,
+            "xg_chain90": 0.54,
+            "saves90": 0.0,
+            "goals_prevented90": 0.0,
+            "goals_conceded90": 0.0,
+            "clean_sheet_pct": 8.9,
+            "yellow_cards90": 0.19,
+            "red_cards90": 0.0
+          },
+          {
+            "player": "Lamine Yamal",
+            "slot": "RW",
+            "team": "FC Barcelona",
+            "xg90": 0.38,
+            "npxg90": 0.37,
+            "xa90": 0.28,
+            "xg_buildup90": 0.44,
+            "shots90": 3.82,
+            "shots_on_target90": 1.3,
+            "understat_shots90": 3.79,
+            "key_passes90": 1.99,
+            "dribbles90": 3.63,
+            "dribble_pct": 52.7,
+            "tackles90": 1.16,
+            "interceptions90": 0.38,
+            "pass_pct": 77.9,
+            "aerials_won90": 0.26,
+            "aerials_won_pct": 49.7,
+            "rating": 7.52,
+            "minutes": 2564,
+            "trophy_bonus": 0.09,
+            "trophy_notes": [
+              "2024-2025: league winner (FC Barcelona)",
+              "2025-2026: league winner (FC Barcelona)"
+            ],
+            "assists90": 0.32,
+            "clearances90": 0.33,
+            "blocks90": 0.0,
+            "ball_recoveries90": 0.0,
+            "duels_won_pct": 0.0,
+            "long_balls90": 1.0,
+            "long_ball_pct": 48.5,
+            "big_chances_created90": 0.68,
+            "big_chances_missed90": 0.36,
+            "possession_lost90": 18.23,
+            "penalty_goals90": 0.05,
+            "xg_chain90": 1.01,
+            "saves90": 0.0,
+            "goals_prevented90": 0.0,
+            "goals_conceded90": 0.0,
+            "clean_sheet_pct": 6.9,
+            "yellow_cards90": 0.09,
+            "red_cards90": 0.0
+          },
+          {
+            "player": "Kai Havertz",
+            "slot": "ST",
+            "team": "Arsenal",
+            "xg90": 0.39,
+            "npxg90": 0.43,
+            "xa90": 0.09,
+            "xg_buildup90": 0.16,
+            "shots90": 2.49,
+            "shots_on_target90": 0.92,
+            "understat_shots90": 2.49,
+            "key_passes90": 1.16,
+            "dribbles90": 0.68,
+            "dribble_pct": 44.7,
+            "tackles90": 0.87,
+            "interceptions90": 0.24,
+            "pass_pct": 75.0,
+            "aerials_won90": 0.51,
+            "aerials_won_pct": 45.3,
+            "rating": 6.89,
+            "minutes": 1228,
+            "trophy_bonus": 0.0478,
+            "trophy_notes": [
+              "2025-2026: league winner (Arsenal)",
+              "2025-2026: UCL finalist (Arsenal)"
+            ],
+            "assists90": 0.18,
+            "clearances90": 0.97,
+            "blocks90": 0.0,
+            "ball_recoveries90": 0.0,
+            "duels_won_pct": 0.0,
+            "long_balls90": 0.55,
+            "long_ball_pct": 41.8,
+            "big_chances_created90": 0.2,
+            "big_chances_missed90": 0.52,
+            "possession_lost90": 11.18,
+            "penalty_goals90": 0.03,
+            "xg_chain90": 0.61,
+            "saves90": 0.0,
+            "goals_prevented90": 0.0,
+            "goals_conceded90": 0.0,
+            "clean_sheet_pct": 0.0,
+            "yellow_cards90": 0.16,
+            "red_cards90": 0.0
+          },
+          {
+            "player": "Kylian Mbappé",
+            "slot": "LW",
+            "team": "Real Madrid",
+            "xg90": 0.67,
+            "npxg90": 0.57,
+            "xa90": 0.17,
+            "xg_buildup90": 0.25,
+            "shots90": 4.2,
+            "shots_on_target90": 1.96,
+            "understat_shots90": 4.17,
+            "key_passes90": 1.67,
+            "dribbles90": 2.06,
+            "dribble_pct": 49.4,
+            "tackles90": 0.38,
+            "interceptions90": 0.11,
+            "pass_pct": 82.2,
+            "aerials_won90": 1.16,
+            "aerials_won_pct": 48.3,
+            "rating": 7.4,
+            "minutes": 2759,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ],
+            "assists90": 0.13,
+            "clearances90": 0.23,
+            "blocks90": 0.0,
+            "ball_recoveries90": 0.0,
+            "duels_won_pct": 0.0,
+            "long_balls90": 1.13,
+            "long_ball_pct": 70.7,
+            "big_chances_created90": 0.31,
+            "big_chances_missed90": 0.67,
+            "possession_lost90": 12.15,
+            "penalty_goals90": 0.18,
+            "xg_chain90": 0.91,
+            "saves90": 0.0,
+            "goals_prevented90": 0.0,
+            "goals_conceded90": 0.0,
+            "clean_sheet_pct": 0.0,
+            "yellow_cards90": 0.12,
+            "red_cards90": 0.01
+          }
+        ]
+      },
+      "away": {
+        "extended": {
+          "defensive_unit": 0.567,
+          "possession_control": 0.648,
+          "chance_creation": 0.488,
+          "attacking_effectiveness": 0.625,
+          "midfield_control": 0.521,
+          "finishing_threat": 0.728,
+          "formation_fit": 0.895,
+          "pressing_intensity": 0.416,
+          "press_resistance": 0.117,
+          "transition_threat": 0.361,
+          "aerial_defence": 0.41,
+          "team_composites": {
+            "creativity": 0.488,
+            "midfield_control": 0.521,
+            "possession_control": 0.648,
+            "finishing_threat": 0.728,
+            "defensive_solidity": 0.567,
+            "attacking_effectiveness": 0.625,
+            "pressing_intensity": 0.416,
+            "press_resistance": 0.117,
+            "transition_threat": 0.361,
+            "aerial_defence": 0.41,
+            "overall": 0.597
+          },
+          "units": {
+            "attack": 0.564,
+            "finishing": 0.721,
+            "chance_creation": 0.446,
+            "midfield": 0.503,
+            "defence": 0.448,
+            "midfield_defence": 0.32,
+            "transition_risk": 0.353,
+            "goalkeeper": 0.673,
+            "overall": 0.52,
+            "gk_confidence": 0.949,
+            "gk_is_backup": false
+          },
+          "xga_suppression": 0.738,
+          "xg_split": {
+            "finishing": 2.16,
+            "creation": 0.16,
+            "total_raw": 2.33
+          },
+          "fwd_xg90": 0.49,
+          "avg_pass_pct": 82.0,
+          "formation_fit_players": [
+            {
+              "player": "Joan García",
+              "slot": "GK",
+              "role_filter": "",
+              "fit": 1.0,
+              "position": "GK"
+            },
+            {
+              "player": "Achraf Hakimi",
+              "slot": "RB",
+              "role_filter": "",
+              "fit": 0.935,
+              "position": "RB"
+            },
+            {
+              "player": "Gabriel Magalhães",
+              "slot": "CB1",
+              "role_filter": "",
+              "fit": 0.906,
+              "position": "CB"
+            },
+            {
+              "player": "Dayot Upamecano",
+              "slot": "CB2",
+              "role_filter": "",
+              "fit": 0.926,
+              "position": "CB"
+            },
+            {
+              "player": "Nuno Mendes",
+              "slot": "LB",
+              "role_filter": "",
+              "fit": 0.619,
+              "position": "CB"
+            },
+            {
+              "player": "Declan Rice",
+              "slot": "DM1",
+              "role_filter": "",
+              "fit": 0.9,
+              "position": "CM"
+            },
+            {
+              "player": "João Neves",
+              "slot": "DM2",
+              "role_filter": "",
+              "fit": 0.9,
+              "position": "CM"
+            },
+            {
+              "player": "Bruno Fernandes",
+              "slot": "AM",
+              "role_filter": "",
+              "fit": 0.922,
+              "position": "CM"
+            },
+            {
+              "player": "Khvicha Kvaratskhelia",
+              "slot": "LW",
+              "role_filter": "",
+              "fit": 0.9,
+              "position": "ST"
+            },
+            {
+              "player": "Erling Haaland",
+              "slot": "ST",
+              "role_filter": "",
+              "fit": 0.941,
+              "position": "ST"
+            },
+            {
+              "player": "Ousmane Dembélé",
+              "slot": "RW",
+              "role_filter": "",
+              "fit": 0.9,
+              "position": "ST"
+            }
+          ]
+        },
+        "fullbacks": {
+          "fullbacks": [
+            {
+              "player": "Achraf Hakimi",
+              "slot": "RB",
+              "xa90": 0.14,
+              "key_passes90": 1.3,
+              "creation_score": 0.378,
+              "attack_exposure": 0.334,
+              "fit": 0.935
+            },
+            {
+              "player": "Nuno Mendes",
+              "slot": "LB",
+              "xa90": 0.12,
+              "key_passes90": 0.96,
+              "creation_score": 0.311,
+              "attack_exposure": 0.252,
+              "fit": 0.619
+            }
+          ],
+          "transition_risk": 0.353,
+          "xga_suppression_base": 0.816,
+          "xga_suppression_with_transition": 0.834
+        },
+        "trophy_multiplier": 1.0959,
+        "players": [
+          {
+            "player": "Joan García",
+            "slot": "GK",
+            "team": "FC Barcelona",
+            "xg90": 0.0,
+            "npxg90": 0.0,
+            "xa90": 0.0,
+            "xg_buildup90": 0.32,
+            "shots90": 0.01,
+            "shots_on_target90": 0.01,
+            "understat_shots90": 0.0,
+            "key_passes90": 0.01,
+            "dribbles90": 0.01,
+            "dribble_pct": 37.7,
+            "tackles90": 0.08,
+            "interceptions90": 0.03,
+            "pass_pct": 76.0,
+            "aerials_won90": 0.11,
+            "aerials_won_pct": 55.0,
+            "rating": 7.26,
+            "minutes": 3060,
+            "trophy_bonus": 0.045,
+            "trophy_notes": [
+              "2025-2026: league winner (FC Barcelona)"
+            ],
+            "assists90": 0.0,
+            "clearances90": 1.14,
+            "blocks90": 0.0,
+            "ball_recoveries90": 0.0,
+            "duels_won_pct": 0.0,
+            "long_balls90": 5.5,
+            "long_ball_pct": 44.3,
+            "big_chances_created90": 0.0,
+            "big_chances_missed90": 0.0,
+            "possession_lost90": 7.69,
+            "penalty_goals90": 0.0,
+            "xg_chain90": 0.32,
+            "saves90": 3.08,
+            "goals_prevented90": 0.21,
+            "goals_conceded90": 1.02,
+            "clean_sheet_pct": 30.9,
+            "yellow_cards90": 0.04,
+            "red_cards90": 0.0
+          },
+          {
+            "player": "Achraf Hakimi",
+            "slot": "RB",
+            "team": "Paris Saint-Germain",
+            "xg90": 0.1,
+            "npxg90": 0.11,
+            "xa90": 0.14,
+            "xg_buildup90": 0.5,
+            "shots90": 1.09,
+            "shots_on_target90": 0.37,
+            "understat_shots90": 1.09,
+            "key_passes90": 1.3,
+            "dribbles90": 0.81,
+            "dribble_pct": 46.6,
+            "tackles90": 1.78,
+            "interceptions90": 0.99,
+            "pass_pct": 86.0,
+            "aerials_won90": 0.71,
+            "aerials_won_pct": 53.3,
+            "rating": 7.03,
+            "minutes": 1720,
+            "trophy_bonus": 0.18,
+            "trophy_notes": [
+              "2024-2025: league winner (Paris Saint-Germain)",
+              "2024-2025: UCL winner (Paris Saint-Germain)",
+              "2025-2026: league winner (Paris Saint-Germain)",
+              "2025-2026: UCL winner (Paris Saint-Germain)"
+            ],
+            "assists90": 0.14,
+            "clearances90": 1.48,
+            "blocks90": 0.0,
+            "ball_recoveries90": 0.0,
+            "duels_won_pct": 0.0,
+            "long_balls90": 2.18,
+            "long_ball_pct": 53.8,
+            "big_chances_created90": 0.21,
+            "big_chances_missed90": 0.12,
+            "possession_lost90": 11.78,
+            "penalty_goals90": 0.0,
+            "xg_chain90": 0.65,
+            "saves90": 0.0,
+            "goals_prevented90": 0.0,
+            "goals_conceded90": 0.0,
+            "clean_sheet_pct": 7.5,
+            "yellow_cards90": 0.18,
+            "red_cards90": 0.02
+          },
+          {
+            "player": "Gabriel Magalhães",
+            "slot": "CB1",
+            "team": "Arsenal",
+            "xg90": 0.08,
+            "npxg90": 0.11,
+            "xa90": 0.05,
+            "xg_buildup90": 0.29,
+            "shots90": 0.73,
+            "shots_on_target90": 0.19,
+            "understat_shots90": 0.73,
+            "key_passes90": 0.36,
+            "dribbles90": 0.15,
+            "dribble_pct": 61.3,
+            "tackles90": 1.28,
+            "interceptions90": 0.82,
+            "pass_pct": 88.2,
+            "aerials_won90": 2.3,
+            "aerials_won_pct": 56.1,
+            "rating": 7.11,
+            "minutes": 2558,
+            "trophy_bonus": 0.07,
+            "trophy_notes": [
+              "2025-2026: league winner (Arsenal)",
+              "2025-2026: UCL finalist (Arsenal)"
+            ],
+            "assists90": 0.06,
+            "clearances90": 4.42,
+            "blocks90": 0.0,
+            "ball_recoveries90": 0.0,
+            "duels_won_pct": 0.0,
+            "long_balls90": 2.96,
+            "long_ball_pct": 45.9,
+            "big_chances_created90": 0.09,
+            "big_chances_missed90": 0.11,
+            "possession_lost90": 7.44,
+            "penalty_goals90": 0.0,
+            "xg_chain90": 0.33,
+            "saves90": 0.0,
+            "goals_prevented90": 0.0,
+            "goals_conceded90": 0.0,
+            "clean_sheet_pct": 11.2,
+            "yellow_cards90": 0.16,
+            "red_cards90": 0.0
+          },
+          {
+            "player": "Dayot Upamecano",
+            "slot": "CB2",
+            "team": "FC Bayern München",
+            "xg90": 0.05,
+            "npxg90": 0.05,
+            "xa90": 0.05,
+            "xg_buildup90": 0.45,
+            "shots90": 0.51,
+            "shots_on_target90": 0.17,
+            "understat_shots90": 0.51,
+            "key_passes90": 0.4,
+            "dribbles90": 0.22,
+            "dribble_pct": 50.5,
+            "tackles90": 1.79,
+            "interceptions90": 1.18,
+            "pass_pct": 89.3,
+            "aerials_won90": 1.85,
+            "aerials_won_pct": 56.7,
+            "rating": 7.04,
+            "minutes": 1779,
+            "trophy_bonus": 0.0889,
+            "trophy_notes": [
+              "2024-2025: league winner (FC Bayern München)",
+              "2025-2026: league winner (FC Bayern München)"
+            ],
+            "assists90": 0.03,
+            "clearances90": 3.31,
+            "blocks90": 0.0,
+            "ball_recoveries90": 0.0,
+            "duels_won_pct": 0.0,
+            "long_balls90": 3.71,
+            "long_ball_pct": 56.2,
+            "big_chances_created90": 0.08,
+            "big_chances_missed90": 0.06,
+            "possession_lost90": 7.73,
+            "penalty_goals90": 0.0,
+            "xg_chain90": 0.48,
+            "saves90": 0.0,
+            "goals_prevented90": 0.0,
+            "goals_conceded90": 0.0,
+            "clean_sheet_pct": 8.6,
+            "yellow_cards90": 0.21,
+            "red_cards90": 0.01
+          },
+          {
+            "player": "Nuno Mendes",
+            "slot": "LB",
+            "team": "Paris Saint-Germain",
+            "xg90": 0.11,
+            "npxg90": 0.09,
+            "xa90": 0.12,
+            "xg_buildup90": 0.45,
+            "shots90": 0.95,
+            "shots_on_target90": 0.4,
+            "understat_shots90": 0.95,
+            "key_passes90": 0.96,
+            "dribbles90": 0.83,
+            "dribble_pct": 54.7,
+            "tackles90": 1.64,
+            "interceptions90": 1.01,
+            "pass_pct": 87.2,
+            "aerials_won90": 1.75,
+            "aerials_won_pct": 56.8,
+            "rating": 7.01,
+            "minutes": 1467,
+            "trophy_bonus": 0.163,
+            "trophy_notes": [
+              "2024-2025: league winner (Paris Saint-Germain)",
+              "2024-2025: UCL winner (Paris Saint-Germain)",
+              "2025-2026: league winner (Paris Saint-Germain)",
+              "2025-2026: UCL winner (Paris Saint-Germain)"
+            ],
+            "assists90": 0.12,
+            "clearances90": 3.04,
+            "blocks90": 0.0,
+            "ball_recoveries90": 0.0,
+            "duels_won_pct": 0.0,
+            "long_balls90": 3.7,
+            "long_ball_pct": 55.5,
+            "big_chances_created90": 0.3,
+            "big_chances_missed90": 0.09,
+            "possession_lost90": 10.77,
+            "penalty_goals90": 0.01,
+            "xg_chain90": 0.56,
+            "saves90": 0.0,
+            "goals_prevented90": 0.0,
+            "goals_conceded90": 0.0,
+            "clean_sheet_pct": 6.8,
+            "yellow_cards90": 0.15,
+            "red_cards90": 0.01
+          },
+          {
+            "player": "Declan Rice",
+            "slot": "DM1",
+            "team": "Arsenal",
+            "xg90": 0.12,
+            "npxg90": 0.12,
+            "xa90": 0.19,
+            "xg_buildup90": 0.33,
+            "shots90": 1.47,
+            "shots_on_target90": 0.49,
+            "understat_shots90": 1.46,
+            "key_passes90": 1.82,
+            "dribbles90": 0.63,
+            "dribble_pct": 50.5,
+            "tackles90": 1.66,
+            "interceptions90": 0.8,
+            "pass_pct": 86.3,
+            "aerials_won90": 0.42,
+            "aerials_won_pct": 51.5,
+            "rating": 7.29,
+            "minutes": 2966,
+            "trophy_bonus": 0.07,
+            "trophy_notes": [
+              "2025-2026: league winner (Arsenal)",
+              "2025-2026: UCL finalist (Arsenal)"
+            ],
+            "assists90": 0.18,
+            "clearances90": 1.55,
+            "blocks90": 0.0,
+            "ball_recoveries90": 0.0,
+            "duels_won_pct": 0.0,
+            "long_balls90": 2.04,
+            "long_ball_pct": 53.6,
+            "big_chances_created90": 0.44,
+            "big_chances_missed90": 0.1,
+            "possession_lost90": 12.41,
+            "penalty_goals90": 0.01,
+            "xg_chain90": 0.54,
+            "saves90": 0.0,
+            "goals_prevented90": 0.0,
+            "goals_conceded90": 0.0,
+            "clean_sheet_pct": 8.6,
+            "yellow_cards90": 0.13,
+            "red_cards90": 0.01
+          },
+          {
+            "player": "João Neves",
+            "slot": "DM2",
+            "team": "Paris Saint-Germain",
+            "xg90": 0.18,
+            "npxg90": 0.18,
+            "xa90": 0.17,
+            "xg_buildup90": 0.43,
+            "shots90": 1.73,
+            "shots_on_target90": 0.59,
+            "understat_shots90": 1.73,
+            "key_passes90": 1.47,
+            "dribbles90": 0.98,
+            "dribble_pct": 54.6,
+            "tackles90": 1.67,
+            "interceptions90": 0.6,
+            "pass_pct": 84.9,
+            "aerials_won90": 0.3,
+            "aerials_won_pct": 47.4,
+            "rating": 7.09,
+            "minutes": 1572,
+            "trophy_bonus": 0.1747,
+            "trophy_notes": [
+              "2024-2025: league winner (Paris Saint-Germain)",
+              "2024-2025: UCL winner (Paris Saint-Germain)",
+              "2025-2026: league winner (Paris Saint-Germain)",
+              "2025-2026: UCL winner (Paris Saint-Germain)"
+            ],
+            "assists90": 0.2,
+            "clearances90": 0.57,
+            "blocks90": 0.0,
+            "ball_recoveries90": 0.0,
+            "duels_won_pct": 0.0,
+            "long_balls90": 2.03,
+            "long_ball_pct": 58.9,
+            "big_chances_created90": 0.31,
+            "big_chances_missed90": 0.14,
+            "possession_lost90": 10.44,
+            "penalty_goals90": 0.01,
+            "xg_chain90": 0.68,
+            "saves90": 0.0,
+            "goals_prevented90": 0.0,
+            "goals_conceded90": 0.0,
+            "clean_sheet_pct": 5.4,
+            "yellow_cards90": 0.09,
+            "red_cards90": 0.0
+          },
+          {
+            "player": "Bruno Fernandes",
+            "slot": "AM",
+            "team": "Manchester United",
+            "xg90": 0.32,
+            "npxg90": 0.24,
+            "xa90": 0.25,
+            "xg_buildup90": 0.32,
+            "shots90": 2.61,
+            "shots_on_target90": 0.83,
+            "understat_shots90": 2.6,
+            "key_passes90": 2.8,
+            "dribbles90": 0.68,
+            "dribble_pct": 44.8,
+            "tackles90": 1.74,
+            "interceptions90": 0.57,
+            "pass_pct": 79.9,
+            "aerials_won90": 0.35,
+            "aerials_won_pct": 51.3,
+            "rating": 7.44,
+            "minutes": 3045,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ],
+            "assists90": 0.37,
+            "clearances90": 0.99,
+            "blocks90": 0.0,
+            "ball_recoveries90": 0.0,
+            "duels_won_pct": 0.0,
+            "long_balls90": 3.53,
+            "long_ball_pct": 57.8,
+            "big_chances_created90": 0.59,
+            "big_chances_missed90": 0.29,
+            "possession_lost90": 16.63,
+            "penalty_goals90": 0.09,
+            "xg_chain90": 0.69,
+            "saves90": 0.0,
+            "goals_prevented90": 0.0,
+            "goals_conceded90": 0.0,
+            "clean_sheet_pct": 9.1,
+            "yellow_cards90": 0.12,
+            "red_cards90": 0.02
+          },
+          {
+            "player": "Khvicha Kvaratskhelia",
+            "slot": "LW",
+            "team": "Paris Saint-Germain",
+            "xg90": 0.36,
+            "npxg90": 0.34,
+            "xa90": 0.15,
+            "xg_buildup90": 0.33,
+            "shots90": 2.94,
+            "shots_on_target90": 1.18,
+            "understat_shots90": 2.85,
+            "key_passes90": 1.48,
+            "dribbles90": 1.26,
+            "dribble_pct": 46.7,
+            "tackles90": 0.98,
+            "interceptions90": 0.34,
+            "pass_pct": 78.2,
+            "aerials_won90": 0.45,
+            "aerials_won_pct": 45.5,
+            "rating": 7.02,
+            "minutes": 1335,
+            "trophy_bonus": 0.1075,
+            "trophy_notes": [
+              "2024-2025: league winner (SSC Napoli)",
+              "2025-2026: league winner (Paris Saint-Germain)",
+              "2025-2026: UCL winner (Paris Saint-Germain)"
+            ],
+            "assists90": 0.16,
+            "clearances90": 0.56,
+            "blocks90": 0.0,
+            "ball_recoveries90": 0.0,
+            "duels_won_pct": 0.0,
+            "long_balls90": 1.12,
+            "long_ball_pct": 55.3,
+            "big_chances_created90": 0.28,
+            "big_chances_missed90": 0.33,
+            "possession_lost90": 12.59,
+            "penalty_goals90": 0.05,
+            "xg_chain90": 0.78,
+            "saves90": 0.0,
+            "goals_prevented90": 0.0,
+            "goals_conceded90": 0.0,
+            "clean_sheet_pct": 0.0,
+            "yellow_cards90": 0.11,
+            "red_cards90": 0.0
+          },
+          {
+            "player": "Erling Haaland",
+            "slot": "ST",
+            "team": "Manchester City",
+            "xg90": 0.63,
+            "npxg90": 0.61,
+            "xa90": 0.08,
+            "xg_buildup90": 0.14,
+            "shots90": 3.32,
+            "shots_on_target90": 1.62,
+            "understat_shots90": 3.3,
+            "key_passes90": 0.93,
+            "dribbles90": 0.57,
+            "dribble_pct": 46.8,
+            "tackles90": 0.52,
+            "interceptions90": 0.18,
+            "pass_pct": 68.7,
+            "aerials_won90": 0.29,
+            "aerials_won_pct": 50.7,
+            "rating": 7.18,
+            "minutes": 2849,
+            "trophy_bonus": 0.0,
+            "trophy_notes": [
+              "No title/finalist club in window"
+            ],
+            "assists90": 0.16,
+            "clearances90": 0.93,
+            "blocks90": 0.0,
+            "ball_recoveries90": 0.0,
+            "duels_won_pct": 0.0,
+            "long_balls90": 0.3,
+            "long_ball_pct": 48.3,
+            "big_chances_created90": 0.21,
+            "big_chances_missed90": 0.67,
+            "possession_lost90": 8.16,
+            "penalty_goals90": 0.08,
+            "xg_chain90": 0.78,
+            "saves90": 0.0,
+            "goals_prevented90": 0.0,
+            "goals_conceded90": 0.0,
+            "clean_sheet_pct": 0.0,
+            "yellow_cards90": 0.09,
+            "red_cards90": 0.0
+          },
+          {
+            "player": "Ousmane Dembélé",
+            "slot": "RW",
+            "team": "Paris Saint-Germain",
+            "xg90": 0.48,
+            "npxg90": 0.43,
+            "xa90": 0.2,
+            "xg_buildup90": 0.27,
+            "shots90": 3.18,
+            "shots_on_target90": 1.41,
+            "understat_shots90": 3.18,
+            "key_passes90": 1.97,
+            "dribbles90": 1.3,
+            "dribble_pct": 50.1,
+            "tackles90": 0.7,
+            "interceptions90": 0.24,
+            "pass_pct": 77.5,
+            "aerials_won90": 0.44,
+            "aerials_won_pct": 45.8,
+            "rating": 7.16,
+            "minutes": 1399,
+            "trophy_bonus": 0.1554,
+            "trophy_notes": [
+              "2024-2025: league winner (Paris Saint-Germain)",
+              "2024-2025: UCL winner (Paris Saint-Germain)",
+              "2025-2026: league winner (Paris Saint-Germain)",
+              "2025-2026: UCL winner (Paris Saint-Germain)"
+            ],
+            "assists90": 0.25,
+            "clearances90": 0.52,
+            "blocks90": 0.0,
+            "ball_recoveries90": 0.0,
+            "duels_won_pct": 0.0,
+            "long_balls90": 1.33,
+            "long_ball_pct": 59.7,
+            "big_chances_created90": 0.39,
+            "big_chances_missed90": 0.45,
+            "possession_lost90": 13.63,
+            "penalty_goals90": 0.07,
+            "xg_chain90": 0.82,
+            "saves90": 0.0,
+            "goals_prevented90": 0.0,
+            "goals_conceded90": 0.0,
+            "clean_sheet_pct": 0.0,
+            "yellow_cards90": 0.11,
+            "red_cards90": 0.0
+          }
+        ]
+      }
+    },
+    "mechanics": {
+      "home_attacks_vs_away_defence": 0.834,
+      "away_attacks_vs_home_defence": 0.848,
+      "midfield_battle": {
+        "home_multiplier": 1.002,
+        "away_multiplier": 0.998
+      },
+      "wide_matchup": {
+        "home": {
+          "multiplier": 1.0254,
+          "boost": 0.0254,
+          "winger_threat": 0.688,
+          "transition_risk": 0.353,
+          "active": true
+        },
+        "away": {
+          "multiplier": 1.0,
+          "boost": 0.0,
+          "winger_threat": 0.499,
+          "transition_risk": 0.203,
+          "active": false
+        }
+      },
+      "press_matchup": {
+        "home": {
+          "multiplier": 0.9276,
+          "suppression": 0.0724,
+          "press_edge": 0.297,
+          "pressing_intensity": 0.414,
+          "press_resistance": 0.117,
+          "active": true
+        },
+        "away": {
+          "multiplier": 0.9374,
+          "suppression": 0.0626,
+          "press_edge": 0.228,
+          "pressing_intensity": 0.416,
+          "press_resistance": 0.188,
+          "active": true
+        }
+      }
+    },
+    "monte_carlo": {
+      "simulations": 5000,
+      "expected_xg": {
+        "home": 2.16,
+        "away": 2.25
+      },
+      "home_win_pct": 39.1,
+      "draw_pct": 19.7,
+      "away_win_pct": 41.2,
+      "home_goals_avg": 2.2,
+      "away_goals_avg": 2.26,
+      "total_goals_avg": 4.46,
+      "btts_pct": 78.6,
+      "over_2_5_pct": 82.0,
+      "scorelines": [
+        {
+          "score": "2-2",
+          "pct": 7.5
+        },
+        {
+          "score": "1-2",
+          "pct": 6.4
+        },
+        {
+          "score": "2-1",
+          "pct": 5.8
+        },
+        {
+          "score": "3-2",
+          "pct": 5.6
+        },
+        {
+          "score": "1-1",
+          "pct": 5.5
+        },
+        {
+          "score": "2-3",
+          "pct": 4.9
+        },
+        {
+          "score": "3-1",
+          "pct": 4.9
+        },
+        {
+          "score": "1-3",
+          "pct": 4.7
+        }
+      ],
+      "unit_ratings": {
+        "home": {
+          "attack": 0.822,
+          "finishing": 0.936,
+          "chance_creation": 0.675,
+          "midfield": 0.301,
+          "defence": 0.221,
+          "midfield_defence": 0.121,
+          "transition_risk": 0.203,
+          "goalkeeper": 0.4,
+          "overall": 0.456,
+          "gk_confidence": 0.953,
+          "gk_is_backup": false
+        },
+        "away": {
+          "attack": 0.86,
+          "finishing": 0.985,
+          "chance_creation": 0.701,
+          "midfield": 0.282,
+          "defence": 0.245,
+          "midfield_defence": 0.133,
+          "transition_risk": 0.353,
+          "goalkeeper": 0.738,
+          "overall": 0.498,
+          "gk_confidence": 0.949,
+          "gk_is_backup": false
+        }
+      },
+      "home_trophy_multiplier": 1.0725,
+      "away_trophy_multiplier": 1.0959,
+      "midfield_battle": {
+        "home_chance_multiplier": 1.002,
+        "away_chance_multiplier": 0.998
+      },
+      "bench_impact": {
+        "home": {
+          "bench_count": 0,
+          "bench_players": [],
+          "starting_xi": [
+            "David Raya",
+            "Jules Koundé",
+            "William Saliba",
+            "Pau Cubarsí",
+            "Piero Hincapié",
+            "Vitinha (Paris Saint-Germain)",
+            "Pedri",
+            "Bruno Guimarães",
+            "Lamine Yamal",
+            "Kai Havertz",
+            "Kylian Mbappé"
+          ],
+          "full_squad_size": 11,
+          "players": [],
+          "boosts": {
+            "attack": 0.0,
+            "creation": 0.0,
+            "defence": 0.0,
+            "total_applied_pct": 0.0
+          },
+          "contributed": false,
+          "summary": "No bench players — squad has 11 or fewer.",
+          "team": "Team A"
+        },
+        "away": {
+          "bench_count": 0,
+          "bench_players": [],
+          "starting_xi": [
+            "Joan García",
+            "Achraf Hakimi",
+            "Gabriel Magalhães",
+            "Dayot Upamecano",
+            "Nuno Mendes",
+            "Declan Rice",
+            "João Neves",
+            "Bruno Fernandes",
+            "Khvicha Kvaratskhelia",
+            "Erling Haaland",
+            "Ousmane Dembélé"
+          ],
+          "full_squad_size": 11,
+          "players": [],
+          "boosts": {
+            "attack": 0.0,
+            "creation": 0.0,
+            "defence": 0.0,
+            "total_applied_pct": 0.0
+          },
+          "contributed": false,
+          "summary": "No bench players — squad has 11 or fewer.",
+          "team": "Team B"
+        }
+      }
+    },
+    "bench_impact": {
+      "home": {
+        "bench_count": 0,
+        "bench_players": [],
+        "starting_xi": [
+          "David Raya",
+          "Jules Koundé",
+          "William Saliba",
+          "Pau Cubarsí",
+          "Piero Hincapié",
+          "Vitinha (Paris Saint-Germain)",
+          "Pedri",
+          "Bruno Guimarães",
+          "Lamine Yamal",
+          "Kai Havertz",
+          "Kylian Mbappé"
+        ],
+        "full_squad_size": 11,
+        "players": [],
+        "boosts": {
+          "attack": 0.0,
+          "creation": 0.0,
+          "defence": 0.0,
+          "total_applied_pct": 0.0
+        },
+        "contributed": false,
+        "summary": "No bench players — squad has 11 or fewer.",
+        "team": "Team A"
+      },
+      "away": {
+        "bench_count": 0,
+        "bench_players": [],
+        "starting_xi": [
+          "Joan García",
+          "Achraf Hakimi",
+          "Gabriel Magalhães",
+          "Dayot Upamecano",
+          "Nuno Mendes",
+          "Declan Rice",
+          "João Neves",
+          "Bruno Fernandes",
+          "Khvicha Kvaratskhelia",
+          "Erling Haaland",
+          "Ousmane Dembélé"
+        ],
+        "full_squad_size": 11,
+        "players": [],
+        "boosts": {
+          "attack": 0.0,
+          "creation": 0.0,
+          "defence": 0.0,
+          "total_applied_pct": 0.0
+        },
+        "contributed": false,
+        "summary": "No bench players — squad has 11 or fewer.",
+        "team": "Team B"
+      }
+    },
+    "sample_match": {
+      "scoreline": "5-3",
+      "home": {
+        "team": "Team A",
+        "goals": 5,
+        "xg": 2.16,
+        "scorers": [
+          {
+            "minute": 11,
+            "scorer": "Lamine Yamal",
+            "assister": "Kylian Mbappé"
+          },
+          {
+            "minute": 12,
+            "scorer": "Lamine Yamal",
+            "assister": "Pedri"
+          },
+          {
+            "minute": 30,
+            "scorer": "Kylian Mbappé",
+            "assister": null
+          },
+          {
+            "minute": 51,
+            "scorer": "Lamine Yamal",
+            "assister": "Vitinha (Paris Saint-Germain)"
+          },
+          {
+            "minute": 84,
+            "scorer": "Kai Havertz",
+            "assister": "Pedri"
+          }
+        ]
+      },
+      "away": {
+        "team": "Team B",
+        "goals": 3,
+        "xg": 2.25,
+        "scorers": [
+          {
+            "minute": 49,
+            "scorer": "Ousmane Dembélé",
+            "assister": "Khvicha Kvaratskhelia"
+          },
+          {
+            "minute": 53,
+            "scorer": "Declan Rice",
+            "assister": "Khvicha Kvaratskhelia"
+          },
+          {
+            "minute": 60,
+            "scorer": "Achraf Hakimi",
+            "assister": null
+          }
+        ]
+      },
+      "winner": "Team A"
+    },
+    "season_overrides": {
+      "team_a": {},
+      "team_b": {}
+    },
+    "analysis": {
+      "favorite": null,
+      "favorite_side": "drawish",
+      "margin": "balanced",
+      "summary": "Very balanced matchup (39.1% / 19.7% / 41.2%). Expected goals: Team A 2.16 – 2.25 Team B.",
+      "expected_xg": {
+        "home": 2.16,
+        "away": 2.25,
+        "edge_side": "away",
+        "delta": 0.09
+      },
+      "outcomes": {
+        "home_win_pct": 39.1,
+        "draw_pct": 19.7,
+        "away_win_pct": 41.2
+      },
+      "key_factors": [
+        {
+          "factor": "Goalkeeper",
+          "edge": "away",
+          "home": 0.373,
+          "away": 0.673,
+          "delta": 0.3,
+          "impact": 0.3,
+          "explanation": "Team B has the stronger keeper (0.37 vs 0.67), shifting expected goals against."
+        },
+        {
+          "factor": "Transition risk",
+          "edge": "home",
+          "home": 0.203,
+          "away": 0.353,
+          "delta": 0.15,
+          "impact": 0.165,
+          "explanation": "Team A is more exposed on the counter (transition risk 0.20 vs 0.35 — lower is safer)."
+        },
+        {
+          "factor": "Chance creation",
+          "edge": "home",
+          "home": 0.492,
+          "away": 0.446,
+          "delta": -0.046,
+          "impact": 0.0598,
+          "explanation": "Team A builds more volume (creation 0.49 vs 0.45)."
+        },
+        {
+          "factor": "Press vs build-up",
+          "edge": "home",
+          "home": 0.414,
+          "away": 0.117,
+          "delta": -0.069,
+          "impact": 0.05865,
+          "explanation": "Team A can disrupt the other's build-up (press intensity vs press-resistance edge -0.07)."
+        },
+        {
+          "factor": "Finishing quality",
+          "edge": "home",
+          "home": 0.762,
+          "away": 0.721,
+          "delta": -0.041,
+          "impact": 0.0574,
+          "explanation": "Team A converts chances better (finishing 0.76 vs 0.72)."
+        },
+        {
+          "factor": "Midfield shield",
+          "edge": "away",
+          "home": 0.262,
+          "away": 0.32,
+          "delta": 0.058,
+          "impact": 0.0522,
+          "explanation": "Team B shields the defence better (mid-def 0.26 vs 0.32)."
+        }
+      ],
+      "head_to_head": {
+        "finishing": {
+          "home": 0.762,
+          "away": 0.721,
+          "edge": "home"
+        },
+        "chance_creation": {
+          "home": 0.492,
+          "away": 0.446,
+          "edge": "home"
+        },
+        "goalkeeper": {
+          "home": 0.373,
+          "away": 0.673,
+          "edge": "away"
+        },
+        "defence": {
+          "home": 0.45,
+          "away": 0.448,
+          "edge": null
+        },
+        "midfield_defence": {
+          "home": 0.262,
+          "away": 0.32,
+          "edge": "away"
+        },
+        "transition_risk": {
+          "home": 0.203,
+          "away": 0.353,
+          "edge": "home"
+        },
+        "possession": {
+          "home": 0.414,
+          "away": 0.117,
+          "edge": "home"
+        },
+        "formation_fit": {
+          "home": 0.704,
+          "away": 0.648,
+          "edge": "home"
+        }
+      },
+      "mechanics_summary": {
+        "home_attacks_vs_away_defence": 0.834,
+        "away_attacks_vs_home_defence": 0.848,
+        "midfield_battle": {
+          "home_multiplier": 1.002,
+          "away_multiplier": 0.998
+        },
+        "press_matchup": {
+          "home": {
+            "multiplier": 0.9276,
+            "suppression": 0.0724,
+            "press_edge": 0.297,
+            "pressing_intensity": 0.414,
+            "press_resistance": 0.117,
+            "active": true
+          },
+          "away": {
+            "multiplier": 0.9374,
+            "suppression": 0.0626,
+            "press_edge": 0.228,
+            "pressing_intensity": 0.416,
+            "press_resistance": 0.188,
+            "active": true
+          }
+        }
+      },
+      "sections": [
+        {
+          "title": "Verdict",
+          "paragraphs": [
+            "Very balanced matchup (39.1% / 19.7% / 41.2%). Expected goals: Team A 2.16 – 2.25 Team B."
+          ],
+          "bullets": [
+            "Team B has the stronger keeper (0.37 vs 0.67), shifting expected goals against.",
+            "Team A is more exposed on the counter (transition risk 0.20 vs 0.35 — lower is safer).",
+            "Team A builds more volume (creation 0.49 vs 0.45)."
+          ]
+        },
+        {
+          "title": "Expected goals pipeline",
+          "paragraphs": [
+            "The engine splits attack into finishing and chance-creation channels (xA / xG-buildup / xG-chain credit all outfield positions), then applies opponent suppression (back line 54%, mid shield 32%, GK 14%) and midfield battle modifiers.",
+            "Team A raw attack xG: 2.24 finishing + 0.18 creation = 2.42 before suppression. When Team B defends, suppression factor is 0.848 (DEF 0.45, mid-def 0.32, GK 0.67, transition risk 0.35).",
+            "Team B raw attack xG: 2.16 + 0.16 = 2.33. Team A suppression when defending: 0.834 (transition risk 0.20).",
+            "Midfield battle multipliers: Team A ×1.002, Team B ×0.998. Net xG edge: Team B by 0.09."
+          ],
+          "bullets": []
+        },
+        {
+          "title": "Defensive structure & transitions",
+          "paragraphs": [
+            "Team A xGA suppression: 0.747 (base without transition penalty: 0.839). Team B: 0.738 (base 0.816).",
+            "Team A fullbacks: Jules Koundé (RB, exposure 0.21), Piero Hincapié (LB, exposure 0.13). Team transition risk 0.203 — high attacking fullbacks increase counter vulnerability when midfield cover is thin.",
+            "Team B fullbacks: Achraf Hakimi (RB, exposure 0.33), Nuno Mendes (LB, exposure 0.25). Team transition risk 0.353 — high attacking fullbacks increase counter vulnerability when midfield cover is thin.",
+            "Opposition wing threat vs leaky fullbacks: Team A's wide attack gets a +2.5% xG edge (winger threat 0.69, Team B transition risk 0.35).",
+            "Press vs build-up: Team A's press trims Team B's chance creation by ~7.2% (press 0.41 vs resistance 0.12). Press vs build-up: Team B's press trims Team A's chance creation by ~6.3% (press 0.42 vs resistance 0.19)."
+          ],
+          "bullets": []
+        },
+        {
+          "title": "Formation & squad fit",
+          "paragraphs": [
+            "Team A (4-3-3 attacking): average formation fit 0.86. Chance creation index 0.45, possession 0.70.",
+            "Team B (4-2-3-1): average formation fit 0.90. Chance creation index 0.49, possession 0.65."
+          ],
+          "bullets": []
+        },
+        {
+          "title": "Monte Carlo interpretation",
+          "paragraphs": [
+            "Across 5,000 neutral-venue runs, average scoreline tendency is 2.20–2.26. Both teams score 78.6% of the time; over 2.5 goals 82.0%.",
+            "Most common scoreline: 2-2 (7.5%)."
+          ],
+          "bullets": [
+            "Trophy boost: Team A ×1.073, Team B ×1.096 (applied in simulation units)."
+          ]
+        }
+      ]
+    },
+    "squad_analysis": {
+      "home": {
+        "name": "Team A",
+        "formation": "4-3-3 attacking",
+        "summary": "Team A: Elite defence (0.45).; Team press resistance is a concern (0.19).",
+        "strengths": [
+          "Elite defence (0.45).",
+          "Elite finishing (0.76).",
+          "Elite fit at AM: Bruno Guimarães (fit 0.90).",
+          "Elite fit at CB1: William Saliba (fit 0.91).",
+          "Elite fit at CB2: Pau Cubarsí (fit 0.92)."
+        ],
+        "weaknesses": [
+          "Team press resistance is a concern (0.19).",
+          "No squad depth on the bench.",
+          "Slight goalkeeper concern (0.37).",
+          "Team pressing intensity slightly below average (0.41)."
+        ],
+        "tier_labels": {
+          "strength": [
+            "Elite defence (0.45).",
+            "Elite finishing (0.76).",
+            "Elite fit at AM: Bruno Guimarães (fit 0.90).",
+            "Elite fit at CB1: William Saliba (fit 0.91).",
+            "Elite fit at CB2: Pau Cubarsí (fit 0.92)."
+          ],
+          "moderate_strength": [],
+          "balanced": [],
+          "moderate_weakness": [
+            "No squad depth on the bench.",
+            "Slight goalkeeper concern (0.37).",
+            "Team pressing intensity slightly below average (0.41)."
+          ],
+          "weakness": [
+            "Team press resistance is a concern (0.19)."
+          ]
+        },
+        "sections": [
+          {
+            "title": "Attack",
+            "bullets": [
+              "Attacking effectiveness 0.65 (whole XI).",
+              "Unit attack 0.55; finishing 0.76; creation 0.49.",
+              "Raw xG split: finishing 2.24 + creation 0.18."
+            ]
+          },
+          {
+            "title": "Midfield",
+            "bullets": [
+              "Midfield unit (DM/CM/AM slots) 0.59; team midfield control 0.56.",
+              "Possession control 0.70; pass completion avg 83.6%.",
+              "Pressing intensity 0.41; press resistance 0.19."
+            ]
+          },
+          {
+            "title": "Defence",
+            "bullets": [
+              "Back-line unit 0.45; midfield shield 0.26.",
+              "Team defensive solidity 0.56; aerial defence 0.49; xGA suppression 0.747.",
+              "Transition risk 0.20 (lower is safer).",
+              "Wide defenders: Jules Koundé (RB), Piero Hincapié (LB)."
+            ]
+          },
+          {
+            "title": "Formation fit",
+            "bullets": [
+              "Average formation fit 0.86 in 4-3-3 attacking.",
+              "No major formation-fit concerns in the starting XI."
+            ]
+          },
+          {
+            "title": "Squad depth",
+            "bullets": [
+              "No bench listed — depth multiplier not applied."
+            ]
+          },
+          {
+            "title": "Team profile",
+            "bullets": [
+              "Creativity 0.45 · Midfield control 0.56 · Possession 0.70.",
+              "Finishing threat 0.78 · Defensive solidity 0.56.",
+              "Pressing 0.41 · Press resistance 0.19 · Team profile overall 0.63."
+            ]
+          }
+        ],
+        "units": {
+          "attack": 0.55,
+          "finishing": 0.762,
+          "chance_creation": 0.492,
+          "midfield": 0.588,
+          "defence": 0.45,
+          "midfield_defence": 0.262,
+          "transition_risk": 0.203,
+          "goalkeeper": 0.373,
+          "overall": 0.506,
+          "gk_confidence": 0.953,
+          "gk_is_backup": 0.0
+        },
+        "team_composites": {
+          "creativity": 0.448,
+          "midfield_control": 0.562,
+          "possession_control": 0.704,
+          "finishing_threat": 0.775,
+          "defensive_solidity": 0.564,
+          "attacking_effectiveness": 0.654,
+          "pressing_intensity": 0.414,
+          "press_resistance": 0.188,
+          "transition_threat": 0.644,
+          "aerial_defence": 0.488,
+          "overall": 0.63
+        }
+      },
+      "away": {
+        "name": "Team B",
+        "formation": "4-2-3-1",
+        "summary": "Team B: Elite defence (0.45).; Team press resistance is a concern (0.12).",
+        "strengths": [
+          "Elite defence (0.45).",
+          "Elite finishing (0.72).",
+          "Elite fit at AM: Bruno Fernandes (fit 0.92).",
+          "Elite fit at CB1: Gabriel Magalhães (fit 0.91).",
+          "Elite fit at CB2: Dayot Upamecano (fit 0.93)."
+        ],
+        "weaknesses": [
+          "Team press resistance is a concern (0.12).",
+          "Elevated transition risk (0.35).",
+          "No squad depth on the bench.",
+          "Team pressing intensity slightly below average (0.42)."
+        ],
+        "tier_labels": {
+          "strength": [
+            "Elite defence (0.45).",
+            "Elite finishing (0.72).",
+            "Elite fit at AM: Bruno Fernandes (fit 0.92).",
+            "Elite fit at CB1: Gabriel Magalhães (fit 0.91).",
+            "Elite fit at CB2: Dayot Upamecano (fit 0.93)."
+          ],
+          "moderate_strength": [],
+          "balanced": [],
+          "moderate_weakness": [
+            "Elevated transition risk (0.35).",
+            "No squad depth on the bench.",
+            "Team pressing intensity slightly below average (0.42)."
+          ],
+          "weakness": [
+            "Team press resistance is a concern (0.12)."
+          ]
+        },
+        "sections": [
+          {
+            "title": "Attack",
+            "bullets": [
+              "Attacking effectiveness 0.62 (whole XI).",
+              "Unit attack 0.56; finishing 0.72; creation 0.45.",
+              "Raw xG split: finishing 2.16 + creation 0.16."
+            ]
+          },
+          {
+            "title": "Midfield",
+            "bullets": [
+              "Midfield unit (DM/CM/AM slots) 0.50; team midfield control 0.52.",
+              "Possession control 0.65; pass completion avg 82.0%.",
+              "Pressing intensity 0.42; press resistance 0.12."
+            ]
+          },
+          {
+            "title": "Defence",
+            "bullets": [
+              "Back-line unit 0.45; midfield shield 0.32.",
+              "Team defensive solidity 0.57; aerial defence 0.41; xGA suppression 0.738.",
+              "Transition risk 0.35 (lower is safer).",
+              "Wide defenders: Achraf Hakimi (RB), Nuno Mendes (LB)."
+            ]
+          },
+          {
+            "title": "Formation fit",
+            "bullets": [
+              "Average formation fit 0.90 in 4-2-3-1.",
+              "No major formation-fit concerns in the starting XI."
+            ]
+          },
+          {
+            "title": "Squad depth",
+            "bullets": [
+              "No bench listed — depth multiplier not applied."
+            ]
+          },
+          {
+            "title": "Team profile",
+            "bullets": [
+              "Creativity 0.49 · Midfield control 0.52 · Possession 0.65.",
+              "Finishing threat 0.73 · Defensive solidity 0.57.",
+              "Pressing 0.42 · Press resistance 0.12 · Team profile overall 0.60."
+            ]
+          }
+        ],
+        "units": {
+          "attack": 0.564,
+          "finishing": 0.721,
+          "chance_creation": 0.446,
+          "midfield": 0.503,
+          "defence": 0.448,
+          "midfield_defence": 0.32,
+          "transition_risk": 0.353,
+          "goalkeeper": 0.673,
+          "overall": 0.52,
+          "gk_confidence": 0.949,
+          "gk_is_backup": 0.0
+        },
+        "team_composites": {
+          "creativity": 0.488,
+          "midfield_control": 0.521,
+          "possession_control": 0.648,
+          "finishing_threat": 0.728,
+          "defensive_solidity": 0.567,
+          "attacking_effectiveness": 0.625,
+          "pressing_intensity": 0.416,
+          "press_resistance": 0.117,
+          "transition_threat": 0.361,
+          "aerial_defence": 0.41,
+          "overall": 0.597
+        }
+      }
+    }
+  }
+}

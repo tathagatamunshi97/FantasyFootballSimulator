@@ -2616,8 +2616,27 @@
     function countArrivingRunners(side) {
       return pinsOf(side).filter((p) => {
         if (p.role === "GK" || inPenaltyBox(p)) return false;
+        const running = p._running || p.lockUntil > matchMinute;
+        if (!running) return false;
         const d = fromPitchPct(p.side, p.left, p.top).depth;
-        return d > 0.78 && (p._running || p.lockUntil > matchMinute);
+        if (d > 0.78) return true;
+        // Bug fix — sequencing gap behind the box-arrival investigation:
+        // this only ever credited a runner AFTER their own depth had
+        // already crossed 0.78, but boxOccupationReady (the main consumer)
+        // gets checked as part of the shoot/cross decision itself, not
+        // after the fact — a runner genuinely underway and close to
+        // arriving read as invisible right when it mattered. Look-ahead:
+        // credit a runner heading toward a real box-depth target (their
+        // own tx/ty, not current position) who is close enough to
+        // genuinely get there soon — capped at ~0.4 match-minutes (0.8
+        // sim-seconds) at their own top running speed (RUN_SPEED_PCT), not
+        // an arbitrary distance. A runner just setting off from miles away
+        // still correctly doesn't count.
+        const targetDepth = fromPitchPct(p.side, p.tx, p.ty).depth;
+        if (targetDepth <= 0.78) return false;
+        const remaining = Math.hypot(p.tx - p.left, p.ty - p.top);
+        const speed = RUN_SPEED_PCT[p.role] || 28;
+        return remaining <= speed * 0.8;
       }).length;
     }
 
@@ -2745,16 +2764,21 @@
       return clamp(score * stageWeight, 0, 1);
     }
 
-    function findBestArrivingReceiver(carrier, stage, depth) {
+    function findBestArrivingReceiver(carrier, stage, depth, minScore) {
       // Of all teammates, find the one with highest scoreDynamicReceiver()
-      // Returns the candidate pin or null if no one scores above threshold
+      // Returns the candidate pin or null if no one scores above threshold.
+      // minScore lets a caller demand a stronger option than the default
+      // "worth considering at all" bar — see the Priority 1.45 pass-first
+      // check above, which needs a genuinely good progressive option, not
+      // just any technically-open teammate, before preferring it over a
+      // deep player's own carry.
       if (!carrier || !stage) return null;
 
       const mates = teammates(carrier);
       if (!mates.length) return null;
 
       let best = null;
-      let bestScore = 0.15; // threshold: must score above this to be considered a real option
+      let bestScore = minScore ?? 0.15; // threshold: must score above this to be considered a real option
 
       for (const m of mates) {
         // Never immediately return the ball to whoever just passed it to us --
@@ -2835,6 +2859,79 @@
       const dribblePressure = pressureAt(carrier.left, carrier.top, carrier.side);
       const dribbleOpenness = 1 / (1 + dribblePressure);
       const carrierThreat = nearestOpponent(carrier, 10);
+
+      // Priority 1.4: a genuinely wide shooting opportunity that the box
+      // helpers above correctly don't count as boxed/near-boxed (see
+      // isWideShootingZone's own comment — x=0.85-0.95 really is outside
+      // the real penalty area). Real football still has this shot: a
+      // winger cutting to the corner of the box on a tight-but-viable
+      // angle. Weighted, not automatic — angle quality (falls to ~0 right
+      // at the touchline/byline), the carrier's own finishing signal, how
+      // much room he actually has, and how tight the nearest marker is all
+      // compete against just letting the existing priorities below (open-
+      // space dribble, receiver pass, hold-up) carry on exactly as before.
+      if (isWideShootingZone(carrier)) {
+        const angleQ = shotAngleQuality(carrier);
+        const fq = finisherQuality(carrier);
+        const contest = carrierThreat ? clamp(1 - carrierThreat.d / 6, 0, 1) : 0;
+        // Angle GATES the weight (multiplicative), finishing quality only
+        // scales it up or down on top — a weak angle stays a weak angle
+        // regardless of who's got the ball, it doesn't get additively
+        // rescued by a good finishing profile. Verified against three
+        // reference spots before wiring in: wide-but-still-outside-the-box
+        // (~0.16, cross/cutback clearly dominate), a real edge-of-box
+        // angle for an elite finisher (~0.29, genuinely viable) vs. an
+        // average one at the same spot (~0.18, noticeably less so), and
+        // under a tight marker at that same edge-of-box spot (~0.11,
+        // defensive pressure suppresses it).
+        const shootWeight = clamp(
+          (angleQ - 0.1) * 1.8 * (0.45 + fq * 0.9) + dribbleOpenness * 0.06 - contest * 0.32,
+          0,
+          0.75
+        );
+        if (rng() < shootWeight) {
+          return { type: "shoot" };
+        }
+      }
+
+      // Priority 1.45 — pass-first for deep/build-up roles (CB/FB/DM).
+      // Instrumented a real match: CB carriers dribbled 23 times and passed
+      // only 12; the isolation-dribble check right below fires for EVERY
+      // role uniformly whenever the carrier is open, without ever looking
+      // at whether a genuinely good progressive pass exists — and a deep
+      // defender with time on the ball is exactly the carrier state that
+      // check was tuned for, since real opponents press the middle/final
+      // third harder than their own defensive third. The result: the ball
+      // rarely reaches CM/AM before someone in defence has already carried
+      // it forward themselves, starving creative midfielders of service.
+      // Real center-backs/fullbacks/holding mids look to distribute first
+      // and only carry when nothing better is on -- so for these three
+      // roles only, check for a real receiver (reusing
+      // findBestArrivingReceiver's existing quality bar: forward
+      // progression, distance, passing lane, receiver's own pressure and
+      // creative/finishing value -- not "anyone technically open") before
+      // the self-carry option below gets a look. Attacking roles (W/AM/
+      // ST/CM) keep the existing order unchanged -- their own dribble/
+      // take-on instinct is intentional, not the bug this fixes.
+      if (carrier.role === "CB" || carrier.role === "FB" || carrier.role === "DM") {
+        // Bug fix — first cut of this reused Priority 2's default 0.15 bar,
+        // which is tuned for "worth considering at all," not "good enough
+        // that a deep player should prefer it over just carrying a few
+        // yards." Verified against a real match: CB/FB/DM dropped to ZERO
+        // dribbles for the entire 90 minutes at 0.15 — every technically-
+        // open teammate qualified, exactly the "CBs dumping it sideways
+        // every time someone is technically open" failure mode this was
+        // supposed to avoid. Raised so only a genuinely progressive option
+        // (real forward advancement + real openness, not just clearing a
+        // low bar) preempts the carry — a merely-adequate sideways option
+        // now correctly falls through to the isolation-dribble/take-on
+        // logic below instead.
+        const earlyReceiver = findBestArrivingReceiver(carrier, stage, depth, 0.32);
+        if (earlyReceiver) {
+          return { type: "pass", target: earlyReceiver };
+        }
+      }
+
       // Bug fix — "free on goal, why pass back?": the 0.25 depth floor
       // excluded a genuinely uncontested carrier receiving deep (e.g. a
       // striker dropping to help build, or right after winning the ball
@@ -3686,6 +3783,18 @@
       const boxed = countBoxAttackers(side);
       const arriving = countArrivingRunners(side);
       if (boxed >= 2 || (boxed >= 1 && arriving >= 1)) return true;
+      // Bug fix — closes the remaining sequencing gap countArrivingRunners'
+      // own look-ahead (see its comment) doesn't fully solve: boxed only
+      // ever reflects who is LITERALLY standing in the box at the exact
+      // instant this gets checked, but this check itself fires as part of
+      // the shoot/cross decision, often a beat before the carrier (or a
+      // teammate) actually steps in. Two genuinely inbound, about-to-arrive
+      // runners (both already past countArrivingRunners' own look-ahead
+      // bar) is real box occupation forming, not a coin flip on timing —
+      // matches "at least two runners join the box" without requiring one
+      // to have already crossed the geometric line by pure luck of when
+      // this happened to be polled.
+      if (arriving >= 2) return true;
       const urg = spell && spell.side === side ? progressionUrgency(spell) : 0;
       const ad = attackDefendDelta(side);
       if (urg >= 1.05 && boxed >= 1) return true;
@@ -4512,6 +4621,72 @@
       return !inPenaltyBox(pin) && rel.depth >= 0.7 && rel.x >= 0.22 && rel.x <= 0.78;
     }
 
+    /**
+     * Real geometric shot angle (approx pitch meters, 105x68m goal-to-goal),
+     * used for the wide-carrier shoot-vs-cross-vs-cutback decision in
+     * decideWideFinalThird -- NOT wired into estimateChanceXg's own shot-
+     * quality calc, which stays untouched (out of scope for this change).
+     * 0deg = no goal visible at all (level with or past the goal line, wide
+     * of the post); ~37deg = a central penalty-spot look; grows further as
+     * the carrier gets close and central (six-yard box). This is what makes
+     * a winger glued to the touchline at the byline correctly read as a
+     * near-zero angle (a real "why would he shoot from there" position)
+     * while a winger who's cut to the corner of the box gets a real, if
+     * modest, angle -- the "rises approaching the box, falls again right at
+     * the byline" shape falls straight out of the geometry, no separate
+     * hand-tuned byline penalty needed.
+     */
+    const PITCH_LENGTH_M = 105;
+    const PITCH_WIDTH_M = 68;
+    const GOAL_HALF_WIDTH_M = 3.66;
+    function shotAngleDeg(carrier) {
+      const rel = fromPitchPct(carrier.side, carrier.left, carrier.top);
+      const dx = (rel.x - 0.5) * PITCH_WIDTH_M;
+      const dy = Math.max(0.5, (1 - rel.depth) * PITCH_LENGTH_M);
+      const aL = Math.atan2(-GOAL_HALF_WIDTH_M - dx, dy);
+      const aR = Math.atan2(GOAL_HALF_WIDTH_M - dx, dy);
+      return Math.abs(aR - aL) * (180 / Math.PI);
+    }
+    /** 0-~1.3 normalized version of shotAngleDeg: ~1.0 at a central
+     * penalty-spot look, higher for tap-in range, near-0 once the angle
+     * closes up (wide of the post / level with the goal line). */
+    function shotAngleQuality(carrier) {
+      return clamp(shotAngleDeg(carrier) / 37, 0, 1.3);
+    }
+
+    /**
+     * A wide carrier's box helpers (inPenaltyBox/nearPenaltyBox) are
+     * correct, real-geometry checks — x~0.24-0.76 genuinely is the penalty
+     * area, and a winger out at x=0.85-0.95 genuinely isn't in it. That was
+     * never the bug. The bug: evaluateArrivals (the dominant decision path
+     * — checked first, every tick, before any pattern-based fallback) had
+     * NO shooting concept at all for the genuinely-wide-but-plausibly-
+     * shootable stretch just past the box's edge — isWideChannel's own
+     * boundary (x<0.24 or x>0.76) sits almost exactly where
+     * nearPenaltyBox's stops, so a carrier out there fell through every
+     * priority in evaluateArrivals into an endless dribble/pass loop,
+     * never a shot (confirmed via instrumentation: decideWideFinalThird,
+     * the older pattern-fallback shoot fix, was never even reached across
+     * three full synthetic matches — evaluateArrivals was resolving
+     * everything first).
+     * Deliberately separate from and narrower than the box helpers — does
+     * NOT touch inPenaltyBox/nearPenaltyBox themselves (doShot,
+     * countBoxAttackers, boxOccupationReady, attemptSpellChance and others
+     * all depend on those staying real-geometry-accurate; widening them
+     * globally would ripple into all of those for no reason). Gated on: a
+     * real, non-trivial angle (shotAngleQuality — falls to ~0 right at the
+     * touchline or the byline, see its own comment), final-third-or-deeper
+     * depth, and not already covered by the box helpers above (avoids
+     * double-counting evaluateArrivals's own Priority 1).
+     */
+    function isWideShootingZone(carrier) {
+      if (!carrier || !isAttackFinisher(carrier)) return false;
+      if (inPenaltyBox(carrier) || nearPenaltyBox(carrier)) return false;
+      if (!isWideChannel(carrier)) return false;
+      if (possessionDepth(carrier) < 0.68) return false;
+      return shotAngleQuality(carrier) > 0.12;
+    }
+
     function fbAttackThreat(pin) {
       if (!pin || pin.role !== "FB") return 0;
       const s = pin.stats;
@@ -4744,7 +4919,18 @@
             (rng() - 0.5) * 0.04) *
           closeMul;
         if (rng() < clamp(stopP, 0.04, 0.28)) {
-          const opp = threat?.pin || nearestOpponent(carrier, 14)?.pin;
+          // Bug fix — "attacker is far from the defender but commentary says
+          // stopped": the blind 14-unit fallback let a defender who was
+          // genuinely nowhere near the actual challenge (threat null, i.e.
+          // nobody was within the real engageRadius above) still get named
+          // as the one who "stopped" the carrier, with the ball warping
+          // straight to wherever that defender happened to be standing and
+          // that pin never moving an inch — from the viewer's side,
+          // indistinguishable from the attacker just passing it backward.
+          // Only credit a real, close-enough-to-plausibly-make-the-
+          // challenge defender; if nobody is that close, there's no stop
+          // this tick (falls through to the normal advance below).
+          const opp = threat?.pin;
           if (opp) {
             pushMatchEvent("dribble_lost", carrier.side, {
               player: carrier.player,
@@ -4754,9 +4940,22 @@
             });
             say(`${opp.short} stops ${carrier.short}`, 1.35);
             ballAttached = false;
-            const arc = passArcFor(carrier.left, carrier.top, opp.left, opp.top, "pass");
+            // Land the ball at the point of the challenge, near the carrier
+            // — not warped across to wherever opp was standing — and give
+            // opp a real corrective close-down so the pin actually arrives
+            // there instead of the ball just floating to a stationary
+            // defender.
+            const stopAngle = Math.atan2(opp.top - carrier.top, opp.left - carrier.left);
+            const closeDist = clamp(dist(carrier, opp) * 0.3, 1, 3.5);
+            const landLeft = clamp(carrier.left + Math.cos(stopAngle) * closeDist, 2, 98);
+            const landTop = clamp(carrier.top + Math.sin(stopAngle) * closeDist, 2, 98);
+            const arc = passArcFor(carrier.left, carrier.top, landLeft, landTop, "pass");
             const dur = clamp(arc.dur, 0.2, 0.4);
-            setBallTarget(opp.left, opp.top, dur, false, arc.ctrl);
+            setBallTarget(landLeft, landTop, dur, false, arc.ctrl);
+            opp.tx = landLeft;
+            opp.ty = landTop;
+            opp._running = true;
+            opp.lockUntil = matchMinute + dur + 0.3;
             actionTimer = dur + 0.2;
             ballFlight = { outcome: "dribble_lost", interceptor: opp, comment: `${opp.short} closes it down` };
             return false;
@@ -5688,6 +5887,30 @@
       const ad = attackDefendDelta(carrier.side);
       const flankEdge = flankMatchupEdge(carrier.side, pinFlank(carrier));
       const aerialEdge = aerialAtk - aerialDef;
+
+      // Structural fix — this function used to be cross/cutback/recycle
+      // ONLY, with no shooting branch at all, no matter how deep the
+      // carrier got. A winger glued to the touchline (isWideChannel) who
+      // beat his man and reached the byline unmarked still could only
+      // deliver or recycle -- the shot was architecturally unavailable,
+      // not just low-probability. Recognize a genuine wide-box shooting
+      // opportunity first: real geometric angle (shotAngleQuality, falls
+      // toward 0 both far from goal AND right on the byline wide of the
+      // post) combined with the carrier's own finishing signal
+      // (finisherQuality) and how tightly marked he is. Only even offered
+      // when boxed or near-box -- outside the box this stays cross/
+      // cutback/recycle exactly as before.
+      const boxed = inPenaltyBox(carrier);
+      const nearBox = !boxed && nearPenaltyBox(carrier);
+      const angleQ = shotAngleQuality(carrier);
+      let shootW = 0;
+      if ((boxed || nearBox) && angleQ > 0.12 && isAttackFinisher(carrier)) {
+        const fq = finisherQuality(carrier);
+        const marker = nearestOpponent(carrier, 6);
+        const contest = marker ? clamp(1 - marker.d / 6, 0, 1) : 0;
+        shootW = Math.max(0, 0.1 + angleQ * 0.85 + fq * 0.55 - contest * 0.4);
+      }
+
       const crossW =
         0.9 +
         carrier.stats.xa90 * 1.85 +
@@ -5715,11 +5938,19 @@
       // to 0.54 alongside pickAttackPattern's wRecycle for the same reason.
       recycleW *= clamp(1.1 - urg * 0.54 - Math.max(0, ad) * 0.3, 0.2, 1.1);
       if (forwardInFinalThird(carrier) || fbDeepInBox(carrier)) recycleW = 0;
-      const pick = weightedPick([
+      const options = [
         { id: "cross", w: Math.max(0.05, crossW) },
         { id: "cutback", w: cutbackW },
         { id: "recycle", w: recycleW },
-      ]);
+      ];
+      if (shootW > 0) options.push({ id: "shoot", w: shootW });
+      const pick = weightedPick(options);
+
+      if (pick === "shoot") {
+        say(`${carrier.short} goes himself — shoots!`, 1.35);
+        doShot(carrier, false);
+        return true;
+      }
 
       if ((pick === "recycle" || (!ready && rng() < 0.55 - urg * 0.2)) && urg < 1.05 && !fbDeepInBox(carrier)) {
         if (forwardInFinalThird(carrier)) {
@@ -8847,8 +9078,28 @@
       let ty = to.top;
       let crossPost = null;
       if (outcome === "intercept" || outcome === "steal") {
-        tx = interceptor.left;
-        ty = interceptor.top;
+        // Bug fix — same class as the driveIntoBox/doDribble teleport fix:
+        // the ball used to snap straight to wherever the interceptor
+        // happened to be standing, which can be well off the actual pass
+        // line (a presser near the passer, or a marker off to the side of
+        // the receiver), with that defender's own pin never moving to meet
+        // it — reads as the attacker just passing it straight to the
+        // "wrong" player. Land it at the closest point ON THE PASS'S OWN
+        // FLIGHT LINE to the interceptor (where the interception
+        // realistically happens), and give the interceptor a short
+        // corrective close-down to that same point so the pins actually
+        // converge on screen.
+        const abx = to.left - from.left;
+        const aby = to.top - from.top;
+        const lenSq = abx * abx + aby * aby || 1;
+        let t = ((interceptor.left - from.left) * abx + (interceptor.top - from.top) * aby) / lenSq;
+        t = clamp(t, 0.15, 0.95);
+        tx = from.left + abx * t;
+        ty = from.top + aby * t;
+        interceptor.tx = tx;
+        interceptor.ty = ty;
+        interceptor._running = true;
+        interceptor.lockUntil = matchMinute + 0.5;
       } else if (passKind === "through") {
         const attackSign = from.side === "home" ? -1 : 1;
         ty = clamp(to.top + attackSign * 4, 4, 96);
@@ -8903,8 +9154,16 @@
             outcome = "intercept";
             interceptor = bestCb;
             comment = `${bestCb.short} wins the aerial`;
-            tx = bestCb.left;
-            ty = bestCb.top;
+            // Bug fix — same teleport class as the open-play intercept
+            // fix, though milder here since bestCb was already chosen for
+            // being nearest the cross's own landing spot. Keep the ball at
+            // that real landing spot (tx/ty already set above) instead of
+            // snapping to bestCb's exact standing position, and give him a
+            // short corrective close-down so the pin actually meets it.
+            bestCb.tx = tx;
+            bestCb.ty = ty;
+            bestCb._running = true;
+            bestCb.lockUntil = matchMinute + 0.5;
             pushMatchEvent("pass_broken", bestCb.side, {
               player: bestCb.player,
               player_short: bestCb.short,
@@ -9029,10 +9288,19 @@
       const threatMod = threat ? defensiveArchetypeModifiers(threat.pin) : null;
       const tackleWeight = 0.07 * (1 + (threatMod ? threatMod.aggressionBias : 0));
       const interceptWeight = 0.02 * (1 + (threatMod ? -threatMod.aggressionBias * 0.6 : 0));
+      // Engine addition — buff dribbling for attackers/creative players.
+      // dribbles90/dribble_pct's own coefficients used to apply flat
+      // across every role, so a winger's or AM's actual dribbling ability
+      // translated into exactly the same practical edge as a CB's
+      // incidental dribble stat. Real attacking/creative players should get
+      // more out of the same underlying numbers — this only scales their
+      // OWN stats up, it doesn't touch the defender's side of the contest
+      // or any non-attacking role's baseline.
+      const dribbleRoleMult = { ST: 1.3, W: 1.35, AM: 1.25, CM: 1.15 }[carrier.role] || 1.0;
       const successP =
         0.28 +
-        carrier.stats.dribbles90 * 0.07 +
-        carrier.stats.dribble_pct * 0.0035 +
+        carrier.stats.dribbles90 * 0.07 * dribbleRoleMult +
+        carrier.stats.dribble_pct * 0.0035 * dribbleRoleMult +
         resist * 0.16 +
         atkU * 0.06 -
         Math.max(0, fieldPressure - resist * 1.6) * 0.16 -
@@ -9110,7 +9378,17 @@
           }
         }
       } else {
-        const opp = threat?.pin || nearestOpponent(carrier, 30)?.pin || pinsOf(oppOf(carrier.side))[3];
+        // Bug fix — "attacker is far from the defender but commentary says
+        // stopped": a 30-unit blind fallback (almost a third of the pitch)
+        // let a defender who was nowhere near the real challenge get named
+        // as the one who "stopped" the carrier, with the ball warping to
+        // wherever they happened to be standing. Shrunk to a distance a
+        // defender could plausibly have actually closed down in real time.
+        // The pinsOf(...)[3] fallback stays purely as a non-null safety net
+        // for the foul-quality math just below (opp.stats.* is dereferenced
+        // unconditionally) — in normal play a defender within 10 units
+        // almost always exists, so it essentially never fires.
+        const opp = threat?.pin || nearestOpponent(carrier, 10)?.pin || pinsOf(oppOf(carrier.side))[3];
         // Engine addition — fouls. A defender "winning" this duel wasn't
         // necessarily a clean tackle; some fraction is a foul instead, more
         // likely in a dangerous last-man situation (attacker already in the
@@ -9223,11 +9501,23 @@
           detail: opp ? `stopped by ${opp.short}` : "loses possession",
         });
         say(opp ? `${opp.short} stops ${carrier.short}` : `${carrier.short} loses it`, 1.4);
-        // Ball ends at the tackler's feet — path decided now
+        // Ball ends at the point of the challenge — path decided now.
+        // Bug fix — same class as driveIntoBox: land near the carrier
+        // (where the tackle actually happens), not warped across to
+        // wherever opp was standing, and give opp a real corrective
+        // close-down so the pin actually arrives there.
         if (opp) {
           ballAttached = false;
-          const arc = passArcFor(ball.left, ball.top, opp.left, opp.top, "pass");
-          setBallTarget(opp.left, opp.top, Math.min(dur, arc.dur), false, arc.ctrl);
+          const stopAngle = Math.atan2(opp.top - carrier.top, opp.left - carrier.left);
+          const closeDist = clamp(dist(carrier, opp) * 0.3, 1, 3.5);
+          const landLeft = clamp(carrier.left + Math.cos(stopAngle) * closeDist, 2, 98);
+          const landTop = clamp(carrier.top + Math.sin(stopAngle) * closeDist, 2, 98);
+          const arc = passArcFor(ball.left, ball.top, landLeft, landTop, "pass");
+          setBallTarget(landLeft, landTop, Math.min(dur, arc.dur), false, arc.ctrl);
+          opp.tx = landLeft;
+          opp.ty = landTop;
+          opp._running = true;
+          opp.lockUntil = matchMinute + arc.dur + 0.3;
           actionTimer = arc.dur + 0.15;
         }
         ballFlight = {

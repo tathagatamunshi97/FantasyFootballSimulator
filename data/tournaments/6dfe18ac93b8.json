@@ -3,7 +3,7 @@
   "name": "Fantasy Cup",
   "status": "group_stage",
   "created_at": "2026-07-12T07:24:03.660798+00:00",
-  "updated_at": "2026-08-04T06:20:36.856381+00:00",
+  "updated_at": "2026-08-12T06:45:48.752167+00:00",
   "team_names": [
     "Sohom+Mayukh",
     "Rishav",
@@ -44,8 +44,11 @@
           "home": "Rishav",
           "away": "Rohan + AnaC",
           "round": 1,
-          "played": false,
-          "result_id": null
+          "played": true,
+          "result_id": "gA-1",
+          "score": "1-0",
+          "home_goals": 1,
+          "away_goals": 0
         },
         {
           "id": "gA-2",
@@ -220,14 +223,14 @@
           "pts": 0
         },
         "Rishav": {
-          "played": 0,
-          "w": 0,
+          "played": 1,
+          "w": 1,
           "d": 0,
           "l": 0,
-          "gf": 0,
+          "gf": 1,
           "ga": 0,
-          "gd": 0,
-          "pts": 0
+          "gd": 1,
+          "pts": 3
         },
         "Subhadro+Shubhajit": {
           "played": 0,
@@ -270,13 +273,13 @@
           "pts": 0
         },
         "Rohan + AnaC": {
-          "played": 0,
+          "played": 1,
           "w": 0,
           "d": 0,
-          "l": 0,
+          "l": 1,
           "gf": 0,
-          "ga": 0,
-          "gd": 0,
+          "ga": 1,
+          "gd": -1,
           "pts": 0
         }
       }
@@ -539,8 +542,1303 @@
     "format": "two_leg",
     "rounds": []
   },
-  "match_results": {},
-  "player_tallies": [],
-  "top_goalscorers": [],
-  "top_assisters": []
+  "match_results": {
+    "gA-1": {
+      "match_id": "gA-1",
+      "stage": "group",
+      "home": "Rishav",
+      "away": "Rohan + AnaC",
+      "score": "1-0",
+      "home_goals": 1,
+      "away_goals": 0,
+      "engine": "tactic_board",
+      "engine_home_goals": 1,
+      "engine_away_goals": 0,
+      "winner": "Rishav",
+      "manually_overridden": false,
+      "admin_accepted": true,
+      "admin_reviewed_at": "2026-08-12T06:45:48.751347+00:00",
+      "played_at": "2026-08-12T06:45:48.751364+00:00",
+      "simulations": 0,
+      "ft_home_goals": 1,
+      "ft_away_goals": 0,
+      "board_events": [
+        {
+          "type": "possession",
+          "side": "home",
+          "minute": 0,
+          "player": null,
+          "player_short": null,
+          "detail": "Kick-off"
+        },
+        {
+          "type": "shot",
+          "side": "home",
+          "minute": 0,
+          "player": "Luis Suárez",
+          "player_short": "Suárez",
+          "detail": "long_shot",
+          "xg": 0.14
+        },
+        {
+          "type": "save",
+          "side": "away",
+          "minute": 0,
+          "player": "Matz Sels",
+          "player_short": "Sels",
+          "detail": "denied Suárez",
+          "against": "home"
+        },
+        {
+          "type": "possession",
+          "side": "away",
+          "minute": 0,
+          "player": null,
+          "player_short": null,
+          "detail": "Sels clears"
+        },
+        {
+          "type": "pass_broken",
+          "side": "home",
+          "minute": 3,
+          "player": "Kenan Yıldız",
+          "player_short": "Yıldız",
+          "detail": "broke Allister's pass",
+          "by": "Kenan Yıldız",
+          "against": "away"
+        },
+        {
+          "type": "possession",
+          "side": "home",
+          "minute": 3,
+          "player": null,
+          "player_short": null,
+          "detail": "Yıldız intercepts"
+        },
+        {
+          "type": "pass_broken",
+          "side": "away",
+          "minute": 4,
+          "player": "Micky van de Ven",
+          "player_short": "Ven",
+          "detail": "broke Semenyo's pass",
+          "by": "Micky van de Ven",
+          "against": "home"
+        },
+        {
+          "type": "possession",
+          "side": "away",
+          "minute": 5,
+          "player": null,
+          "player_short": null,
+          "detail": "Ven intercepts"
+        },
+        {
+          "type": "pass_broken",
+          "side": "home",
+          "minute": 5,
+          "player": "Alejandro Balde",
+          "player_short": "Balde",
+          "detail": "cuts out the long ball",
+          "by": "Alejandro Balde",
+          "against": "away"
+        },
+        {
+          "type": "possession",
+          "side": "home",
+          "minute": 5,
+          "player": null,
+          "player_short": null,
+          "detail": "Balde intercepts"
+        },
+        {
+          "type": "shot",
+          "side": "home",
+          "minute": 9,
+          "player": "Kevin De Bruyne",
+          "player_short": "Bruyne",
+          "detail": "long_shot",
+          "xg": 0.086
+        },
+        {
+          "type": "possession",
+          "side": "away",
+          "minute": 9,
+          "player": null,
+          "player_short": null,
+          "detail": "Ven starts again"
+        },
+        {
+          "type": "shot",
+          "side": "away",
+          "minute": 14,
+          "player": "Vinícius Júnior",
+          "player_short": "Júnior",
+          "detail": "long_shot",
+          "xg": 0.107
+        },
+        {
+          "type": "save",
+          "side": "home",
+          "minute": 14,
+          "player": "Thibaut Courtois",
+          "player_short": "Courtois",
+          "detail": "denied Júnior",
+          "against": "away"
+        },
+        {
+          "type": "possession",
+          "side": "home",
+          "minute": 14,
+          "player": null,
+          "player_short": null,
+          "detail": "Courtois clears"
+        },
+        {
+          "type": "pass_broken",
+          "side": "away",
+          "minute": 17,
+          "player": "Nathaniel Brown",
+          "player_short": "Brown",
+          "detail": "broke Dumfries's pass",
+          "by": "Nathaniel Brown",
+          "against": "home"
+        },
+        {
+          "type": "possession",
+          "side": "away",
+          "minute": 17,
+          "player": null,
+          "player_short": null,
+          "detail": "Brown intercepts"
+        },
+        {
+          "type": "offside",
+          "side": "away",
+          "minute": 25,
+          "player": "Roberto Firmino",
+          "player_short": "Firmino",
+          "detail": "flagged offside"
+        },
+        {
+          "type": "possession",
+          "side": "home",
+          "minute": 25,
+          "player": null,
+          "player_short": null,
+          "detail": "spell"
+        },
+        {
+          "type": "shot",
+          "side": "home",
+          "minute": 31,
+          "player": "Kevin De Bruyne",
+          "player_short": "Bruyne",
+          "detail": "long_shot",
+          "xg": 0.103
+        },
+        {
+          "type": "blocked_shot",
+          "side": "away",
+          "minute": 31,
+          "player": "Nathaniel Brown",
+          "player_short": "Brown",
+          "detail": "blocked Bruyne",
+          "against": "home"
+        },
+        {
+          "type": "possession",
+          "side": "away",
+          "minute": 31,
+          "player": null,
+          "player_short": null,
+          "detail": "Brown clears the danger"
+        },
+        {
+          "type": "shot",
+          "side": "away",
+          "minute": 37,
+          "player": "Vinícius Júnior",
+          "player_short": "Júnior",
+          "detail": "long_shot",
+          "xg": 0.115
+        },
+        {
+          "type": "save",
+          "side": "home",
+          "minute": 37,
+          "player": "Thibaut Courtois",
+          "player_short": "Courtois",
+          "detail": "denied Júnior",
+          "against": "away"
+        },
+        {
+          "type": "possession",
+          "side": "home",
+          "minute": 37,
+          "player": null,
+          "player_short": null,
+          "detail": "Courtois clears"
+        },
+        {
+          "type": "pass_broken",
+          "side": "away",
+          "minute": 39,
+          "player": "Mohamed Salah",
+          "player_short": "Salah",
+          "detail": "broke Dumfries's pass",
+          "by": "Mohamed Salah",
+          "against": "home"
+        },
+        {
+          "type": "possession",
+          "side": "away",
+          "minute": 40,
+          "player": null,
+          "player_short": null,
+          "detail": "Salah intercepts"
+        },
+        {
+          "type": "offside",
+          "side": "away",
+          "minute": 47,
+          "player": "Roberto Firmino",
+          "player_short": "Firmino",
+          "detail": "flagged offside"
+        },
+        {
+          "type": "possession",
+          "side": "home",
+          "minute": 48,
+          "player": null,
+          "player_short": null,
+          "detail": "spell"
+        },
+        {
+          "type": "pass_broken",
+          "side": "away",
+          "minute": 49,
+          "player": "Daniel Muñoz",
+          "player_short": "Muñoz",
+          "detail": "cuts out the long ball",
+          "by": "Daniel Muñoz",
+          "against": "home"
+        },
+        {
+          "type": "possession",
+          "side": "away",
+          "minute": 49,
+          "player": null,
+          "player_short": null,
+          "detail": "Muñoz intercepts"
+        },
+        {
+          "type": "pass_broken",
+          "side": "home",
+          "minute": 51,
+          "player": "Marquinhos",
+          "player_short": "Marquinhos",
+          "detail": "cuts out the long ball",
+          "by": "Marquinhos",
+          "against": "away"
+        },
+        {
+          "type": "possession",
+          "side": "home",
+          "minute": 51,
+          "player": null,
+          "player_short": null,
+          "detail": "Marquinhos intercepts"
+        },
+        {
+          "type": "pass_broken",
+          "side": "away",
+          "minute": 53,
+          "player": "Daniel Muñoz",
+          "player_short": "Muñoz",
+          "detail": "cuts out the long ball",
+          "by": "Daniel Muñoz",
+          "against": "home"
+        },
+        {
+          "type": "possession",
+          "side": "away",
+          "minute": 53,
+          "player": null,
+          "player_short": null,
+          "detail": "Muñoz intercepts"
+        },
+        {
+          "type": "pass_broken",
+          "side": "home",
+          "minute": 58,
+          "player": "Denzel Dumfries",
+          "player_short": "Dumfries",
+          "detail": "broke Salah's pass",
+          "by": "Denzel Dumfries",
+          "against": "away"
+        },
+        {
+          "type": "possession",
+          "side": "home",
+          "minute": 58,
+          "player": null,
+          "player_short": null,
+          "detail": "Dumfries intercepts"
+        },
+        {
+          "type": "pass_broken",
+          "side": "away",
+          "minute": 59,
+          "player": "Nathaniel Brown",
+          "player_short": "Brown",
+          "detail": "broke Yıldız's pass",
+          "by": "Nathaniel Brown",
+          "against": "home"
+        },
+        {
+          "type": "possession",
+          "side": "away",
+          "minute": 59,
+          "player": null,
+          "player_short": null,
+          "detail": "Brown intercepts"
+        },
+        {
+          "type": "shot",
+          "side": "away",
+          "minute": 61,
+          "player": "Alexis Mac Allister",
+          "player_short": "Allister",
+          "detail": "long_shot",
+          "xg": 0.116
+        },
+        {
+          "type": "save",
+          "side": "home",
+          "minute": 62,
+          "player": "Thibaut Courtois",
+          "player_short": "Courtois",
+          "detail": "denied Allister",
+          "against": "away"
+        },
+        {
+          "type": "possession",
+          "side": "home",
+          "minute": 62,
+          "player": null,
+          "player_short": null,
+          "detail": "Courtois clears"
+        },
+        {
+          "type": "shot",
+          "side": "home",
+          "minute": 66,
+          "player": "Kevin De Bruyne",
+          "player_short": "Bruyne",
+          "detail": "long_shot",
+          "xg": 0.123
+        },
+        {
+          "type": "goal",
+          "side": "home",
+          "minute": 67,
+          "player": "Kevin De Bruyne",
+          "player_short": "Bruyne",
+          "detail": "1–0",
+          "assist": "Luis Suárez",
+          "assist_short": "Suárez"
+        },
+        {
+          "type": "possession",
+          "side": "away",
+          "minute": 69,
+          "player": null,
+          "player_short": null,
+          "detail": "Firmino restarts"
+        },
+        {
+          "type": "shot",
+          "side": "away",
+          "minute": 78,
+          "player": "Mohamed Salah",
+          "player_short": "Salah",
+          "detail": "long_shot",
+          "xg": 0.14
+        },
+        {
+          "type": "save",
+          "side": "home",
+          "minute": 79,
+          "player": "Thibaut Courtois",
+          "player_short": "Courtois",
+          "detail": "denied Salah",
+          "against": "away"
+        },
+        {
+          "type": "possession",
+          "side": "home",
+          "minute": 79,
+          "player": null,
+          "player_short": null,
+          "detail": "Courtois clears"
+        },
+        {
+          "type": "pass_broken",
+          "side": "away",
+          "minute": 81,
+          "player": "Vinícius Júnior",
+          "player_short": "Júnior",
+          "detail": "broke Dumfries's pass",
+          "by": "Vinícius Júnior",
+          "against": "home"
+        },
+        {
+          "type": "possession",
+          "side": "away",
+          "minute": 81,
+          "player": null,
+          "player_short": null,
+          "detail": "Júnior intercepts"
+        },
+        {
+          "type": "pass_broken",
+          "side": "home",
+          "minute": 84,
+          "player": "Alejandro Balde",
+          "player_short": "Balde",
+          "detail": "broke Allister's pass",
+          "by": "Alejandro Balde",
+          "against": "away"
+        },
+        {
+          "type": "possession",
+          "side": "home",
+          "minute": 84,
+          "player": null,
+          "player_short": null,
+          "detail": "Balde intercepts"
+        },
+        {
+          "type": "pass_broken",
+          "side": "away",
+          "minute": 86,
+          "player": "Gabriel Magalhães",
+          "player_short": "Magalhães",
+          "detail": "cuts out the long ball",
+          "by": "Gabriel Magalhães",
+          "against": "home"
+        },
+        {
+          "type": "possession",
+          "side": "away",
+          "minute": 86,
+          "player": null,
+          "player_short": null,
+          "detail": "Magalhães intercepts"
+        }
+      ],
+      "match_log": {
+        "goals": [
+          {
+            "side": "home",
+            "minute": 67,
+            "player": "Kevin De Bruyne",
+            "player_short": "Bruyne",
+            "assist": "Luis Suárez",
+            "assist_short": "Suárez"
+          }
+        ],
+        "assists": [
+          {
+            "side": "home",
+            "minute": 67,
+            "player": "Luis Suárez",
+            "player_short": "Suárez",
+            "for_player": "Kevin De Bruyne"
+          }
+        ],
+        "events": [
+          {
+            "type": "possession",
+            "side": "home",
+            "minute": 0,
+            "player": null,
+            "player_short": null,
+            "detail": "Kick-off"
+          },
+          {
+            "type": "shot",
+            "side": "home",
+            "minute": 0,
+            "player": "Luis Suárez",
+            "player_short": "Suárez",
+            "detail": "long_shot",
+            "xg": 0.14
+          },
+          {
+            "type": "save",
+            "side": "away",
+            "minute": 0,
+            "player": "Matz Sels",
+            "player_short": "Sels",
+            "detail": "denied Suárez",
+            "against": "home"
+          },
+          {
+            "type": "possession",
+            "side": "away",
+            "minute": 0,
+            "player": null,
+            "player_short": null,
+            "detail": "Sels clears"
+          },
+          {
+            "type": "pass_broken",
+            "side": "home",
+            "minute": 3,
+            "player": "Kenan Yıldız",
+            "player_short": "Yıldız",
+            "detail": "broke Allister's pass",
+            "by": "Kenan Yıldız",
+            "against": "away"
+          },
+          {
+            "type": "possession",
+            "side": "home",
+            "minute": 3,
+            "player": null,
+            "player_short": null,
+            "detail": "Yıldız intercepts"
+          },
+          {
+            "type": "pass_broken",
+            "side": "away",
+            "minute": 4,
+            "player": "Micky van de Ven",
+            "player_short": "Ven",
+            "detail": "broke Semenyo's pass",
+            "by": "Micky van de Ven",
+            "against": "home"
+          },
+          {
+            "type": "possession",
+            "side": "away",
+            "minute": 5,
+            "player": null,
+            "player_short": null,
+            "detail": "Ven intercepts"
+          },
+          {
+            "type": "pass_broken",
+            "side": "home",
+            "minute": 5,
+            "player": "Alejandro Balde",
+            "player_short": "Balde",
+            "detail": "cuts out the long ball",
+            "by": "Alejandro Balde",
+            "against": "away"
+          },
+          {
+            "type": "possession",
+            "side": "home",
+            "minute": 5,
+            "player": null,
+            "player_short": null,
+            "detail": "Balde intercepts"
+          },
+          {
+            "type": "shot",
+            "side": "home",
+            "minute": 9,
+            "player": "Kevin De Bruyne",
+            "player_short": "Bruyne",
+            "detail": "long_shot",
+            "xg": 0.086
+          },
+          {
+            "type": "possession",
+            "side": "away",
+            "minute": 9,
+            "player": null,
+            "player_short": null,
+            "detail": "Ven starts again"
+          },
+          {
+            "type": "shot",
+            "side": "away",
+            "minute": 14,
+            "player": "Vinícius Júnior",
+            "player_short": "Júnior",
+            "detail": "long_shot",
+            "xg": 0.107
+          },
+          {
+            "type": "save",
+            "side": "home",
+            "minute": 14,
+            "player": "Thibaut Courtois",
+            "player_short": "Courtois",
+            "detail": "denied Júnior",
+            "against": "away"
+          },
+          {
+            "type": "possession",
+            "side": "home",
+            "minute": 14,
+            "player": null,
+            "player_short": null,
+            "detail": "Courtois clears"
+          },
+          {
+            "type": "pass_broken",
+            "side": "away",
+            "minute": 17,
+            "player": "Nathaniel Brown",
+            "player_short": "Brown",
+            "detail": "broke Dumfries's pass",
+            "by": "Nathaniel Brown",
+            "against": "home"
+          },
+          {
+            "type": "possession",
+            "side": "away",
+            "minute": 17,
+            "player": null,
+            "player_short": null,
+            "detail": "Brown intercepts"
+          },
+          {
+            "type": "offside",
+            "side": "away",
+            "minute": 25,
+            "player": "Roberto Firmino",
+            "player_short": "Firmino",
+            "detail": "flagged offside"
+          },
+          {
+            "type": "possession",
+            "side": "home",
+            "minute": 25,
+            "player": null,
+            "player_short": null,
+            "detail": "spell"
+          },
+          {
+            "type": "shot",
+            "side": "home",
+            "minute": 31,
+            "player": "Kevin De Bruyne",
+            "player_short": "Bruyne",
+            "detail": "long_shot",
+            "xg": 0.103
+          },
+          {
+            "type": "blocked_shot",
+            "side": "away",
+            "minute": 31,
+            "player": "Nathaniel Brown",
+            "player_short": "Brown",
+            "detail": "blocked Bruyne",
+            "against": "home"
+          },
+          {
+            "type": "possession",
+            "side": "away",
+            "minute": 31,
+            "player": null,
+            "player_short": null,
+            "detail": "Brown clears the danger"
+          },
+          {
+            "type": "shot",
+            "side": "away",
+            "minute": 37,
+            "player": "Vinícius Júnior",
+            "player_short": "Júnior",
+            "detail": "long_shot",
+            "xg": 0.115
+          },
+          {
+            "type": "save",
+            "side": "home",
+            "minute": 37,
+            "player": "Thibaut Courtois",
+            "player_short": "Courtois",
+            "detail": "denied Júnior",
+            "against": "away"
+          },
+          {
+            "type": "possession",
+            "side": "home",
+            "minute": 37,
+            "player": null,
+            "player_short": null,
+            "detail": "Courtois clears"
+          },
+          {
+            "type": "pass_broken",
+            "side": "away",
+            "minute": 39,
+            "player": "Mohamed Salah",
+            "player_short": "Salah",
+            "detail": "broke Dumfries's pass",
+            "by": "Mohamed Salah",
+            "against": "home"
+          },
+          {
+            "type": "possession",
+            "side": "away",
+            "minute": 40,
+            "player": null,
+            "player_short": null,
+            "detail": "Salah intercepts"
+          },
+          {
+            "type": "offside",
+            "side": "away",
+            "minute": 47,
+            "player": "Roberto Firmino",
+            "player_short": "Firmino",
+            "detail": "flagged offside"
+          },
+          {
+            "type": "possession",
+            "side": "home",
+            "minute": 48,
+            "player": null,
+            "player_short": null,
+            "detail": "spell"
+          },
+          {
+            "type": "pass_broken",
+            "side": "away",
+            "minute": 49,
+            "player": "Daniel Muñoz",
+            "player_short": "Muñoz",
+            "detail": "cuts out the long ball",
+            "by": "Daniel Muñoz",
+            "against": "home"
+          },
+          {
+            "type": "possession",
+            "side": "away",
+            "minute": 49,
+            "player": null,
+            "player_short": null,
+            "detail": "Muñoz intercepts"
+          },
+          {
+            "type": "pass_broken",
+            "side": "home",
+            "minute": 51,
+            "player": "Marquinhos",
+            "player_short": "Marquinhos",
+            "detail": "cuts out the long ball",
+            "by": "Marquinhos",
+            "against": "away"
+          },
+          {
+            "type": "possession",
+            "side": "home",
+            "minute": 51,
+            "player": null,
+            "player_short": null,
+            "detail": "Marquinhos intercepts"
+          },
+          {
+            "type": "pass_broken",
+            "side": "away",
+            "minute": 53,
+            "player": "Daniel Muñoz",
+            "player_short": "Muñoz",
+            "detail": "cuts out the long ball",
+            "by": "Daniel Muñoz",
+            "against": "home"
+          },
+          {
+            "type": "possession",
+            "side": "away",
+            "minute": 53,
+            "player": null,
+            "player_short": null,
+            "detail": "Muñoz intercepts"
+          },
+          {
+            "type": "pass_broken",
+            "side": "home",
+            "minute": 58,
+            "player": "Denzel Dumfries",
+            "player_short": "Dumfries",
+            "detail": "broke Salah's pass",
+            "by": "Denzel Dumfries",
+            "against": "away"
+          },
+          {
+            "type": "possession",
+            "side": "home",
+            "minute": 58,
+            "player": null,
+            "player_short": null,
+            "detail": "Dumfries intercepts"
+          },
+          {
+            "type": "pass_broken",
+            "side": "away",
+            "minute": 59,
+            "player": "Nathaniel Brown",
+            "player_short": "Brown",
+            "detail": "broke Yıldız's pass",
+            "by": "Nathaniel Brown",
+            "against": "home"
+          },
+          {
+            "type": "possession",
+            "side": "away",
+            "minute": 59,
+            "player": null,
+            "player_short": null,
+            "detail": "Brown intercepts"
+          },
+          {
+            "type": "shot",
+            "side": "away",
+            "minute": 61,
+            "player": "Alexis Mac Allister",
+            "player_short": "Allister",
+            "detail": "long_shot",
+            "xg": 0.116
+          },
+          {
+            "type": "save",
+            "side": "home",
+            "minute": 62,
+            "player": "Thibaut Courtois",
+            "player_short": "Courtois",
+            "detail": "denied Allister",
+            "against": "away"
+          },
+          {
+            "type": "possession",
+            "side": "home",
+            "minute": 62,
+            "player": null,
+            "player_short": null,
+            "detail": "Courtois clears"
+          },
+          {
+            "type": "shot",
+            "side": "home",
+            "minute": 66,
+            "player": "Kevin De Bruyne",
+            "player_short": "Bruyne",
+            "detail": "long_shot",
+            "xg": 0.123
+          },
+          {
+            "type": "goal",
+            "side": "home",
+            "minute": 67,
+            "player": "Kevin De Bruyne",
+            "player_short": "Bruyne",
+            "detail": "1–0",
+            "assist": "Luis Suárez",
+            "assist_short": "Suárez"
+          },
+          {
+            "type": "possession",
+            "side": "away",
+            "minute": 69,
+            "player": null,
+            "player_short": null,
+            "detail": "Firmino restarts"
+          },
+          {
+            "type": "shot",
+            "side": "away",
+            "minute": 78,
+            "player": "Mohamed Salah",
+            "player_short": "Salah",
+            "detail": "long_shot",
+            "xg": 0.14
+          },
+          {
+            "type": "save",
+            "side": "home",
+            "minute": 79,
+            "player": "Thibaut Courtois",
+            "player_short": "Courtois",
+            "detail": "denied Salah",
+            "against": "away"
+          },
+          {
+            "type": "possession",
+            "side": "home",
+            "minute": 79,
+            "player": null,
+            "player_short": null,
+            "detail": "Courtois clears"
+          },
+          {
+            "type": "pass_broken",
+            "side": "away",
+            "minute": 81,
+            "player": "Vinícius Júnior",
+            "player_short": "Júnior",
+            "detail": "broke Dumfries's pass",
+            "by": "Vinícius Júnior",
+            "against": "home"
+          },
+          {
+            "type": "possession",
+            "side": "away",
+            "minute": 81,
+            "player": null,
+            "player_short": null,
+            "detail": "Júnior intercepts"
+          },
+          {
+            "type": "pass_broken",
+            "side": "home",
+            "minute": 84,
+            "player": "Alejandro Balde",
+            "player_short": "Balde",
+            "detail": "broke Allister's pass",
+            "by": "Alejandro Balde",
+            "against": "away"
+          },
+          {
+            "type": "possession",
+            "side": "home",
+            "minute": 84,
+            "player": null,
+            "player_short": null,
+            "detail": "Balde intercepts"
+          },
+          {
+            "type": "pass_broken",
+            "side": "away",
+            "minute": 86,
+            "player": "Gabriel Magalhães",
+            "player_short": "Magalhães",
+            "detail": "cuts out the long ball",
+            "by": "Gabriel Magalhães",
+            "against": "home"
+          },
+          {
+            "type": "possession",
+            "side": "away",
+            "minute": 86,
+            "player": null,
+            "player_short": null,
+            "detail": "Magalhães intercepts"
+          }
+        ],
+        "counts": {
+          "home": {
+            "goals": 1,
+            "assists": 1,
+            "shots": 4,
+            "big_chances": 0,
+            "offsides": 0,
+            "passes_broken": 5,
+            "dribbles_won": 0,
+            "dribbles_lost": 0,
+            "saves": 4,
+            "blocked_shots": 0,
+            "possessions": 12,
+            "turnovers": 0,
+            "chances_created": 4,
+            "xg": 0.451
+          },
+          "away": {
+            "goals": 0,
+            "assists": 0,
+            "shots": 4,
+            "big_chances": 0,
+            "offsides": 2,
+            "passes_broken": 8,
+            "dribbles_won": 0,
+            "dribbles_lost": 0,
+            "saves": 1,
+            "blocked_shots": 1,
+            "possessions": 12,
+            "turnovers": 0,
+            "chances_created": 4,
+            "xg": 0.478
+          }
+        },
+        "spells": [
+          {
+            "side": "away",
+            "start": 0,
+            "end": 3,
+            "duration": 3,
+            "will_chance": true,
+            "chance_done": false,
+            "pattern": null,
+            "stage": "PROGRESSING",
+            "outcome": "intercept",
+            "actions": 6
+          },
+          {
+            "side": "home",
+            "start": 3,
+            "end": 5,
+            "duration": 1.7,
+            "will_chance": false,
+            "chance_done": false,
+            "pattern": null,
+            "stage": "BOX_OCCUPATION",
+            "outcome": "intercept",
+            "actions": 4
+          },
+          {
+            "side": "away",
+            "start": 5,
+            "end": 5,
+            "duration": 0.6,
+            "will_chance": true,
+            "chance_done": false,
+            "pattern": null,
+            "stage": "BUILD_UP",
+            "outcome": "intercept",
+            "actions": 1
+          },
+          {
+            "side": "home",
+            "start": 14,
+            "end": 17,
+            "duration": 2.8,
+            "will_chance": true,
+            "chance_done": false,
+            "pattern": null,
+            "stage": "PROGRESSING",
+            "outcome": "intercept",
+            "actions": 6
+          },
+          {
+            "side": "home",
+            "start": 37,
+            "end": 40,
+            "duration": 2.9,
+            "will_chance": true,
+            "chance_done": false,
+            "pattern": null,
+            "stage": "BOX_OCCUPATION",
+            "outcome": "intercept",
+            "actions": 6
+          },
+          {
+            "side": "home",
+            "start": 48,
+            "end": 49,
+            "duration": 1.2,
+            "will_chance": true,
+            "chance_done": false,
+            "pattern": null,
+            "stage": "PROGRESSING",
+            "outcome": "intercept",
+            "actions": 3
+          },
+          {
+            "side": "away",
+            "start": 49,
+            "end": 51,
+            "duration": 2.3,
+            "will_chance": false,
+            "chance_done": false,
+            "pattern": null,
+            "stage": "BOX_OCCUPATION",
+            "outcome": "intercept",
+            "actions": 5
+          },
+          {
+            "side": "home",
+            "start": 51,
+            "end": 53,
+            "duration": 1.5,
+            "will_chance": true,
+            "chance_done": false,
+            "pattern": null,
+            "stage": "PROGRESSING",
+            "outcome": "intercept",
+            "actions": 3
+          },
+          {
+            "side": "away",
+            "start": 53,
+            "end": 58,
+            "duration": 4.9,
+            "will_chance": false,
+            "chance_done": false,
+            "pattern": null,
+            "stage": "CHANCE_CREATION",
+            "outcome": "intercept",
+            "actions": 12
+          },
+          {
+            "side": "home",
+            "start": 58,
+            "end": 59,
+            "duration": 1.2,
+            "will_chance": false,
+            "chance_done": false,
+            "pattern": null,
+            "stage": "PROGRESSING",
+            "outcome": "intercept",
+            "actions": 2
+          },
+          {
+            "side": "home",
+            "start": 62,
+            "end": 67,
+            "duration": 5.1,
+            "will_chance": true,
+            "chance_done": true,
+            "pattern": null,
+            "stage": "FINISH",
+            "outcome": "goal",
+            "actions": 12
+          },
+          {
+            "side": "home",
+            "start": 79,
+            "end": 81,
+            "duration": 2.8,
+            "will_chance": true,
+            "chance_done": false,
+            "pattern": null,
+            "stage": "FINAL_THIRD",
+            "outcome": "intercept",
+            "actions": 6
+          },
+          {
+            "side": "away",
+            "start": 81,
+            "end": 84,
+            "duration": 2.7,
+            "will_chance": false,
+            "chance_done": false,
+            "pattern": null,
+            "stage": "BOX_OCCUPATION",
+            "outcome": "intercept",
+            "actions": 6
+          },
+          {
+            "side": "home",
+            "start": 84,
+            "end": 86,
+            "duration": 2.2,
+            "will_chance": true,
+            "chance_done": false,
+            "pattern": null,
+            "stage": "PROGRESSING",
+            "outcome": "intercept",
+            "actions": 5
+          }
+        ],
+        "unit_edges": {
+          "home": {
+            "pressing_intensity": 0.344,
+            "press_resistance": 0.167,
+            "attacking_effectiveness": 0.697,
+            "finishing_threat": 0.816,
+            "defensive_unit": 0.494,
+            "xga_suppression": 0.775,
+            "chance_creation": 0.481,
+            "possession_control": 0.63,
+            "aerial_defence": 0.457,
+            "attack": 0.583,
+            "defence": 0.345,
+            "midfield": 0.553,
+            "midfield_defence": 0.263,
+            "finishing": 0.765,
+            "goalkeeper": 0.403
+          },
+          "away": {
+            "pressing_intensity": 0.474,
+            "press_resistance": 0.07,
+            "attacking_effectiveness": 0.64,
+            "finishing_threat": 0.744,
+            "defensive_unit": 0.55,
+            "xga_suppression": 0.727,
+            "chance_creation": 0.4,
+            "possession_control": 0.613,
+            "aerial_defence": 0.469,
+            "attack": 0.588,
+            "defence": 0.431,
+            "midfield": 0.505,
+            "midfield_defence": 0.369,
+            "finishing": 0.747,
+            "goalkeeper": 0.436
+          }
+        },
+        "possession": {
+          "home": 37,
+          "away": 63
+        },
+        "possession_pct": {
+          "home": 37,
+          "away": 63
+        },
+        "xg": {
+          "home": 0.451,
+          "away": 0.478
+        },
+        "live_xg": {
+          "home": 0.451,
+          "away": 0.478
+        },
+        "home_goals": 1,
+        "away_goals": 0,
+        "ft_home_goals": 1,
+        "ft_away_goals": 0,
+        "decided_by": "ft",
+        "ft_score": {
+          "home": 1,
+          "away": 0
+        }
+      },
+      "expected_xg": {
+        "home": 0.45,
+        "away": 0.48
+      },
+      "possession_pct": {
+        "home": 37.0,
+        "away": 63.0
+      },
+      "group": "A"
+    }
+  },
+  "player_tallies": [
+    {
+      "player": "Kevin De Bruyne",
+      "team": "Rishav",
+      "goals": 1,
+      "assists": 0
+    },
+    {
+      "player": "Luis Suárez",
+      "team": "Rishav",
+      "goals": 0,
+      "assists": 1
+    }
+  ],
+  "top_goalscorers": [
+    {
+      "player": "Kevin De Bruyne",
+      "team": "Rishav",
+      "goals": 1,
+      "assists": 0
+    }
+  ],
+  "top_assisters": [
+    {
+      "player": "Luis Suárez",
+      "team": "Rishav",
+      "goals": 0,
+      "assists": 1
+    }
+  ]
 }

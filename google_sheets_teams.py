@@ -4,6 +4,7 @@ from __future__ import annotations
 import io
 import os
 import re
+import time
 from dataclasses import dataclass
 from typing import Any
 
@@ -71,13 +72,39 @@ def sheet_csv_url(spreadsheet_id: str | None = None, gid: str | None = None) -> 
     return f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid={tab_gid}"
 
 
+# Bug fix — "Run doesn't start instantly, delayed a lot": measured 21s on a
+# single fixture Run. Root cause: this function did a live, uncached HTTP
+# fetch of the ENTIRE sheet on every call, and _load_teams_for_match (the
+# code path a tournament fixture's Run button hits) calls load_team_by_name
+# (which calls this) 4 times per request -- twice to warm the roster cache,
+# twice more to actually build the two lineups. One click meant 4 separate
+# live downloads of the same spreadsheet, back-to-back, synchronously.
+# Short in-process TTL cache collapses that to one real fetch per burst,
+# while staying fresh enough (20s) that an admin's sheet edit made just
+# before running a match still shows up.
+_SHEET_CACHE_TTL_S = 20.0
+_sheet_cache: dict[tuple[str, str], tuple[float, pd.DataFrame]] = {}
+
+
 def fetch_teams_dataframe(
     spreadsheet_id: str | None = None,
     gid: str | None = None,
 ) -> pd.DataFrame:
-    """Download the teams tab as a CSV (sheet must be link-accessible)."""
+    """Download the teams tab as a CSV (sheet must be link-accessible).
+
+    Cached in-process for _SHEET_CACHE_TTL_S seconds per (spreadsheet_id, gid)
+    so a burst of calls (e.g. loading both teams for a match) only fetches
+    the sheet once.
+    """
     from urllib.error import HTTPError, URLError
     from urllib.request import Request, urlopen
+
+    sid, g = spreadsheet_config()
+    cache_key = (spreadsheet_id or sid, gid or g)
+    now = time.monotonic()
+    hit = _sheet_cache.get(cache_key)
+    if hit is not None and now - hit[0] < _SHEET_CACHE_TTL_S:
+        return hit[1]
 
     url = sheet_csv_url(spreadsheet_id, gid)
     req = Request(url, headers={"User-Agent": "fantasy-football-simulator/1.0"})
@@ -93,7 +120,9 @@ def fetch_teams_dataframe(
             "Google Sheet returned HTML instead of CSV. Share the sheet as "
             "'Anyone with the link can view' or publish the tab."
         )
-    return pd.read_csv(io.StringIO(text), header=None)
+    df = pd.read_csv(io.StringIO(text), header=None)
+    _sheet_cache[cache_key] = (now, df)
+    return df
 
 
 def _cell_str(df: pd.DataFrame, row: int, col: int) -> str:
