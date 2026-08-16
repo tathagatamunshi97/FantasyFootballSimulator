@@ -482,7 +482,17 @@
       numPos(s.understat_shots90, 0) ||
       (numPos(s.shots_on_target90, 0) ? numPos(s.shots_on_target90, 0) / 0.42 : 0) ||
       g.shots90;
+    // Fix (set-piece Phase 3 follow-up) -- true only when the RAW input
+    // actually carried a real shot-volume signal, before any
+    // ROLE_GENERIC/ratio fallback was applied. fkTechniqueProxy uses this
+    // to keep missing data from reading as elite shooting accuracy: the
+    // shots_on_target90 fallback below (Math.max(0.4, shots*0.4)) always
+    // produces a ratio near 1.0 against a small fallback shots90, which is
+    // a data-availability artifact, not a real signal, if nothing else in
+    // this function consulted it for that purpose.
+    const hasShotData = Boolean(numPos(s.shots90, 0) || numPos(s.understat_shots90, 0) || numPos(s.shots_on_target90, 0));
     return {
+      hasShotData,
       dribbles90: num(s.dribbles90, g.dribbles90),
       // 0% completion is never real match data — fall back to role norms
       dribble_pct: numPos(s.dribble_pct, g.dribble_pct),
@@ -1271,6 +1281,26 @@
       wideCrosses: 0,
       midfieldRestarts: 0,
       indirectRestarts: 0,
+    };
+    /**
+     * Diagnostic-only (Phase 3 follow-up) — short-corner gate visibility,
+     * requested after the 20-match batch showed 0/63 short corners: total
+     * corners -> had a receiver nearby -> weak taker / aerial disadvantage
+     * present -> gate actually opened -> short corner actually selected.
+     * `samples` keeps a rolling window of the raw per-corner numbers so the
+     * gate thresholds (0.35 taker quality, -0.28 aerial edge) can be
+     * evaluated against real distributions before anything is tuned.
+     */
+    let shortCornerDiag = {
+      totalCorners: 0,
+      hadCandidate: 0,
+      hadReceiver: 0,
+      receiverMarked: 0,
+      weakTaker: 0,
+      aerialDisadvantage: 0,
+      gateOpen: 0,
+      selected: 0,
+      samples: [],
     };
     /** Last successful passer before shot/goal — used for assist attribution. */
     let lastPasser = null;
@@ -10158,11 +10188,23 @@
      * free-kick duties (pickPenaltyOrder, which IS xg90-driven, stays the
      * penalty taker order — a different skill, finishing under pressure
      * from a fixed spot rather than technique from a static ball at range).
+     *
+     * Fix (real-player validation, set-piece Phase 3 follow-up) — the
+     * accuracy term used to gate on `shots90 > 0.3`, which every default/
+     * statless player also clears via mergeStats' ROLE_GENERIC fallback,
+     * so it never actually detected real data. Combined with
+     * shots_on_target90's own fallback (Math.max(0.4, shots90*0.4)), a
+     * player with NO real shooting data at all landed a ~1.0 accuracy
+     * ratio — higher than real Kimmich (0.33) or Hazard (0.57) ever
+     * scored with genuine numbers, so a default CB kept out-ranking both
+     * for free-kick duty. Missing data must read as neutral (0.5), never
+     * as elite ability — gate on hasShotData (set in mergeStats from the
+     * RAW input, before any fallback), not on the post-fallback value.
      */
     function fkTechniqueProxy(p) {
       if (!p || !p.stats) return 0;
       const st = p.stats;
-      const accuracy = st.shots90 > 0.3 ? clamp((st.shots_on_target90 || 0) / st.shots90, 0, 1) : 0.35;
+      const accuracy = st.hasShotData ? clamp((st.shots_on_target90 || 0) / Math.max(st.shots90, 0.3), 0, 1) : 0.5;
       const delivery = clamp((st.long_ball_pct || 0) / 100, 0, 1);
       const vision = clamp((st.xa90 || 0) / 0.6, 0, 1);
       return accuracy * 0.4 + delivery * 0.35 + vision * 0.25;
@@ -10425,6 +10467,43 @@
     }
 
     /**
+     * Set-piece Phase 3 fix — short-corner receiver. The original check
+     * (`dist(p, taker) < 14` evaluated AFTER taker.left/top was already
+     * snapped to the corner-flag spot) was really asking "is a teammate
+     * already standing at the corner flag right now?" — which is
+     * essentially never true in normal open play, an area nobody idles
+     * in. That produced 0/10 `hadReceiver` in the diagnostic sample
+     * regardless of taker quality or aerial matchup.
+     *
+     * Real corners always have a plausible short option: the near-side
+     * FB/W (or a supporting CM) shuffles across as the corner is being
+     * organized, specifically BECAUSE a short corner is a live option —
+     * not because they happened to already be loitering by the flag.
+     * Model that intended routine explicitly: pick the nearest ELIGIBLE
+     * attacking outfield player by ROLE (same flank preferred), not by
+     * literal pre-kick position. Distance still matters — a CM stranded
+     * on the opposite touchline isn't a real short-corner option — but
+     * the cutoff (45, roughly half the pitch) exists only to rule out
+     * genuinely pathological cases, not to gate the common case the way
+     * the old 14-unit "already there" check did.
+     */
+    function pickShortCornerReceiver(taker, attackingSide, flagSpot) {
+      const eligible = pinsOf(attackingSide).filter(
+        (p) => p.id !== taker.id && (p.role === "FB" || p.role === "W" || p.role === "CM")
+      );
+      if (!eligible.length) return null;
+      const fromLeft = flagSpot.left < 50;
+      eligible.sort((a, b) => {
+        const aSameFlank = a.left < 50 === fromLeft ? 0 : 1;
+        const bSameFlank = b.left < 50 === fromLeft ? 0 : 1;
+        if (aSameFlank !== bSameFlank) return aSameFlank - bSameFlank;
+        return dist(a, flagSpot) - dist(b, flagSpot);
+      });
+      const best = eligible[0];
+      return dist(best, flagSpot) < 45 ? best : null;
+    }
+
+    /**
      * Set-piece Phase 3 — corner delivery selection. Previously a flat
      * rng() < 0.55 near/far coin flip with no signal behind it. Real
      * signals only: aerialEdge (the SAME sideAerial/strikerAerialThreat
@@ -10443,9 +10522,18 @@
       const scoreOf = (s) => (s === "home" ? homeScore : awayScore);
       const chasing =
         scoreOf(defSide) > scoreOf(attackingSide) ? clamp((scoreOf(defSide) - scoreOf(attackingSide)) * 0.15, 0, 0.3) : 0;
-      const shortMate = pinsOf(attackingSide).find(
-        (p) => p.id !== taker.id && p.role !== "GK" && dist(p, taker) < 14
+      // shortCornerCandidate stage: does the team even HAVE a role-eligible
+      // outfield player besides the taker? (near-universal yes)
+      const hadCandidate = pinsOf(attackingSide).some(
+        (p) => p.id !== taker.id && (p.role === "FB" || p.role === "W" || p.role === "CM")
       );
+      // nearby receiver exists stage: of that candidate pool, is the
+      // nearest one within a realistic short-corner passing distance?
+      const shortMate = pickShortCornerReceiver(taker, attackingSide, taker);
+      // Diagnostic only (no gate here uses this yet) -- is the nearest
+      // short option actually available, or would they be closed down
+      // immediately? Answers "no_space" separately from "no_receiver".
+      const shortMateMarked = shortMate ? Boolean(nearestOpponent(shortMate, 5)) : false;
 
       const options = [
         { id: "near", w: Math.max(0.05, 0.85 + Math.max(0, -aerialEdge) * 0.4 + takerQuality * 0.3) },
@@ -10453,13 +10541,46 @@
         { id: "central", w: Math.max(0.05, 0.35 + aerialAtk * 0.9 + chasing) },
         { id: "edge", w: Math.max(0.05, 0.25 + takerQuality * 0.4) },
       ];
-      if (shortMate && (takerQuality < 0.35 || aerialEdge < -0.28)) {
+      // taker quality stage
+      const weakTaker = takerQuality < 0.35;
+      // aerial matchup stage
+      const aerialDisadvantage = aerialEdge < -0.28;
+      const gateOpen = Boolean(shortMate) && (weakTaker || aerialDisadvantage);
+      if (gateOpen) {
         options.push({
           id: "short",
           w: 0.3 + (0.35 - Math.min(0.35, takerQuality)) * 0.8 + Math.max(0, -aerialEdge) * 0.5,
         });
       }
-      return weightedPick(options);
+      const picked = weightedPick(options);
+
+      // Diagnostic instrumentation (Phase 3 follow-up) -- records the
+      // short-corner gate's underlying candidate count and rejection
+      // reasons BEFORE any tuning, per the explicit "instrument before
+      // you tune" request. Five sequential stages: shortCornerCandidate
+      // -> nearby receiver exists -> taker quality -> aerial matchup ->
+      // short corner selected, kept distinct so the diagnostic stays
+      // meaningful (not collapsed into one pass/fail count).
+      shortCornerDiag.totalCorners++;
+      if (hadCandidate) shortCornerDiag.hadCandidate++;
+      if (shortMate) shortCornerDiag.hadReceiver++;
+      if (shortMateMarked) shortCornerDiag.receiverMarked++;
+      if (weakTaker) shortCornerDiag.weakTaker++;
+      if (aerialDisadvantage) shortCornerDiag.aerialDisadvantage++;
+      if (gateOpen) shortCornerDiag.gateOpen++;
+      if (picked === "short") shortCornerDiag.selected++;
+      if (shortCornerDiag.samples.length >= 200) shortCornerDiag.samples.shift();
+      shortCornerDiag.samples.push({
+        takerQuality: Math.round(takerQuality * 1000) / 1000,
+        aerialEdge: Math.round(aerialEdge * 1000) / 1000,
+        hadCandidate,
+        hadReceiver: Boolean(shortMate),
+        receiverMarked: shortMateMarked,
+        gateOpen,
+        picked,
+      });
+
+      return picked;
     }
 
     /**
@@ -10535,9 +10656,7 @@
       });
 
       if (boxMode === "short") {
-        const shortMate = pinsOf(attackingSide)
-          .filter((p) => p.id !== taker.id && p.role !== "GK" && dist(p, taker) < 14)
-          .sort((a, b) => dist(a, taker) - dist(b, taker))[0];
+        const shortMate = pickShortCornerReceiver(taker, attackingSide, taker);
         if (!shortMate) {
           // No genuine short option nearby -- fall back to a standard
           // delivery instead of forcing a short corner with nobody there.
@@ -12295,6 +12414,17 @@
         midfieldRestarts: 0,
         indirectRestarts: 0,
       };
+      shortCornerDiag = {
+        totalCorners: 0,
+        hadCandidate: 0,
+        hadReceiver: 0,
+        receiverMarked: 0,
+        weakTaker: 0,
+        aerialDisadvantage: 0,
+        gateOpen: 0,
+        selected: 0,
+        samples: [],
+      };
       decisionAcc = DECISION_INTERVAL_MAX;
       nextDecisionIn = DECISION_INTERVAL_MIN + rng() * (DECISION_INTERVAL_MAX - DECISION_INTERVAL_MIN);
       scoreEl.textContent = "0 – 0";
@@ -12562,6 +12692,7 @@
       getOobStats: () => ({ ...oobStats }),
       getCornerStats: () => ({ ...cornerStats, delivery: { ...cornerStats.delivery } }),
       getFkStats: () => ({ ...fkStats }),
+      getShortCornerDiag: () => ({ ...shortCornerDiag, samples: shortCornerDiag.samples.slice() }),
       getBroadcastState,
       applyBroadcastState,
       getBroadcastFrame: getBroadcastState,
