@@ -288,6 +288,11 @@ async function startHostBoard(session) {
       broadcastIntervalMs: 220,
       onBroadcast: (frame) => queueBroadcast(frame),
       onFullTime: (score) => saveFullTime(score, session),
+      // Matchday defaults to the FM Mobile commentary-first presentation —
+      // purely a rendering choice: getMatchLog() (see saveFullTime above)
+      // is unaffected, so everything sent to /api/matchday/complete stays
+      // exactly as accurate as before.
+      mobileBroadcast: true,
     },
     { apiFetch: api }
   );
@@ -315,6 +320,7 @@ async function startViewerBoard(session) {
       autoplay: false,
       showPrematch: false,
       participantSide,
+      mobileBroadcast: true,
       onAction: participantSide
         ? (action) => api("/api/matchday/action", { method: "POST", json: action }).catch((e) => alert(e.message))
         : null,

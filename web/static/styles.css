@@ -476,6 +476,158 @@ tr.matchday-live { background: rgba(61, 214, 140, 0.06); }
   margin-right: 0.35rem;
   font-size: 0.72rem;
 }
+
+/* FM Mobile broadcast mode — commentary-first: the pitch collapses to a
+   thin strip by default and only expands for key events (corners, direct
+   free kicks, shots, goals, yellow cards); the zone strip, stats grid and
+   scorer list take its place the rest of the time. */
+.tactic-board--mobile .tactic-pitch-wrap {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  margin: 0;
+  transition: max-height 0.4s ease, opacity 0.3s ease;
+}
+.tactic-board--mobile .tactic-pitch-wrap.tactic-pitch-wrap--live {
+  max-height: min(60vh, 480px);
+  opacity: 1;
+  margin: 0.3rem 0;
+}
+.tactic-board--mobile .tactic-commentary {
+  max-height: min(60vh, 520px);
+}
+.tactic-mobile-scorers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  font-size: 0.76rem;
+  min-height: 1.6rem;
+}
+.tactic-mobile-scorers[hidden] { display: none; }
+.tactic-mobile-scorers .ms-col.home { text-align: left; color: var(--home); }
+.tactic-mobile-scorers .ms-col.away { text-align: right; color: var(--away); }
+.tactic-mobile-scorers .ms-scorer {
+  color: var(--text);
+  line-height: 1.5;
+}
+.tactic-mobile-scorers .ms-scorer.ms-card { color: #e0c341; }
+.tactic-mobile-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.tactic-mobile-stats[hidden] { display: none; }
+.mobile-stat-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+}
+.mobile-stat-row .ms-val {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 2.4rem;
+}
+.mobile-stat-row .ms-val.home { text-align: right; color: var(--home); }
+.mobile-stat-row .ms-val.away { text-align: left; color: var(--away); }
+.mobile-stat-row .ms-label {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.mobile-stat-row.combo {
+  grid-template-columns: 1fr auto auto auto 1fr;
+}
+.mobile-stat-row.combo .ms-icon { font-size: 0.85rem; opacity: 0.75; text-align: center; }
+.tactic-mobile-zone {
+  padding: 0.4rem 0.6rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.tactic-mobile-zone[hidden] { display: none; }
+.mz-track {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--home), #3a4250 48%, #3a4250 52%, var(--away));
+  overflow: visible;
+  margin-bottom: 0.3rem;
+}
+.mz-marker {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #f5f7fa;
+  border: 2px solid rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
+  transform: translate(-50%, -50%);
+  transition: left 0.25s linear;
+}
+.mz-marker.mz-marker--home { background: var(--home); }
+.mz-marker.mz-marker--away { background: var(--away); }
+.mz-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.mz-labels .mz-label-home { color: var(--home); }
+.mz-labels .mz-label-away { color: var(--away); }
+
+/* FM Mobile broadcast mode — compact pins for the brief windows the full
+   pitch IS shown (key events only): small flat dots, no glow/scale
+   effects, so it reads as a clean broadcast graphic rather than the
+   richer host/analysis board other pages still use unchanged. */
+.tactic-board--mobile .tactic-pin .pin-dot {
+  width: 16px;
+  height: 16px;
+  font-size: 0.44rem;
+  border-width: 1px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+.tactic-board--mobile .tactic-pin.favored .pin-dot,
+.tactic-board--mobile .tactic-pin.has-ball .pin-dot {
+  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.9);
+  transform: scale(1.05);
+}
+.tactic-board--mobile .tactic-pin.pressing .pin-dot,
+.tactic-board--mobile .tactic-pin.running .pin-dot {
+  border-color: rgba(255, 255, 255, 0.85);
+  transform: none;
+}
+.tactic-board--mobile .tactic-ball {
+  width: 7px;
+  height: 7px;
+}
+.tactic-board--mobile .tactic-bottombar {
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+.tactic-board--mobile .tactic-bottombar.poss-home {
+  background: color-mix(in srgb, var(--home) 22%, transparent);
+  border-color: color-mix(in srgb, var(--home) 45%, transparent);
+}
+.tactic-board--mobile .tactic-bottombar.poss-away {
+  background: color-mix(in srgb, var(--away) 22%, transparent);
+  border-color: color-mix(in srgb, var(--away) 45%, transparent);
+}
 .tactic-ht-overlay,
 .tactic-overlay {
   position: absolute;

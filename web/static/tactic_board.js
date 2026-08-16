@@ -925,8 +925,9 @@
     const onComplete = typeof opts.onComplete === "function" ? opts.onComplete : null;
     const onScore = typeof opts.onScore === "function" ? opts.onScore : null;
 
+    const mobileBroadcast = Boolean(opts.mobileBroadcast);
     container.innerHTML = `
-      <div class="tactic-board" data-tactic-board>
+      <div class="tactic-board${mobileBroadcast ? " tactic-board--mobile" : ""}" data-tactic-board>
         <div class="tactic-topbar">
           <span class="tactic-clock" data-tb-clock>0'</span>
           <div class="tactic-score-block">
@@ -949,7 +950,30 @@
             <span class="tactic-hud-value"><span data-tb-xg-h>0.00</span> – <span data-tb-xg-a>0.00</span></span>
           </div>
         </div>
-        <div class="tactic-pitch-wrap">
+        <div class="tactic-mobile-scorers" data-tb-mobile-scorers hidden>
+          <div class="ms-col home" data-tb-scorers-home></div>
+          <div class="ms-col away" data-tb-scorers-away></div>
+        </div>
+        <div class="tactic-mobile-stats" data-tb-mobile-stats hidden>
+          <div class="mobile-stat-row"><span class="ms-val home" data-ms="poss-home">50%</span><span class="ms-label">Possession</span><span class="ms-val away" data-ms="poss-away">50%</span></div>
+          <div class="mobile-stat-row"><span class="ms-val home" data-ms="bigchances-home">0</span><span class="ms-label">Clear-cut chances</span><span class="ms-val away" data-ms="bigchances-away">0</span></div>
+          <div class="mobile-stat-row"><span class="ms-val home" data-ms="xg-home">0.00</span><span class="ms-label">xG</span><span class="ms-val away" data-ms="xg-away">0.00</span></div>
+          <div class="mobile-stat-row"><span class="ms-val home" data-ms="shots-home">0</span><span class="ms-label">Shots</span><span class="ms-val away" data-ms="shots-away">0</span></div>
+          <div class="mobile-stat-row"><span class="ms-val home" data-ms="sot-home">0</span><span class="ms-label">Shots on target</span><span class="ms-val away" data-ms="sot-away">0</span></div>
+          <div class="mobile-stat-row combo">
+            <span class="ms-val home" data-ms="fouls-home">0</span><span class="ms-icon">&#x1F6A9;</span><span class="ms-val away" data-ms="fouls-away">0</span>
+            <span class="ms-val home" data-ms="corners-home">0</span><span class="ms-icon">&#x26F3;</span><span class="ms-val away" data-ms="corners-away">0</span>
+          </div>
+        </div>
+        <div class="tactic-mobile-zone" data-tb-mobile-zone hidden>
+          <div class="mz-track"><span class="mz-marker" data-mz-marker></span></div>
+          <div class="mz-labels">
+            <span class="mz-label-home">${escHtml(homeTeam.name)}</span>
+            <span>Midfield</span>
+            <span class="mz-label-away">${escHtml(awayTeam.name)}</span>
+          </div>
+        </div>
+        <div class="tactic-pitch-wrap" data-tb-pitch-wrap>
           <div class="tactic-pitch" data-tb-pitch>
             <div class="pitch-lines" aria-hidden="true">
               <div class="pitch-halfway"></div>
@@ -1042,6 +1066,19 @@
     const goalCardNameEl = container.querySelector("[data-tb-goalcard-name]");
     const goalCardSubEl = container.querySelector("[data-tb-goalcard-sub]");
     const feedEl = container.querySelector("[data-tb-feed]");
+    const pitchWrapEl = container.querySelector("[data-tb-pitch-wrap]");
+    const mobileStatsEl = container.querySelector("[data-tb-mobile-stats]");
+    const mobileZoneEl = container.querySelector("[data-tb-mobile-zone]");
+    const mobileZoneMarkerEl = container.querySelector("[data-mz-marker]");
+    const mobileScorersEl = container.querySelector("[data-tb-mobile-scorers]");
+    const bottombarEl = container.querySelector("[data-tb-bottombar]");
+    const mobileScorersHomeEl = container.querySelector("[data-tb-scorers-home]");
+    const mobileScorersAwayEl = container.querySelector("[data-tb-scorers-away]");
+    if (mobileBroadcast) {
+      if (mobileStatsEl) mobileStatsEl.hidden = false;
+      if (mobileZoneEl) mobileZoneEl.hidden = false;
+      if (mobileScorersEl) mobileScorersEl.hidden = false;
+    }
     const possHEl = container.querySelector("[data-tb-poss-h]");
     const possAEl = container.querySelector("[data-tb-poss-a]");
     const xgHEl = container.querySelector("[data-tb-xg-h]");
@@ -1110,7 +1147,16 @@
     });
 
     let playing = false;
-    let speed = 0.5;
+    // FM Mobile broadcast mode -- routine play/commentary flows fast by
+    // default (viewer isn't watching player movement, just reading
+    // commentary + the zone strip), dropping to MOBILE_EVENT_SPEED only
+    // for the handful of key events that actually get the full pitch
+    // shown. Standard (non-mobile) boards keep the existing 0.5 default.
+    let speed = mobileBroadcast ? 2.5 : 0.5;
+    const MOBILE_NORMAL_SPEED = 2.5;
+    const MOBILE_EVENT_SPEED = 0.3;
+    const MOBILE_EVENT_MS = 4200;
+    let mobileEventUntilTs = 0;
     let matchMinute = 0;
     let lastTs = 0;
     let raf = 0;
@@ -1366,6 +1412,7 @@
       if (extra.assist) entry.assist = extra.assist;
       if (extra.assist_short) entry.assist_short = extra.assist_short;
       matchLog.events.push(entry);
+      if (mobileBroadcast && isMobileKeyEvent(type, entry.detail)) triggerMobileHighlight();
       if (type === "goal") {
         bumpCount(side, "goals");
         const goalRow = {
@@ -1414,6 +1461,116 @@
       if (possAEl) possAEl.textContent = String(poss.away);
       if (xgHEl) xgHEl.textContent = liveXg.home.toFixed(2);
       if (xgAEl) xgAEl.textContent = liveXg.away.toFixed(2);
+      if (mobileBroadcast) {
+        updateMobileStats(poss);
+        updateMobileScorers();
+      }
+    }
+
+    /**
+     * FM Mobile broadcast mode — the 7 stats shown per side, picked to
+     * mirror the real FM Mobile match-stats screen the user referenced
+     * (possession / clear-cut chances / shots / shots on target / fouls
+     * & corners as one combined row) with xG substituted for "team
+     * rating," which nothing here computes live. All derived from
+     * data already tracked (matchLog.counts, matchLog.events, liveXg) —
+     * no new counters. shots-on-target isn't a stored counter, so it's
+     * derived: every goal is on target by definition, and every "save"
+     * event already records which side was shooting via its `against`
+     * field.
+     */
+    const mobileStatEls = {};
+    if (mobileStatsEl) {
+      mobileStatsEl.querySelectorAll("[data-ms]").forEach((el) => {
+        mobileStatEls[el.dataset.ms] = el;
+      });
+    }
+    function mobileTeamStats(side) {
+      const counts = matchLog.counts[side];
+      const events = matchLog.events;
+      const shotsOnTarget =
+        events.filter((e) => e.type === "goal" && e.side === side).length +
+        events.filter((e) => e.type === "save" && e.against === side).length;
+      const corners = events.filter((e) => e.type === "corner" && e.side === side).length;
+      const fouls = events.filter((e) => e.type === "foul" && e.side === side).length;
+      return { shots: counts.shots, shotsOnTarget, bigChances: counts.big_chances, corners, fouls };
+    }
+    function updateMobileStats(poss) {
+      if (!mobileStatsEl) return;
+      const p = poss || possessionPct();
+      const h = mobileTeamStats("home");
+      const a = mobileTeamStats("away");
+      const set = (key, val) => {
+        if (mobileStatEls[key]) mobileStatEls[key].textContent = val;
+      };
+      set("poss-home", `${p.home}%`);
+      set("poss-away", `${p.away}%`);
+      set("bigchances-home", h.bigChances);
+      set("bigchances-away", a.bigChances);
+      set("xg-home", liveXg.home.toFixed(2));
+      set("xg-away", liveXg.away.toFixed(2));
+      set("shots-home", h.shots);
+      set("shots-away", a.shots);
+      set("sot-home", h.shotsOnTarget);
+      set("sot-away", a.shotsOnTarget);
+      set("fouls-home", h.fouls);
+      set("fouls-away", a.fouls);
+      set("corners-home", h.corners);
+      set("corners-away", a.corners);
+    }
+
+    /** FM Mobile broadcast mode — goal/card strip beneath the score, like the reference screenshot. */
+    function updateMobileScorers() {
+      if (!mobileScorersHomeEl || !mobileScorersAwayEl) return;
+      const cards = matchLog.events.filter((e) => e.type === "yellow_card");
+      const rowsFor = (side) => {
+        const goalRows = matchLog.goals
+          .filter((g) => g.side === side)
+          .map((g) => `<div class="ms-scorer">⚽ ${escHtml(g.player_short || g.player)} ${g.minute}'</div>`);
+        const cardRows = cards
+          .filter((e) => e.side === side)
+          .map((e) => `<div class="ms-scorer ms-card">\u{1F7E8} ${escHtml(e.player_short || e.player)} ${e.minute}'</div>`);
+        return goalRows.concat(cardRows).join("");
+      };
+      mobileScorersHomeEl.innerHTML = rowsFor("home");
+      mobileScorersAwayEl.innerHTML = rowsFor("away");
+    }
+
+    /** FM Mobile broadcast mode — zone strip marker from live ball position, per-frame (cheap: one style write). */
+    function updateMobileZone() {
+      if (!mobileZoneMarkerEl) return;
+      // home attacks toward decreasing top (top~0 = away's own goal); the
+      // "home" label sits on the LEFT of the strip, so a ball near home's
+      // OWN goal (top~100) should read as the LEFT end: 100 - top.
+      const pos = clamp(100 - ball.top, 0, 100);
+      mobileZoneMarkerEl.style.left = `${pos}%`;
+      mobileZoneMarkerEl.classList.toggle("mz-marker--home", possession === "home");
+      mobileZoneMarkerEl.classList.toggle("mz-marker--away", possession === "away");
+      if (bottombarEl) {
+        bottombarEl.classList.toggle("poss-home", possession === "home");
+        bottombarEl.classList.toggle("poss-away", possession === "away");
+      }
+    }
+
+    /**
+     * FM Mobile broadcast mode — only corners, direct free kicks, shots,
+     * goals, and yellow cards get the full pitch shown, and only for a
+     * bounded REAL-time window (not sim-time — the whole point is to
+     * slow the clock down so the viewer has time to actually watch it).
+     * Everything else stays on the fast commentary+zone-strip view.
+     */
+    function triggerMobileHighlight() {
+      if (!mobileBroadcast) return;
+      if (mobileEventUntilTs <= 0) {
+        speed = MOBILE_EVENT_SPEED;
+        if (pitchWrapEl) pitchWrapEl.classList.add("tactic-pitch-wrap--live");
+      }
+      mobileEventUntilTs = performance.now() + MOBILE_EVENT_MS;
+    }
+    function isMobileKeyEvent(type, detail) {
+      if (type === "shot" || type === "goal" || type === "corner" || type === "yellow_card") return true;
+      if (type === "free_kick" && detail === "direct free kick") return true;
+      return false;
     }
 
     /**
@@ -11480,6 +11637,29 @@
         finished: Boolean(finished),
         halfTime: Boolean(halfTimePaused || breakKind === "ht"),
         knockout: Boolean(isKnockout),
+        // FM Mobile broadcast mode — matchLog itself (counts/events/goals)
+        // is never sent frame-by-frame to viewers, only this compact
+        // summary, so a spectator's stats panel/scorer strip stay accurate
+        // instead of sitting at zero all match. Purely additive to the
+        // frame; getMatchLog() (what actually gets recorded server-side —
+        // see matchday.js's saveFullTime) is completely untouched.
+        mobileStats: mobileBroadcast
+          ? {
+              home: mobileTeamStats("home"),
+              away: mobileTeamStats("away"),
+              goals: matchLog.goals.map((g) => ({ side: g.side, minute: g.minute, player_short: g.player_short || g.player })),
+              cards: matchLog.events
+                .filter((e) => e.type === "yellow_card")
+                .map((e) => ({ side: e.side, minute: e.minute, player_short: e.player_short || e.player })),
+            }
+          : null,
+        // FM Mobile broadcast mode — a viewer should just be a watcher of
+        // whatever the host is actually showing, not run its own separate
+        // "is this a key event" detection (it never sees pushMatchEvent
+        // calls at all — those only fire on the host's own simulation).
+        // Sync the one bit that matters: is the host's pitch expanded
+        // right now. applyBroadcastState below just mirrors it.
+        mobileEventLive: mobileBroadcast ? mobileEventUntilTs > 0 : false,
       };
     }
 
@@ -11698,6 +11878,48 @@
         liveXg.away = Number(state.xg.away) || 0;
         if (xgHEl) xgHEl.textContent = liveXg.home.toFixed(2);
         if (xgAEl) xgAEl.textContent = liveXg.away.toFixed(2);
+      }
+      if (mobileBroadcast && pitchWrapEl) {
+        pitchWrapEl.classList.toggle("tactic-pitch-wrap--live", Boolean(state.mobileEventLive));
+      }
+      if (mobileBroadcast && mobileStatsEl) {
+        const ms = state.mobileStats;
+        const set = (key, val) => {
+          if (mobileStatEls[key]) mobileStatEls[key].textContent = val;
+        };
+        if (state.possPct) {
+          set("poss-home", `${state.possPct.home ?? 50}%`);
+          set("poss-away", `${state.possPct.away ?? 50}%`);
+        }
+        if (state.xg) {
+          set("xg-home", liveXg.home.toFixed(2));
+          set("xg-away", liveXg.away.toFixed(2));
+        }
+        if (ms) {
+          set("bigchances-home", ms.home.bigChances);
+          set("bigchances-away", ms.away.bigChances);
+          set("shots-home", ms.home.shots);
+          set("shots-away", ms.away.shots);
+          set("sot-home", ms.home.shotsOnTarget);
+          set("sot-away", ms.away.shotsOnTarget);
+          set("fouls-home", ms.home.fouls);
+          set("fouls-away", ms.away.fouls);
+          set("corners-home", ms.home.corners);
+          set("corners-away", ms.away.corners);
+          if (mobileScorersHomeEl && mobileScorersAwayEl) {
+            const rowsFor = (side) => {
+              const goalRows = ms.goals
+                .filter((g) => g.side === side)
+                .map((g) => `<div class="ms-scorer">⚽ ${escHtml(g.player_short)} ${g.minute}'</div>`);
+              const cardRows = ms.cards
+                .filter((e) => e.side === side)
+                .map((e) => `<div class="ms-scorer ms-card">\u{1F7E8} ${escHtml(e.player_short)} ${e.minute}'</div>`);
+              return goalRows.concat(cardRows).join("");
+            };
+            mobileScorersHomeEl.innerHTML = rowsFor("home");
+            mobileScorersAwayEl.innerHTML = rowsFor("away");
+          }
+        }
       }
       if (Array.isArray(state.commentary) && feedEl) {
         feedEl.innerHTML = state.commentary
@@ -12210,8 +12432,14 @@
       }
       if (!playing || halfTimePaused || breakPaused || pensActive || finished) return;
       if (!lastTs) lastTs = ts;
+      if (mobileBroadcast && mobileEventUntilTs > 0 && ts >= mobileEventUntilTs) {
+        mobileEventUntilTs = 0;
+        speed = MOBILE_NORMAL_SPEED;
+        if (pitchWrapEl) pitchWrapEl.classList.remove("tactic-pitch-wrap--live");
+      }
       const dt = Math.min(0.05, ((ts - lastTs) / 1000) * speed);
       lastTs = ts;
+      if (mobileBroadcast) updateMobileZone();
 
       ensureKickoff();
 
@@ -12397,6 +12625,11 @@
       pendingKickoffCarrier = null;
       pendingShot = null;
       freeKickUntil = 0;
+      if (mobileBroadcast) {
+        mobileEventUntilTs = 0;
+        speed = MOBILE_NORMAL_SPEED;
+        if (pitchWrapEl) pitchWrapEl.classList.remove("tactic-pitch-wrap--live");
+      }
       pendingCornerContext = null;
       cornerStats = {
         cornersWon: 0,
@@ -12693,6 +12926,9 @@
       getCornerStats: () => ({ ...cornerStats, delivery: { ...cornerStats.delivery } }),
       getFkStats: () => ({ ...fkStats }),
       getShortCornerDiag: () => ({ ...shortCornerDiag, samples: shortCornerDiag.samples.slice() }),
+      setSpeed: (v) => {
+        speed = clamp(Number(v) || 0.5, 0.05, 100);
+      },
       getBroadcastState,
       applyBroadcastState,
       getBroadcastFrame: getBroadcastState,
@@ -12905,6 +13141,7 @@
         broadcastIntervalMs: meta.broadcastIntervalMs,
         onComplete: onDone,
         onScore: meta.onScore,
+        mobileBroadcast: Boolean(meta.mobileBroadcast),
       };
     } else {
       opts = {
@@ -12918,6 +13155,7 @@
         seed: hashSeed(`${meta.matchId || meta.experimentId || ""}-${meta.score}`),
         autoplay: true,
         onComplete: onDone,
+        mobileBroadcast: Boolean(meta.mobileBroadcast),
       };
 
       if (meta.experimentId && typeof apiFetch === "function") {
@@ -12931,6 +13169,7 @@
               live: false,
               organicGoals: false,
               forceReplayScore: true,
+              mobileBroadcast: Boolean(meta.mobileBroadcast),
               ...parseScore(meta.score || "0-0"),
               autoplay: true,
               onComplete: onDone,
