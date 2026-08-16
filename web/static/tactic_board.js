@@ -1246,6 +1246,32 @@
       falsePositiveOob: 0,
     };
     let freeKickUntil = 0; // Block dribbling during free kick situations
+    /**
+     * Set-piece Phase 3 — marks an in-flight cross as corner-originated so
+     * the shared doPass flight-resolution code (used by every cross in the
+     * match, not just corners) can run the second-ball contest ONLY for
+     * this one flight, then discard it. Never read outside that gate, so
+     * regular open-play crosses are completely unaffected.
+     */
+    let pendingCornerContext = null;
+    /** Set-piece Phase 3 — corner instrumentation (see resolveCorner/resolveCornerSecondBall). */
+    let cornerStats = {
+      cornersWon: 0,
+      delivery: { near: 0, far: 0, central: 0, edge: 0, short: 0 },
+      firstContactsAttack: 0,
+      firstContactsDefense: 0,
+      clearances: 0,
+      secondBalls: 0,
+      cornerShots: 0,
+    };
+    /** Set-piece Phase 2 — free-kick instrumentation (see classifyFreeKickZone/resolve*FreeKick). */
+    let fkStats = {
+      directShots: 0,
+      directCrosses: 0,
+      wideCrosses: 0,
+      midfieldRestarts: 0,
+      indirectRestarts: 0,
+    };
     /** Last successful passer before shot/goal — used for assist attribution. */
     let lastPasser = null;
 
@@ -1751,6 +1777,48 @@
         const def = flight.interceptor;
         clearLastPasser();
         if (def) {
+          // Set-piece Phase 3 — corner second balls. A cleared corner
+          // previously always handed the clearing defender 100% clean
+          // possession, no matter how crowded the box was. Scoped tightly
+          // to corner-originated crosses only (pendingCornerContext, set
+          // right before resolveCornerDelivery's doPass call and consumed
+          // exactly once here) — every other intercept/steal in the match,
+          // including every regular open-play cross, is untouched.
+          if (
+            flight.outcome === "intercept" &&
+            pendingCornerContext &&
+            matchMinute < pendingCornerContext.until &&
+            def.side === pendingCornerContext.defSide
+          ) {
+            const ctx = pendingCornerContext;
+            pendingCornerContext = null;
+            cornerStats.clearances++;
+            if (rng() < 0.32) {
+              cornerStats.secondBalls++;
+              const contest = resolveCornerSecondBall(ctx.attackingSide, ctx.defSide, def);
+              if (contest.winnerSide === ctx.attackingSide) {
+                cornerStats.firstContactsAttack++;
+                archiveSpell("corner_second_ball");
+                spell = null;
+                giveBall(contest.pin, `${contest.pin.short} pounces on the loose ball!`);
+                if (inPenaltyBox(contest.pin) || nearPenaltyBox(contest.pin)) {
+                  cornerStats.cornerShots++;
+                  doShot(contest.pin, false);
+                }
+                actionTimer = 0.5;
+                return;
+              }
+              cornerStats.firstContactsDefense++;
+              archiveSpell("intercept");
+              spell = null;
+              giveBall(contest.pin, `${contest.pin.short} clears the second ball`);
+              triggerTurnoverReactions(contest.pin);
+              actionTimer = 0.4 + spellIdlePause() * 0.45;
+              return;
+            }
+            cornerStats.firstContactsDefense++;
+          }
+          pendingCornerContext = null;
           archiveSpell(flight.outcome === "steal" ? "press" : "intercept");
           spell = null;
           giveBall(def, flight.comment || `${def.short} intercepts`);
@@ -1770,6 +1838,14 @@
         const to = flight.pin;
         const from = flight.from;
         if (!to) return;
+        if (
+          pendingCornerContext &&
+          matchMinute < pendingCornerContext.until &&
+          to.side === pendingCornerContext.attackingSide
+        ) {
+          cornerStats.firstContactsAttack++;
+          pendingCornerContext = null;
+        }
         carrierId = to.id;
         possession = to.side;
         ballAttached = true;
@@ -5136,12 +5212,22 @@
       );
       if (!mates.length) return progressiveTarget(carrier);
       const fromLeft = carrier.left < 50;
+      // Set-piece Phase 3 — corner delivery modes beyond near/far.
+      // "central"/"edge" ignore the near/far post lane entirely (the ball
+      // isn't going to either post); "edge" additionally biases toward a
+      // CM/AM loitering at the edge of the box for a first-time look
+      // rather than the ST/W crowd already inside it.
+      const ignoreLane = mode === "central" || mode === "edge";
       mates.sort((a, b) => {
         const aNear = fromLeft ? a.left <= 52 : a.left >= 48;
         const bNear = fromLeft ? b.left <= 52 : b.left >= 48;
         const preferNear = mode === "near" || mode === "cutback";
-        const lane = preferNear ? (bNear ? 1 : 0) - (aNear ? 1 : 0) : (aNear ? 1 : 0) - (bNear ? 1 : 0);
-        return lane * 2 + (b.stats.xg90 - a.stats.xg90) * 1.55 + (rng() - 0.5) * 0.2;
+        const lane = ignoreLane ? 0 : preferNear ? (bNear ? 1 : 0) - (aNear ? 1 : 0) : (aNear ? 1 : 0) - (bNear ? 1 : 0);
+        const edgeBias =
+          mode === "edge"
+            ? (b.role === "CM" || b.role === "AM" ? 1 : 0) - (a.role === "CM" || a.role === "AM" ? 1 : 0)
+            : 0;
+        return lane * 2 + edgeBias * 1.5 + (b.stats.xg90 - a.stats.xg90) * 1.55 + (rng() - 0.5) * 0.2;
       });
       return mates[0];
     }
@@ -6111,10 +6197,15 @@
     }
 
     function cueBoxRuns(carrier, mode) {
+      // Set-piece Phase 3 — a short corner isn't being crossed in yet, so
+      // don't cue box runs prematurely; whatever happens after the short
+      // pass goes through the normal engine decision loop instead.
+      if (mode === "short") return;
       const fromLeft = carrier.left < 50;
       const nearX = fromLeft ? 0.38 : 0.62;
       const farX = fromLeft ? 0.64 : 0.36;
       const cutX = fromLeft ? 0.44 : 0.56;
+      const centralX = 0.5;
       for (const pin of teammates(carrier)) {
         // Engine fix — only ST/AM used to get sent into the box for a cross;
         // the OTHER winger (not the one delivering it) stayed put at the
@@ -6123,7 +6214,14 @@
         if (pin.role !== "ST" && pin.role !== "AM" && pin.role !== "W") continue;
         const useNear =
           mode === "near" || mode === "cutback" ? pin.baseX < 0.5 === fromLeft : pin.baseX < 0.5 !== fromLeft;
-        const tx = mode === "cutback" ? cutX : useNear ? nearX : farX;
+        const tx =
+          mode === "cutback"
+            ? cutX
+            : mode === "central" || mode === "edge"
+              ? centralX + (pin.baseX < 0.5 ? -0.06 : 0.06)
+              : useNear
+                ? nearX
+                : farX;
         const depthWant = clamp(0.88 + (pin.role === "ST" ? 0.04 : 0.01), 0.85, 0.94);
         // Allow intentional box runs to 0.90+ when occupation state demands
         const safePct = toPitchPct(pin.side, tx, depthWant);
@@ -9619,20 +9717,34 @@
             say(`Yellow card — ${opp.short}`, 1.4);
           }
           // Engine addition — dangerous-restart branching. A foul inside the
-          // box is a penalty; a foul just outside it is a direct free kick
-          // where the taker can actually shoot (against a wall) or cross,
-          // and the defence regroups deep instead of holding shape. Fouls
-          // further out keep the existing simplified restart (fouled player
-          // just carries on from the spot) — a genuine dead-ball sequence
-          // there isn't worth the complexity since it's rarely threatening.
+          // box is a penalty. Everywhere else, Set-piece Phase 2 splits the
+          // restart into the four zones from the spec (direct-shooting-
+          // range / wide-attacking / deep-midfield / indirect), each with
+          // its own allowed actions instead of the old binary "near box or
+          // nothing" split.
           if (inPenaltyBox(carrier)) {
             resolveInPlayPenalty(carrier.side);
             return;
           }
-          if (nearPenaltyBox(carrier)) {
+          const fkZone = classifyFreeKickZone(carrier);
+          if (fkZone === "direct") {
             resolveDangerousFreeKick(carrier.side, carrier);
             return;
           }
+          if (fkZone === "wide") {
+            resolveWideFreeKick(carrier.side, carrier);
+            return;
+          }
+          if (fkZone === "deep") {
+            resolveMidfieldFreeKick(carrier.side, carrier);
+            return;
+          }
+          fkStats.indirectRestarts++;
+          pushMatchEvent("free_kick", carrier.side, {
+            player: carrier.player,
+            player_short: carrier.short,
+            detail: "indirect free kick",
+          });
           clearLastPasser();
           spell = null;
           giveBall(carrier, `${carrier.short} takes the free kick`);
@@ -10034,13 +10146,66 @@
      * split: central and close reads much more like "have a direct pop at
      * goal," wide reads much more like "put it in the mixer."
      */
+    /**
+     * Set-piece Phase 2 — no dedicated free-kick stat exists anywhere in
+     * the data, so this is a documented proxy rather than an invented
+     * rating: shot placement (shots_on_target90/shots90 — a real accuracy
+     * signal, distinct from shot VOLUME or xg90's shot-selection/movement
+     * signal), blended with the same delivery-technique terms
+     * cornerTakerRank already uses (long_ball_pct, xa90). This is
+     * deliberately NOT dominated by xg90 — a pure poacher with great
+     * finishing but no dead-ball technique shouldn't automatically inherit
+     * free-kick duties (pickPenaltyOrder, which IS xg90-driven, stays the
+     * penalty taker order — a different skill, finishing under pressure
+     * from a fixed spot rather than technique from a static ball at range).
+     */
+    function fkTechniqueProxy(p) {
+      if (!p || !p.stats) return 0;
+      const st = p.stats;
+      const accuracy = st.shots90 > 0.3 ? clamp((st.shots_on_target90 || 0) / st.shots90, 0, 1) : 0.35;
+      const delivery = clamp((st.long_ball_pct || 0) / 100, 0, 1);
+      const vision = clamp((st.xa90 || 0) / 0.6, 0, 1);
+      return accuracy * 0.4 + delivery * 0.35 + vision * 0.25;
+    }
+
+    /**
+     * Set-piece Phase 2 — zone classifier driving the four free-kick
+     * categories from the spec. Reuses the SAME fromPitchPct/inPenaltyBox/
+     * nearPenaltyBox geometry the penalty/dangerous-FK split already used,
+     * just extended with two more bands instead of a hardcoded
+     * `if x > N` check.
+     */
+    function classifyFreeKickZone(carrier) {
+      if (nearPenaltyBox(carrier)) return "direct";
+      const rel = fromPitchPct(carrier.side, carrier.left, carrier.top);
+      if (rel.depth >= 0.62 && (rel.x < 0.22 || rel.x > 0.78)) return "wide";
+      if (rel.depth >= 0.42) return "deep";
+      return "indirect";
+    }
+
+    /**
+     * Set-piece Phase 2 — taker selection per zone. Direct/wide need real
+     * dead-ball technique (fkTechniqueProxy); deep/indirect are just a
+     * restart, so the best available passer takes it rather than a
+     * "specialist" moment nobody in real football treats as one.
+     */
+    function pickFreeKickTaker(side, zone) {
+      const pins = pinsOf(side).filter((p) => p.role !== "GK");
+      if (!pins.length) return null;
+      if (zone === "deep" || zone === "indirect") {
+        return [...pins].sort((a, b) => (b.stats.pass_pct || 0) - (a.stats.pass_pct || 0))[0];
+      }
+      const rank = (p) => fkTechniqueProxy(p) + (p.role === "AM" ? 0.05 : p.role === "W" ? 0.03 : 0);
+      return [...pins].sort((a, b) => rank(b) - rank(a))[0];
+    }
+
     function resolveDangerousFreeKick(fouledSide, carrier) {
       const defSide = oppOf(fouledSide);
       const spotLeft = carrier.left;
       const spotTop = carrier.top;
       const rel = fromPitchPct(fouledSide, spotLeft, spotTop);
       const centrality = 1 - clamp(Math.abs(rel.x - 0.5) * 2.4, 0, 1);
-      const taker = pickPenaltyOrder(fouledSide)[0];
+      const taker = pickFreeKickTaker(fouledSide, "direct");
       if (!taker) return;
       taker.left = spotLeft;
       taker.top = spotTop;
@@ -10055,13 +10220,20 @@
 
       clearLastPasser();
       spell = null;
+      pushMatchEvent("free_kick", fouledSide, {
+        player: taker.player,
+        player_short: taker.short,
+        detail: "direct free kick",
+      });
       giveBall(taker, `Free kick — ${taker.short} stands over it`);
       freeKickUntil = matchMinute + 2; // Block dribbling until free kick is taken
 
-      const shootP = clamp(0.12 + centrality * 0.55 + (taker.stats.xg90 || 0) * 0.1, 0.08, 0.78);
+      const shootP = clamp(0.12 + centrality * 0.55 + fkTechniqueProxy(taker) * 0.35, 0.08, 0.78);
       if (rng() < shootP) {
+        fkStats.directShots++;
         doShot(taker, false, { wallBoost: 0.14 + centrality * 0.08 });
       } else {
+        fkStats.directCrosses++;
         const mode = rng() < 0.5 ? "near" : "far";
         cueBoxRuns(taker, mode);
         const target = crossBoxTarget(taker, mode);
@@ -10069,6 +10241,76 @@
         doPass(taker, target, "cross");
       }
       freeKickUntil = 0; // Clear free kick flag after kick is taken
+    }
+
+    /**
+     * Set-piece Phase 2 — wide-attacking free kicks. No genuine shooting
+     * angle exists out near the touchline, so this only delivers a cross —
+     * reusing the SAME cueBoxRuns/cueDefensiveBoxCover/crossBoxTarget/
+     * doPass machinery resolveCorner uses, not a new delivery system.
+     */
+    function resolveWideFreeKick(fouledSide, carrier) {
+      const defSide = oppOf(fouledSide);
+      const taker = pickFreeKickTaker(fouledSide, "wide");
+      if (!taker) return;
+      taker.left = carrier.left;
+      taker.top = carrier.top;
+      taker.tx = carrier.left;
+      taker.ty = carrier.top;
+      taker.lockUntil = matchMinute + 1.4;
+
+      cueDefensiveBoxCover(defSide);
+      const keeper = gkOf(defSide);
+      if (keeper) {
+        const keeperSpot = toPitchPct(defSide, 0.5, 0.02);
+        keeper.tx = keeperSpot.left;
+        keeper.ty = keeperSpot.top;
+        keeper.lockUntil = matchMinute + 1.4;
+      }
+
+      const boxMode = rng() < 0.5 ? "near" : "far";
+      cueBoxRuns(taker, boxMode);
+
+      clearLastPasser();
+      spell = null;
+      pushMatchEvent("free_kick", fouledSide, {
+        player: taker.player,
+        player_short: taker.short,
+        detail: "wide free kick",
+      });
+      say(`Free kick — ${taker.short} to deliver`, 1.3);
+      giveBall(taker, null);
+      freeKickUntil = matchMinute + 2;
+
+      const target = crossBoxTarget(taker, boxMode);
+      say(`${taker.short} whips it in`, 1.35);
+      doPass(taker, target, "cross");
+      freeKickUntil = 0;
+      fkStats.wideCrosses++;
+    }
+
+    /**
+     * Set-piece Phase 2 — deep-midfield free kicks. Real football: a foul
+     * in the middle third almost never gets a "delivery" — it's a quick
+     * restart so the team can rebuild the attack through the normal engine
+     * loop. No wall, no box runs, no cross — deliberately the simplest of
+     * the four categories, matching the spec's "different allowed
+     * actions" per zone. The fouled player retakes it themselves (the real
+     * default), just now logged and instrumented instead of being an
+     * invisible fallback.
+     */
+    function resolveMidfieldFreeKick(fouledSide, carrier) {
+      clearLastPasser();
+      spell = null;
+      pushMatchEvent("free_kick", fouledSide, {
+        player: carrier.player,
+        player_short: carrier.short,
+        detail: "midfield free kick",
+      });
+      say(`Free kick — ${carrier.short}`, 1.2);
+      giveBall(carrier, null);
+      actionTimer = 0.6 + spellIdlePause() * 0.3;
+      fkStats.midfieldRestarts++;
     }
 
     /**
@@ -10167,15 +10409,84 @@
      * W/FB, who are the real-football default corner takers, but any
      * outfield player with genuine delivery numbers can win it.
      */
-    function pickCornerTaker(side) {
-      const pins = pinsOf(side).filter((p) => p.role !== "GK");
-      const rank = (p) =>
+    function cornerTakerRank(p) {
+      return (
         (p.stats.long_ball_pct || 0) * 0.02 +
         (p.stats.key_passes90 || 0) * 0.45 +
         (p.stats.xa90 || 0) * 1.4 +
         (p.stats.long_balls90 || 0) * 0.12 +
-        (p.role === "W" ? 0.4 : p.role === "FB" ? 0.32 : p.role === "AM" ? 0.15 : p.role === "CM" ? 0.08 : 0);
-      return [...pins].sort((a, b) => rank(b) - rank(a))[0] || null;
+        (p.role === "W" ? 0.4 : p.role === "FB" ? 0.32 : p.role === "AM" ? 0.15 : p.role === "CM" ? 0.08 : 0)
+      );
+    }
+
+    function pickCornerTaker(side) {
+      const pins = pinsOf(side).filter((p) => p.role !== "GK");
+      return [...pins].sort((a, b) => cornerTakerRank(b) - cornerTakerRank(a))[0] || null;
+    }
+
+    /**
+     * Set-piece Phase 3 — corner delivery selection. Previously a flat
+     * rng() < 0.55 near/far coin flip with no signal behind it. Real
+     * signals only: aerialEdge (the SAME sideAerial/strikerAerialThreat
+     * attack-vs-defence matchup term decideWideFinalThird already uses to
+     * pick cross vs cutback for regular open-play crosses), the taker's
+     * own delivery quality (cornerTakerRank), and match state (chasing a
+     * goal nudges toward more direct/central delivery). Short corners are
+     * only weighted in when genuinely justified — a weak taker AND a
+     * defence that heavily wins the aerial matchup — not a fixed rate.
+     */
+    function pickCornerDeliveryMode(taker, attackingSide, defSide) {
+      const aerialAtk = strikerAerialThreat(attackingSide);
+      const aerialDef = sideAerial(defSide);
+      const aerialEdge = aerialAtk - aerialDef;
+      const takerQuality = clamp(cornerTakerRank(taker) / 2.2, 0, 1);
+      const scoreOf = (s) => (s === "home" ? homeScore : awayScore);
+      const chasing =
+        scoreOf(defSide) > scoreOf(attackingSide) ? clamp((scoreOf(defSide) - scoreOf(attackingSide)) * 0.15, 0, 0.3) : 0;
+      const shortMate = pinsOf(attackingSide).find(
+        (p) => p.id !== taker.id && p.role !== "GK" && dist(p, taker) < 14
+      );
+
+      const options = [
+        { id: "near", w: Math.max(0.05, 0.85 + Math.max(0, -aerialEdge) * 0.4 + takerQuality * 0.3) },
+        { id: "far", w: Math.max(0.05, 0.7 + Math.max(0, aerialEdge) * 0.55 + takerQuality * 0.25) },
+        { id: "central", w: Math.max(0.05, 0.35 + aerialAtk * 0.9 + chasing) },
+        { id: "edge", w: Math.max(0.05, 0.25 + takerQuality * 0.4) },
+      ];
+      if (shortMate && (takerQuality < 0.35 || aerialEdge < -0.28)) {
+        options.push({
+          id: "short",
+          w: 0.3 + (0.35 - Math.min(0.35, takerQuality)) * 0.8 + Math.max(0, -aerialEdge) * 0.5,
+        });
+      }
+      return weightedPick(options);
+    }
+
+    /**
+     * Set-piece Phase 3 — who wins the loose ball after a corner clearance
+     * isn't clean. Stat-driven contest (duels_won_pct + tackles90 for the
+     * defending side, duels_won_pct + xg90 as a predatory-instinct proxy
+     * for the attacking side — same family of signals doDribble/doShot
+     * already use for physical duels), not a fixed 50/50. Defence keeps a
+     * realistic edge (more bodies back, facing the ball) rather than an
+     * even contest.
+     */
+    function resolveCornerSecondBall(attackingSide, defSide, clearer) {
+      const spot = { left: clearer.left, top: clearer.top };
+      const attackers = pinsOf(attackingSide).filter((p) => p.role !== "GK" && dist(p, spot) < 20);
+      const defenders = pinsOf(defSide).filter((p) => p.role !== "GK" && dist(p, spot) < 20);
+      const atkScore = (p) => (p.stats.duels_won_pct || 50) * 0.01 + (p.stats.xg90 || 0) * 0.4 - dist(p, spot) * 0.05;
+      const defScore = (p) =>
+        (p.stats.duels_won_pct || 50) * 0.01 + (p.stats.tackles90 || 0) * 0.05 - dist(p, spot) * 0.05;
+      const bestAtk = [...attackers].sort((a, b) => atkScore(b) - atkScore(a))[0];
+      const bestDef = [...defenders].sort((a, b) => defScore(b) - defScore(a))[0];
+      const atkPower = bestAtk ? 0.4 + (bestAtk.stats.duels_won_pct || 50) * 0.006 : 0.25;
+      const defPower = bestDef
+        ? 0.55 + (bestDef.stats.tackles90 || 0) * 0.05 + (bestDef.stats.duels_won_pct || 50) * 0.006
+        : 0.4;
+      const winP = clamp(atkPower / (atkPower + defPower), 0.15, 0.62);
+      if (bestAtk && rng() < winP) return { winnerSide: attackingSide, pin: bestAtk };
+      return { winnerSide: defSide, pin: bestDef || clearer };
     }
 
     /**
@@ -10211,7 +10522,47 @@
         keeper.lockUntil = matchMinute + 1.6;
       }
 
-      const boxMode = rng() < 0.55 ? "near" : "far";
+      cornerStats.cornersWon++;
+      const boxMode = pickCornerDeliveryMode(taker, attackingSide, defSide);
+      cornerStats.delivery[boxMode] = (cornerStats.delivery[boxMode] || 0) + 1;
+
+      clearLastPasser();
+      spell = null;
+      pushMatchEvent("corner", attackingSide, {
+        player: taker.player,
+        player_short: taker.short,
+        detail: `corner awarded (${boxMode})`,
+      });
+
+      if (boxMode === "short") {
+        const shortMate = pinsOf(attackingSide)
+          .filter((p) => p.id !== taker.id && p.role !== "GK" && dist(p, taker) < 14)
+          .sort((a, b) => dist(a, taker) - dist(b, taker))[0];
+        if (!shortMate) {
+          // No genuine short option nearby -- fall back to a standard
+          // delivery instead of forcing a short corner with nobody there.
+          resolveCornerDelivery(taker, attackingSide, defSide, "near");
+          return;
+        }
+        say(`Short corner — ${taker.short} to ${shortMate.short}`, 1.3);
+        giveBall(taker, null);
+        freeKickUntil = matchMinute + 1.5;
+        doPass(taker, shortMate, "pass");
+        freeKickUntil = 0;
+        return;
+      }
+
+      resolveCornerDelivery(taker, attackingSide, defSide, boxMode);
+    }
+
+    /**
+     * Set-piece Phase 3 — the actual delivery once a non-short mode is
+     * picked. Split out of resolveCorner so the short-corner branch can
+     * bail into a standard delivery without duplicating the CB-join/cross
+     * logic. Tags the flight via pendingCornerContext so the shared
+     * doPass flight-resolution code can run the second-ball contest.
+     */
+    function resolveCornerDelivery(taker, attackingSide, defSide, boxMode) {
       cueBoxRuns(taker, boxMode);
       // A real detail: a CB joins the attack for a corner, unlike any
       // other cross -- cueBoxRuns deliberately doesn't include CB since
@@ -10228,19 +10579,13 @@
         joiningCb._running = true;
       }
 
-      clearLastPasser();
-      spell = null;
-      pushMatchEvent("corner", attackingSide, {
-        player: taker.player,
-        player_short: taker.short,
-        detail: "corner awarded",
-      });
       say(`Corner! ${taker.short} to the flag`, 1.3);
       giveBall(taker, null);
       freeKickUntil = matchMinute + 2;
 
       const target = crossBoxTarget(taker, boxMode);
       say(`${taker.short} swings it in`, 1.35);
+      pendingCornerContext = { attackingSide, defSide, until: matchMinute + 2.5 };
       doPass(taker, target, "cross");
       freeKickUntil = 0;
     }
@@ -11933,6 +12278,23 @@
       pendingKickoffCarrier = null;
       pendingShot = null;
       freeKickUntil = 0;
+      pendingCornerContext = null;
+      cornerStats = {
+        cornersWon: 0,
+        delivery: { near: 0, far: 0, central: 0, edge: 0, short: 0 },
+        firstContactsAttack: 0,
+        firstContactsDefense: 0,
+        clearances: 0,
+        secondBalls: 0,
+        cornerShots: 0,
+      };
+      fkStats = {
+        directShots: 0,
+        directCrosses: 0,
+        wideCrosses: 0,
+        midfieldRestarts: 0,
+        indirectRestarts: 0,
+      };
       decisionAcc = DECISION_INTERVAL_MAX;
       nextDecisionIn = DECISION_INTERVAL_MIN + rng() * (DECISION_INTERVAL_MAX - DECISION_INTERVAL_MIN);
       scoreEl.textContent = "0 – 0";
@@ -12198,6 +12560,8 @@
       getScore: () => ({ homeGoals: homeScore, awayGoals: awayScore }),
       getMatchLog: getMatchLogPayload,
       getOobStats: () => ({ ...oobStats }),
+      getCornerStats: () => ({ ...cornerStats, delivery: { ...cornerStats.delivery } }),
+      getFkStats: () => ({ ...fkStats }),
       getBroadcastState,
       applyBroadcastState,
       getBroadcastFrame: getBroadcastState,
