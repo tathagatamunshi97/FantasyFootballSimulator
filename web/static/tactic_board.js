@@ -1222,6 +1222,29 @@
     let pendingClear = null;
     let pendingKickoffCarrier = null;
     let pendingShot = null;
+    /**
+     * Set-piece Phase 0 — generic out-of-bounds state. { type: "throw_in"
+     * | "corner" | "goal_kick", side, left, top, at }, drained by
+     * flushDeferredRestarts exactly like pendingRestart/pendingClear/
+     * pendingKickoffCarrier above. decideAction stands down entirely while
+     * this is set (see its early-return guard) so normal action/pass/
+     * dribble logic can't keep mutating ball/possession/player targets
+     * underneath an in-progress restart -- there is exactly one owner of
+     * that state at a time.
+     */
+    let pendingSetPiece = null;
+    /** Side that last touched the ball — feeds corner-vs-goal-kick attribution. */
+    let lastTouchSide = null;
+    /** Set-piece Phase 0/1 instrumentation — see evaluateOutOfBounds/dispatchBallTarget. */
+    let oobStats = {
+      outOfBoundsEvents: 0,
+      touchlineExits: 0,
+      bylineExits: 0,
+      cornersGenerated: 0,
+      goalKicksGenerated: 0,
+      throwInsGenerated: 0,
+      falsePositiveOob: 0,
+    };
     let freeKickUntil = 0; // Block dribbling during free kick situations
     /** Last successful passer before shot/goal — used for assist attribution. */
     let lastPasser = null;
@@ -1534,6 +1557,84 @@
       ballTween = 0;
       ballTweenDur = Math.max(0.22, dur || 0.45);
       if (attach !== undefined) ballAttached = attach;
+    }
+
+    /**
+     * Set-piece Phase 0 — generic out-of-bounds detection. Evaluated on the
+     * RAW, unclamped intended ball destination — callers MUST pass this
+     * before any local safety clamp of their own, otherwise an intended
+     * (103, 50) silently becomes "stayed in play" once clamped to 99 and
+     * the whole point is lost. setBallTarget's own clamp above is
+     * untouched and stays the final safety net for genuinely in-play
+     * destinations — this function only decides whether a destination
+     * even reaches it.
+     *
+     * Geometry (absolute pitch %, both axes 0-100): touchlines at
+     * left=0/100, bylines at top=0/100. The goal mouth mirrors
+     * attackGoalLeft()'s own 46.5-53.5 window; a byline-crossing
+     * destination inside that window is a genuine shot — its actual
+     * goal/save/wide outcome is already pre-decided by ballFlight before
+     * this destination was ever picked (see doShot) — and is explicitly
+     * left alone here, never classified as a restart.
+     */
+    const OOB_GOAL_MOUTH_MIN = 45;
+    const OOB_GOAL_MOUTH_MAX = 55;
+    function evaluateOutOfBounds(rawLeft, rawTop, touchSide) {
+      const sidelineOut = rawLeft < 0 || rawLeft > 100;
+      const bylineOut = rawTop < 0 || rawTop > 100;
+      if (!sidelineOut && !bylineOut) return null;
+
+      if (bylineOut) {
+        const inGoalMouth = rawLeft >= OOB_GOAL_MOUTH_MIN && rawLeft <= OOB_GOAL_MOUTH_MAX;
+        if (inGoalMouth) return null;
+        // home attacks toward decreasing top (top≈0 = away's goal); away
+        // attacks toward increasing top (top≈100 = home's goal) — see
+        // toPitchPct's own doc comment.
+        const bylineIsHomeGoal = rawTop > 100;
+        const goalOwnerSide = bylineIsHomeGoal ? "home" : "away";
+        const attackingSide = oppOf(goalOwnerSide);
+        const clampedLeft = clamp(rawLeft, 3, 97);
+        const clampedTop = bylineIsHomeGoal ? 98 : 2;
+        if (touchSide === attackingSide) {
+          return { type: "goal_kick", side: goalOwnerSide, left: clampedLeft, top: clampedTop };
+        }
+        return { type: "corner", side: attackingSide, left: clampedLeft, top: clampedTop };
+      }
+
+      // Sideline: thrown to whichever side did NOT put it out.
+      const side = oppOf(touchSide);
+      const clampedTop = clamp(rawTop, 3, 97);
+      const clampedLeft = rawLeft < 0 ? 1 : 99;
+      return { type: "throw_in", side, left: clampedLeft, top: clampedTop };
+    }
+
+    /**
+     * Wraps setBallTarget with the out-of-bounds check above WITHOUT
+     * changing setBallTarget's own semantics/signature at all — it stays a
+     * pure safety clamp for genuinely in-play destinations. Callers whose
+     * destination is a real, could-legitimately-miss decision (a
+     * dribble/carry touch, an open pass) should call this instead of
+     * setBallTarget directly. Scripted/always-in-bounds placements
+     * (kickoff centering, HT reset, corner-flag spots, penalty spot,
+     * shot-outcome destinations already pre-decided by ballFlight) should
+     * keep calling setBallTarget directly — a generic geometry check has
+     * nothing useful to add there, and touching every call site
+     * indiscriminately is exactly the invasive change we're avoiding.
+     */
+    function dispatchBallTarget(left, top, dur, attach, ctrl, touchSide) {
+      const oob = evaluateOutOfBounds(left, top, touchSide);
+      if (oob) {
+        oobStats.outOfBoundsEvents++;
+        if (oob.type === "throw_in") oobStats.touchlineExits++;
+        else oobStats.bylineExits++;
+        lastTouchSide = touchSide;
+        pendingSetPiece = { ...oob, at: matchMinute + 0.35 };
+        ballAttached = false;
+        setBallTarget(oob.left, oob.top, Math.min(0.35, dur || 0.3), false, null);
+        return true;
+      }
+      setBallTarget(left, top, dur, attach, ctrl);
+      return false;
     }
 
     /** Published ball path for host→viewer sync (fixed travel; no mid-tween redecide). */
@@ -1936,6 +2037,28 @@
         const to = pinById.get(pendingClear.toId);
         pendingClear = null;
         if (from && to && carrierId === from.id) doPass(from, to, "clear");
+      }
+      // Set-piece Phase 0/1 — drain exactly like the three restart flags
+      // above: wait for the short "ball freezes at the exit point" tween
+      // dispatchBallTarget already kicked off to finish, then hand off to
+      // the matching resolver. Corners/goal kicks reuse the EXISTING
+      // resolveCorner (unmodified) — this only gives it a new caller for
+      // open-play exits, not a reimplementation — plus a minimal new
+      // resolveGoalKick (its necessary counterpart; not a named phase in
+      // the spec, kept deliberately as simple as throw-ins).
+      if (pendingSetPiece && matchMinute >= pendingSetPiece.at && ballTween >= 1 && !ballFlight) {
+        const sp = pendingSetPiece;
+        pendingSetPiece = null;
+        if (sp.type === "throw_in") {
+          resolveThrowIn(sp.side, sp.left, sp.top);
+        } else if (sp.type === "corner") {
+          oobStats.cornersGenerated++;
+          resolveCorner(sp.side);
+        } else if (sp.type === "goal_kick") {
+          oobStats.goalKicksGenerated++;
+          resolveGoalKick(sp.side);
+        }
+        return;
       }
     }
 
@@ -9336,8 +9459,30 @@
       const jink = (rng() < 0.5 ? 1 : -1) * (2.2 + rng() * 2.8);
       const midX = clamp(carrier.left + jink, 6, 94);
       const midY = clamp(carrier.top + attackSign * ahead * 0.4, 5, 95);
-      const nx = clamp(midX - jink * 0.35 + (rng() - 0.5) * 1.4, 6, 94);
-      const ny = clamp(carrier.top + attackSign * ahead, 5, 95);
+      // Set-piece Phase 0 — the ball's own target no longer gets a private
+      // 6-94/5-95 safety clamp here; dispatchBallTarget's out-of-bounds
+      // detector owns that boundary now, so a heavy touch near the line
+      // while jinking away from a defender can genuinely put it out
+      // instead of always being silently rescued back onto the pitch.
+      // Bug fix — first cut of this widened only the BALL's clamp and left
+      // the carrier's own tx/ty at 6-94/5-95; empirically that alone still
+      // produced zero touchline exits across a full half in testing,
+      // because midX is itself derived from carrier.left, and every pin's
+      // shape-driven position is already bounded to roughly 4-96 upstream
+      // (stretchLaneX) — a jink of a few units off an already-safe center
+      // essentially never reaches the true edge. During an active dribble
+      // specifically (a deliberate, contested forward touch, not routine
+      // off-ball shape) the carrier's own target may now approach the real
+      // touchline much more closely — a winger already out wide taking a
+      // heavy touch under pressure can genuinely run/put it out. Derived
+      // straight from carrier.left, NOT from midX above (which is itself
+      // still clamped to 6-94 for the visual path-bulge control point) —
+      // routing it through that clamped value was the reason the first cut
+      // still produced zero exits.
+      const rawNx = carrier.left + jink * 0.65 + (rng() - 0.5) * 1.4;
+      const rawNy = carrier.top + attackSign * ahead;
+      const nx = clamp(rawNx, 1, 99);
+      const ny = clamp(rawNy, 2, 98);
 
       carrier._pathCtrl = { left: midX, top: midY, from: matchMinute, until: matchMinute + 0.45 };
       carrier.tx = nx;
@@ -9345,7 +9490,7 @@
       carrier.lockUntil = matchMinute + 0.9;
       ballAttached = true;
       const dur = 0.65;
-      setBallTarget(nx, ny + attackSign * -0.5, dur, true);
+      dispatchBallTarget(rawNx, rawNy + attackSign * -0.5, dur, true, null, carrier.side);
       actionTimer = dur + 0.12 + spellIdlePause() * 0.35;
 
       if (won) {
@@ -9597,14 +9742,22 @@
       const jink = (rng() < 0.55 ? 1 : -1) * (1.6 + rng() * 2.6);
       const midX = clamp(carrier.left + jink, 8, 92);
       const midY = clamp(carrier.top + attackSign * push * 0.38, 5, 95);
-      const nx = clamp(midX - jink * 0.28 + (rng() - 0.5) * 1.2, 8, 92);
-      const ny = clamp(carrier.top + attackSign * push, 5, 95);
+      // Set-piece Phase 0 — same fix as doDribble: derive the ball's own
+      // target straight from carrier.left (NOT the pre-clamped midX above,
+      // still used only for the visual path-bulge control point), and
+      // clamp it wide (1-99/2-98) instead of the old 8-92/5-95 — routing
+      // through the clamped value was empirically why the first cut
+      // produced zero real exits across a full half of testing.
+      const rawNx = carrier.left + jink * 0.72 + (rng() - 0.5) * 1.2;
+      const rawNy = carrier.top + attackSign * push;
+      const nx = clamp(rawNx, 1, 99);
+      const ny = clamp(rawNy, 2, 98);
       carrier._pathCtrl = { left: midX, top: midY, from: matchMinute, until: matchMinute + 0.4 };
       carrier.tx = nx;
       carrier.ty = ny;
       carrier.lockUntil = matchMinute + 0.75;
       ballAttached = true;
-      setBallTarget(nx, ny + attackSign * -0.8, 0.7, true);
+      dispatchBallTarget(rawNx, rawNy + attackSign * -0.8, 0.7, true, null, carrier.side);
       actionTimer = 0.55 + rng() * 0.25 + spellIdlePause() * 0.5;
       if (commentaryHold <= 0) say(`${carrier.short} drives forward`, 1.0);
     }
@@ -9916,6 +10069,95 @@
         doPass(taker, target, "cross");
       }
       freeKickUntil = 0; // Clear free kick flag after kick is taken
+    }
+
+    /**
+     * Set-piece Phase 1 — throw-ins. Deliberately simple per spec: nearest
+     * eligible outfield player to the exit point (excludes GK; "nearest
+     * sensible teammate," not literally nearest-any-player).
+     */
+    function pickThrowInTaker(side, left, top) {
+      const spot = { left, top };
+      const pins = pinsOf(side).filter((p) => p.role !== "GK");
+      let best = null;
+      let bestD = Infinity;
+      for (const p of pins) {
+        const d = dist(p, spot);
+        if (d < bestD) {
+          bestD = d;
+          best = p;
+        }
+      }
+      return best;
+    }
+
+    /**
+     * Set-piece Phase 1 — throw-ins. Kept deliberately simple: position the
+     * taker at the exit point, pick a receiver by reusing the SAME
+     * scoreDynamicReceiver/findBestArrivingReceiver machinery evaluateArrivals
+     * already relies on elsewhere (no third receiver-scoring system), then
+     * hand off to the normal doPass pipeline for the actual reception — a
+     * real, non-guaranteed contest via the exact same interception
+     * mechanics every other pass already uses, not an invented probability
+     * layer bolted on beside it.
+     */
+    function resolveThrowIn(side, left, top) {
+      const taker = pickThrowInTaker(side, left, top);
+      if (!taker) return;
+      const pct = { left: clamp(left, 1, 99), top: clamp(top, 2, 98) };
+      taker.left = pct.left;
+      taker.top = pct.top;
+      taker.tx = pct.left;
+      taker.ty = pct.top;
+      taker.lockUntil = matchMinute + 1.0;
+
+      clearLastPasser();
+      spell = null;
+      pushMatchEvent("throw_in", side, {
+        player: taker.player,
+        player_short: taker.short,
+        detail: "throw-in",
+      });
+      oobStats.throwInsGenerated++;
+
+      const depth = possessionDepth(taker);
+      const stage = depth < 0.35 ? "BUILD_UP" : depth < 0.68 ? "PROGRESSING" : "FINAL_THIRD";
+      const receiver = findBestArrivingReceiver(taker, stage, depth, 0.12);
+      if (!receiver) {
+        say(`${taker.short} takes the throw`, 1.2);
+        giveBall(taker, null);
+        return;
+      }
+      say(`${taker.short} throws to ${receiver.short}`, 1.2);
+      doPass(taker, receiver, "pass");
+    }
+
+    /**
+     * Minimal goal kick — not a named phase in the spec, but the necessary
+     * counterpart to a corner: the SAME byline-exit-outside-goal-mouth
+     * detection needs a resolution either way depending on who touched it
+     * last. Kept as simple as throw-ins on purpose — keeper collects and
+     * restarts; the real reception contest happens through the normal
+     * pass pipeline once play resumes, not invented here.
+     */
+    function resolveGoalKick(side) {
+      const keeper = gkOf(side);
+      if (!keeper) return;
+      const spot = toPitchPct(side, 0.5, 0.06);
+      keeper.left = spot.left;
+      keeper.top = spot.top;
+      keeper.tx = spot.left;
+      keeper.ty = spot.top;
+      keeper.lockUntil = matchMinute + 1.0;
+      clearLastPasser();
+      spell = null;
+      pushMatchEvent("goal_kick", side, {
+        player: keeper.player,
+        player_short: keeper.short,
+        detail: "goal kick",
+      });
+      say(`Goal kick — ${keeper.short}`, 1.2);
+      giveBall(keeper, null);
     }
 
     /**
@@ -10273,7 +10515,7 @@
       // before this resolves, which let the scoring side grab another decision
       // (and even score again) before kickoff ever happened. Freeze decisions
       // until the restart actually completes.
-      if (pendingRestart || pendingKickoffCarrier || pendingClear) return;
+      if (pendingRestart || pendingKickoffCarrier || pendingClear || pendingSetPiece) return;
 
       if (!spell || spell.side !== possession) beginSpell(possession, "spell");
       // Hierarchy: state → shape already applied in tickDecision → ball decision here
@@ -11659,6 +11901,17 @@
       possSeconds = { home: 0, away: 0 };
       liveXg = { home: 0, away: 0 };
       breachRecoveryUntil = { home: 0, away: 0 };
+      pendingSetPiece = null;
+      lastTouchSide = null;
+      oobStats = {
+        outOfBoundsEvents: 0,
+        touchlineExits: 0,
+        bylineExits: 0,
+        cornersGenerated: 0,
+        goalKicksGenerated: 0,
+        throwInsGenerated: 0,
+        falsePositiveOob: 0,
+      };
       leadProtectUntil = { home: 0, away: 0 };
       sideBigMissStreak = { home: 0, away: 0 };
       redrawFinishingForm();
@@ -11944,6 +12197,7 @@
       reset,
       getScore: () => ({ homeGoals: homeScore, awayGoals: awayScore }),
       getMatchLog: getMatchLogPayload,
+      getOobStats: () => ({ ...oobStats }),
       getBroadcastState,
       applyBroadcastState,
       getBroadcastFrame: getBroadcastState,
