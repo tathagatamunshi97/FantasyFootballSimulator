@@ -950,27 +950,27 @@
             <span class="tactic-hud-value"><span data-tb-xg-h>0.00</span> – <span data-tb-xg-a>0.00</span></span>
           </div>
         </div>
-        <div class="tactic-mobile-scorers" data-tb-mobile-scorers hidden>
-          <div class="ms-col home" data-tb-scorers-home></div>
-          <div class="ms-col away" data-tb-scorers-away></div>
-        </div>
-        <div class="tactic-mobile-stats" data-tb-mobile-stats hidden>
-          <div class="mobile-stat-row"><span class="ms-val home" data-ms="poss-home">50%</span><span class="ms-label">Possession</span><span class="ms-val away" data-ms="poss-away">50%</span></div>
-          <div class="mobile-stat-row"><span class="ms-val home" data-ms="bigchances-home">0</span><span class="ms-label">Clear-cut chances</span><span class="ms-val away" data-ms="bigchances-away">0</span></div>
-          <div class="mobile-stat-row"><span class="ms-val home" data-ms="xg-home">0.00</span><span class="ms-label">xG</span><span class="ms-val away" data-ms="xg-away">0.00</span></div>
-          <div class="mobile-stat-row"><span class="ms-val home" data-ms="shots-home">0</span><span class="ms-label">Shots</span><span class="ms-val away" data-ms="shots-away">0</span></div>
-          <div class="mobile-stat-row"><span class="ms-val home" data-ms="sot-home">0</span><span class="ms-label">Shots on target</span><span class="ms-val away" data-ms="sot-away">0</span></div>
-          <div class="mobile-stat-row combo">
-            <span class="ms-val home" data-ms="fouls-home">0</span><span class="ms-icon">&#x1F6A9;</span><span class="ms-val away" data-ms="fouls-away">0</span>
-            <span class="ms-val home" data-ms="corners-home">0</span><span class="ms-icon">&#x26F3;</span><span class="ms-val away" data-ms="corners-away">0</span>
+        <div class="tactic-mobile-info" data-tb-mobile-info hidden>
+          <div class="tactic-mobile-scorers" data-tb-mobile-scorers>
+            <div class="ms-col home" data-tb-scorers-home></div>
+            <div class="ms-col away" data-tb-scorers-away></div>
           </div>
-        </div>
-        <div class="tactic-mobile-zone" data-tb-mobile-zone hidden>
-          <div class="mz-track"><span class="mz-marker" data-mz-marker></span></div>
-          <div class="mz-labels">
-            <span class="mz-label-home">${escHtml(homeTeam.name)}</span>
-            <span>Midfield</span>
-            <span class="mz-label-away">${escHtml(awayTeam.name)}</span>
+          <div class="tactic-mobile-stats" data-tb-mobile-stats>
+            <div class="mobile-stat-row"><span class="ms-val home" data-ms="poss-home">50%</span><span class="ms-label">Possession</span><span class="ms-val away" data-ms="poss-away">50%</span></div>
+            <div class="mobile-stat-row"><span class="ms-val home" data-ms="bigchances-home">0</span><span class="ms-label">Clear-cut chances</span><span class="ms-val away" data-ms="bigchances-away">0</span></div>
+            <div class="mobile-stat-row"><span class="ms-val home" data-ms="xg-home">0.00</span><span class="ms-label">xG</span><span class="ms-val away" data-ms="xg-away">0.00</span></div>
+            <div class="mobile-stat-row"><span class="ms-val home" data-ms="shots-home">0</span><span class="ms-label">Shots</span><span class="ms-val away" data-ms="shots-away">0</span></div>
+            <div class="mobile-stat-row"><span class="ms-val home" data-ms="sot-home">0</span><span class="ms-label">Shots on target</span><span class="ms-val away" data-ms="sot-away">0</span></div>
+            <div class="mobile-stat-row"><span class="ms-val home" data-ms="fouls-home">0</span><span class="ms-label">Fouls</span><span class="ms-val away" data-ms="fouls-away">0</span></div>
+            <div class="mobile-stat-row"><span class="ms-val home" data-ms="corners-home">0</span><span class="ms-label">Corners</span><span class="ms-val away" data-ms="corners-away">0</span></div>
+          </div>
+          <div class="tactic-mobile-zone" data-tb-mobile-zone>
+            <div class="mz-track"><span class="mz-marker" data-mz-marker></span></div>
+            <div class="mz-labels">
+              <span class="mz-label-home">${escHtml(homeTeam.name)}</span>
+              <span>Midfield</span>
+              <span class="mz-label-away">${escHtml(awayTeam.name)}</span>
+            </div>
           </div>
         </div>
         <div class="tactic-pitch-wrap" data-tb-pitch-wrap>
@@ -1067,6 +1067,7 @@
     const goalCardSubEl = container.querySelector("[data-tb-goalcard-sub]");
     const feedEl = container.querySelector("[data-tb-feed]");
     const pitchWrapEl = container.querySelector("[data-tb-pitch-wrap]");
+    const mobileInfoEl = container.querySelector("[data-tb-mobile-info]");
     const mobileStatsEl = container.querySelector("[data-tb-mobile-stats]");
     const mobileZoneEl = container.querySelector("[data-tb-mobile-zone]");
     const mobileZoneMarkerEl = container.querySelector("[data-mz-marker]");
@@ -1075,9 +1076,7 @@
     const mobileScorersHomeEl = container.querySelector("[data-tb-scorers-home]");
     const mobileScorersAwayEl = container.querySelector("[data-tb-scorers-away]");
     if (mobileBroadcast) {
-      if (mobileStatsEl) mobileStatsEl.hidden = false;
-      if (mobileZoneEl) mobileZoneEl.hidden = false;
-      if (mobileScorersEl) mobileScorersEl.hidden = false;
+      if (mobileInfoEl) mobileInfoEl.hidden = false;
     }
     const possHEl = container.querySelector("[data-tb-poss-h]");
     const possAEl = container.querySelector("[data-tb-poss-a]");
@@ -1157,6 +1156,13 @@
     const MOBILE_EVENT_SPEED = 0.3;
     const MOBILE_EVENT_MS = 4200;
     let mobileEventUntilTs = 0;
+    // FM Mobile broadcast mode -- true while the current spell is flagged
+    // to attempt a chance (spell.willAttemptChance), so the slow full-pitch
+    // view is already showing before any shot/goal fires, not just for the
+    // MOBILE_EVENT_MS hold after. Cleared in archiveSpell (reverting to
+    // fast mode if the spell never actually produced a key event) and on
+    // reset.
+    let mobileBuildupActive = false;
     let matchMinute = 0;
     let lastTs = 0;
     let raf = 0;
@@ -1348,6 +1354,35 @@
       selected: 0,
       samples: [],
     };
+    /**
+     * Diagnostic-only, opt-in (opts.decisionDiagRoles: ["CM"] etc.) —
+     * "instrument before you tune" for the CM-vs-AM/W creative-output
+     * question. Logs every possession-decision entry for a tracked role:
+     * where the carrier was, what forward/through/wide/box options
+     * existed, the single best-scoring option by scorePassingOption (the
+     * same yardstick the engine's own generic passing logic uses — not a
+     * new scoring system), what was actually chosen, and the pass
+     * outcome (completed/intercepted/steal/offside) where applicable.
+     * Zero overhead when no role is being tracked (the common case —
+     * gated at the top of decideAction, never runs during normal play or
+     * FM Mobile broadcasts).
+     */
+    const decisionDiagRoles = new Set(Array.isArray(opts.decisionDiagRoles) ? opts.decisionDiagRoles : []);
+    const decisionDiagAll = Boolean(opts.decisionDiagAll);
+    let decisionDiag = { samples: [] };
+    let pendingDecisionSnapshot = null;
+    /**
+     * Diagnostic-only, opt-in — raw possession count per pin (every time
+     * giveBall() hands a player the ball, regardless of what they do with
+     * it or whether decideAction resolves into one of the four hooked
+     * actions below). This is deliberately a SEPARATE counter from
+     * decisionDiag's sample count: decisionDiag only captures possessions
+     * that terminate in pass/carry/dribble/shot, so comparing the two
+     * numbers per player answers "how many touches were there at all" vs
+     * "how many of those touches did we actually classify" — the exact
+     * gap the CM/AM touch-rate question needed and didn't have.
+     */
+    let possessionCounts = {};
     /** Last successful passer before shot/goal — used for assist attribution. */
     let lastPasser = null;
 
@@ -1553,6 +1588,17 @@
     }
 
     /**
+     * FM Mobile broadcast mode — the pitch and the scorers/stats/zone panel
+     * occupy the same slot, not stacked (stacking forced a scroll to reach
+     * the pitch). Exactly one is visible at a time: the pitch while a key
+     * event is live/building, the info panel otherwise.
+     */
+    function setMobileLive(isLive) {
+      if (pitchWrapEl) pitchWrapEl.classList.toggle("tactic-pitch-wrap--live", isLive);
+      if (mobileInfoEl) mobileInfoEl.hidden = isLive;
+    }
+
+    /**
      * FM Mobile broadcast mode — only corners, direct free kicks, shots,
      * goals, and yellow cards get the full pitch shown, and only for a
      * bounded REAL-time window (not sim-time — the whole point is to
@@ -1563,7 +1609,7 @@
       if (!mobileBroadcast) return;
       if (mobileEventUntilTs <= 0) {
         speed = MOBILE_EVENT_SPEED;
-        if (pitchWrapEl) pitchWrapEl.classList.add("tactic-pitch-wrap--live");
+        setMobileLive(true);
       }
       mobileEventUntilTs = performance.now() + MOBILE_EVENT_MS;
     }
@@ -8849,6 +8895,9 @@
     }
 
     function giveBall(pin, comment) {
+      if (decisionDiagAll || decisionDiagRoles.size) {
+        possessionCounts[pin.id] = (possessionCounts[pin.id] || 0) + 1;
+      }
       const prevSide = possession;
       const sideChanged = !spell || pin.side !== prevSide;
       carrierId = pin.id;
@@ -8977,6 +9026,17 @@
         const name = side === "home" ? homeTeam.name : awayTeam.name;
         say(`${name} in possession`, 1.4);
       }
+      // FM Mobile broadcast mode -- a spell that's going to attempt a
+      // chance gets the slow full-pitch view from the start of the
+      // possession, so the viewer sees the buildup rather than the camera
+      // only snapping in for the shot itself.
+      if (mobileBroadcast && willChance) {
+        mobileBuildupActive = true;
+        if (mobileEventUntilTs <= 0) {
+          speed = MOBILE_EVENT_SPEED;
+          setMobileLive(true);
+        }
+      }
     }
 
     function archiveSpell(outcome) {
@@ -8993,6 +9053,15 @@
         outcome: outcome || "ended",
         actions: spell.actions || 0,
       });
+      // If this spell was flagged for the buildup view but never actually
+      // produced a key event (triggerMobileHighlight never fired during
+      // it), drop back to fast mode instead of leaving the viewer stuck on
+      // a slow view of a spell that fizzled into a turnover.
+      if (mobileBroadcast && mobileBuildupActive && mobileEventUntilTs <= 0) {
+        speed = MOBILE_NORMAL_SPEED;
+        setMobileLive(false);
+      }
+      mobileBuildupActive = false;
     }
 
     /**
@@ -9625,6 +9694,24 @@
       } else if (outcome === "pass" || outcome === "offside") say(label, 1.3);
       else if (commentaryHold <= 0.5) say(label, 1.0);
 
+      if (pendingDecisionSnapshot && pendingDecisionSnapshot.carrierId === from.id) {
+        let cls;
+        if (passKind === "through") cls = "through_ball";
+        else if (passKind === "cross" || passKind === "cutback") cls = "cross";
+        else {
+          const depthDelta = possessionDepth(to) - possessionDepth(from);
+          cls = depthDelta > 0.08 ? "progressive_pass" : depthDelta < -0.05 ? "recycle" : "normal_pass";
+        }
+        const chosenScore = passKind !== "clear" ? scorePassingOption(from, to) : null;
+        logDecisionOutcome(cls, {
+          targetRole: to.role,
+          targetId: to.id,
+          chosenScore: Number.isFinite(chosenScore) ? Math.round(chosenScore * 100) / 100 : null,
+          passKind,
+          outcome,
+        });
+      }
+
       ballFlight = {
         outcome,
         pin: to,
@@ -9644,6 +9731,9 @@
 
     function doDribble(carrier) {
       if (ballFlight) return;
+      if (pendingDecisionSnapshot && pendingDecisionSnapshot.carrierId === carrier.id) {
+        logDecisionOutcome("dribble", {});
+      }
       if (matchMinute < freeKickUntil) return; // Block dribbling during free kick
       // Engine fix — this contest never got the scrambling-window treatment
       // doCarry/driveIntoBox already have. A covering defender mid-recovery
@@ -9973,6 +10063,9 @@
     }
 
     function doCarry(carrier) {
+      if (pendingDecisionSnapshot && pendingDecisionSnapshot.carrierId === carrier.id) {
+        logDecisionOutcome("carry", {});
+      }
       // Was unconditionally safe even with a defender right next to the
       // carrier — a free, guaranteed advance regardless of pressure, while
       // doDribble (the only contestable forward action) only fires on a
@@ -10889,6 +10982,9 @@
 
     function doShot(carrier, mustScore, opts) {
       if (ballFlight) return;
+      if (pendingDecisionSnapshot && pendingDecisionSnapshot.carrierId === carrier.id) {
+        logDecisionOutcome("shot", {});
+      }
       const wallBoost = (opts && opts.wallBoost) || 0;
       // Engine rebuild — physics realism (Problem 9). A shot previously had
       // zero wind-up: the ball started flying the instant the decision was
@@ -11128,9 +11224,87 @@
       pendingTimers.length = 0;
     }
 
+    /**
+     * Diagnostic-only (see decisionDiagRoles above) — the possession-entry
+     * state for whichever tracked-role carrier is about to decide. Reuses
+     * canPlayForward/throughBallLegal/scorePassingOption exactly as the
+     * real decision logic does — this is deliberately NOT a second scoring
+     * system, just a read of the same signals the engine itself already
+     * computes, taken before we know what the engine will actually pick.
+     */
+    function possessionSnapshot(carrier, cheap) {
+      const stage = spell?.stage || phase;
+      const depth = possessionDepth(carrier);
+      const nearest = nearestOpponent(carrier, 15);
+      const mates = teammates(carrier);
+      const forwardEligible = mates.filter((m) => canPlayForward(carrier, m, stage, depth));
+      const throughEligible = forwardEligible.filter((m) => throughBallLegal(carrier, m));
+      const wideOptions = mates.filter((m) => m.role === "W" && Math.abs(m.left - carrier.left) > 10);
+      const boxOptions = mates.filter((m) => possessionDepth(m) >= 0.82);
+      let bestScore = -Infinity;
+      let bestMate = null;
+      // The scorePassingOption pass is the expensive part (one full score
+      // per forward-eligible teammate) -- skip it for the all-players/
+      // all-matches audit, where the "was a better option available"
+      // question isn't what's being asked; keep it for the role-scoped
+      // CM/AM diagnostic, which specifically needs it.
+      if (!cheap) {
+        for (const m of forwardEligible) {
+          const s = scorePassingOption(carrier, m);
+          if (s > bestScore) {
+            bestScore = s;
+            bestMate = m;
+          }
+        }
+      }
+      return {
+        role: carrier.role,
+        side: carrier.side,
+        depth: Math.round(depth * 100) / 100,
+        stage,
+        nearestOppDist: nearest ? Math.round(nearest.d * 10) / 10 : null,
+        forwardCount: forwardEligible.length,
+        forwardRoles: forwardEligible.map((m) => m.role),
+        throughCount: throughEligible.length,
+        wideCount: wideOptions.length,
+        boxCount: boxOptions.length,
+        bestOptionScore: Number.isFinite(bestScore) ? Math.round(bestScore * 100) / 100 : null,
+        bestOptionRole: bestMate ? bestMate.role : null,
+        bestOptionId: bestMate ? bestMate.id : null,
+        carrierId: carrier.id,
+        minute: Math.round(matchMinute * 10) / 10,
+      };
+    }
+
+    /**
+     * Diagnostic-only — called from doPass/doCarry/doDribble/doShot once
+     * the real decision has resolved into an actual action, so it can pair
+     * the possession-entry snapshot with what was chosen (and, for passes,
+     * whether the chosen target's own scorePassingOption score matched the
+     * best-available one captured in the snapshot). One-shot: cleared
+     * immediately so a later action in the SAME tick by a different pin
+     * can't be mislabeled.
+     */
+    function logDecisionOutcome(actionType, extra = {}) {
+      const snap = pendingDecisionSnapshot;
+      pendingDecisionSnapshot = null;
+      if (!snap) return;
+      if (decisionDiag.samples.length >= 600) decisionDiag.samples.shift();
+      decisionDiag.samples.push({ ...snap, actionType, ...extra });
+    }
+
     function decideAction() {
       const carrier = findCarrier();
       if (!carrier || finished || ballFlight) return;
+      if (
+        (decisionDiagAll || (decisionDiagRoles.size && decisionDiagRoles.has(carrier.role))) &&
+        !pendingRestart &&
+        !pendingKickoffCarrier &&
+        !pendingClear &&
+        !pendingSetPiece
+      ) {
+        pendingDecisionSnapshot = possessionSnapshot(carrier, decisionDiagAll);
+      }
       // A goal/restart sequence is already locked in (ball walking back to the
       // centre, kickoff carrier not yet assigned) — actionTimer expires well
       // before this resolves, which let the scoring side grab another decision
@@ -11658,8 +11832,11 @@
         // "is this a key event" detection (it never sees pushMatchEvent
         // calls at all — those only fire on the host's own simulation).
         // Sync the one bit that matters: is the host's pitch expanded
-        // right now. applyBroadcastState below just mirrors it.
-        mobileEventLive: mobileBroadcast ? mobileEventUntilTs > 0 : false,
+        // right now. applyBroadcastState below just mirrors it. Includes
+        // mobileBuildupActive too -- otherwise a viewer never sees the
+        // pre-shot buildup the host's own screen already shows, only the
+        // post-event hold once the shot itself has already happened.
+        mobileEventLive: mobileBroadcast ? mobileEventUntilTs > 0 || mobileBuildupActive : false,
       };
     }
 
@@ -11879,8 +12056,8 @@
         if (xgHEl) xgHEl.textContent = liveXg.home.toFixed(2);
         if (xgAEl) xgAEl.textContent = liveXg.away.toFixed(2);
       }
-      if (mobileBroadcast && pitchWrapEl) {
-        pitchWrapEl.classList.toggle("tactic-pitch-wrap--live", Boolean(state.mobileEventLive));
+      if (mobileBroadcast) {
+        setMobileLive(Boolean(state.mobileEventLive));
       }
       if (mobileBroadcast && mobileStatsEl) {
         const ms = state.mobileStats;
@@ -12434,12 +12611,30 @@
       if (!lastTs) lastTs = ts;
       if (mobileBroadcast && mobileEventUntilTs > 0 && ts >= mobileEventUntilTs) {
         mobileEventUntilTs = 0;
-        speed = MOBILE_NORMAL_SPEED;
-        if (pitchWrapEl) pitchWrapEl.classList.remove("tactic-pitch-wrap--live");
+        // Only drop back to fast mode if the buildup spell that triggered
+        // this hold has also wrapped up -- otherwise a shot that continues
+        // into a corner/rebound within the same spell would flash back to
+        // the stats panel and immediately forward again.
+        if (!mobileBuildupActive) {
+          speed = MOBILE_NORMAL_SPEED;
+          setMobileLive(false);
+        }
       }
       const dt = Math.min(0.05, ((ts - lastTs) / 1000) * speed);
       lastTs = ts;
       if (mobileBroadcast) updateMobileZone();
+      // FM Mobile broadcast mode -- willAttemptChance isn't only set at
+      // beginSpell; several mid-spell decision points (progressToward-box
+      // probes, etc.) can flip it true well after the possession started.
+      // Poll every tick so the buildup view kicks in the instant a spell
+      // commits to a chance, from whichever code path did it.
+      if (mobileBroadcast && spell && spell.willAttemptChance && !mobileBuildupActive) {
+        mobileBuildupActive = true;
+        if (mobileEventUntilTs <= 0) {
+          speed = MOBILE_EVENT_SPEED;
+          setMobileLive(true);
+        }
+      }
 
       ensureKickoff();
 
@@ -12627,8 +12822,9 @@
       freeKickUntil = 0;
       if (mobileBroadcast) {
         mobileEventUntilTs = 0;
+        mobileBuildupActive = false;
         speed = MOBILE_NORMAL_SPEED;
-        if (pitchWrapEl) pitchWrapEl.classList.remove("tactic-pitch-wrap--live");
+        setMobileLive(false);
       }
       pendingCornerContext = null;
       cornerStats = {
@@ -12658,6 +12854,9 @@
         selected: 0,
         samples: [],
       };
+      decisionDiag = { samples: [] };
+      pendingDecisionSnapshot = null;
+      possessionCounts = {};
       decisionAcc = DECISION_INTERVAL_MAX;
       nextDecisionIn = DECISION_INTERVAL_MIN + rng() * (DECISION_INTERVAL_MAX - DECISION_INTERVAL_MIN);
       scoreEl.textContent = "0 – 0";
@@ -12926,6 +13125,8 @@
       getCornerStats: () => ({ ...cornerStats, delivery: { ...cornerStats.delivery } }),
       getFkStats: () => ({ ...fkStats }),
       getShortCornerDiag: () => ({ ...shortCornerDiag, samples: shortCornerDiag.samples.slice() }),
+      getDecisionDiag: () => ({ samples: decisionDiag.samples.slice() }),
+      getPossessionCounts: () => ({ ...possessionCounts }),
       setSpeed: (v) => {
         speed = clamp(Number(v) || 0.5, 0.05, 100);
       },

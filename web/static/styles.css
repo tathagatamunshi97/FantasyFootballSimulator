@@ -477,25 +477,29 @@ tr.matchday-live { background: rgba(61, 214, 140, 0.06); }
   font-size: 0.72rem;
 }
 
-/* FM Mobile broadcast mode — commentary-first: the pitch collapses to a
-   thin strip by default and only expands for key events (corners, direct
-   free kicks, shots, goals, yellow cards); the zone strip, stats grid and
-   scorer list take its place the rest of the time. */
+/* FM Mobile broadcast mode — the pitch and the info panel (scorers, stats,
+   zone strip) occupy the SAME slot and swap via [hidden]/display, rather
+   than stacking. Only one is ever in the layout at a time, so there is
+   nothing extra to scroll past to reach the pitch. */
 .tactic-board--mobile .tactic-pitch-wrap {
-  max-height: 0;
-  overflow: hidden;
-  opacity: 0;
-  margin: 0;
-  transition: max-height 0.4s ease, opacity 0.3s ease;
+  display: none;
 }
 .tactic-board--mobile .tactic-pitch-wrap.tactic-pitch-wrap--live {
+  display: flex;
   max-height: min(60vh, 480px);
-  opacity: 1;
   margin: 0.3rem 0;
 }
 .tactic-board--mobile .tactic-commentary {
   max-height: min(60vh, 520px);
 }
+.tactic-mobile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: min(100%, 720px);
+  margin: 0.3rem auto;
+}
+.tactic-mobile-info[hidden] { display: none; }
 .tactic-mobile-scorers {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -507,7 +511,6 @@ tr.matchday-live { background: rgba(61, 214, 140, 0.06); }
   font-size: 0.76rem;
   min-height: 1.6rem;
 }
-.tactic-mobile-scorers[hidden] { display: none; }
 .tactic-mobile-scorers .ms-col.home { text-align: left; color: var(--home); }
 .tactic-mobile-scorers .ms-col.away { text-align: right; color: var(--away); }
 .tactic-mobile-scorers .ms-scorer {
@@ -518,20 +521,21 @@ tr.matchday-live { background: rgba(61, 214, 140, 0.06); }
 .tactic-mobile-stats {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  padding: 0.5rem 0.6rem;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.02);
+  overflow: hidden;
 }
-.tactic-mobile-stats[hidden] { display: none; }
 .mobile-stat-row {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 0.5rem;
+  padding: 0.42rem 0.7rem;
   font-size: 0.82rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
+.mobile-stat-row:last-child { border-bottom: none; }
 .mobile-stat-row .ms-val {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -547,17 +551,12 @@ tr.matchday-live { background: rgba(61, 214, 140, 0.06); }
   letter-spacing: 0.05em;
   white-space: nowrap;
 }
-.mobile-stat-row.combo {
-  grid-template-columns: 1fr auto auto auto 1fr;
-}
-.mobile-stat-row.combo .ms-icon { font-size: 0.85rem; opacity: 0.75; text-align: center; }
 .tactic-mobile-zone {
   padding: 0.4rem 0.6rem 0.55rem;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.02);
 }
-.tactic-mobile-zone[hidden] { display: none; }
 .mz-track {
   position: relative;
   height: 10px;
