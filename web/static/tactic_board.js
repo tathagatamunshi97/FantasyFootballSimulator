@@ -6684,6 +6684,34 @@
     }
 
     /**
+     * Engine addition — line-breaking run threat. Real defences don't only
+     * drop because the ball itself is deep; a winger/fullback/striker
+     * making a genuine run toward or past the CURRENT offside line forces
+     * the block deeper regardless of where the ball or its carrier
+     * currently sit — otherwise that runner is played through, or (per
+     * the user's own framing) pins the striker level with the last
+     * defender so a cutback/cross opens the defence up. countArrivingRunners
+     * only ever credits a runner AFTER they're already near the box; this
+     * is the proactive version, keyed off the actual offside line rather
+     * than a fixed depth threshold, and off where the runner is HEADING
+     * (tx/ty) rather than where they already are.
+     */
+    function lineBreakingRunThreat(side) {
+      const atkSide = oppOf(side);
+      if (possession !== atkSide) return 0;
+      const offLine = defendingOffsideLine(atkSide);
+      let maxThreat = 0;
+      for (const p of pinsOf(atkSide)) {
+        if (p.role !== "W" && p.role !== "FB" && p.role !== "ST") continue;
+        if (!(p._running || p.lockUntil > matchMinute)) continue;
+        const headingTo = fromPitchPct(atkSide, p.tx ?? p.left, p.ty ?? p.top).depth;
+        const threat = clamp((headingTo - (offLine - 0.15)) / 0.15, 0, 1);
+        if (threat > maxThreat) maxThreat = threat;
+      }
+      return maxThreat;
+    }
+
+    /**
      * Continuous 0–1 defensive pressure (box / chance). Not binary — blends ball depth,
      * near/in-box presence, attackers in box, and attacking spell stage.
      */
@@ -6738,6 +6766,16 @@
       const relBall = fromPitchPct(side, ball.left, ball.top);
       const pushSit = instrBias(side);
       const threeBack = isThreeBackFormation(side === "home" ? homeTeam.formation : awayTeam.formation);
+      // Engine addition — the baseline line height itself used to be
+      // identical for every team, only ever moving in reaction to ball
+      // position/threat. Real teams don't: a side with genuinely strong,
+      // positionally disciplined defenders and effective pressing holds a
+      // higher resting line; a side without that quality sits deeper by
+      // default, not just when directly under the ball. Reuses the same
+      // composite defensive/pressing scores (sideDefend/sidePress) already
+      // driving individual duels elsewhere, so a team's line height and
+      // its actual defending ability stay consistent with each other.
+      const lineQuality = clamp((sideDefend(side) - 0.56) * 0.5 + (sidePress(side) - 0.48) * 0.35, -0.09, 0.09);
       let defLine;
       let midLine;
       let atkLine;
@@ -6754,7 +6792,7 @@
                 : phase === "BOX_OCCUPATION" || phase === "CHANCE_CREATION" || phase === "FINISH" || phase === "chance"
                   ? 0.3
                   : 0.22;
-        defLine = clamp(0.2 + shift + pushSit * 0.035, 0.14, 0.4);
+        defLine = clamp(0.2 + shift + pushSit * 0.035 + lineQuality, 0.14, 0.4);
         midLine = clamp(0.38 + shift + pushSit * 0.045, 0.3, 0.6);
         atkLine = clamp(0.54 + shift + pushSit * 0.055, 0.46, 0.86);
         // Keep block compact: attack line not wildly ahead of defence
@@ -6771,7 +6809,7 @@
         defPressureSmooth[side] = lerp(defPressureSmooth[side], rawThreat, 0.13);
         boxThreat = defPressureSmooth[side];
 
-        defLine = clamp(0.14 + ballD * 0.2 - pushSit * 0.04, 0.1, 0.36);
+        defLine = clamp(0.14 + ballD * 0.2 - pushSit * 0.04 + lineQuality, 0.1, 0.36);
         midLine = clamp(defLine + 0.15, 0.22, 0.52);
         atkLine = clamp(defLine + 0.28, 0.34, 0.64);
         if (threeBack) {
@@ -6785,6 +6823,18 @@
           defLine = lerp(defLine, coverDepth, boxThreat * 0.9);
           midLine = lerp(midLine, clamp(defLine + (threeBack ? 0.08 : 0.11), 0.12, 0.38), boxThreat * 0.78);
           atkLine = lerp(atkLine, clamp(defLine + (threeBack ? 0.18 : 0.22), 0.2, 0.5), boxThreat * 0.55);
+        }
+        // Engine addition — a winger/fullback/striker actually running
+        // toward or past the offside line pulls the block deeper on its
+        // own, separate from (and on top of) the diffuse ball-depth/box-
+        // count/stage blend above. This is the direct feedback loop real
+        // defences run: drop now, or that runner (or the striker sitting
+        // on the shoulder) is in behind.
+        const runThreat = lineBreakingRunThreat(side);
+        if (runThreat > 0.05) {
+          const runCoverDepth = clamp(defLine - 0.1, 0.06, defLine);
+          defLine = lerp(defLine, runCoverDepth, runThreat * 0.7);
+          midLine = lerp(midLine, clamp(defLine + (threeBack ? 0.08 : 0.11), 0.12, 0.38), runThreat * 0.55);
         }
       }
 
