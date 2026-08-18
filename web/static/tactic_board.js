@@ -7423,8 +7423,22 @@
             // blend by proximity to this side's own goal (relBall.depth
             // near 0 = ball right on top of it) so shading ramps up sharply
             // only once the ball is genuinely dangerous.
-            const gkDanger = clamp(1 - relBall.depth, 0, 1);
-            x = lerp(pin.baseX, relBall.x, 0.06 + gkDanger * gkDanger * 0.34);
+            //
+            // Bug fix — "danger" here was purely a function of ball depth,
+            // with no regard for who actually has the ball. A team calmly
+            // building out from the back has the ball deep in its OWN
+            // third by definition, which this read as maximum danger
+            // exactly like an actual opposition attack -- so the keeper
+            // shaded hard toward wherever his own centre-back happened to
+            // be holding the ball during routine build-up, real match
+            // report: left=32-35 (should be ~50) during BUILD_UP, own
+            // possession, no threat at all. Only the DEFENDING case (the
+            // opponent has/is threatening with the ball) should drive this
+            // shading; the attacking case gets a small flat blend so the
+            // keeper still looks alive as an outlet without swinging off
+            // his line for his own side's possession.
+            const gkDanger = attacking ? 0 : clamp(1 - relBall.depth, 0, 1);
+            x = lerp(pin.baseX, relBall.x, attacking ? 0.05 : 0.06 + gkDanger * gkDanger * 0.34);
           } else {
             if (lineKind === "def") depth = defLine + bias;
             else if (lineKind === "mid") depth = midLine + bias;
@@ -8830,8 +8844,17 @@
           const jdx = pct.left - pin.tx;
           const jdy = pct.top - pin.ty;
           const jump = Math.hypot(jdx, jdy);
-          const latBias = jump > 0.35 ? (-jdy / (jump + 1e-6)) * arcAmp * 18 : 0;
-          const depthBias = jump > 0.35 ? (jdx / (jump + 1e-6)) * arcAmp * 12 : 0;
+          // Engine fix — this perpendicular "curve the run" bias is scaled
+          // for an outfield player's much larger movement range (a winger
+          // covering 20+ units), so the same arcAmp*18/12 magnitude applied
+          // to a keeper's tiny, frequent adjustments (retargeting toward
+          // wherever the ball currently is) could swerve his target 10-16
+          // points off a direct line -- a real match showed the away GK
+          // pulled out to left=65+ chasing a target that was actually
+          // sitting near 45-49. A keeper corrects in a straight line, not
+          // a curved run.
+          const latBias = pin.role !== "GK" && jump > 0.35 ? (-jdy / (jump + 1e-6)) * arcAmp * 18 : 0;
+          const depthBias = pin.role !== "GK" && jump > 0.35 ? (jdx / (jump + 1e-6)) * arcAmp * 12 : 0;
           const dampRate = pin._running || pin._pressing ? 0.28 : 0.18;
           if (jump > maxJump) {
             const s = maxJump / jump;
