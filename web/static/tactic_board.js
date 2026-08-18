@@ -2084,6 +2084,22 @@
         ballAttached = true;
         to._dribbleStreak = 0;
         to._lastDribbleOpp = null;
+        // Engine fix — every deliberate action in this file (doDribble,
+        // doCarry, doShot's plant, driveIntoBox...) sets _pathCtrl, tx/ty,
+        // and lockUntil together as one unit; reception set none of them.
+        // A receiver still mid-run carries whatever _pathCtrl bulge was
+        // active from their PREVIOUS action, and with no lockUntil,
+        // updateTeamShape is free to overwrite their tx/ty with a fresh
+        // generic shape target on the very next tick, before decideAction
+        // gets a chance to issue a real next move. The bezier curve then
+        // has to bend from the current position, through a now-stale
+        // control point, to a target that just changed out from under it —
+        // reads as an unmotivated plant-and-pull-back right after the ball
+        // arrives (the "fake shot" look). Clear the stale curve and hold
+        // position briefly so the receiver's own next decision — not shape
+        // — is what moves them.
+        to._pathCtrl = null;
+        to.lockUntil = Math.max(to.lockUntil || 0, matchMinute + 0.15);
         // Bug fix — the organic arrival-based decision (evaluateArrivals/
         // scoreDynamicReceiver) had no memory of who just passed to this
         // player, so a receiver with residual high arrival momentum could
@@ -8116,12 +8132,40 @@
               const nPress = threeBack ? Math.min(nPressScaled, 2) : nPressScaled;
               const pressRank = ranked.findIndex((r) => r.id === pin.id);
 
+              // Engine fix — pressRadius/nPress both shrink specifically as
+              // boxThreat rises (see just above), which is exactly when a
+              // second attacker has pulled up outside the box on a viable
+              // shooting angle while the block drops to cover the goal
+              // line -- the whole team can be legitimately "correctly"
+              // retreating and still leave that shooter completely
+              // unaccounted for, since nothing here ever checked "is this
+              // specific opponent about to shoot" as its own press trigger.
+              // Hard override: the single nearest defender always closes
+              // down a genuine outside-the-box shooting threat, regardless
+              // of pressRank/nPress/pressRadius or the CB-barring clause
+              // just below -- a real back line always sends someone at
+              // that ball.
+              const shootThreat =
+                carrier &&
+                carrier.side !== pin.side &&
+                !inPenaltyBox(carrier) &&
+                isAttackFinisher(carrier) &&
+                possessionDepth(carrier) > 0.62 &&
+                shotAngleQuality(carrier) > 0.1;
+              const isNearestToShooter =
+                shootThreat &&
+                pinsOf(pin.side)
+                  .filter((p) => p.role !== "GK")
+                  .every((p) => p.id === pin.id || dist(p, carrier) >= dist(pin, carrier));
+
               if (
                 runner &&
                 (pin.role === "CB" || pin.role === "FB" || (pin.role === "DM" && defQ > 0.5)) &&
                 dist(pin, runner) < 16 + trackBoost * 3
               ) {
                 naturalMode = "track";
+              } else if (shootThreat && isNearestToShooter && dist(pin, carrier) < 14) {
+                naturalMode = "press";
               } else if (
                 pressEligible &&
                 pressRank >= 0 &&
