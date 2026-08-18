@@ -801,43 +801,144 @@ def _board_events_from_result(result: dict[str, Any]) -> list[dict[str, Any]]:
     return []
 
 
+_TALLY_FIELDS = (
+    "goals",
+    "assists",
+    "shots",
+    "dribbles",
+    "distance_carried",
+    "tackles",
+    "interceptions",
+    "key_passes",
+    "big_chances_created",
+    "big_chances_missed",
+    "clean_sheets",
+)
+
+
 def _bump_player_tally(
     tallies: dict[str, dict[str, Any]],
     *,
     player: str,
     team: str,
     field: str,
+    amount: float = 1,
 ) -> None:
     key = f"{team}\0{player}"
     row = tallies.get(key)
     if not row:
-        row = {"player": player, "team": team, "goals": 0, "assists": 0}
+        row = {"player": player, "team": team, **{f: 0 for f in _TALLY_FIELDS}}
         tallies[key] = row
-    row[field] = int(row.get(field) or 0) + 1
+    current = row.get(field) or 0
+    row[field] = (current + amount) if isinstance(amount, float) else int(current) + int(amount)
+
+
+def _match_goalkeepers(events: list[dict[str, Any]]) -> dict[str, str]:
+    """Best-effort GK identification per side for one match, from save events.
+
+    A "save" event is only ever pushed for the keeper (see doShot in
+    tactic_board.js) -- the first one credited to a side names that side's
+    GK for this match. A side that faced zero shots on target that match
+    gets no clean-sheet credit for it: a small undercount in that rare
+    case, but far safer than guessing from a roster that may have rotated
+    since the match was played.
+    """
+    gks: dict[str, str] = {}
+    for ev in events:
+        if ev.get("type") != "save":
+            continue
+        side = ev.get("side")
+        player = str(ev.get("player") or "").strip()
+        if side in ("home", "away") and player and side not in gks:
+            gks[side] = player
+    return gks
 
 
 def aggregate_player_tallies(t: dict[str, Any]) -> list[dict[str, Any]]:
-    """Sum goals/assists per player across all completed matches with board events."""
+    """Sum goals/assists/shots/defensive & creative stats per player across all completed matches."""
     tallies: dict[str, dict[str, Any]] = {}
     for result in (t.get("match_results") or {}).values():
         if not isinstance(result, dict):
             continue
         home = result.get("home")
         away = result.get("away")
-        for ev in _board_events_from_result(result):
+        events = _board_events_from_result(result)
+
+        for ev in events:
             side = ev.get("side")
             team = home if side == "home" else away if side == "away" else None
-            if not team:
-                continue
-            if ev.get("type") != "goal":
-                continue
-            player = str(ev.get("player") or "").strip()
-            if player:
-                _bump_player_tally(tallies, player=player, team=str(team), field="goals")
-            # Assist attributed on the goal event (last passer before shot).
-            assist = str(ev.get("assist") or ev.get("assist_player") or "").strip()
-            if assist and assist != player:
-                _bump_player_tally(tallies, player=assist, team=str(team), field="assists")
+            ev_type = ev.get("type")
+
+            if ev_type == "goal" and team:
+                player = str(ev.get("player") or "").strip()
+                if player:
+                    _bump_player_tally(tallies, player=player, team=str(team), field="goals")
+                # Assist attributed on the goal event (last passer before shot).
+                assist = str(ev.get("assist") or ev.get("assist_player") or "").strip()
+                if assist and assist != player:
+                    _bump_player_tally(tallies, player=assist, team=str(team), field="assists")
+            elif ev_type in ("shot", "big_chance") and team:
+                player = str(ev.get("player") or "").strip()
+                if player:
+                    _bump_player_tally(tallies, player=player, team=str(team), field="shots")
+            elif ev_type == "pass_broken" and team:
+                player = str(ev.get("player") or "").strip()
+                if player:
+                    _bump_player_tally(tallies, player=player, team=str(team), field="interceptions")
+            elif ev_type == "dribble_won" and team:
+                # Only a genuine contested take-on reaches this event type
+                # (see doDribble in tactic_board.js) -- an uncontested touch
+                # is logged as "carry" below instead, so this stays a clean
+                # "beat a real defender" count.
+                player = str(ev.get("player") or "").strip()
+                if player:
+                    _bump_player_tally(tallies, player=player, team=str(team), field="dribbles")
+                    dist_val = ev.get("distance")
+                    if isinstance(dist_val, (int, float)):
+                        _bump_player_tally(tallies, player=player, team=str(team), field="distance_carried", amount=float(dist_val))
+            elif ev_type == "dribble_lost":
+                # Credited to the opposing side's defender named in "by" --
+                # dribble_lost is logged under the attacker's own side.
+                def_team = away if side == "home" else home if side == "away" else None
+                defender = str(ev.get("by") or "").strip()
+                if def_team and defender:
+                    _bump_player_tally(tallies, player=defender, team=str(def_team), field="tackles")
+                # The attempted carry still covered ground before it was lost.
+                player = str(ev.get("player") or "").strip()
+                dist_val = ev.get("distance")
+                if team and player and isinstance(dist_val, (int, float)):
+                    _bump_player_tally(tallies, player=player, team=str(team), field="distance_carried", amount=float(dist_val))
+            elif ev_type == "carry" and team:
+                # Uncontested carry (no real defender in range) -- counts
+                # toward distance carried, deliberately not toward dribbles.
+                player = str(ev.get("player") or "").strip()
+                dist_val = ev.get("distance")
+                if player and isinstance(dist_val, (int, float)):
+                    _bump_player_tally(tallies, player=player, team=str(team), field="distance_carried", amount=float(dist_val))
+            elif ev_type == "key_pass" and team:
+                player = str(ev.get("player") or "").strip()
+                if player:
+                    _bump_player_tally(tallies, player=player, team=str(team), field="key_passes")
+                    if ev.get("big_chance"):
+                        _bump_player_tally(tallies, player=player, team=str(team), field="big_chances_created")
+            elif ev_type == "big_chance_missed" and team:
+                player = str(ev.get("player") or "").strip()
+                if player:
+                    _bump_player_tally(tallies, player=player, team=str(team), field="big_chances_missed")
+
+        # Clean sheets are per-match, not per-event: credit the identified
+        # GK on whichever side didn't concede.
+        home_goals = int(result.get("home_goals") or 0)
+        away_goals = int(result.get("away_goals") or 0)
+        gks = _match_goalkeepers(events)
+        if away_goals == 0 and home and gks.get("home"):
+            _bump_player_tally(tallies, player=gks["home"], team=str(home), field="clean_sheets")
+        if home_goals == 0 and away and gks.get("away"):
+            _bump_player_tally(tallies, player=gks["away"], team=str(away), field="clean_sheets")
+
+    for row in tallies.values():
+        row["distance_carried"] = round(float(row.get("distance_carried") or 0), 1)
+
     return sorted(
         tallies.values(),
         key=lambda r: (-int(r["goals"]), -int(r["assists"]), str(r["player"]).lower()),
@@ -845,35 +946,36 @@ def aggregate_player_tallies(t: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def player_leaderboards(t: dict[str, Any], *, limit: int = 10) -> dict[str, Any]:
-    """Top goalscorers / assisters for tournament API + persisted state."""
+    """Top goalscorers / assisters / shooters / defenders / creators for tournament API + persisted state."""
     tallies = aggregate_player_tallies(t)
-    scorers = sorted(
-        [r for r in tallies if int(r.get("goals") or 0) > 0],
-        key=lambda r: (-int(r["goals"]), str(r["player"]).lower()),
-    )
-    assisters = sorted(
-        [r for r in tallies if int(r.get("assists") or 0) > 0],
-        key=lambda r: (-int(r["assists"]), str(r["player"]).lower()),
-    )
 
-    def _top(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        if len(rows) <= limit:
-            return rows
+    def _board(field: str) -> list[dict[str, Any]]:
+        rows = sorted(
+            [r for r in tallies if float(r.get(field) or 0) > 0],
+            key=lambda r: (-float(r[field]), str(r["player"]).lower()),
+        )
         return rows[:limit]
 
     return {
         "player_tallies": tallies,
-        "top_goalscorers": _top(scorers),
-        "top_assisters": _top(assisters),
+        "top_goalscorers": _board("goals"),
+        "top_assisters": _board("assists"),
+        "top_shooters": _board("shots"),
+        "top_dribblers": _board("dribbles"),
+        "top_distance_carried": _board("distance_carried"),
+        "top_clean_sheets": _board("clean_sheets"),
+        "top_tacklers": _board("tackles"),
+        "top_interceptors": _board("interceptions"),
+        "top_key_passers": _board("key_passes"),
+        "top_big_chances_created": _board("big_chances_created"),
+        "top_big_chances_missed": _board("big_chances_missed"),
     }
 
 
 def _refresh_player_tallies(t: dict[str, Any]) -> None:
     """Persist leaderboard snapshot on the tournament document."""
     boards = player_leaderboards(t)
-    t["player_tallies"] = boards["player_tallies"]
-    t["top_goalscorers"] = boards["top_goalscorers"]
-    t["top_assisters"] = boards["top_assisters"]
+    t.update(boards)
 
 
 def tournament_for_api(t: dict[str, Any]) -> dict[str, Any]:

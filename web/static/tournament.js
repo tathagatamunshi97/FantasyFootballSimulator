@@ -25,33 +25,41 @@ function tabBar(active) {
     .join("")}</nav>`;
 }
 
-function renderLeaderboardTable(rows, countKey, emptyMsg) {
+function renderLeaderboardTable(rows, countKey, countLabel, emptyMsg, { suffix = "" } = {}) {
   if (!rows?.length) {
     return `<p class="muted" style="margin:0">${esc(emptyMsg)}</p>`;
   }
   const body = rows
     .map((r, i) => {
       const n = r[countKey] ?? 0;
-      return `<tr><td>${i + 1}</td><td>${esc(r.player || "—")}</td><td>${esc(r.team || "—")}</td><td><strong>${n}</strong></td></tr>`;
+      return `<tr><td>${i + 1}</td><td>${esc(r.player || "—")}</td><td>${esc(r.team || "—")}</td><td><strong>${esc(String(n))}${suffix}</strong></td></tr>`;
     })
     .join("");
-  const countLabel = countKey === "goals" ? "G" : "A";
-  return `<table><thead><tr><th>#</th><th>Player</th><th>Team</th><th>${countLabel}</th></tr></thead><tbody>${body}</tbody></table>`;
+  return `<table><thead><tr><th>#</th><th>Player</th><th>Team</th><th>${esc(countLabel)}</th></tr></thead><tbody>${body}</tbody></table>`;
 }
 
+const STAT_BOARDS = [
+  { key: "top_goalscorers", field: "goals", title: "Top goalscorers", label: "G", empty: "No goals recorded yet — play matches on the tactic board." },
+  { key: "top_assisters", field: "assists", title: "Top assisters", label: "A", empty: "No assists recorded yet — assists count when a goal follows a teammate's pass." },
+  { key: "top_shooters", field: "shots", title: "Most shots", label: "Shots", empty: "No shots recorded yet." },
+  { key: "top_dribblers", field: "dribbles", title: "Most dribbles", label: "Dribbles", empty: "No completed take-ons recorded yet." },
+  { key: "top_distance_carried", field: "distance_carried", title: "Most distance carried", label: "Metres", empty: "No carries recorded yet.", suffix: "m" },
+  { key: "top_clean_sheets", field: "clean_sheets", title: "Most clean sheets", label: "CS", empty: "No clean sheets recorded yet." },
+  { key: "top_tacklers", field: "tackles", title: "Most tackles", label: "Tackles", empty: "No tackles recorded yet." },
+  { key: "top_interceptors", field: "interceptions", title: "Most interceptions", label: "Int", empty: "No interceptions recorded yet." },
+  { key: "top_key_passers", field: "key_passes", title: "Most key passes", label: "KP", empty: "No key passes recorded yet." },
+  { key: "top_big_chances_created", field: "big_chances_created", title: "Most big chances created", label: "BCC", empty: "No big chances created yet." },
+  { key: "top_big_chances_missed", field: "big_chances_missed", title: "Most big chances missed", label: "BCM", empty: "No big chances missed yet." },
+];
+
 function renderStats(t) {
-  const scorers = t.top_goalscorers || [];
-  const assisters = t.top_assisters || [];
-  return `<div class="grid-2" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem">
-    <div class="card">
-      <h3>Top goalscorers</h3>
-      ${renderLeaderboardTable(scorers, "goals", "No goals recorded yet — play matches on the tactic board.")}
-    </div>
-    <div class="card">
-      <h3>Top assisters</h3>
-      ${renderLeaderboardTable(assisters, "assists", "No assists recorded yet — assists count when a goal follows a teammate's pass.")}
-    </div>
-  </div>`;
+  const cards = STAT_BOARDS.map(
+    (b) => `<div class="card">
+      <h3>${esc(b.title)}</h3>
+      ${renderLeaderboardTable(t[b.key] || [], b.field, b.label, b.empty, { suffix: b.suffix || "" })}
+    </div>`
+  ).join("");
+  return `<div class="grid-2" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem">${cards}</div>`;
 }
 
 function resultMeta(t, matchId) {

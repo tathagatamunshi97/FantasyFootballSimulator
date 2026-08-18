@@ -1446,6 +1446,9 @@
       if (extra.xg != null && Number.isFinite(Number(extra.xg))) entry.xg = Number(extra.xg);
       if (extra.assist) entry.assist = extra.assist;
       if (extra.assist_short) entry.assist_short = extra.assist_short;
+      if (extra.distance != null && Number.isFinite(Number(extra.distance))) entry.distance = Number(extra.distance);
+      if (extra.big_chance != null) entry.big_chance = Boolean(extra.big_chance);
+      if (extra.in_box != null) entry.in_box = Boolean(extra.in_box);
       matchLog.events.push(entry);
       if (mobileBroadcast && isMobileKeyEvent(type, entry.detail)) triggerMobileHighlight();
       if (type === "goal") {
@@ -5145,6 +5148,20 @@
     const PITCH_LENGTH_M = 105;
     const PITCH_WIDTH_M = 68;
     const GOAL_HALF_WIDTH_M = 3.66;
+    /**
+     * Real-world metres between two pin positions. dist() treats left/top
+     * as equal-scale percentage points, which is wrong for anything that
+     * needs an actual distance -- the left (width) axis spans 68m and the
+     * top (length) axis spans 105m, so a raw Euclidean diff in 0-100 space
+     * mixes two different real-world scales. Used for carry-distance
+     * tracking, where the number is shown to users and needs to mean
+     * something.
+     */
+    function pitchDistM(a, b) {
+      const dx = ((a.left - b.left) / 100) * PITCH_WIDTH_M;
+      const dy = ((a.top - b.top) / 100) * PITCH_LENGTH_M;
+      return Math.hypot(dx, dy);
+    }
     function shotAngleDeg(carrier) {
       const rel = fromPitchPct(carrier.side, carrier.left, carrier.top);
       const dx = (rel.x - 0.5) * PITCH_WIDTH_M;
@@ -9904,6 +9921,16 @@
         actionTimer = dur + 0.12 + spellIdlePause() * 0.3;
         carrier._dribbleStreak = 0;
         say(`${carrier.short} carries it forward`, 1.2);
+        // Engine addition — distance carried. Doesn't touch dribbles_won
+        // (this is deliberately NOT a take-on stat, see above), but a
+        // "most distance carried" leaderboard wants every carrying touch,
+        // contested or not, same as real carry-distance analytics track it
+        // separately from 1v1 take-on success.
+        pushMatchEvent("carry", carrier.side, {
+          player: carrier.player,
+          player_short: carrier.short,
+          distance: Math.round(pitchDistM({ left: carrier.left, top: carrier.top }, { left: nx, top: ny }) * 10) / 10,
+        });
         ballFlight = { outcome: "dribble_won" };
         return;
       }
@@ -10043,6 +10070,7 @@
           player: carrier.player,
           player_short: carrier.short,
           detail: threat ? `past ${threat.pin.short}` : "past the press",
+          distance: Math.round(pitchDistM({ left: carrier.left, top: carrier.top }, { left: nx, top: ny }) * 10) / 10,
         });
         say(`${carrier.short} dribbles past ${threat?.pin.short || "the press"}`, 1.4);
         ballFlight = { outcome: "dribble_won" };
@@ -10202,6 +10230,7 @@
           player_short: carrier.short,
           by: opp?.player,
           detail: opp ? `stopped by ${opp.short}` : "loses possession",
+          distance: Math.round(pitchDistM({ left: carrier.left, top: carrier.top }, { left: nx, top: ny }) * 10) / 10,
         });
         say(opp ? `${opp.short} stops ${carrier.short}` : `${carrier.short} loses it`, 1.4);
         // Ball ends at the point of the challenge — path decided now.
@@ -11226,6 +11255,20 @@
         xg: Math.round(chanceXg * 1000) / 1000,
         in_box: boxed,
       });
+      // Engine addition — key passes / big chances created. lastPasser is
+      // already tracked (assist attribution reuses it too); a pass that
+      // put the shooter in THIS position, right before THIS shot, is
+      // exactly what "key pass" means regardless of whether the shot goes
+      // in. big_chance_created is the same signal, scoped to genuinely
+      // clear-cut chances only.
+      if (lastPasser && lastPasser.toId === carrier.id && lastPasser.player !== carrier.player) {
+        pushMatchEvent("key_pass", carrier.side, {
+          player: lastPasser.player,
+          player_short: lastPasser.player_short,
+          detail: chanceType === "big_chance" ? "big_chance_created" : "key_pass",
+          big_chance: chanceType === "big_chance",
+        });
+      }
       const xgLabel = chanceXg.toFixed(2);
       say(
         chanceType === "big_chance"
@@ -11287,6 +11330,11 @@
         } else {
           carrier._bigMissStreak = (carrier._bigMissStreak || 0) + 1;
           sideBigMissStreak[carrier.side] = (sideBigMissStreak[carrier.side] || 0) + 1;
+          pushMatchEvent("big_chance_missed", carrier.side, {
+            player: carrier.player,
+            player_short: carrier.short,
+            detail: "big chance missed",
+          });
         }
       }
 
