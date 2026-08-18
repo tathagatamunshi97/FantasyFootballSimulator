@@ -11187,21 +11187,17 @@
       // overwrite tx/ty with a fresh target before the bulge completes.
       carrier.lockUntil = Math.max(carrier.lockUntil || 0, matchMinute + 0.12);
       const keeper = gkOf(oppOf(carrier.side));
-      // Engine fix — the keeper's shape-driven position was never coupled
-      // to an actual shot being struck (only a slow, flat lerp toward
-      // wherever the ball generally is), so he could be caught square,
-      // parked off-center with the goal open, the moment a shot actually
-      // went in. Address the shot: shade along the real line from the
-      // shooter to goal centre, same instant-reposition treatment
-      // set-piece takers already get (this is exactly that kind of
-      // "must be in position now" moment).
-      if (keeper) {
-        const carrierRel = fromPitchPct(carrier.side, carrier.left, carrier.top);
-        const keeperBias = clamp((carrierRel.x - 0.5) * 0.55, -0.12, 0.12);
-        const keeperSpot = toPitchPct(oppOf(carrier.side), 0.5 + keeperBias, 0.03);
-        snapPinPose(keeper, keeperSpot.left, keeperSpot.top);
-        keeper.lockUntil = Math.max(keeper.lockUntil || 0, matchMinute + 0.5);
-      }
+      // Engine fix — reverted the instant "address the shot" snapPinPose
+      // that used to live here. Per the user's own report: it could
+      // teleport the keeper across goal right as the shot arrived,
+      // occasionally landing him on the WRONG side of a shot he'd
+      // otherwise have been shaded toward -- a real goal conceded to a
+      // keeper who'd just been snapped the wrong way. A keeper shouldn't
+      // snap to address a shot at all; he should already be gradually
+      // shaded toward the danger by the time it's struck. That continuous
+      // shading lives in updateTeamShape's GK branch (gkDanger-scaled
+      // lerp toward relBall.x) -- this function no longer fights it by
+      // locking the keeper's target the instant a shot fires.
       const atk = sideAttack(carrier.side);
       const def = sideDefend(oppOf(carrier.side));
       // Engine addition — the outfield defender closing this shooter down
