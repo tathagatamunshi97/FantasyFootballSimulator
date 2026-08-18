@@ -3136,13 +3136,26 @@
       finishingThreat = clamp(finishingThreat, 0, 1);
 
       // Distance penalty: closer targets are easier to pass to. Engine fix
-      // — this used to cap out at 0.5 by dist=17.5, so a candidate 40 units
-      // away (most of the pitch) got penalized exactly the same as one 18
-      // units away, letting a genuinely huge cross-field option win purely
-      // on being open/high-stat with nothing left to weigh it down. Steeper
-      // slope and a higher ceiling so real distance keeps mattering.
+      // — the previous version capped at 0.85 by dist=22 and was only
+      // weighted ×0.1 in the final score below, so the maximum possible
+      // penalty for ANY distance beyond 22 units — 30 away or 90 away,
+      // identical — was ~0.085, negligible against finishingThreat/
+      // arrivalScore/progression. That's the actual mechanism behind
+      // unrealistic full-pitch passes (an RB finding the LW cross-field):
+      // this function runs first in decideAction, ahead of the older
+      // pattern-based passing code that already penalizes distance
+      // properly, so a wide-open, well-statted candidate 80 units away
+      // lost almost nothing for being that far. Uncapped past a realistic
+      // range now. Also added below: a separate, role-agnostic lateral
+      // term (the actual "difficulty of pass" this was missing) — a
+      // straight forward ball and a full-width diagonal of the same raw
+      // distance are very different passes in real football, and nothing
+      // here distinguished them.
       const dist_to_candidate = dist(carrier, candidate);
-      const distPenalty = clamp((dist_to_candidate - 5) / 20, 0, 0.85);
+      const lateral_to_candidate = Math.abs(carrier.left - candidate.left);
+      const distPenalty =
+        dist_to_candidate <= 22 ? clamp((dist_to_candidate - 5) / 20, 0, 0.85) : 0.85 + (dist_to_candidate - 22) * 0.045;
+      const lateralPenalty = lateral_to_candidate > 24 ? (lateral_to_candidate - 24) * 0.035 : 0;
 
       // Passing lane: can we actually reach this player without interception?
       // (simplified: use laneScore from ball to candidate's position)
@@ -3184,14 +3197,18 @@
         stageWeight = 1.15;
       }
 
-      // Combine all factors
+      // Combine all factors. distPenalty/lateralPenalty weighted high
+      // enough that an extreme option (either axis) reliably outweighs the
+      // ~1.05 max positive score, instead of the old ×0.1 that let it be
+      // ignored entirely -- see the notes above.
       const score =
         arrivalScore * 0.28 +
         openness * 0.18 +
         finishingThreat * 0.22 +
         laneQuality * 0.12 +
         progression * 0.25 -
-        distPenalty * 0.1;
+        distPenalty * 0.32 -
+        lateralPenalty * 0.32;
 
       return clamp(score * stageWeight, 0, 1);
     }
@@ -4881,6 +4898,27 @@
       return scored[0]?.m || mates[0];
     }
 
+    /**
+     * Engine fix — how hard a long ball actually is to pull off, purely as
+     * a function of distance and lateral width. longBallTarget used to pick
+     * the best-statted forward with no regard for how far/wide the ball had
+     * to travel to reach them, so a fullback would ping a full-width
+     * diagonal to the opposite winger as readily as a short ball to a
+     * nearby runner whenever that winger had the best xG/xA on the team.
+     * Divides the target's attacking-stat score, so a harder pass needs a
+     * proportionally better payoff to still win out — same spirit as the
+     * distance ladder scorePassingOption already applies to every other
+     * pass, just scoped to this one selection.
+     */
+    function longBallDifficulty(carrier, mate) {
+      const d = dist(carrier, mate);
+      const lateral = Math.abs(mate.left - carrier.left);
+      let difficulty = 1;
+      if (d > 22) difficulty += (d - 22) * 0.045;
+      if (lateral > 24) difficulty += (lateral - 24) * 0.05;
+      return difficulty;
+    }
+
     function longBallTarget(carrier) {
       const runners = teammates(carrier)
         .filter((m) => isFwdRole(m.role) || m.role === "AM")
@@ -4890,13 +4928,33 @@
         // so a long ball fired just because an attacker existed somewhere
         // upfield. Require an actual read of space: the runner is actively
         // making the move, or the lane to find them is genuinely clear.
-        .filter((m) => m._running || defendersInLane(carrier, m) === 0);
+        .filter((m) => m._running || defendersInLane(carrier, m) === 0)
+        // Engine fix — an unjustified full-width switch (e.g. an RB pinging
+        // the ball cross-field straight to the LW) is a genuinely
+        // low-probability pass in real football; hold it to the same bar
+        // isJustifiedSwitch already applies to every other pass (open lane
+        // + a real space/matchup edge on the far side) rather than letting
+        // it compete on raw attacking stats alone. Passes through untouched
+        // for any target that isn't a cross-field switch in the first
+        // place.
+        .filter((m) => isJustifiedSwitch(carrier, m));
       if (!runners.length) return null;
-      runners.sort(
-        (a, b) =>
-          b.stats.xg90 * 1.4 + b.stats.xa90 * 1.15 - (a.stats.xg90 * 1.4 + a.stats.xa90 * 1.15) + rng() * 0.2
-      );
-      return runners[0];
+      runners.sort((a, b) => {
+        const scoreA = (a.stats.xg90 * 1.4 + a.stats.xa90 * 1.15) / longBallDifficulty(carrier, a);
+        const scoreB = (b.stats.xg90 * 1.4 + b.stats.xa90 * 1.15) / longBallDifficulty(carrier, b);
+        return scoreB - scoreA + rng() * 0.2;
+      });
+      const best = runners[0];
+      // Engine fix — isJustifiedSwitch's wingPair check only classifies a
+      // W/FB carrier as capable of a "switch" at all, so a CB launching the
+      // identical full-width diagonal to the opposite winger was never
+      // caught by the filter above, and the soft difficulty divisor alone
+      // can't stop it when this happens to be the only live runner in the
+      // pool (sorting one candidate never discounts it out of contention).
+      // Hard cap regardless of carrier role: past this difficulty the pass
+      // just doesn't get attempted this tick.
+      if (longBallDifficulty(carrier, best) > 2.1) return null;
+      return best;
     }
 
     function backPassTarget(carrier) {
@@ -5997,7 +6055,17 @@
         // local pass first instead of still looking for the long switch.
         const far = oppositeFlankWinger(carrier);
         const tryFarSwitch = () => {
-          if (far && isJustifiedSwitch(carrier, far)) {
+          // Engine fix — isJustifiedSwitch's own gate (isCrossFieldSwitch's
+          // wingPair check) only restricts a W/FB carrier, so a CB reaching
+          // this pattern (a live possibility -- wide_switch is a team-level
+          // pattern choice, not gated by who's currently on the ball) got
+          // isJustifiedSwitch === true unconditionally regardless of
+          // distance. oppositeFlankWinger also deliberately picks the MOST
+          // extreme lateral option by design, so "justified" alone doesn't
+          // bound how far/wide it can be -- add the same absolute realism
+          // ceiling longBallTarget holds every long pass to, regardless of
+          // carrier role or how the lane/space checks came out.
+          if (far && isJustifiedSwitch(carrier, far) && longBallDifficulty(carrier, far) <= 2.3) {
             say(`Switch — ${far.short}`, 1.2);
             doPass(carrier, far, "switch");
             return true;
@@ -7264,7 +7332,16 @@
                 : attacking
                   ? 0.055
                   : 0.05;
-            x = lerp(pin.baseX, relBall.x, 0.08);
+            // Engine fix — this was a flat 8% blend toward the ball's
+            // lateral position regardless of distance, so the keeper shaded
+            // exactly as far for a ball on the halfway line as for one on
+            // the six-yard box, and stayed square/uncommitted right when a
+            // shot from close range needed real angle coverage. Scale the
+            // blend by proximity to this side's own goal (relBall.depth
+            // near 0 = ball right on top of it) so shading ramps up sharply
+            // only once the ball is genuinely dangerous.
+            const gkDanger = clamp(1 - relBall.depth, 0, 1);
+            x = lerp(pin.baseX, relBall.x, 0.06 + gkDanger * gkDanger * 0.34);
           } else {
             if (lineKind === "def") depth = defLine + bias;
             else if (lineKind === "mid") depth = midLine + bias;
@@ -8613,8 +8690,15 @@
           // untouched.
           const ARC_WOBBLE_TEST_SCALE = 0.3;
           const arc = Math.sin(shapePulse * 0.55 + h * 5.1) * arcAmp * ARC_WOBBLE_TEST_SCALE;
-          xx = clamp(xx + perpX * arc, 0.04, 0.96);
-          dd = clamp(dd + perpD * arc * 0.45, 0.03, 0.96);
+          // Engine fix — this background wobble is deliberately tactically
+          // meaningless (see above); applying it to the keeper undermines
+          // the angle-based shading just added above him specifically, so
+          // he's exempted the same way he already is from teamWidth/
+          // boxThreat jitter and the personal-space bump nearby.
+          if (pin.role !== "GK") {
+            xx = clamp(xx + perpX * arc, 0.04, 0.96);
+            dd = clamp(dd + perpD * arc * 0.45, 0.03, 0.96);
+          }
           if (pin.role !== "GK" && !pin._pressing) {
             const nearOpp = nearestOpponent(pin, 7.5);
             if (nearOpp && nearOpp.d < 7) {
@@ -9747,6 +9831,38 @@
       // that's actively scrambling to cover a breach.
       const scrambling = (breachRecoveryUntil[oppOf(carrier.side)] || 0) > matchMinute;
       const threat = nearestOpponent(carrier, scrambling ? 16 : 12);
+      // Engine fix — this used to run the full contested-duel roll (and,
+      // on success, count toward the dribbles_won stat with "dribbles
+      // past X" commentary) even when nearestOpponent found nobody in
+      // range at all — so an uncontested forward touch got styled and
+      // counted identically to a genuine take-on ("49 dribbles" in the
+      // match report with no visible take-on among them), and a rare miss
+      // could only blame whichever random distant defender the fallback
+      // chain landed on. No real opponent to beat is just a carry: always
+      // advances the ball, doesn't touch the dribble stat, and says so
+      // honestly instead of claiming to have gone past someone who isn't
+      // there.
+      if (!threat) {
+        const attackSign = carrier.side === "home" ? -1 : 1;
+        const ahead = 2.4 + carrier.stats.dribbles90 * 0.4 + rng() * 1.3;
+        const jink = (rng() < 0.5 ? 1 : -1) * (1.2 + rng() * 1.8);
+        const midX = clamp(carrier.left + jink, 6, 94);
+        const midY = clamp(carrier.top + attackSign * ahead * 0.4, 5, 95);
+        const nx = clamp(carrier.left + jink * 0.65 + (rng() - 0.5) * 1.2, 1, 99);
+        const ny = clamp(carrier.top + attackSign * ahead, 2, 98);
+        carrier._pathCtrl = { left: midX, top: midY, from: matchMinute, until: matchMinute + 0.4 };
+        carrier.tx = nx;
+        carrier.ty = ny;
+        carrier.lockUntil = matchMinute + 0.7;
+        ballAttached = true;
+        const dur = 0.55;
+        dispatchBallTarget(nx, ny + attackSign * -0.5, dur, true, null, carrier.side);
+        actionTimer = dur + 0.12 + spellIdlePause() * 0.3;
+        carrier._dribbleStreak = 0;
+        say(`${carrier.short} carries it forward`, 1.2);
+        ballFlight = { outcome: "dribble_won" };
+        return;
+      }
       const resist = sideResist(carrier.side);
       const atkU = sideAttack(carrier.side);
       const defU = sideDefend(oppOf(carrier.side));
@@ -9830,8 +9946,12 @@
       const won = rng() < clamp(pushedSuccessP, 0.1, 0.72);
       if (threat) carrier._lastDribbleOpp = threat.pin.id;
       const attackSign = carrier.side === "home" ? -1 : 1;
-      const ahead = 2.2 + carrier.stats.dribbles90 * 0.55 + rng() * 1.5;
-      const jink = (rng() < 0.5 ? 1 : -1) * (2.2 + rng() * 2.8);
+      // Engine fix — a genuine contested take-on (real defender in range)
+      // needs to actually read as beating someone, not blend into routine
+      // shape drift. Bumped from the old 2.2-6/±2.2-5 range so the burst
+      // past the defender is visually legible.
+      const ahead = 2.8 + carrier.stats.dribbles90 * 0.65 + rng() * 1.8;
+      const jink = (rng() < 0.5 ? 1 : -1) * (2.8 + rng() * 3.2);
       const midX = clamp(carrier.left + jink, 6, 94);
       const midY = clamp(carrier.top + attackSign * ahead * 0.4, 5, 95);
       // Set-piece Phase 0 — the ball's own target no longer gets a private
@@ -9870,6 +9990,11 @@
 
       if (won) {
         carrier._dribbleStreak = streak + 1;
+        // Engine fix — get the faster maxJump/easing treatment applyPinMotion
+        // already gives running pins, so beating a marked defender resolves
+        // as a visible burst rather than the same drift-speed everything
+        // else moves at.
+        carrier._running = true;
         pushMatchEvent("dribble_won", carrier.side, {
           player: carrier.player,
           player_short: carrier.short,
@@ -10366,10 +10491,7 @@
       const taker = pickPenaltyOrder(fouledSide)[0];
       if (!taker) return;
       const spot = toPitchPct(fouledSide, 0.5, 0.895);
-      taker.left = spot.left;
-      taker.top = spot.top;
-      taker.tx = spot.left;
-      taker.ty = spot.top;
+      snapPinPose(taker, spot.left, spot.top);
       taker.lockUntil = matchMinute + 1.6;
       retreatDefensiveShape(defSide, new Set());
       const keeper = gkOf(defSide);
@@ -10499,10 +10621,7 @@
       const centrality = 1 - clamp(Math.abs(rel.x - 0.5) * 2.4, 0, 1);
       const taker = pickFreeKickTaker(fouledSide, "direct");
       if (!taker) return;
-      taker.left = spotLeft;
-      taker.top = spotTop;
-      taker.tx = spotLeft;
-      taker.ty = spotTop;
+      snapPinPose(taker, spotLeft, spotTop);
       taker.lockUntil = matchMinute + 1.5;
 
       const goalTop = attackGoalTop(fouledSide);
@@ -10545,10 +10664,7 @@
       const defSide = oppOf(fouledSide);
       const taker = pickFreeKickTaker(fouledSide, "wide");
       if (!taker) return;
-      taker.left = carrier.left;
-      taker.top = carrier.top;
-      taker.tx = carrier.left;
-      taker.ty = carrier.top;
+      snapPinPose(taker, carrier.left, carrier.top);
       taker.lockUntil = matchMinute + 1.4;
 
       cueDefensiveBoxCover(defSide);
@@ -10639,10 +10755,7 @@
       const taker = pickThrowInTaker(side, left, top);
       if (!taker) return;
       const pct = { left: clamp(left, 1, 99), top: clamp(top, 2, 98) };
-      taker.left = pct.left;
-      taker.top = pct.top;
-      taker.tx = pct.left;
-      taker.ty = pct.top;
+      snapPinPose(taker, pct.left, pct.top);
       taker.lockUntil = matchMinute + 1.0;
 
       clearLastPasser();
@@ -10678,10 +10791,7 @@
       const keeper = gkOf(side);
       if (!keeper) return;
       const spot = toPitchPct(side, 0.5, 0.06);
-      keeper.left = spot.left;
-      keeper.top = spot.top;
-      keeper.tx = spot.left;
-      keeper.ty = spot.top;
+      snapPinPose(keeper, spot.left, spot.top);
       keeper.lockUntil = matchMinute + 1.0;
       clearLastPasser();
       spell = null;
@@ -10878,10 +10988,7 @@
       const ballRel = fromPitchPct(attackingSide, ball.left, ball.top);
       const cornerX = ballRel.x < 0.5 ? 0 : 1;
       const flagSpot = toPitchPct(attackingSide, cornerX, 0.99);
-      taker.left = flagSpot.left;
-      taker.top = flagSpot.top;
-      taker.tx = flagSpot.left;
-      taker.ty = flagSpot.top;
+      snapPinPose(taker, flagSpot.left, flagSpot.top);
       taker.lockUntil = matchMinute + 1.6;
 
       cueDefensiveBoxCover(defSide);
@@ -11007,6 +11114,21 @@
       // overwrite tx/ty with a fresh target before the bulge completes.
       carrier.lockUntil = Math.max(carrier.lockUntil || 0, matchMinute + 0.12);
       const keeper = gkOf(oppOf(carrier.side));
+      // Engine fix — the keeper's shape-driven position was never coupled
+      // to an actual shot being struck (only a slow, flat lerp toward
+      // wherever the ball generally is), so he could be caught square,
+      // parked off-center with the goal open, the moment a shot actually
+      // went in. Address the shot: shade along the real line from the
+      // shooter to goal centre, same instant-reposition treatment
+      // set-piece takers already get (this is exactly that kind of
+      // "must be in position now" moment).
+      if (keeper) {
+        const carrierRel = fromPitchPct(carrier.side, carrier.left, carrier.top);
+        const keeperBias = clamp((carrierRel.x - 0.5) * 0.55, -0.12, 0.12);
+        const keeperSpot = toPitchPct(oppOf(carrier.side), 0.5 + keeperBias, 0.03);
+        snapPinPose(keeper, keeperSpot.left, keeperSpot.top);
+        keeper.lockUntil = Math.max(keeper.lockUntil || 0, matchMinute + 0.5);
+      }
       const atk = sideAttack(carrier.side);
       const def = sideDefend(oppOf(carrier.side));
       // Engine addition — the outfield defender closing this shooter down
