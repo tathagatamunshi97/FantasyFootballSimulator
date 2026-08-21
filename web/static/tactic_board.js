@@ -13304,22 +13304,38 @@
       // beginSpell; several mid-spell decision points (progressToward-box
       // probes, etc.) can flip it true well after the possession started.
       // Poll every tick so the buildup view kicks in once a spell that's
-      // committed to a chance is actually APPROACHING it (within
-      // MOBILE_BUILDUP_WINDOW of spell.end), not the instant the flag
-      // turns true -- see the beginSpell comment for why an unbounded
-      // trigger blew up the fast/slow ratio for any spell that took a
-      // while to resolve.
-      if (
-        mobileBroadcast &&
-        spell &&
-        spell.willAttemptChance &&
-        !mobileBuildupActive &&
-        spell.end - matchMinute <= MOBILE_BUILDUP_WINDOW
-      ) {
-        mobileBuildupActive = true;
-        if (mobileEventUntilTs <= 0) {
-          speed = MOBILE_EVENT_SPEED;
-          setMobileLive(true);
+      // committed to a chance is actually APPROACHING it -- see the
+      // beginSpell comment for why an unbounded trigger blew up the
+      // fast/slow ratio for any spell that took a while to resolve.
+      //
+      // Bug fix -- the original trigger was ONLY "within
+      // MOBILE_BUILDUP_WINDOW of spell.end", but a shot doesn't wait for
+      // spell.end: evaluateArrivals's early gate (isAttackFinisher +
+      // boxed/near-box/wide-shooting-zone) and the CHANCE_CREATION/FINISH
+      // stage pressMul logic can both fire a real shot while matchMinute
+      // is still well short of spell.end - the stage machine only
+      // advances at the coarser decision cadence, not every render tick.
+      // Measured live: this meant the viewer almost never got the slow
+      // buildup runway before a shot, only the abrupt snap-to-live at the
+      // shot itself. Now also triggers on the same real signals the shot
+      // logic itself checks -- reaching CHANCE_CREATION/FINISH, or the
+      // carrier already standing in a genuine shooting position -- so the
+      // slow view arrives BEFORE the shot instead of alongside it.
+      if (mobileBroadcast && spell && spell.willAttemptChance && !mobileBuildupActive) {
+        const spellCarrier = findCarrier();
+        const nearingChance =
+          spell.stage === "CHANCE_CREATION" ||
+          spell.stage === "FINISH" ||
+          spell.end - matchMinute <= MOBILE_BUILDUP_WINDOW ||
+          (spellCarrier &&
+            spellCarrier.side === possession &&
+            (inPenaltyBox(spellCarrier) || nearPenaltyBox(spellCarrier) || isWideShootingZone(spellCarrier)));
+        if (nearingChance) {
+          mobileBuildupActive = true;
+          if (mobileEventUntilTs <= 0) {
+            speed = MOBILE_EVENT_SPEED;
+            setMobileLive(true);
+          }
         }
       }
 
