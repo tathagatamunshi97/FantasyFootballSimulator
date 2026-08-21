@@ -15,7 +15,6 @@ function tabBar(active) {
     ["table", "Tables"],
     ["stats", "Stats"],
     ["knockout", "Knockout"],
-    ["results", "Results"],
   ];
   return `<nav class="tab-bar">${tabs
     .map(
@@ -32,34 +31,50 @@ function renderLeaderboardTable(rows, countKey, countLabel, emptyMsg, { suffix =
   const body = rows
     .map((r, i) => {
       const n = r[countKey] ?? 0;
-      return `<tr><td>${i + 1}</td><td>${esc(r.player || "—")}</td><td>${esc(r.team || "—")}</td><td><strong>${esc(String(n))}${suffix}</strong></td></tr>`;
+      return `<tr><td>${i + 1}</td><td>${esc(r.player || "—")}</td><td>${esc(r.team || "—")}</td><td class="num"><strong>${esc(String(n))}${suffix}</strong></td></tr>`;
     })
     .join("");
-  return `<table><thead><tr><th>#</th><th>Player</th><th>Team</th><th>${esc(countLabel)}</th></tr></thead><tbody>${body}</tbody></table>`;
+  return `<div class="report-table-wrap"><table><thead><tr><th>#</th><th>Player</th><th>Team</th><th>${esc(countLabel)}</th></tr></thead><tbody>${body}</tbody></table></div>`;
 }
 
-const STAT_BOARDS = [
-  { key: "top_goalscorers", field: "goals", title: "Top goalscorers", label: "G", empty: "No goals recorded yet — play matches on the tactic board." },
-  { key: "top_assisters", field: "assists", title: "Top assisters", label: "A", empty: "No assists recorded yet — assists count when a goal follows a teammate's pass." },
-  { key: "top_shooters", field: "shots", title: "Most shots", label: "Shots", empty: "No shots recorded yet." },
-  { key: "top_dribblers", field: "dribbles", title: "Most dribbles", label: "Dribbles", empty: "No completed take-ons recorded yet." },
-  { key: "top_distance_carried", field: "distance_carried", title: "Most distance carried", label: "Metres", empty: "No carries recorded yet.", suffix: "m" },
-  { key: "top_clean_sheets", field: "clean_sheets", title: "Most clean sheets", label: "CS", empty: "No clean sheets recorded yet." },
-  { key: "top_tacklers", field: "tackles", title: "Most tackles", label: "Tackles", empty: "No tackles recorded yet." },
-  { key: "top_interceptors", field: "interceptions", title: "Most interceptions", label: "Int", empty: "No interceptions recorded yet." },
-  { key: "top_key_passers", field: "key_passes", title: "Most key passes", label: "KP", empty: "No key passes recorded yet." },
-  { key: "top_big_chances_created", field: "big_chances_created", title: "Most big chances created", label: "BCC", empty: "No big chances created yet." },
-  { key: "top_big_chances_missed", field: "big_chances_missed", title: "Most big chances missed", label: "BCM", empty: "No big chances missed yet." },
+const STAT_CATEGORIES = [
+  ["attacking", "Attacking"],
+  ["defending", "Defending"],
+  ["other", "Other"],
 ];
 
+const STAT_BOARDS = [
+  { key: "top_goalscorers", field: "goals", title: "Top goalscorers", label: "G", empty: "No goals recorded yet — play matches on the tactic board.", category: "attacking" },
+  { key: "top_assisters", field: "assists", title: "Top assisters", label: "A", empty: "No assists recorded yet — assists count when a goal follows a teammate's pass.", category: "attacking" },
+  { key: "top_shooters", field: "shots", title: "Most shots", label: "Shots", empty: "No shots recorded yet.", category: "attacking" },
+  { key: "top_dribblers", field: "dribbles", title: "Most dribbles", label: "Dribbles", empty: "No completed take-ons recorded yet.", category: "attacking" },
+  { key: "top_key_passers", field: "key_passes", title: "Most key passes", label: "KP", empty: "No key passes recorded yet.", category: "attacking" },
+  { key: "top_big_chances_created", field: "big_chances_created", title: "Most big chances created", label: "BCC", empty: "No big chances created yet.", category: "attacking" },
+  { key: "top_big_chances_missed", field: "big_chances_missed", title: "Most big chances missed", label: "BCM", empty: "No big chances missed yet.", category: "attacking" },
+  { key: "top_clean_sheets", field: "clean_sheets", title: "Most clean sheets", label: "CS", empty: "No clean sheets recorded yet.", category: "defending" },
+  { key: "top_tacklers", field: "tackles", title: "Most tackles", label: "Tackles", empty: "No tackles recorded yet.", category: "defending" },
+  { key: "top_interceptors", field: "interceptions", title: "Most interceptions", label: "Int", empty: "No interceptions recorded yet.", category: "defending" },
+  { key: "top_distance_carried", field: "distance_carried", title: "Most distance carried", label: "Metres", empty: "No carries recorded yet.", suffix: "m", category: "other" },
+];
+
+let activeStatCategory = "attacking";
+
 function renderStats(t) {
-  const cards = STAT_BOARDS.map(
-    (b) => `<div class="card">
+  const subtabs = STAT_CATEGORIES.map(
+    ([id, label]) =>
+      `<button type="button" class="subtab-btn${activeStatCategory === id ? " active" : ""}" data-cat="${id}">${esc(label)}</button>`
+  ).join("");
+  const boards = STAT_BOARDS.filter((b) => b.category === activeStatCategory);
+  const cards = boards
+    .map(
+      (b) => `<div class="card">
       <h3>${esc(b.title)}</h3>
       ${renderLeaderboardTable(t[b.key] || [], b.field, b.label, b.empty, { suffix: b.suffix || "" })}
     </div>`
-  ).join("");
-  return `<div class="grid-2" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem">${cards}</div>`;
+    )
+    .join("");
+  return `<nav class="subtab-bar">${subtabs}</nav>
+    <div class="grid-2" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem">${cards}</div>`;
 }
 
 function resultMeta(t, matchId) {
@@ -92,40 +107,6 @@ function analysisControls(fx, result) {
   </div>`;
 }
 
-function adminReviewControls(fx, result, { isKnockout = false } = {}) {
-  if (!getAdminToken() || !fx?.played) return "";
-  const mid = esc(fx.id);
-  const hg = result?.home_goals ?? 0;
-  const ag = result?.away_goals ?? 0;
-  const accepted = Boolean(result?.admin_accepted) && !result?.manually_overridden;
-  const winnerSelect = isKnockout
-    ? `<label class="muted" style="font-size:0.8rem">KO winner (if draw)
-        <select class="override-winner" data-match-id="${mid}">
-          <option value="">Auto / MC tiebreak</option>
-          <option value="${esc(fx.home)}">${esc(fx.home)}</option>
-          <option value="${esc(fx.away)}">${esc(fx.away)}</option>
-        </select>
-      </label>`
-    : "";
-  return `<div class="admin-review" data-match-id="${mid}" style="margin-top:0.35rem">
-    <div class="btn-stack">
-      ${
-        accepted
-          ? `<span class="muted" style="font-size:0.8rem">Accepted</span>`
-          : `<button type="button" class="btn-ghost btn-sm accept-result-btn" data-match-id="${mid}">Accept</button>`
-      }
-      <button type="button" class="btn-ghost btn-sm toggle-override-btn" data-match-id="${mid}">Override score</button>
-    </div>
-    <div class="override-form" data-match-id="${mid}" hidden style="margin-top:0.4rem;display:none;flex-wrap:wrap;gap:0.4rem;align-items:center">
-      <input class="override-home" data-match-id="${mid}" type="number" min="0" step="1" value="${hg}" style="width:3.5rem" aria-label="Home goals" />
-      <span>–</span>
-      <input class="override-away" data-match-id="${mid}" type="number" min="0" step="1" value="${ag}" style="width:3.5rem" aria-label="Away goals" />
-      ${winnerSelect}
-      <button type="button" class="btn-primary btn-sm apply-override-btn" data-match-id="${mid}" data-knockout="${isKnockout ? "1" : "0"}">Apply</button>
-    </div>
-  </div>`;
-}
-
 function renderDraw(t) {
   const groups = t.groups || {};
   const keys = Object.keys(groups).sort();
@@ -145,7 +126,6 @@ function renderFixtures(t, { showRun = false } = {}) {
   const groups = t.groups || {};
   const keys = Object.keys(groups).sort();
   if (!keys.length) return `<div class="card"><p class="muted">No fixtures yet.</p></div>`;
-  const koLocked = Boolean((t.knockout || {}).rounds?.length);
   return keys
     .map((k) => {
       const rows = (groups[k].fixtures || [])
@@ -166,8 +146,7 @@ function renderFixtures(t, { showRun = false } = {}) {
               data-xg-away="${esc(String(xgA))}"
             >Watch</button>`;
             status = `<div><strong>${esc(fx.score)}</strong>${fx.winner ? ` · ${esc(fx.winner)}` : ""}${reviewBadge(result)}${watch}</div>
-              ${analysisControls(fx, result)}
-              ${koLocked ? `<span class="muted" style="font-size:0.75rem">Group locked (KO generated)</span>` : adminReviewControls(fx, result)}`;
+              ${analysisControls(fx, result)}`;
           } else if (showRun) {
             status = `<button type="button" class="btn-ghost btn-sm run-fixture-btn" data-match-id="${esc(fx.id)}">Run</button>
               <a class="btn-link btn-sm" href="/matchday" style="margin-left:0.35rem">Matchday</a>`;
@@ -208,8 +187,7 @@ function renderKnockoutTieCell(t, tie, { showRun = false } = {}) {
     if (tie.played) {
       return `<div><strong>${esc(tie.score)}</strong> · ${esc(tie.winner)}${reviewBadge(result)}${legWatchBtn(legs[0] || tie, t)}</div>
         ${typeof knockoutScoreNote === "function" ? knockoutScoreNote(result) : ""}
-        ${analysisControls(legs[0] || tie, result)}
-        ${adminReviewControls(legs[0] || tie, result, { isKnockout: true })}`;
+        ${analysisControls(legs[0] || tie, result)}`;
     }
     if (showRun && tie.home && tie.away) {
       return `<button type="button" class="btn-ghost btn-sm run-ko-btn" data-match-id="${esc(tie.id)}">Run</button>
@@ -224,8 +202,7 @@ function renderKnockoutTieCell(t, tie, { showRun = false } = {}) {
       const result = resultMeta(t, leg.result_id || leg.id);
       if (leg.played) {
         return `<div>Leg ${leg.leg}: <strong>${esc(leg.home)} ${leg.home_goals}-${leg.away_goals} ${esc(leg.away)}</strong>${reviewBadge(result)}${legWatchBtn(leg, t)}
-          ${analysisControls(leg, result)}
-          ${adminReviewControls(leg, result, { isKnockout: true })}</div>`;
+          ${analysisControls(leg, result)}</div>`;
       }
       const canPlay = leg.leg === 1 ? true : Boolean(legs[0].played);
       const legTeams =
@@ -319,7 +296,6 @@ function renderTournament(t, activeTab) {
   else if (activeTab === "table") body = renderTables(t);
   else if (activeTab === "stats") body = renderStats(t);
   else if (activeTab === "knockout") body = renderKnockout(t, { showRun });
-  else body = renderResults(t);
 
   return meta + tabBar(activeTab) + `<div class="tab-panel">${body}</div>` + `<div class="card tactic-watch-card" id="tournamentWatchDock" style="margin-top:1rem" hidden>
     <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;flex-wrap:wrap">
@@ -352,40 +328,6 @@ async function runFixture(matchId, isKnockout = false) {
   }
 }
 
-async function acceptResult(matchId) {
-  if (!tournamentId || !getAdminToken()) return;
-  try {
-    await api(`/api/tournament/${tournamentId}/matches/${matchId}/accept`, { method: "POST" });
-    await loadTournament({ force: true });
-  } catch (e) {
-    alert(e.message);
-  }
-}
-
-async function applyOverride(matchId, isKnockout) {
-  if (!tournamentId || !getAdminToken()) return;
-  const homeEl = document.querySelector(`.override-home[data-match-id="${matchId}"]`);
-  const awayEl = document.querySelector(`.override-away[data-match-id="${matchId}"]`);
-  const winnerEl = document.querySelector(`.override-winner[data-match-id="${matchId}"]`);
-  const home_goals = Number(homeEl?.value);
-  const away_goals = Number(awayEl?.value);
-  if (!Number.isInteger(home_goals) || !Number.isInteger(away_goals) || home_goals < 0 || away_goals < 0) {
-    alert("Enter non-negative whole-number goals.");
-    return;
-  }
-  const body = { home_goals, away_goals };
-  if (isKnockout && winnerEl?.value) body.winner = winnerEl.value;
-  try {
-    await api(`/api/tournament/${tournamentId}/matches/${matchId}/override`, {
-      method: "POST",
-      json: body,
-    });
-    await loadTournament({ force: true });
-  } catch (e) {
-    alert(e.message);
-  }
-}
-
 function wireRunButtons() {
   document.querySelectorAll(".run-fixture-btn").forEach((btn) => {
     btn.addEventListener("click", () => runFixture(btn.dataset.matchId, false));
@@ -393,66 +335,6 @@ function wireRunButtons() {
   document.querySelectorAll(".run-ko-btn").forEach((btn) => {
     btn.addEventListener("click", () => runFixture(btn.dataset.matchId, true));
   });
-}
-
-function wireReviewButtons() {
-  document.querySelectorAll(".accept-result-btn").forEach((btn) => {
-    btn.addEventListener("click", () => acceptResult(btn.dataset.matchId));
-  });
-  document.querySelectorAll(".toggle-override-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const form = document.querySelector(`.override-form[data-match-id="${btn.dataset.matchId}"]`);
-      if (!form) return;
-      const show = form.style.display === "none" || form.hasAttribute("hidden");
-      form.hidden = !show;
-      form.style.display = show ? "flex" : "none";
-    });
-  });
-  document.querySelectorAll(".apply-override-btn").forEach((btn) => {
-    btn.addEventListener("click", () =>
-      applyOverride(btn.dataset.matchId, btn.dataset.knockout === "1")
-    );
-  });
-}
-
-function renderResults(t) {
-  const results = Object.values(t.match_results || {}).sort(
-    (a, b) => (b.played_at || "").localeCompare(a.played_at || "")
-  );
-  if (!results.length) return `<div class="card"><p class="muted">No matches played yet.</p></div>`;
-  const koLocked = Boolean((t.knockout || {}).rounds?.length);
-  const rows = results
-    .map((r) => {
-      const xg = r.expected_xg ? `xG ${r.expected_xg.home}–${r.expected_xg.away}` : "";
-      const fx = { id: r.match_id, home: r.home, away: r.away, played: true, score: r.score, winner: r.winner };
-      const isKo = r.stage === "knockout";
-      const canReview = getAdminToken() && (isKo || !koLocked);
-      const eid = r.experiment_id || "";
-      const xgH = r.expected_xg?.home ?? "";
-      const xgA = r.expected_xg?.away ?? "";
-      const watch = `<button type="button" class="btn-ghost btn-sm watch-match-btn"
-        data-match-id="${esc(r.match_id)}"
-        data-home="${esc(r.home)}"
-        data-away="${esc(r.away)}"
-        data-score="${esc(r.score)}"
-        data-experiment-id="${esc(eid)}"
-        data-xg-home="${esc(String(xgH))}"
-        data-xg-away="${esc(String(xgA))}"
-      >Watch</button>`;
-      return `<tr>
-        <td class="muted">${esc(r.match_id)}</td>
-        <td>${esc(r.stage)}${r.group ? ` (${esc(r.group)})` : ""}</td>
-        <td>${esc(r.home)} vs ${esc(r.away)}</td>
-        <td><strong>${esc(r.score)}</strong>${reviewBadge(r)}</td>
-        <td>${esc(r.winner || "Draw")}</td>
-        <td class="muted">${xg}</td>
-        <td>${watch}${analysisControls(fx, r)}${canReview ? adminReviewControls(fx, r, { isKnockout: isKo }) : ""}</td>
-      </tr>`;
-    })
-    .join("");
-  return `<div class="card"><h2>Match results</h2>
-    <p class="muted" style="margin:0 0 0.75rem">Official scores come from the tactic-board pin match. Watch replays a board toward the saved scoreline. Generate analysis when you want it — it is not built at full time.</p>
-    <table><thead><tr><th>ID</th><th>Stage</th><th>Match</th><th>Score</th><th>Winner</th><th>xG</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 let activeTab = "draw";
@@ -613,8 +495,14 @@ function bindTabs(t) {
       bindTabs(t);
     });
   });
+  document.querySelectorAll(".subtab-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      activeStatCategory = btn.dataset.cat;
+      document.getElementById("app").innerHTML = renderTournament(t, activeTab);
+      bindTabs(t);
+    });
+  });
   wireRunButtons();
-  wireReviewButtons();
   wireAnalysisButtons();
   wireWatchButtons();
 }
