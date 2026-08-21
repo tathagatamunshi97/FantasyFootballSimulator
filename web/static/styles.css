@@ -1,30 +1,30 @@
 :root {
-  --bg: #0d0f16;
-  --bg2: #11141d;
-  --panel: #161a24;
-  --panel2: #1d222e;
-  --border: #2b3142;
-  --text: #e8eaf0;
-  --muted: #9096a8;
-  --faint: #5c6377;
-  --accent: #7c6ff2;
-  --accent-soft: rgba(124, 111, 242, 0.16);
-  --accent2: #22d3ee;
-  --accent2-soft: rgba(34, 211, 238, 0.14);
+  --bg: #0c0e14;
+  --bg2: #10121a;
+  --panel: #15171f;
+  --panel2: #1b1e28;
+  --border: #262a36;
+  --border-soft: #1f222c;
+  --text: #e5e6ea;
+  --muted: #868c9c;
+  --faint: #4c5162;
+  --accent: #8b7fff;
+  --accent-soft: rgba(139, 127, 255, 0.1);
+  --accent2: #38bdf8;
+  --accent2-soft: rgba(56, 189, 248, 0.1);
   --accent3: #f472b6;
-  --accent3-soft: rgba(244, 114, 182, 0.14);
+  --accent3-soft: rgba(244, 114, 182, 0.1);
   --success: #34d399;
-  --success-soft: rgba(52, 211, 153, 0.14);
+  --success-soft: rgba(52, 211, 153, 0.12);
   --warn: #fbbf24;
-  --warn-soft: rgba(251, 191, 36, 0.14);
+  --warn-soft: rgba(251, 191, 36, 0.12);
   --danger: #f87171;
-  --danger-soft: rgba(248, 113, 113, 0.14);
+  --danger-soft: rgba(248, 113, 113, 0.12);
   --home: #60a5fa;
   --away: #fb7185;
   --radius: 10px;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 1px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 10px 28px -8px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(124, 111, 242, 0.08);
-  --glow: 0 0 0 1px rgba(124, 111, 242, 0.25), 0 0 24px -4px rgba(124, 111, 242, 0.35);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 16px 32px -12px rgba(0, 0, 0, 0.6);
   --font-display: "Manrope", system-ui, -apple-system, sans-serif;
   --font-body: "Inter", system-ui, -apple-system, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
@@ -35,54 +35,49 @@ body {
   margin: 0;
   font-family: var(--font);
   background:
-    radial-gradient(1100px 620px at 8% -12%, rgba(124, 111, 242, 0.22) 0%, transparent 55%),
-    radial-gradient(900px 560px at 100% 0%, rgba(34, 211, 238, 0.14) 0%, transparent 50%),
-    radial-gradient(800px 500px at 50% 110%, rgba(244, 114, 182, 0.08) 0%, transparent 55%),
-    linear-gradient(180deg, var(--bg2) 0%, var(--bg) 40%);
+    radial-gradient(1400px 700px at 50% -20%, rgba(139, 127, 255, 0.07) 0%, transparent 60%),
+    var(--bg);
   background-attachment: fixed;
   color: var(--text);
-  line-height: 1.45;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.001em;
 }
-a { color: var(--accent2); }
+a { color: var(--accent2); text-underline-offset: 2px; }
 h1, h2, h3, h4, .btn-primary, .btn-ghost, .btn-link, .tab-btn {
   font-family: var(--font-display);
 }
 header {
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--border);
+  padding: 1.15rem 1.5rem;
+  border-bottom: 1px solid var(--border-soft);
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
   align-items: center;
   justify-content: space-between;
-  background: rgba(13, 15, 22, 0.75);
+  background: rgba(12, 14, 20, 0.82);
   backdrop-filter: blur(10px);
   position: sticky;
   top: 0;
   z-index: 10;
 }
-header::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -1px;
-  height: 2px;
-  background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
-  opacity: 0.8;
-}
 header h1 {
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  background: linear-gradient(120deg, var(--accent) 10%, var(--accent2) 90%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--text);
 }
-header .sub { color: var(--muted); font-size: 0.85rem; }
+header .sub { color: var(--muted); font-size: 0.83rem; }
+.landing-hero h1 {
+  font-size: 1.65rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.landing-hero .sub {
+  font-size: 0.92rem;
+  margin-top: 0.2rem;
+}
 .badge {
   display: inline-block;
   padding: 0.2rem 0.6rem;
@@ -100,8 +95,8 @@ main { max-width: 1200px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
 .grid { display: grid; gap: 1rem; }
 .grid-2 { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
 .card {
-  background: linear-gradient(160deg, var(--panel) 0%, var(--bg2) 130%);
-  border: 1px solid var(--border);
+  background: var(--panel);
+  border: 1px solid var(--border-soft);
   border-radius: var(--radius);
   padding: 1rem 1.1rem;
   box-shadow: var(--shadow-sm);
@@ -250,7 +245,7 @@ input, select {
   padding: 0.45rem 0.85rem;
   border-radius: 8px;
   background: var(--accent-soft);
-  border: 1px solid rgba(124, 111, 242, 0.35);
+  border: 1px solid rgba(139, 127, 255, 0.35);
   color: var(--accent);
   text-decoration: none;
   font-size: 0.85rem;
@@ -265,35 +260,35 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 }
 a.landing-card {
   --card-hue: var(--accent);
-  --card-hue-soft: var(--accent-soft);
   display: block;
   text-decoration: none;
   color: inherit;
-  background:
-    radial-gradient(140% 100% at 0% 0%, var(--card-hue-soft) 0%, transparent 60%),
-    linear-gradient(160deg, var(--panel) 0%, var(--bg2) 130%);
-  border-top: 2px solid var(--card-hue);
+  background: var(--panel);
+  border: 1px solid var(--border-soft);
+  border-top: 1px solid var(--card-hue);
   box-shadow: var(--shadow-sm);
-  transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+  transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
 }
 a.landing-card:hover {
-  box-shadow: 0 12px 32px -10px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--card-hue), 0 0 24px -6px var(--card-hue);
-  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--border);
+  border-top-color: var(--card-hue);
+  transform: translateY(-2px);
 }
 a.landing-card h2 {
   text-transform: none;
   letter-spacing: 0;
-  font-size: 1.05rem;
+  font-size: 1.02rem;
   font-weight: 700;
-  color: var(--card-hue);
+  color: var(--text);
 }
-/* Cycle a distinct hue per landing card so the hub reads as a real map of
-   destinations, not one monotone list. */
-a.landing-card:nth-of-type(1) { --card-hue: var(--accent); --card-hue-soft: var(--accent-soft); }
-a.landing-card:nth-of-type(2) { --card-hue: var(--accent2); --card-hue-soft: var(--accent2-soft); }
-a.landing-card:nth-of-type(3) { --card-hue: var(--success); --card-hue-soft: var(--success-soft); }
-a.landing-card:nth-of-type(4) { --card-hue: var(--accent3); --card-hue-soft: var(--accent3-soft); }
-a.landing-card:nth-of-type(5) { --card-hue: var(--warn); --card-hue-soft: var(--warn-soft); }
+/* A hairline hue per card, just enough to tell destinations apart at a
+   glance -- not a spotlight. */
+a.landing-card:nth-of-type(1) { --card-hue: var(--accent); }
+a.landing-card:nth-of-type(2) { --card-hue: var(--accent2); }
+a.landing-card:nth-of-type(3) { --card-hue: var(--success); }
+a.landing-card:nth-of-type(4) { --card-hue: var(--accent3); }
+a.landing-card:nth-of-type(5) { --card-hue: var(--warn); }
 .error-msg { color: var(--danger); font-size: 0.9rem; margin-top: 0.5rem; }
 .log {
   padding: 0.75rem;
