@@ -14,7 +14,7 @@ if (canHostLive) {
 }
 document.getElementById("navBack").innerHTML = fromMatchday || isTeamUser()
   ? '<a href="/matchday" class="btn-link">← Matchday</a>'
-  : '<a href="/home" class="btn-link">My experiments</a>';
+  : '<a href="/admin" class="btn-link">← Admin</a>';
 
 function setStatus(exp) {
   const badge = document.getElementById("statusBadge");

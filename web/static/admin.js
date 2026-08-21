@@ -4,7 +4,6 @@ let sheetTeams = [];
 let tournaments = [];
 let currentId = null;
 let currentTournament = null;
-let defaultMatchup = null;
 
 function getAdminTokenFromUI() {
   const el = document.getElementById("token");
@@ -46,36 +45,9 @@ async function adminApi(path, options = {}) {
   return data;
 }
 
-function simLog(msg) {
-  const el = document.getElementById("simLog");
-  if (el) el.textContent = msg;
-}
-
 function tLog(msg) {
   const el = document.getElementById("tLog");
   if (el) el.textContent = msg;
-}
-
-function renderAdminList(items) {
-  if (!items.length) return "<p class='muted'>No experiments yet.</p>";
-  const rows = items
-    .map(
-      (e) => `<tr>
-        <td>${esc(e.user)}</td>
-        <td><a href="/experiment/${esc(e.id)}">${esc(e.team_a_name)} vs ${esc(e.team_b_name)}</a></td>
-        <td class="muted">${esc(e.team_a_formation)} / ${esc(e.team_b_formation)}</td>
-        <td><span class="badge ${esc(e.status)}">${esc(e.status)}</span></td>
-        <td>${e.expected_xg_home != null ? `${e.expected_xg_home}–${e.expected_xg_away}` : "—"}</td>
-        <td>${e.status === "ready" ? `${pct(e.home_win_pct)} / ${pct(e.away_win_pct)}` : esc(e.message || "")}</td>
-        <td class="muted">${e.created_at ? new Date(e.created_at).toLocaleString() : "—"}</td>
-        <td><button type="button" class="btn-ghost delete-exp" data-id="${esc(e.id)}" data-label="${esc(e.team_a_name)} vs ${esc(e.team_b_name)}">Delete</button></td>
-      </tr>`
-    )
-    .join("");
-  return `<table>
-    <thead><tr><th>User</th><th>Matchup</th><th>Formations</th><th>Status</th><th>xG</th><th>Win%</th><th>Created</th><th>Actions</th></tr></thead>
-    <tbody>${rows}</tbody>
-  </table>`;
 }
 
 // --- Tabs ---
@@ -105,103 +77,6 @@ function showTab(name) {
 document.querySelectorAll(".tab-btn").forEach((btn) => {
   btn.addEventListener("click", () => showTab(btn.dataset.tab));
 });
-
-// --- Simulations ---
-
-async function loadExperiments() {
-  try {
-    const data = await adminApi("/api/admin/experiments");
-    const el = document.getElementById("expTable");
-    el.innerHTML = renderAdminList(data.experiments || []);
-    el.querySelectorAll(".delete-exp").forEach((btn) => {
-      btn.addEventListener("click", () => deleteExperiment(btn.dataset.id, btn.dataset.label));
-    });
-    simLog(`Loaded ${data.experiments.length} experiment(s) from all users.`);
-  } catch (e) {
-    document.getElementById("expTable").innerHTML = "<p class='muted'>—</p>";
-    simLog(e.message);
-  }
-}
-
-async function deleteExperiment(expId, label) {
-  if (!confirm(`Delete experiment "${label}"? This cannot be undone.`)) return;
-  try {
-    simLog(`Deleting experiment ${expId}…`);
-    await adminApi(`/api/experiments/${expId}`, { method: "DELETE" });
-    simLog(`Deleted experiment ${expId}.`);
-    await loadExperiments();
-  } catch (e) {
-    simLog(`Error: ${e.message}`);
-  }
-}
-
-async function ensureDefaultMatchup() {
-  if (defaultMatchup) return defaultMatchup;
-  const meta = await fetch("/api/meta").then((r) => r.json());
-  defaultMatchup = sanitizeMatchup(meta.default_matchup);
-  return defaultMatchup;
-}
-
-function sanitizeTeam(team) {
-  const t = JSON.parse(JSON.stringify(team));
-  if (!(t.prime_player || "").trim()) t.prime_player = "";
-  const peak = t.peak_season || {};
-  if (!(peak.player || "").trim()) {
-    t.peak_season = { player: "", season: "" };
-  }
-  return t;
-}
-
-function sanitizeMatchup(matchup) {
-  return {
-    team_a: sanitizeTeam(matchup.team_a),
-    team_b: sanitizeTeam(matchup.team_b),
-  };
-}
-
-async function runTestSimulation() {
-  const log = document.getElementById("testLog");
-  const btn = document.getElementById("testRunBtn");
-  btn.disabled = true;
-  try {
-    const matchup = await ensureDefaultMatchup();
-    const body = {
-      team_a: matchup.team_a,
-      team_b: matchup.team_b,
-      simulations: Number(document.getElementById("testSims").value) || 5000,
-    };
-    const seedVal = document.getElementById("testSeed").value;
-    if (seedVal) body.seed = Number(seedVal);
-    log.textContent = "Starting test simulation…";
-    const data = await adminApi("/api/admin/experiments", { method: "POST", json: body });
-    const exp = data.experiment;
-    log.textContent = `Started experiment ${exp.id} (${exp.team_a_name} vs ${exp.team_b_name}). Waiting for results…`;
-    await pollExperiment(exp.id, log);
-    await loadExperiments();
-  } catch (e) {
-    log.textContent = `Error: ${e.message}`;
-  } finally {
-    btn.disabled = false;
-  }
-}
-
-async function pollExperiment(expId, logEl) {
-  for (let i = 0; i < 120; i++) {
-    await new Promise((r) => setTimeout(r, 2000));
-    const data = await adminApi(`/api/experiments/${expId}`);
-    const exp = data.experiment;
-    if (exp.status === "ready") {
-      const mc = exp.report?.monte_carlo || {};
-      logEl.innerHTML = `Done — <a href="/experiment/${esc(expId)}">view results</a> · ${pct(mc.home_win_pct)} / ${pct(mc.draw_pct)} / ${pct(mc.away_win_pct)}`;
-      return;
-    }
-    if (exp.status === "error") {
-      throw new Error(exp.message || "Simulation failed");
-    }
-    logEl.textContent = exp.message || `Status: ${exp.status}…`;
-  }
-  throw new Error("Timed out waiting for simulation");
-}
 
 // --- Tournament ---
 
@@ -797,14 +672,7 @@ async function unfinalizeAllTeams() {
 document.getElementById("token").value = getAdminToken() || "";
 document.getElementById("token").addEventListener("input", (e) => {
   setAdminToken(e.target.value.trim());
-  if (e.target.value.trim()) {
-    loadExperiments();
-    loadMatchRecordingTournaments();
-  }
 });
-
-document.getElementById("refreshBtn").addEventListener("click", loadExperiments);
-document.getElementById("testRunBtn").addEventListener("click", runTestSimulation);
 
 document.getElementById("createBtn").addEventListener("click", () => createTournament().catch((e) => tLog(e.message)));
 document.getElementById("refreshPwBtn").addEventListener("click", () => loadTeamPasswords().catch((e) => pwLog(e.message)));
@@ -833,348 +701,15 @@ document.getElementById("runBtn")?.addEventListener("click", async () => {
   }
 });
 
-// ============================================================================
-// Match Recording UI
-// ============================================================================
-
-const mrLog = (msg) => (document.getElementById("mrLog").textContent = msg);
-
-// matchId -> { isKnockout, home, away, groupKey, roundName, played }
-let mrMatchIndex = {};
-
-async function loadMatchRecordingTournaments() {
-  try {
-    const res = await adminApi("/api/tournament");
-    const sel = document.getElementById("mrTournament");
-    const opts = res.tournaments.map((t) => `<option value="${t.id}">${t.name} (${t.team_count} teams)</option>`).join("");
-    sel.innerHTML = `<option value="">— Select tournament —</option>${opts}`;
-    mrLog("Tournaments loaded.");
-  } catch (e) {
-    mrLog(`Error loading tournaments: ${e.message}`);
-  }
-}
-
-async function loadMatches(tournamentId) {
-  mrMatchIndex = {};
-  if (!tournamentId) {
-    document.getElementById("mrMatch").innerHTML = `<option value="">— Select match —</option>`;
-    return;
-  }
-  try {
-    const res = await adminApi(`/api/tournament/${tournamentId}`);
-    const t = res.tournament;
-    const matchOptions = [];
-
-    // Group stage: t.groups[groupKey].fixtures[] = {id, home, away, played, result_id, ...}
-    const groups = t.groups || {};
-    for (const [groupKey, group] of Object.entries(groups)) {
-      const fixtures = group.fixtures || [];
-      for (const fx of fixtures) {
-        if (!fx.home || !fx.away) continue;
-        mrMatchIndex[fx.id] = {
-          isKnockout: false,
-          home: fx.home,
-          away: fx.away,
-          groupKey,
-          played: Boolean(fx.played),
-        };
-        const status = fx.played ? "✓ Done" : "⊝ Pending";
-        matchOptions.push(`<option value="${fx.id}">${fx.home} vs ${fx.away} (Group ${groupKey}) ${status}</option>`);
-      }
-    }
-
-    // Knockout: t.knockout.rounds[] = {name, label, ties: [{id, home, away, played,
-    // result_id, legs: [{leg, id, home, away, played, ...}], ...}]}. A single-legged
-    // tie (the Final, or a legacy single_elim tournament) has legs.length <= 1 and is
-    // listed by the tie's own id, exactly as before. A two-legged tie is listed as two
-    // separately-selectable legs, each with its own (reversed for leg 2) home/away.
-    const rounds = (t.knockout || {}).rounds || [];
-    for (const rnd of rounds) {
-      const roundName = rnd.label || rnd.name || "Knockout";
-      for (const tie of rnd.ties || []) {
-        if (!tie.home || !tie.away) continue; // not yet seeded from a prior round
-        const legs = tie.legs || [];
-        if (legs.length <= 1) {
-          mrMatchIndex[tie.id] = {
-            isKnockout: true,
-            home: tie.home,
-            away: tie.away,
-            roundName: rnd.name,
-            played: Boolean(tie.played),
-          };
-          const status = tie.played ? "✓ Done" : "⊝ Pending";
-          matchOptions.push(`<option value="${tie.id}">${tie.home} vs ${tie.away} (${roundName}) ${status}</option>`);
-          continue;
-        }
-        for (const leg of legs) {
-          const canPlay = leg.leg === 1 || Boolean(legs[0].played);
-          mrMatchIndex[leg.id] = {
-            isKnockout: true,
-            twoLegged: true,
-            leg: leg.leg,
-            tieId: tie.id,
-            home: leg.home,
-            away: leg.away,
-            roundName: rnd.name,
-            played: Boolean(leg.played),
-          };
-          const status = leg.played ? "✓ Done" : canPlay ? "⊝ Pending" : "— awaiting leg 1";
-          matchOptions.push(
-            `<option value="${leg.id}">${leg.home} vs ${leg.away} (${roundName}, leg ${leg.leg}) ${status}</option>`
-          );
-        }
-      }
-    }
-
-    const sel = document.getElementById("mrMatch");
-    sel.innerHTML = `<option value="">— Select match —</option>${matchOptions.join("")}`;
-    mrLog(`${matchOptions.length} match(es) found.`);
-  } catch (e) {
-    mrLog(`Error loading matches: ${e.message}`);
-  }
-}
-
-// Cache of team name -> player name list, so switching goal rows doesn't re-fetch.
-const _mrRosterCache = {};
-
-async function rosterForTeam(teamName) {
-  if (!teamName) return [];
-  if (_mrRosterCache[teamName]) return _mrRosterCache[teamName];
-  const res = await adminApi(`/api/sheets/team?name=${encodeURIComponent(teamName)}`);
-  // Full roster (array of player name strings) lives at sheet_meta.full_roster
-  // (see google_sheets_teams.team_payload_from_roster)
-  const roster = res.team.sheet_meta?.full_roster || [];
-  const names = roster.filter((p) => p && typeof p === "string" && p.trim()).map((p) => p.trim()).sort();
-  _mrRosterCache[teamName] = names;
-  return names;
-}
-
-function addEventRow() {
-  const matchId = document.getElementById("mrMatch").value;
-  const match = mrMatchIndex[matchId];
-  if (!match) {
-    mrLog("Select a match before adding goals.");
-    return;
-  }
-
-  const id = `event_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-  const eventsDiv = document.getElementById("mrEvents");
-  const row = document.createElement("div");
-  row.id = id;
-  row.className = "goal-event";
-  row.style.cssText = "padding:1rem;background:white;border-radius:4px;border-left:3px solid #007bff;margin-bottom:0.5rem";
-
-  row.innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:0.5rem;margin-bottom:0.75rem">
-      <div>
-        <label class="muted" style="font-size:0.85rem">Team</label>
-        <select class="event-team" style="width:100%">
-          <option value="${esc(match.home)}">${esc(match.home)}</option>
-          <option value="${esc(match.away)}">${esc(match.away)}</option>
-        </select>
-      </div>
-      <div>
-        <label class="muted" style="font-size:0.85rem">Scorer</label>
-        <select class="event-player" style="width:100%">
-          <option value="">Loading...</option>
-        </select>
-      </div>
-      <div>
-        <label class="muted" style="font-size:0.85rem">Minute (optional)</label>
-        <input class="event-minute" type="number" min="1" max="120" placeholder="45" style="width:100%" />
-      </div>
-      <button type="button" class="btn-ghost" style="padding:0.5rem;align-self:flex-end">✕</button>
-    </div>
-    <div>
-      <label class="muted" style="font-size:0.85rem">Assister (optional)</label>
-      <select class="event-assister" style="width:100%">
-        <option value="">Loading...</option>
-      </select>
-    </div>
-  `;
-
-  eventsDiv.appendChild(row);
-  row.querySelector("button.btn-ghost").addEventListener("click", () => row.remove());
-
-  const teamSel = row.querySelector(".event-team");
-  const playerSel = row.querySelector(".event-player");
-  const assisterSel = row.querySelector(".event-assister");
-
-  const refreshRosterSelects = async () => {
-    const names = await rosterForTeam(teamSel.value);
-    const opts = (placeholder) =>
-      `<option value="">${placeholder}</option>${names.map((n) => `<option value="${esc(n)}">${esc(n)}</option>`).join("")}`;
-    playerSel.innerHTML = opts("— Select scorer —");
-    assisterSel.innerHTML = opts("— None —");
-  };
-
-  teamSel.addEventListener("change", refreshRosterSelects);
-  refreshRosterSelects();
-}
-
-function updateScore() {
-  const home = Number(document.getElementById("mrHomeGoals").value) || 0;
-  const away = Number(document.getElementById("mrAwayGoals").value) || 0;
-  document.getElementById("mrScore").textContent = `${home}–${away}`;
-  updateWinnerRow();
-}
-
-function updateWinnerRow() {
-  const matchId = document.getElementById("mrMatch").value;
-  const match = mrMatchIndex[matchId];
-  const row = document.getElementById("mrWinnerRow");
-  const sel = document.getElementById("mrWinner");
-  const home = Number(document.getElementById("mrHomeGoals").value) || 0;
-  const away = Number(document.getElementById("mrAwayGoals").value) || 0;
-
-  // Leg 1 of a two-legged tie never decides anything by itself — never show
-  // or require a winner for it, regardless of its own scoreline.
-  const isLeg1OfTwo = match && match.twoLegged && match.leg === 1;
-  if (match && match.isKnockout && !isLeg1OfTwo && home === away) {
-    sel.innerHTML = `<option value="">— Select winner —</option>
-      <option value="${esc(match.home)}">${esc(match.home)}</option>
-      <option value="${esc(match.away)}">${esc(match.away)}</option>`;
-    row.style.display = "";
-  } else {
-    row.style.display = "none";
-    sel.value = "";
-  }
-}
-
-function clearMatchForm() {
-  document.getElementById("mrMatch").value = "";
-  document.getElementById("mrHomeGoals").value = "0";
-  document.getElementById("mrAwayGoals").value = "0";
-  document.getElementById("mrEvents").innerHTML = "";
-  updateScore();
-  updateResetRow();
-}
-
-function getFormData() {
-  const tourneyId = document.getElementById("mrTournament").value;
-  const matchId = document.getElementById("mrMatch").value;
-  const homeGoals = Number(document.getElementById("mrHomeGoals").value) || 0;
-  const awayGoals = Number(document.getElementById("mrAwayGoals").value) || 0;
-  const winner = document.getElementById("mrWinner").value || undefined;
-
-  const match = mrMatchIndex[matchId];
-  const boardEvents = [];
-  document.querySelectorAll("#mrEvents > .goal-event").forEach((row) => {
-    const team = row.querySelector(".event-team").value;
-    const player = row.querySelector(".event-player").value.trim();
-    const assister = row.querySelector(".event-assister").value.trim();
-    const minute = row.querySelector(".event-minute").value;
-
-    if (team && player && match) {
-      const side = team === match.home ? "home" : "away";
-      const ev = { type: "goal", side, player };
-      if (minute) ev.minute = Number(minute);
-      if (assister) ev.assist = assister;
-      boardEvents.push(ev);
-    }
-  });
-
-  return { tourneyId, matchId, homeGoals, awayGoals, winner, boardEvents, match };
-}
-
-async function recordMatch() {
-  const { tourneyId, matchId, homeGoals, awayGoals, winner, boardEvents, match } = getFormData();
-  if (!tourneyId || !matchId) {
-    mrLog("Please select tournament and match.");
-    return;
-  }
-  if (!match) {
-    mrLog("Match data not loaded — reselect the tournament.");
-    return;
-  }
-  if (match.played) {
-    mrLog("This match is already marked played. Use the tournament page's override tool to correct a played result.");
-    return;
-  }
-  const isLeg1OfTwo = match.twoLegged && match.leg === 1;
-  if (match.isKnockout && !isLeg1OfTwo && homeGoals === awayGoals && !winner) {
-    mrLog("Scores are level — select who won the tie (penalties/extra time) above.");
-    return;
-  }
-
-  const path = match.isKnockout
-    ? `/api/tournament/${tourneyId}/knockout/matches/${matchId}/complete-from-board`
-    : `/api/tournament/${tourneyId}/matches/${matchId}/complete-from-board`;
-
-  const body = {
-    home_goals: homeGoals,
-    away_goals: awayGoals,
-    board_events: boardEvents,
-  };
-  if (winner) body.winner = winner;
-
-  const btn = document.getElementById("mrRecordBtn");
-  btn.disabled = true;
-  try {
-    const res = await adminApi(path, { method: "POST", json: body });
-    mrLog(`✓ Recorded ${match.home} ${homeGoals}-${awayGoals} ${match.away}. Table, bracket, and stats updated.`);
-    clearMatchForm();
-    loadMatches(tourneyId);
-  } catch (e) {
-    mrLog(`Error: ${e.message}`);
-  } finally {
-    btn.disabled = false;
-  }
-}
-
-function updateResetRow() {
-  const matchId = document.getElementById("mrMatch").value;
-  const match = mrMatchIndex[matchId];
-  document.getElementById("mrResetRow").style.display = match && match.played ? "" : "none";
-}
-
-async function resetMatchToUnplayed() {
-  const tourneyId = document.getElementById("mrTournament").value;
-  const matchId = document.getElementById("mrMatch").value;
-  const match = mrMatchIndex[matchId];
-  if (!tourneyId || !matchId || !match) {
-    mrLog("Select a tournament and match first.");
-    return;
-  }
-  if (!confirm(`Reset ${match.home} vs ${match.away} back to unplayed? This removes its result, reverses the table/bracket, and clears its scorers/assisters.`)) {
-    return;
-  }
-  const btn = document.getElementById("mrResetBtn");
-  btn.disabled = true;
-  try {
-    await adminApi(`/api/tournament/${tourneyId}/matches/${matchId}/reset`, { method: "POST" });
-    mrLog(`✓ Reset ${match.home} vs ${match.away} to unplayed.`);
-    clearMatchForm();
-    await loadMatches(tourneyId);
-  } catch (e) {
-    mrLog(`Error: ${e.message}`);
-  } finally {
-    btn.disabled = false;
-  }
-}
-
-// Event listeners for match recording
-document.getElementById("mrTournament").addEventListener("change", (e) => loadMatches(e.target.value));
-document.getElementById("mrMatch").addEventListener("change", () => {
-  document.getElementById("mrEvents").innerHTML = "";
-  updateWinnerRow();
-  updateResetRow();
-});
-document.getElementById("mrAddEventBtn").addEventListener("click", () => addEventRow());
-document.getElementById("mrRecordBtn").addEventListener("click", recordMatch);
-document.getElementById("mrClearBtn").addEventListener("click", clearMatchForm);
-document.getElementById("mrResetBtn").addEventListener("click", resetMatchToUnplayed);
-document.getElementById("mrHomeGoals").addEventListener("change", updateScore);
-document.getElementById("mrAwayGoals").addEventListener("change", updateScore);
 
 function _storageBadge(label, status) {
-  const color = status.ok ? "#1a7f37" : status.enabled ? "#b35900" : "#767676";
-  const bg = status.ok ? "#e6f4ea" : status.enabled ? "#fff3e0" : "#f0f0f0";
+  const color = status.ok ? "var(--success)" : status.enabled ? "var(--warn)" : "var(--muted)";
+  const bg = status.ok ? "var(--success-soft)" : status.enabled ? "var(--warn-soft)" : "var(--panel2)";
   const icon = status.ok ? "✓" : status.enabled ? "⚠" : "—";
   return `
-    <div style="flex:1;min-width:220px;padding:0.75rem;border-radius:6px;background:${bg};border:1px solid ${color}">
+    <div style="flex:1;min-width:220px;padding:0.75rem;border-radius:8px;background:${bg};border:1px solid ${color}">
       <div style="font-weight:600;color:${color}">${icon} ${label}</div>
-      <div style="font-size:0.85rem;color:#444;margin-top:0.25rem">${esc(status.message || "")}</div>
+      <div style="font-size:0.85rem;color:var(--text);margin-top:0.25rem">${esc(status.message || "")}</div>
     </div>
   `;
 }
@@ -1197,19 +732,9 @@ document.getElementById("storageCheckBtn").addEventListener("click", checkStorag
 const initialTab =
   location.hash === "#tournament"
     ? "tournament"
-    : location.hash === "#match-recording"
-      ? "match-recording"
-      : location.hash === "#teams"
-        ? "teams"
-        : location.hash === "#lineups"
-          ? "lineups"
-          : "simulations";
+    : location.hash === "#teams"
+      ? "teams"
+      : location.hash === "#lineups"
+        ? "lineups"
+        : "simulations";
 showTab(initialTab);
-
-if (getAdminToken()) {
-  loadExperiments();
-  loadMatchRecordingTournaments();
-  setInterval(loadExperiments, 8000);
-} else {
-  simLog("Enter your admin token to run simulations and manage tournaments.");
-}

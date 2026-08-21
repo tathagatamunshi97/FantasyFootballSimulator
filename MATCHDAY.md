@@ -4,8 +4,8 @@ Matchday is the **broadcast view** for admin-run simulations. Teams log in to **
 
 ## Roles
 
-| Role | Can start sims | Can watch matchday | Can browse full history (`/home`, `/lab`) |
-|------|----------------|--------------------|-------------------------------------------|
+| Role | Can start sims | Can watch matchday | Can browse full history (`/lab`) |
+|------|----------------|--------------------|-----------------------------------|
 | **Admin** (`admin` + `SIM_ADMIN_TOKEN`) | Yes | Yes | Yes |
 | **Team** (sheet team + password) | No | Yes (live + last 24h) | No |
 
@@ -72,7 +72,6 @@ On **Render free tier**:
 | Admin panel | `/admin` | Admin token |
 | Tournament viewer | `/tournament` | Everyone (read-only bracket) |
 | Team lab | `/lab` | Admin only |
-| Experiment archive | `/home` | Admin only |
 
 ---
 

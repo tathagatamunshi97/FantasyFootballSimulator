@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Admin — Match Simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
@@ -35,35 +38,12 @@
     <nav class="tab-bar" style="margin-top:1rem" role="tablist">
       <button type="button" class="tab-btn active" data-tab="simulations" role="tab">Simulations</button>
       <button type="button" class="tab-btn" data-tab="tournament" role="tab">Tournament</button>
-      <button type="button" class="tab-btn" data-tab="match-recording" role="tab">Match Recording</button>
       <button type="button" class="tab-btn" data-tab="teams" role="tab">Team access</button>
       <button type="button" class="tab-btn" data-tab="lineups" role="tab">Squad lineups</button>
     </nav>
 
     <div id="panel-simulations" class="tab-panel" role="tabpanel">
-      <div class="card" style="margin-top:0">
-        <h2>Quick test simulation</h2>
-        <p class="muted">Run the default <code>team_a_vs_b.json</code> matchup as a new experiment (no user login required).</p>
-        <div class="form-row inline">
-          <label for="testSims">Simulations</label>
-          <input id="testSims" type="number" value="5000" min="100" max="100000" step="1000" style="max-width:160px" />
-        </div>
-        <div class="form-row inline">
-          <label for="testSeed">Seed (optional)</label>
-          <input id="testSeed" type="number" placeholder="42" style="max-width:160px" />
-        </div>
-        <button type="button" id="testRunBtn" class="btn-primary">Run test simulation</button>
-        <div id="testLog" class="log" style="margin-top:0.75rem">Enter token, then run a test.</div>
-      </div>
-
-      <div class="card" style="margin-top:1rem">
-        <h2>All experiments</h2>
-        <button type="button" id="refreshBtn" class="btn-ghost" style="margin-bottom:0.75rem">Refresh experiments</button>
-        <div id="expTable" class="table-wrap"><p class="muted">Enter token and refresh.</p></div>
-        <div id="simLog" class="log" style="margin-top:0.75rem">Ready.</div>
-      </div>
-
-      <details class="card" style="margin-top:1rem">
+      <details class="card" style="margin-top:0">
         <summary style="cursor:pointer;font-weight:600">Legacy global simulation</summary>
         <p class="muted">Runs the default matchup into global <code>/api/state</code> (home page legacy viewer).</p>
         <div class="form-row">
@@ -104,67 +84,6 @@
         <div id="controls" class="grid grid-2" style="margin-top:0.75rem"></div>
         <div id="matchControls" style="margin-top:1rem"></div>
         <div id="tLog" class="log" style="margin-top:0.75rem">Ready.</div>
-      </div>
-    </div>
-
-    <div id="panel-match-recording" class="tab-panel" role="tabpanel" hidden>
-      <div class="card" style="margin-top:0">
-        <h2>Record match result</h2>
-        <p class="muted">Manually record a match result with scorers and assisters — same path as the live tactic board. Updates the fixture, group table / knockout bracket, and top scorers/assisters immediately.</p>
-
-        <div class="form-row">
-          <label for="mrTournament">Tournament</label>
-          <select id="mrTournament" style="max-width:300px">
-            <option value="">— Select tournament —</option>
-          </select>
-        </div>
-
-        <div class="form-row">
-          <label for="mrMatch">Match</label>
-          <select id="mrMatch" style="max-width:300px">
-            <option value="">— Select match —</option>
-          </select>
-        </div>
-
-        <div id="mrResetRow" style="display:none;margin:0.75rem 0;padding:0.75rem;background:#fff3e0;border-radius:4px">
-          <p class="muted" style="margin:0 0 0.5rem">This match is already played. To re-record it, first reset it back to unplayed — this removes its result, reverses the table/bracket, and clears its scorers/assisters from the tallies.</p>
-          <button type="button" id="mrResetBtn" class="btn-ghost">Reset to unplayed</button>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin:1rem 0">
-          <div class="form-row">
-            <label for="mrHomeGoals">Home goals</label>
-            <input id="mrHomeGoals" type="number" min="0" max="20" value="0" style="max-width:100px" />
-          </div>
-          <div class="form-row">
-            <label for="mrAwayGoals">Away goals</label>
-            <input id="mrAwayGoals" type="number" min="0" max="20" value="0" style="max-width:100px" />
-          </div>
-          <div style="display:flex;align-items:flex-end">
-            <span id="mrScore" class="badge" style="font-size:1.2rem">0–0</span>
-          </div>
-        </div>
-
-        <div id="mrWinnerRow" class="form-row" style="display:none">
-          <label for="mrWinner">Winner (level scores — knockout tie decided on penalties/extra time)</label>
-          <select id="mrWinner" style="max-width:300px">
-            <option value="">— Select winner —</option>
-          </select>
-        </div>
-
-        <div class="card" style="background:#f5f5f5;margin:1rem 0">
-          <h3 style="margin-top:0">Goals & assists</h3>
-          <p class="muted">Add each goal with scorers and optional assists.</p>
-          <div id="mrEvents" style="display:flex;flex-direction:column;gap:0.75rem;margin:1rem 0"></div>
-          <button type="button" id="mrAddEventBtn" class="btn-ghost">+ Add goal</button>
-        </div>
-
-        <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
-          <button type="button" id="mrRecordBtn" class="btn-primary">Record match</button>
-          <button type="button" id="mrClearBtn" class="btn-ghost">Clear form</button>
-        </div>
-        <div id="mrLog" class="log" style="margin-top:0.75rem">Ready.</div>
-        <p class="muted" style="margin-top:0.5rem">Recorded results appear immediately on the <a href="/tournament" target="_blank">Tournament viewer</a> — fixtures, table, bracket, and top scorers/assisters.</p>
       </div>
     </div>
 

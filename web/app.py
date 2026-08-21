@@ -883,18 +883,6 @@ def _can_view_experiment(
     return experiments.can_team_view_experiment(exp)
 
 
-@app.get("/api/experiments")
-def my_experiments(
-    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
-    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
-) -> dict:
-    _require_admin_session_or_token(x_session_token, x_admin_token)
-    user = auth.get_user(x_session_token)
-    if _is_admin_session(user):
-        return {"experiments": experiments.list_experiments(user=user)}
-    return {"experiments": experiments.list_experiments()}
-
-
 @app.post("/api/experiments")
 def create_experiment(
     body: ExperimentRequest,
@@ -1247,11 +1235,6 @@ def run_monte_carlo(
 @app.get("/")
 def landing_page() -> FileResponse:
     return FileResponse(STATIC / "landing.html")
-
-
-@app.get("/home")
-def home_page() -> FileResponse:
-    return FileResponse(STATIC / "index.html")
 
 
 @app.get("/login")
