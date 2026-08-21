@@ -1020,17 +1020,6 @@
         </div>
         <div class="tactic-controls" ${hideControls ? "hidden" : ""}>
           <button type="button" class="btn-ghost btn-sm" data-tb-replay>Replay</button>
-          <label class="tactic-speed muted">
-            Speed
-            <select data-tb-speed>
-              <option value="0.5" selected>0.5×</option>
-              <option value="0.75">0.75×</option>
-              <option value="1">1×</option>
-              <option value="1.5">1.5×</option>
-              <option value="2">2×</option>
-              <option value="3">3×</option>
-            </select>
-          </label>
         </div>
         <div class="tactic-instructions" data-tb-instructions ${hideControls ? "hidden" : ""}>
           <span class="muted" style="font-size:0.78rem">Instructions</span>
@@ -13411,9 +13400,6 @@
     container.querySelector("[data-tb-replay]").addEventListener("click", () => {
       reset();
       play();
-    });
-    container.querySelector("[data-tb-speed]").addEventListener("change", (e) => {
-      speed = Number(e.target.value) || 0.5;
     });
     container.querySelectorAll("[data-tb-push]").forEach((btn) => {
       btn.addEventListener("click", () => setInstruction(btn.dataset.tbPush, "push"));

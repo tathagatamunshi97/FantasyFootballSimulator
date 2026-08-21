@@ -1441,18 +1441,6 @@ tr.matchday-live { background: var(--success-soft); }
   gap: 0.4rem;
   align-items: center;
 }
-.tactic-speed {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  margin-left: auto;
-  font-size: 0.8rem;
-}
-.tactic-speed select {
-  width: auto;
-  padding: 0.25rem 0.4rem;
-  font-size: 0.8rem;
-}
 .tactic-note { margin: 0; font-size: 0.78rem; }
 @media (max-width: 560px) {
   .tactic-pin .pin-dot { width: 18px; height: 18px; font-size: 0.5rem; }
