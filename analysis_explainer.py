@@ -584,53 +584,6 @@ def _tier_item(tier: Tier, text: str) -> dict[str, str]:
     return {"tier": tier, "text": text}
 
 
-def _slot_fit_tier(fit: float) -> Tier | None:
-    if fit < 0.42:
-        return "weakness"
-    if fit < 0.50:
-        return "moderate_weakness"
-    if fit >= 0.72:
-        return "strength"
-    if fit >= 0.62:
-        return "moderate_strength"
-    return None
-
-
-def _slot_area_label(slot: str) -> str:
-    role = slot_role(slot)
-    if role in {"fullback", "centre_back"}:
-        return "defence"
-    if role in {"dm", "cm", "am"}:
-        return "midfield"
-    if role in {"winger", "striker", "am"}:
-        return "attack"
-    if role == "gk":
-        return "goalkeeper"
-    return "formation fit"
-
-
-def _collect_slot_fit_labels(fit_players: list[dict[str, Any]]) -> list[dict[str, str]]:
-    items: list[dict[str, str]] = []
-    for p in fit_players:
-        fit = float(p.get("fit", 1))
-        tier = _slot_fit_tier(fit)
-        if tier is None:
-            continue
-        slot = p.get("slot", "?")
-        player = p.get("player", "?")
-        area = _slot_area_label(slot)
-        if tier == "weakness":
-            text = f"Misfit at {slot}: {player} (fit {fit:.2f}) — glaring {area} concern."
-        elif tier == "moderate_weakness":
-            text = f"Awkward at {slot}: {player} (fit {fit:.2f}) — slight {area} concern."
-        elif tier == "strength":
-            text = f"Elite fit at {slot}: {player} (fit {fit:.2f})."
-        else:
-            text = f"Good fit at {slot}: {player} (fit {fit:.2f})."
-        items.append(_tier_item(tier, text))
-    return items
-
-
 def _unit_tier_label(label: str, key: str, value: float, *, higher_better: bool = True) -> dict[str, str] | None:
     if value <= 0.001 and key != "transition_risk":
         return None
@@ -681,7 +634,7 @@ def _group_tier_items(items: list[dict[str, str]]) -> dict[str, list[str]]:
 def _prioritize_tier_items(items: list[dict[str, str]]) -> list[dict[str, str]]:
     """Keep the most actionable labels — slot-fit and glaring issues first."""
     priority = {"weakness": 0, "moderate_weakness": 1, "strength": 2, "moderate_strength": 3, "balanced": 4}
-    ranked = sorted(items, key=lambda i: (priority.get(i["tier"], 9), "misfit" not in i["text"].lower(), i["text"]))
+    ranked = sorted(items, key=lambda i: (priority.get(i["tier"], 9), i["text"]))
     kept: list[dict[str, str]] = []
     areas_covered: set[str] = set()
 
@@ -698,7 +651,7 @@ def _prioritize_tier_items(items: list[dict[str, str]]) -> list[dict[str, str]]:
             if len([k for k in kept if k["tier"] in {"weakness", "moderate_weakness"}]) >= 6:
                 continue
             area = _area_key(item["text"])
-            if area and area in areas_covered and "misfit" not in item["text"].lower():
+            if area and area in areas_covered:
                 continue
             if area:
                 areas_covered.add(area)
@@ -766,8 +719,6 @@ def _analyze_single_squad(
         if item:
             tier_items.append(item)
 
-    tier_items.extend(_collect_slot_fit_labels(fit_players))
-
     if u.get("gk_is_backup"):
         tier_items.append(_tier_item("weakness", "Starting goalkeeper profile looks like a backup/low-minutes option."))
 
@@ -803,29 +754,20 @@ def _analyze_single_squad(
                 _tier_item("moderate_strength", f"Useful bench depth ({', '.join(standouts[:3])}).")
             )
 
-    if ext["formation_fit"] >= 0.72:
-        tier_items.append(
-            _tier_item("strength", f"Players suit the {formation} shape (avg fit {ext['formation_fit']:.2f}).")
-        )
-
     tier_items = _prioritize_tier_items(tier_items)
     grouped = _group_tier_items(tier_items)
     strengths, weaknesses = _legacy_strengths_weaknesses(grouped)
 
+    defence_bullets: list[str] = []
+    cb_players = [p for p in fit_players if str(p.get("slot", "")).startswith("CB")]
+    if cb_players:
+        cb_names = ", ".join(p["player"] for p in cb_players[:3])
+        defence_bullets.append(f"Centre-backs: {cb_names}.")
     if fb.get("fullbacks"):
         fb_names = ", ".join(f"{r['player']} ({r['slot']})" for r in fb["fullbacks"][:2])
-        sections.append({"title": "Defence", "bullets": [f"Wide defenders: {fb_names}."]})
-
-    weak_slots = [p for p in fit_players if p.get("fit", 1) < 0.55]
-    fit_bullets = [
-        f"Average formation fit {ext['formation_fit']:.2f} in {formation}.",
-    ]
-    if weak_slots:
-        weak_txt = ", ".join(f"{p['player']} at {p['slot']} (fit {p['fit']:.2f})" for p in weak_slots[:4])
-        fit_bullets.append(f"Misplaced or awkward slots: {weak_txt}.")
-    else:
-        fit_bullets.append("No major formation-fit concerns in the starting XI.")
-    sections.append({"title": "Formation fit", "bullets": fit_bullets})
+        defence_bullets.append(f"Wide defenders: {fb_names}.")
+    if defence_bullets:
+        sections.append({"title": "Defence", "bullets": defence_bullets})
 
     depth_bullets: list[str] = []
     if bench_count == 0:
@@ -991,13 +933,6 @@ def build_scout_report(
         scout_notes.append(f"Possible weakness: {w.rstrip('.')}.")
     for w in (opp_tiers.get("moderate_weakness") or [])[:1]:
         scout_notes.append(f"Slight concern: {w.rstrip('.')}.")
-
-    fit_section = next(
-        (sec for sec in (opponent_eval.get("sections") or []) if sec.get("title") == "Formation fit"),
-        None,
-    )
-    if fit_section and fit_section.get("bullets"):
-        scout_notes.append(fit_section["bullets"][0])
 
     my_press = float(my_tc.get("pressing_intensity", 0))
     my_resist = float(my_tc.get("press_resistance", 0))

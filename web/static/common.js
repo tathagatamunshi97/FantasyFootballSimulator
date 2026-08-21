@@ -168,12 +168,8 @@ const TIER_LABELS = {
 const TIER_ORDER = ["strength", "moderate_strength", "balanced", "moderate_weakness", "weakness"];
 
 const SQUAD_SECTION_HELP = {
-  Attack: "How your XI generates shots and xG — effectiveness index, chance creation, and the finishing vs creation split.",
-  Midfield: "Control of the middle — midfield unit rating (DM/CM/AM slots only), possession, pass completion, and pressing intensity.",
   Defence: "Structural defending — back line, midfield shield, xGA suppression, aerial defence, and transition safety.",
-  "Formation fit": "How well each starter’s stats suit their slot in your chosen formation (0–1 per player).",
   "Squad depth": "Bench quality — whether substitutes add small boosts to attack, creation, or defence.",
-  "Team profile": "Whole-XI composite scores — creativity, midfield control, possession, and finishing threat across all starters.",
 };
 
 function unitMetric(label, value, noteKey) {
