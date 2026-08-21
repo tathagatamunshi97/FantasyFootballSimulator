@@ -289,7 +289,7 @@ function renderScoutComparisons(rows, title) {
 
 function renderLineup(team) {
   return team.lineup
-    .map((p) => `<div class="slot-row"><span>${esc(p.slot)}</span><span>${esc(p.player)}</span></div>`)
+    .map((p) => `<div class="slot-row"><span class="rl-slot">${esc(p.slot)}</span><span>${esc(p.player)}</span></div>`)
     .join("");
 }
 
@@ -298,25 +298,27 @@ function renderTeamProfile(side, teamName) {
   const fbRows = (fb.fullbacks || [])
     .map(
       (f) =>
-        `<tr><td>${esc(f.player)}</td><td>${esc(f.slot)}</td><td>${f.xa90}</td><td>${f.creation_score}</td><td>${f.attack_exposure}</td></tr>`
+        `<tr><td>${esc(f.player)}</td><td>${esc(f.slot)}</td><td class="num">${f.xa90}</td><td class="num">${f.creation_score}</td><td class="num">${f.attack_exposure}</td></tr>`
     )
     .join("");
   if (!fbRows) return "";
 
   return `
     <div class="card">
-      <h3>${esc(teamName)} fullbacks</h3>
-      <table><thead><tr><th>Player</th><th>Slot</th><th>xA</th><th>Create</th><th>Exposure</th></tr></thead><tbody>${fbRows}</tbody></table>
-      <p class="muted">Transition risk ${num(fb.transition_risk, 3)}</p>
+      <div class="report-eyebrow" style="margin-bottom:0.6rem">${esc(teamName)} — fullbacks</div>
+      <div class="report-table-wrap">
+        <table><thead><tr><th>Player</th><th>Slot</th><th>xA</th><th>Create</th><th>Exposure</th></tr></thead><tbody>${fbRows}</tbody></table>
+      </div>
+      <p class="muted" style="margin:0.6rem 0 0">Transition risk ${num(fb.transition_risk, 3)}</p>
     </div>`;
 }
 
 function renderSquadAnalysis(squadAnalysis, matchup) {
   if (!squadAnalysis) return "";
 
-  function renderSide(side, team) {
+  function renderSide(side, team, sideKey) {
     if (!side) return "";
-    return renderSingleSquadEval(side, team);
+    return renderSingleSquadEval(side, team, sideKey);
   }
 
   return `
@@ -324,13 +326,13 @@ function renderSquadAnalysis(squadAnalysis, matchup) {
       <h2>Squad strengths &amp; weaknesses</h2>
       <p class="muted">Per-team breakdown from player stats, formation fit, unit ratings, and bench depth.</p>
       <div class="grid grid-2" style="margin-top:1rem">
-        ${renderSide(squadAnalysis.home, matchup?.home)}
-        ${renderSide(squadAnalysis.away, matchup?.away)}
+        ${renderSide(squadAnalysis.home, matchup?.home, "home")}
+        ${renderSide(squadAnalysis.away, matchup?.away, "away")}
       </div>
     </section>`;
 }
 
-function renderSingleSquadEval(evaluation, team) {
+function renderSingleSquadEval(evaluation, team, sideKey) {
   if (!evaluation) return "";
   const side = evaluation;
   const sections = (side.sections || [])
@@ -345,14 +347,18 @@ function renderSingleSquadEval(evaluation, team) {
     .join("");
   const tierHtml = renderTierLabels(side.tier_labels);
   const lineup = team?.lineup?.length
-    ? `<div class="lineup-mini" style="margin-top:0.75rem">${renderLineup(team)}</div>`
+    ? `<div class="lineup-mini report-lineup" style="margin-top:0.75rem">${renderLineup(team)}</div>`
     : "";
   const units = side.units ? renderUnits(side.units, { showNotes: true }) : "";
   const teamProfile = side.team_composites ? renderTeamComposites(side.team_composites, { showNotes: true }) : "";
+  const headClass = sideKey === "home" ? "home" : sideKey === "away" ? "away" : "";
   return `
     <div class="card squad-card">
-      <h2 style="margin-bottom:0.5rem">Squad evaluation</h2>
-      <h3>${esc(side.name)} <span class="muted">${esc(side.formation || team?.formation || "")}</span></h3>
+      <div class="report-eyebrow">Squad evaluation</div>
+      <div class="report-team-head ${headClass}">
+        <h3>${esc(side.name)}</h3>
+        <span class="rt-formation">${esc(side.formation || team?.formation || "")}</span>
+      </div>
       <p class="muted">${esc(side.summary || "")}</p>
       <h4 style="font-size:0.85rem;margin:0.75rem 0 0.25rem">Unit ratings</h4>
       ${units}
@@ -448,41 +454,41 @@ function renderReport(report, matchup) {
       : "";
 
   return `
-    <section class="card scoreboard">
-      <div>
-        <div class="team-name home">${esc(home)}</div>
-        <div class="muted">${esc(matchup.home.formation)}</div>
+    <div class="report-eyebrow">Pre-match simulation · ${esc(matchup.home.formation)} vs ${esc(matchup.away.formation)}</div>
+    <h2 class="report-title">${esc(home)} vs ${esc(away)}</h2>
+    <div class="report-scoreboard">
+      <div class="rsb-cell">
+        <div class="rsb-num">${mc.expected_xg.home}<span style="color:var(--faint);font-size:1.1rem">–</span>${mc.expected_xg.away}</div>
+        <div class="rsb-label">Expected xG</div>
+        <div class="rsb-sub">${mc.simulations.toLocaleString()} runs</div>
       </div>
-      <div>
-        <div style="font-size:0.85rem;color:var(--muted)">Expected xG</div>
-        <div style="font-size:1.6rem;font-weight:800">${mc.expected_xg.home} – ${mc.expected_xg.away}</div>
-        <div class="muted">Avg goals ${mc.home_goals_avg} – ${mc.away_goals_avg}</div>
+      <div class="rsb-cell">
+        <div class="rsb-num home">${pct(mc.home_win_pct)}</div>
+        <div class="rsb-label">${esc(home)} win</div>
       </div>
-      <div>
-        <div class="team-name away">${esc(away)}</div>
-        <div class="muted">${esc(matchup.away.formation)}</div>
+      <div class="rsb-cell">
+        <div class="rsb-num">${pct(mc.draw_pct)}</div>
+        <div class="rsb-label">Draw</div>
       </div>
-    </section>
+      <div class="rsb-cell">
+        <div class="rsb-num away">${pct(mc.away_win_pct)}</div>
+        <div class="rsb-label">${esc(away)} win</div>
+      </div>
+      <div class="rsb-cell">
+        <div class="rsb-num">${pct(mc.btts_pct)}</div>
+        <div class="rsb-label">BTTS</div>
+      </div>
+      <div class="rsb-cell">
+        <div class="rsb-num">${pct(mc.over_2_5_pct)}</div>
+        <div class="rsb-label">Over 2.5</div>
+      </div>
+    </div>
 
     ${watchCard}
 
     ${renderAnalysis(report.analysis)}
 
     ${renderSquadAnalysis(report.squad_analysis)}
-
-    <section class="card" style="margin-top:1rem">
-      <h2>Outcome probabilities (${mc.simulations.toLocaleString()} runs)</h2>
-      <div class="prob-bar">
-        <div class="prob-seg"><div class="val" style="color:var(--home)">${pct(mc.home_win_pct)}</div><div class="muted">${esc(home)} win</div></div>
-        <div class="prob-seg"><div class="val">${pct(mc.draw_pct)}</div><div class="muted">Draw</div></div>
-        <div class="prob-seg"><div class="val" style="color:var(--away)">${pct(mc.away_win_pct)}</div><div class="muted">${esc(away)} win</div></div>
-      </div>
-      <div class="metric-grid" style="margin-top:1rem">
-        ${metric("BTTS", pct(mc.btts_pct))}
-        ${metric("Over 2.5", pct(mc.over_2_5_pct))}
-        ${metric("Total goals", num(mc.total_goals_avg))}
-      </div>
-    </section>
 
     ${(() => {
       const fbHome = renderTeamProfile(report.profiles.home, home);
@@ -492,13 +498,13 @@ function renderReport(report, matchup) {
         : "";
     })()}
 
-    <section class="card lineup" style="margin-top:1rem">
+    <section class="card lineup report-lineup" style="margin-top:1rem">
       <div>
-        <h2>${esc(home)} lineup</h2>
+        <div class="report-team-head home"><h3>${esc(home)}</h3><span class="rt-formation">${esc(matchup.home.formation)}</span></div>
         ${renderLineup(matchup.home)}
       </div>
       <div>
-        <h2>${esc(away)} lineup</h2>
+        <div class="report-team-head away"><h3>${esc(away)}</h3><span class="rt-formation">${esc(matchup.away.formation)}</span></div>
         ${renderLineup(matchup.away)}
       </div>
     </section>
