@@ -628,9 +628,8 @@ def _find_playable_fixture(t: dict[str, Any], match_id: str) -> tuple[str, dict[
     actual playable/completable match) rather than the parent tie. Group
     fixtures are unaffected — they have no legs concept. Used by callers
     that want "the specific match" (review/accept/override/reset, session
-    setup); callers that specifically want the TIE itself (e.g.
-    _run_knockout_match_job, which does its own leg bookkeeping) should keep
-    using _find_fixture directly."""
+    setup); callers that specifically want the TIE itself (which does its
+    own leg bookkeeping) should keep using _find_fixture directly."""
     leg_found = _find_knockout_leg(t, match_id)
     if leg_found:
         return "knockout", leg_found[1]
@@ -699,46 +698,17 @@ def _resolve_winner(
     away_name: str,
     home_goals: int,
     away_goals: int,
-    report: dict[str, Any],
     *,
-    require_winner: bool,
+    require_winner: bool = False,
 ) -> str | None:
+    """Winner from the scoreline alone. A level score with require_winner=True
+    can't be auto-resolved (no simulation to break the tie) -- callers must
+    ask the admin to pass a winner explicitly in that case."""
     if home_goals > away_goals:
         return home_name
     if away_goals > home_goals:
         return away_name
-    if not require_winner:
-        return None
-    mc = report.get("monte_carlo") or {}
-    h_pct = mc.get("home_win_pct") or 0
-    a_pct = mc.get("away_win_pct") or 0
-    if h_pct > a_pct:
-        return home_name
-    if a_pct > h_pct:
-        return away_name
-    exg = mc.get("expected_xg") or {}
-    if (exg.get("home") or 0) >= (exg.get("away") or 0):
-        return home_name
-    return away_name
-
-
-def _score_from_report(report: dict[str, Any]) -> tuple[int, int, str]:
-    """Official fixture score = most common Monte Carlo scoreline."""
-    mc = report.get("monte_carlo") or {}
-    scorelines = mc.get("most_common_scorelines") or mc.get("scorelines") or []
-    if scorelines:
-        top = scorelines[0]
-        score_str = str(top.get("score") or "0-0")
-        parts = score_str.split("-")
-        if len(parts) == 2:
-            try:
-                return int(parts[0]), int(parts[1]), score_str
-            except ValueError:
-                pass
-    sample = report.get("sample_match") or {}
-    home_goals = int(sample.get("home", {}).get("goals", 0))
-    away_goals = int(sample.get("away", {}).get("goals", 0))
-    return home_goals, away_goals, f"{home_goals}-{away_goals}"
+    return None
 
 
 _ANALYSIS_RESULT_KEYS = ("analysis", "squad_analysis", "analysis_matchup")
@@ -782,7 +752,6 @@ def _attach_ai_verdict(result: dict[str, Any]) -> None:
         "away": result.get("away"),
         "score": result.get("score"),
         "expected_xg": analysis.get("expected_xg"),
-        "outcomes": analysis.get("outcomes"),
         "key_factors": analysis.get("key_factors"),
     }
     verdict = ai_service.generate_match_analysis(digest)
@@ -1029,50 +998,6 @@ def _import_analysis_from_experiment(result: dict[str, Any]) -> bool:
     return True
 
 
-def _run_simulation(
-    home_name: str,
-    away_name: str,
-    match_id: str,
-    n_simulations: int,
-    *,
-    team_a: dict[str, Any] | None = None,
-    team_b: dict[str, Any] | None = None,
-) -> tuple[dict[str, Any], dict[str, Any]]:
-    if team_a is None or team_b is None:
-        team_a, team_b = _load_teams_for_match(home_name, away_name)
-    store = get_stats_store()
-    player_stats, season_overrides, name_map = prepare_match_player_stats(team_a, team_b, store)
-    resolved = _apply_name_map({"team_a": team_a, "team_b": team_b}, name_map)
-    home = FantasyTeam.from_dict(resolved["team_a"])
-    away = FantasyTeam.from_dict(resolved["team_b"])
-    seed = abs(hash(match_id)) % (2**31)
-    report = build_report(
-        home,
-        away,
-        player_stats,
-        n_simulations=n_simulations,
-        seed=seed,
-        include_single_match=True,
-        season_overrides=season_overrides,
-    )
-    home_goals, away_goals, score_str = _score_from_report(report)
-    mc = report.get("monte_carlo") or {}
-    top_scorelines = mc.get("most_common_scorelines") or mc.get("scorelines") or []
-    snapshot = {
-        "score": score_str,
-        "home_goals": home_goals,
-        "away_goals": away_goals,
-        "expected_xg": mc.get("expected_xg"),
-        "home_win_pct": mc.get("home_win_pct"),
-        "away_win_pct": mc.get("away_win_pct"),
-        "draw_pct": mc.get("draw_pct"),
-        "simulations": n_simulations,
-        "mode_scoreline": top_scorelines[0] if top_scorelines else None,
-        "top_scorelines": top_scorelines[:5],
-    }
-    return report, snapshot
-
-
 def _apply_group_result(
     table: dict[str, dict[str, int]],
     home: str,
@@ -1103,249 +1028,6 @@ def _apply_group_result(
         table[team]["gd"] = table[team]["gf"] - table[team]["ga"]
 
 
-def _finalize_experiment_from_report(exp: dict[str, Any], report: dict[str, Any]) -> None:
-    from web import experiments
-
-    exp["status"] = "ready"
-    exp["running"] = False
-    exp["message"] = f"Completed {exp['simulations']:,} simulations."
-    exp["report"] = report
-    experiments.save_experiment(exp)
-
-
-def _run_group_match_job(
-    tournament_id: str,
-    match_id: str,
-    exp: dict[str, Any],
-) -> None:
-    from web import experiments
-
-    t = load_tournament(tournament_id)
-    if not t:
-        raise KeyError("Tournament not found")
-    found = _find_fixture(t, match_id)
-    if not found or found[0] == "knockout":
-        raise KeyError(f"Group fixture '{match_id}' not found")
-    gkey, fx = found
-    if fx.get("played"):
-        raise ValueError(f"Match {match_id} already played")
-
-    n_sims = int(exp["simulations"])
-    exp["message"] = "Loading player stats…"
-    experiments.save_experiment(exp)
-
-    report, snapshot = _run_simulation(fx["home"], fx["away"], match_id, n_sims)
-    winner = _resolve_winner(
-        fx["home"], fx["away"], snapshot["home_goals"], snapshot["away_goals"], report, require_winner=False
-    )
-
-    result_id = match_id
-    t["match_results"][result_id] = {
-        "match_id": match_id,
-        "stage": "group",
-        "group": gkey,
-        "home": fx["home"],
-        "away": fx["away"],
-        **snapshot,
-        **_analysis_payload_from_report(report),
-        "engine_home_goals": snapshot["home_goals"],
-        "engine_away_goals": snapshot["away_goals"],
-        "winner": winner,
-        "manually_overridden": False,
-        "admin_accepted": False,
-        "played_at": _now(),
-        "experiment_id": exp["id"],
-    }
-
-    fx["played"] = True
-    fx["result_id"] = result_id
-    fx["score"] = snapshot["score"]
-    fx["winner"] = winner
-    fx["experiment_id"] = exp["id"]
-
-    _apply_group_result(
-        t["groups"][gkey]["table"],
-        fx["home"],
-        fx["away"],
-        snapshot["home_goals"],
-        snapshot["away_goals"],
-    )
-    save_tournament(t)
-    _finalize_experiment_from_report(exp, report)
-    matchday_session.set_result(
-        {
-            "score": snapshot["score"],
-            "home_goals": snapshot["home_goals"],
-            "away_goals": snapshot["away_goals"],
-            "winner": winner,
-            "home_win_pct": snapshot.get("home_win_pct"),
-            "draw_pct": snapshot.get("draw_pct"),
-            "away_win_pct": snapshot.get("away_win_pct"),
-            "mode_scoreline": snapshot.get("mode_scoreline"),
-            "top_scorelines": snapshot.get("top_scorelines"),
-            "experiment_id": exp["id"],
-        },
-        experiment_id=exp["id"],
-    )
-
-
-def _run_knockout_match_job(
-    tournament_id: str,
-    match_id: str,
-    exp: dict[str, Any],
-) -> None:
-    """Monte-Carlo quick-sim path (legacy fallback — the live tactic-board host
-    flow is the real production path and is handled by complete_from_board).
-    For a two-legged tie this resolves BOTH legs in one job (aggregate + away
-    goals, falling back to _resolve_winner's existing statistical tiebreak if
-    still level — this does not simulate real extra time/penalties, matching
-    today's pre-existing behavior for single-match ties)."""
-    from web import experiments
-
-    t = load_tournament(tournament_id)
-    if not t:
-        raise KeyError("Tournament not found")
-    found = _find_fixture(t, match_id)
-    if not found or found[0] != "knockout":
-        raise KeyError(f"Knockout fixture '{match_id}' not found")
-    _, tie = found
-    if tie.get("played"):
-        raise ValueError(f"Match {match_id} already played")
-    if not tie.get("home") or not tie.get("away"):
-        raise ValueError(f"Match {match_id} is not ready (missing teams)")
-
-    n_sims = int(exp["simulations"])
-    exp["message"] = "Loading player stats…"
-    experiments.save_experiment(exp)
-
-    legs = tie.get("legs") or []
-    two_legged = len(legs) == 2
-
-    if not two_legged:
-        report, snapshot = _run_simulation(tie["home"], tie["away"], match_id, n_sims)
-        winner = _resolve_winner(
-            tie["home"], tie["away"], snapshot["home_goals"], snapshot["away_goals"],
-            report, require_winner=True,
-        )
-        if not winner:
-            winner = tie["home"]
-
-        result_id = match_id
-        t["match_results"][result_id] = {
-            "match_id": match_id,
-            "stage": "knockout",
-            "home": tie["home"],
-            "away": tie["away"],
-            **snapshot,
-            **_analysis_payload_from_report(report),
-            "engine_home_goals": snapshot["home_goals"],
-            "engine_away_goals": snapshot["away_goals"],
-            "winner": winner,
-            "manually_overridden": False,
-            "admin_accepted": False,
-            "played_at": _now(),
-            "experiment_id": exp["id"],
-        }
-        leg = legs[0] if legs else tie
-        leg["played"] = True
-        leg["result_id"] = result_id
-        leg["score"] = snapshot["score"]
-        leg["home_goals"] = snapshot["home_goals"]
-        leg["away_goals"] = snapshot["away_goals"]
-        tie["played"] = True
-        tie["result_id"] = result_id
-        tie["score"] = snapshot["score"]
-        tie["winner"] = winner
-        tie["experiment_id"] = exp["id"]
-        _advance_knockout_winner(t, tie, winner)
-        final_report = report
-        final_snapshot = snapshot
-    else:
-        leg1, leg2 = legs[0], legs[1]
-        report1, snap1 = _run_simulation(leg1["home"], leg1["away"], leg1["id"], n_sims)
-        report2, snap2 = _run_simulation(leg2["home"], leg2["away"], leg2["id"], n_sims)
-        for leg, result_id, snap, rpt in ((leg1, leg1["id"], snap1, report1), (leg2, leg2["id"], snap2, report2)):
-            t["match_results"][result_id] = {
-                "match_id": result_id,
-                "stage": "knockout",
-                "tie_id": tie["id"],
-                "leg": leg["leg"],
-                "home": leg["home"],
-                "away": leg["away"],
-                **snap,
-                **_analysis_payload_from_report(rpt),
-                "engine_home_goals": snap["home_goals"],
-                "engine_away_goals": snap["away_goals"],
-                "winner": None,
-                "manually_overridden": False,
-                "admin_accepted": False,
-                "played_at": _now(),
-                "experiment_id": exp["id"],
-            }
-            leg["played"] = True
-            leg["result_id"] = result_id
-            leg["score"] = snap["score"]
-            leg["home_goals"] = snap["home_goals"]
-            leg["away_goals"] = snap["away_goals"]
-
-        agg_home_goals = snap1["home_goals"] + snap2["away_goals"]
-        agg_away_goals = snap1["away_goals"] + snap2["home_goals"]
-        if agg_home_goals != agg_away_goals:
-            winner = tie["home"] if agg_home_goals > agg_away_goals else tie["away"]
-            tie_decided = "agg"
-        else:
-            tie_home_away_goals = snap2["away_goals"]
-            tie_away_away_goals = snap1["away_goals"]
-            if tie_home_away_goals != tie_away_away_goals:
-                winner = tie["home"] if tie_home_away_goals > tie_away_away_goals else tie["away"]
-                tie_decided = "away_goals"
-            else:
-                winner = _resolve_winner(
-                    tie["home"], tie["away"], agg_home_goals, agg_away_goals,
-                    report2, require_winner=True,
-                ) or tie["home"]
-                tie_decided = "agg"
-
-        result_id = leg2["id"]
-        tie["played"] = True
-        tie["result_id"] = result_id
-        tie["winner"] = winner
-        tie["decided_by"] = tie_decided
-        tie["agg_home_goals"] = agg_home_goals
-        tie["agg_away_goals"] = agg_away_goals
-        tie["score"] = _format_tie_score(tie)
-        tie["experiment_id"] = exp["id"]
-        _advance_knockout_winner(t, tie, winner)
-        final_report = report2
-        final_snapshot = snap2
-
-    all_done = all(
-        t2.get("played")
-        for rnd in t["knockout"]["rounds"]
-        for t2 in rnd.get("ties", [])
-        if t2.get("home") and t2.get("away")
-    )
-    if all_done:
-        t["status"] = "complete"
-    save_tournament(t)
-    _finalize_experiment_from_report(exp, final_report)
-    matchday_session.set_result(
-        {
-            "score": tie["score"],
-            "home_goals": final_snapshot["home_goals"],
-            "away_goals": final_snapshot["away_goals"],
-            "winner": tie["winner"],
-            "home_win_pct": final_snapshot.get("home_win_pct"),
-            "draw_pct": final_snapshot.get("draw_pct"),
-            "away_win_pct": final_snapshot.get("away_win_pct"),
-            "mode_scoreline": final_snapshot.get("mode_scoreline"),
-            "top_scorelines": final_snapshot.get("top_scorelines"),
-            "experiment_id": exp["id"],
-        },
-        experiment_id=exp["id"],
-    )
-
-
 def _preflight_match_stats(team_a: dict[str, Any], team_b: dict[str, Any]) -> None:
     """Fail fast before starting a background run if stats cannot be loaded."""
     store = get_stats_store()
@@ -1361,99 +1043,6 @@ def _preflight_match_stats(team_a: dict[str, Any], team_b: dict[str, Any]) -> No
                 "players have manual profiles (or clear the prime) and redeploy."
             ) from exc
         raise ValueError(f"Cannot load player stats for this fixture: {exc}") from exc
-
-
-def start_matchday_session(tournament_id: str, match_id: str) -> dict[str, Any]:
-    """Create a live matchday broadcast session for a tournament fixture (setup phase)."""
-    t = load_tournament(tournament_id)
-    if not t:
-        raise KeyError("Tournament not found")
-    found = _find_playable_fixture(t, match_id)
-    if not found:
-        raise KeyError(f"Fixture '{match_id}' not found")
-    stage_key, fx = found
-    if fx.get("played"):
-        raise ValueError(f"Match {match_id} already played")
-    if stage_key == "knockout" and (not fx.get("home") or not fx.get("away")):
-        raise ValueError(f"Match {match_id} is not ready (missing teams)")
-
-    home = fx["home"]
-    away = fx["away"]
-    team_a, team_b = _load_teams_for_match(home, away, tournament_id=tournament_id, match_id=match_id)
-    _preflight_match_stats(team_a, team_b)
-    stage = f"group_{stage_key}" if stage_key != "knockout" else "knockout"
-
-    status = matchday_session.start_session(
-        tournament_id=tournament_id,
-        tournament_name=t.get("name") or "Tournament",
-        fixture_id=match_id,
-        stage=stage,
-        home=home,
-        away=away,
-        team_a=team_a,
-        team_b=team_b,
-    )
-    return {
-        "tournament": _summary(t) | {"id": t["id"]},
-        "matchday": status,
-        "status": "setup",
-    }
-
-
-def execute_matchday_simulation() -> dict[str, Any]:
-    """Run Monte Carlo simulation for the active matchday session (admin, run phase)."""
-    from web import experiments
-
-    session = matchday_session.require_active_session()
-    if session.get("phase") not in ("setup", "running"):
-        raise ValueError(f"Cannot run simulation in phase '{session.get('phase')}'.")
-    if session.get("running"):
-        raise ValueError("Simulation already running.")
-
-    tournament_id = session["tournament_id"]
-    match_id = session["fixture_id"]
-    t = load_tournament(tournament_id)
-    if not t:
-        raise KeyError("Tournament not found")
-
-    team_a, team_b = _load_teams_for_match(
-        session["home"],
-        session["away"],
-        tournament_id=tournament_id,
-        match_id=match_id,
-    )
-    _preflight_match_stats(team_a, team_b)
-    n_sims = int(t["settings"].get("simulations_per_match", 10000))
-    payload = {"team_a": team_a, "team_b": team_b, "simulations": n_sims}
-
-    found = _find_fixture(t, match_id)
-    if not found:
-        raise KeyError(f"Fixture '{match_id}' not found")
-    stage_key, _ = found
-    stage = f"group_{stage_key}" if stage_key != "knockout" else "knockout"
-
-    if stage_key == "knockout":
-        run_fn = lambda exp: _run_knockout_match_job(tournament_id, match_id, exp)
-    else:
-        run_fn = lambda exp: _run_group_match_job(tournament_id, match_id, exp)
-
-    summary = experiments.start_matchday_run(
-        "admin",
-        payload,
-        tournament={
-            "tournament_id": tournament_id,
-            "tournament_name": t.get("name"),
-            "match_id": match_id,
-            "stage": stage,
-        },
-        run_fn=run_fn,
-    )
-    matchday_session.set_running(summary["id"])
-    return {
-        "experiment": summary,
-        "matchday": matchday_session.active_status(),
-        "status": "running",
-    }
 
 
 def _board_player_stats_row(st: dict[str, Any]) -> dict[str, Any]:
@@ -2069,7 +1658,6 @@ def _build_and_attach_board_analysis(
     resolved = _apply_name_map({"team_a": team_a, "team_b": team_b}, name_map)
     home_team = FantasyTeam.from_dict(resolved["team_a"])
     away_team = FantasyTeam.from_dict(resolved["team_b"])
-    seed = abs(hash(match_id)) % (2**31)
     events = result.get("board_events")
     log = result.get("match_log")
     report = build_board_result_report(
@@ -2080,8 +1668,6 @@ def _build_and_attach_board_analysis(
         away_goals=int(result.get("away_goals") or 0),
         board_events=events if isinstance(events, list) else None,
         match_log=log if isinstance(log, (list, dict)) else None,
-        n_simulations=800,
-        seed=seed,
         season_overrides=season_overrides,
     )
     result.update(_analysis_payload_from_report(report))
@@ -2374,17 +1960,6 @@ def _ensure_engine_score(result: dict[str, Any]) -> None:
         result["engine_away_goals"] = int(result.get("away_goals", 0))
 
 
-def _tiebreak_report_from_result(result: dict[str, Any]) -> dict[str, Any]:
-    """Minimal report so knockout draw overrides can reuse MC tiebreak."""
-    return {
-        "monte_carlo": {
-            "home_win_pct": result.get("home_win_pct") or 0,
-            "away_win_pct": result.get("away_win_pct") or 0,
-            "expected_xg": result.get("expected_xg") or {},
-        }
-    }
-
-
 def _analysis_response(result: dict[str, Any], match_id: str) -> dict[str, Any]:
     return {
         "match_id": match_id,
@@ -2489,33 +2064,15 @@ def _build_and_persist_match_analysis(
         save_tournament(t)
         return _analysis_response(result, match_id)
 
-    if (
-        not force
-        and _result_has_analysis(result)
-        and not _analysis_needs_rebuild(result)
-    ):
+    if _result_has_analysis(result):
+        # Pre-tactic-board-only records: no simulation left to rebuild this
+        # from, so the existing analysis text stays frozen as-is.
         return _analysis_response(result, match_id)
 
-    home = result.get("home") or fx.get("home")
-    away = result.get("away") or fx.get("away")
-    if not home or not away:
-        raise ValueError(f"Match {match_id} is missing team names")
-
-    n_sims = int(
-        result.get("simulations")
-        or (t.get("settings") or {}).get("simulations_per_match")
-        or 10000
+    raise ValueError(
+        f"Match {match_id} was recorded before every match was played live on the "
+        "tactic board and has no stored analysis to show."
     )
-    team_a, team_b = _load_teams_for_match(
-        home, away, tournament_id=tournament_id, match_id=match_id
-    )
-    report, _snapshot = _run_simulation(
-        home, away, match_id, n_sims, team_a=team_a, team_b=team_b
-    )
-    result.update(_analysis_payload_from_report(report))
-    _attach_ai_verdict(result)
-    save_tournament(t)
-    return _analysis_response(result, match_id)
 
 
 def _start_analysis_job(
@@ -2737,8 +2294,7 @@ def override_match_result(
                 tie_decided = result.get("decided_by") or "pens"
             else:
                 resolved = _resolve_winner(
-                    home, away, home_goals, away_goals,
-                    _tiebreak_report_from_result(result), require_winner=True,
+                    home, away, home_goals, away_goals, require_winner=True,
                 )
                 if not resolved:
                     raise ValueError(
@@ -2759,7 +2315,6 @@ def override_match_result(
                     away,
                     home_goals,
                     away_goals,
-                    _tiebreak_report_from_result(result),
                     require_winner=True,
                 )
                 if not resolved:

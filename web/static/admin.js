@@ -56,7 +56,6 @@ function showTab(name) {
   document.querySelectorAll(".tab-btn").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.tab === name);
   });
-  document.getElementById("panel-simulations").hidden = name !== "simulations";
   document.getElementById("panel-tournament").hidden = name !== "tournament";
   document.getElementById("panel-teams").hidden = name !== "teams";
   document.getElementById("panel-lineups").hidden = name !== "lineups";
@@ -683,25 +682,6 @@ document.getElementById("tSelect").addEventListener("change", (e) => {
   if (currentId) loadCurrent().catch((err) => tLog(err.message));
 });
 
-document.getElementById("runBtn")?.addEventListener("click", async () => {
-  const log = document.getElementById("legacyLog");
-  const btn = document.getElementById("runBtn");
-  btn.disabled = true;
-  try {
-    const sims = Number(document.getElementById("sims").value) || 10000;
-    const seedVal = document.getElementById("seed").value;
-    const body = { simulations: sims };
-    if (seedVal) body.seed = Number(seedVal);
-    const res = await adminApi("/api/run", { method: "POST", json: body });
-    log.textContent = res.message || "Started legacy global simulation.";
-  } catch (e) {
-    log.textContent = `Error: ${e.message}`;
-  } finally {
-    btn.disabled = false;
-  }
-});
-
-
 function _storageBadge(label, status) {
   const color = status.ok ? "var(--success)" : status.enabled ? "var(--warn)" : "var(--muted)";
   const bg = status.ok ? "var(--success-soft)" : status.enabled ? "var(--warn-soft)" : "var(--panel2)";
@@ -730,11 +710,9 @@ async function checkStorageStatus() {
 document.getElementById("storageCheckBtn").addEventListener("click", checkStorageStatus);
 
 const initialTab =
-  location.hash === "#tournament"
-    ? "tournament"
-    : location.hash === "#teams"
-      ? "teams"
-      : location.hash === "#lineups"
-        ? "lineups"
-        : "simulations";
+  location.hash === "#teams"
+    ? "teams"
+    : location.hash === "#lineups"
+      ? "lineups"
+      : "tournament";
 showTab(initialTab);

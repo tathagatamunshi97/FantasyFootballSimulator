@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/static/styles.css?v=engine-realism-17" />
+  <link rel="stylesheet" href="/static/styles.css?v=engine-realism-18" />
 </head>
 <body>
   <header>
@@ -74,24 +74,19 @@
         <p id="sheetStatus" class="muted" style="margin:0.5rem 0 0"></p>
       </div>
 
-      <div class="form-row inline">
-        <label for="sims">Simulations</label>
-        <input id="sims" type="number" value="10000" min="100" max="100000" step="1000" style="max-width:140px" />
-      </div>
-
       <div class="grid grid-2 lab-teams">
         <div id="teamAPanel" class="team-panel"></div>
         <div id="teamBPanel" class="team-panel"></div>
       </div>
 
       <p id="formError" class="error-msg" hidden></p>
-      <button type="submit" class="btn-primary" id="submitBtn">Run simulation</button>
+      <button type="submit" class="btn-primary" id="submitBtn">Host live match</button>
     </form>
   </main>
 
   <datalist id="playerList"></datalist>
 
-  <script src="/static/common.js?v=engine-realism-17"></script>
+  <script src="/static/common.js?v=engine-realism-18"></script>
   <script src="/static/lab.js?v=squad-rf-1"></script>
 </body>
 </html>

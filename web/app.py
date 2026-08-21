@@ -1,7 +1,6 @@
 """FastAPI web server — multi-user experiments, viewer, admin."""
 from __future__ import annotations
 
-import threading
 from pathlib import Path
 from typing import Any
 
@@ -41,16 +40,9 @@ class TeamPasswordResetRequest(BaseModel):
     team_name: str
 
 
-class RunRequest(BaseModel):
-    simulations: int = Field(default=10000, ge=100, le=100_000)
-    seed: int | None = None
-
-
 class ExperimentRequest(BaseModel):
     team_a: dict[str, Any]
     team_b: dict[str, Any]
-    simulations: int = Field(default=10000, ge=100, le=100_000)
-    seed: int | None = None
 
 
 class PlayerEnsureRequest(BaseModel):
@@ -505,17 +497,17 @@ def matchday_session_api(
 def matchday_run_simulation(
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
 ) -> dict:
-    """Admin starts live tactic board (or legacy Monte Carlo if no board payload)."""
+    """Admin starts the live tactic board for the active matchday session."""
     _check_admin(x_admin_token)
     try:
         session = matchday_session.require_active_session()
-        if session.get("board") or session.get("engine") == "tactic_board":
-            matchday_session.set_board_live()
-            return _enrich_matchday_status(matchday_session.active_status()) | {
-                "status": "live",
-                "engine": "tactic_board",
-            }
-        return tournament.execute_matchday_simulation()
+        if not (session.get("board") or session.get("engine") == "tactic_board"):
+            raise ValueError("This matchday session has no tactic board — every match must be hosted live.")
+        matchday_session.set_board_live()
+        return _enrich_matchday_status(matchday_session.active_status()) | {
+            "status": "live",
+            "engine": "tactic_board",
+        }
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except KeyError as exc:
@@ -899,18 +891,16 @@ def create_experiment(
         raise HTTPException(
             status_code=403,
             detail=(
-                "Creating simulations requires admin access. "
+                "Creating matchups requires admin access. "
                 "Squad logins can view squad evaluation and scout opponents at /squad."
             ),
         )
     try:
-        summary = experiments.create_and_run_experiment(
+        summary = experiments.create_experiment(
             user,
             {
                 "team_a": body.team_a,
                 "team_b": body.team_b,
-                "simulations": body.simulations,
-                "seed": body.seed,
             },
             is_admin=is_admin,
         )
@@ -1189,51 +1179,20 @@ def admin_create_experiment(
     body: ExperimentRequest,
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
 ) -> dict:
-    """Run a new experiment as admin (no user session required)."""
+    """Create a new Team Lab matchup as admin (no user session required)."""
     _check_admin(x_admin_token)
     try:
-        summary = experiments.create_and_run_experiment(
+        summary = experiments.create_experiment(
             "admin",
             {
                 "team_a": body.team_a,
                 "team_b": body.team_b,
-                "simulations": body.simulations,
-                "seed": body.seed,
             },
             is_admin=True,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return {"experiment": summary}
-
-
-@app.get("/api/state")
-def get_state() -> dict:
-    """Legacy global state endpoint."""
-    return sim_state.load_state()
-
-
-@app.post("/api/run")
-def run_monte_carlo(
-    body: RunRequest,
-    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
-) -> dict:
-    _check_admin(x_admin_token)
-    if sim_state.is_running():
-        raise HTTPException(status_code=409, detail="Simulation already in progress")
-
-    def _job() -> None:
-        try:
-            sim_state.run_simulation(n_simulations=body.simulations, seed=body.seed)
-        except Exception:
-            pass
-
-    threading.Thread(target=_job, daemon=True).start()
-    return {
-        "started": True,
-        "simulations": body.simulations,
-        "message": "Simulation started.",
-    }
 
 
 @app.get("/")

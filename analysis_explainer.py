@@ -54,25 +54,11 @@ def build_matchup_analysis(report: dict[str, Any]) -> dict[str, Any]:
     away_p = report["profiles"]["away"]
     hu = _units(home_p)
     au = _units(away_p)
-    mc = report["monte_carlo"]
+    projection = report["projection"]
     mech = report["mechanics"]
-    hxg = float(mc["expected_xg"]["home"])
-    axg = float(mc["expected_xg"]["away"])
+    hxg = float(projection["expected_xg"]["home"])
+    axg = float(projection["expected_xg"]["away"])
     xg_diff = axg - hxg
-
-    home_win = float(mc["home_win_pct"])
-    away_win = float(mc["away_win_pct"])
-    draw = float(mc["draw_pct"])
-
-    if away_win > home_win + 4:
-        favorite, fav_pct, underdog, und_pct = away_name, away_win, home_name, home_win
-        fav_side = "away"
-    elif home_win > away_win + 4:
-        favorite, fav_pct, underdog, und_pct = home_name, home_win, away_name, away_win
-        fav_side = "home"
-    else:
-        favorite, fav_pct, underdog, und_pct = None, max(home_win, away_win), None, min(home_win, away_win)
-        fav_side = "drawish"
 
     factors: list[dict[str, Any]] = []
 
@@ -258,20 +244,11 @@ def build_matchup_analysis(report: dict[str, Any]) -> dict[str, Any]:
     h_raw = home_p["extended"]["xg_split"]
     a_raw = away_p["extended"]["xg_split"]
 
-    if favorite:
-        margin = "clear" if fav_pct - und_pct > 12 else "moderate" if fav_pct - und_pct > 6 else "slight"
-        verdict_summary = (
-            f"{favorite} is favoured ({_pct_str(fav_pct)} win vs {_pct_str(und_pct)} for {underdog}, "
-            f"{_pct_str(draw)} draw). Expected goals: {home_name} {_fmt(hxg)} – {_fmt(axg)} {away_name}."
-        )
-    else:
-        margin = "balanced"
-        verdict_summary = (
-            f"Very balanced matchup ({_pct_str(home_win)} / {_pct_str(draw)} / {_pct_str(away_win)}). "
-            f"Expected goals: {home_name} {_fmt(hxg)} – {_fmt(axg)} {away_name}."
-        )
-
     top_reasons = [f["explanation"] for f in ranked[:3]]
+    verdict_summary = (
+        f"Expected goals: {home_name} {_fmt(hxg)} – {_fmt(axg)} {away_name}. "
+        + (top_reasons[0] if top_reasons else "Both squads rate closely across units.")
+    )
 
     season_notes = _season_override_notes(report, home_name, away_name)
     if season_notes:
@@ -354,16 +331,8 @@ def build_matchup_analysis(report: dict[str, Any]) -> dict[str, Any]:
         sections.insert(insert_at, bench_section)
 
     return {
-        "favorite": favorite,
-        "favorite_side": fav_side,
-        "margin": margin,
         "summary": verdict_summary,
         "expected_xg": {"home": hxg, "away": axg, "edge_side": "away" if xg_diff > 0 else "home", "delta": round(abs(xg_diff), 2)},
-        "outcomes": {
-            "home_win_pct": home_win,
-            "draw_pct": draw,
-            "away_win_pct": away_win,
-        },
         "key_factors": ranked,
         "head_to_head": {
             k: {"home": f["home"], "away": f["away"], "edge": f["edge"]}

@@ -7,13 +7,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/static/styles.css?v=engine-realism-17" />
+  <link rel="stylesheet" href="/static/styles.css?v=engine-realism-18" />
 </head>
 <body>
   <header>
     <div>
       <h1>Admin Dashboard</h1>
-      <div class="sub">Simulations &amp; tournaments · <a href="/">Home</a> · <a href="/lab">Team lab</a> · <a href="/tournament">Tournament viewer</a></div>
+      <div class="sub">Tournaments &amp; squads · <a href="/">Home</a> · <a href="/lab">Team lab</a> · <a href="/tournament">Tournament viewer</a></div>
     </div>
     <span id="statusBadge" class="badge">admin</span>
   </header>
@@ -36,30 +36,12 @@
     </div>
 
     <nav class="tab-bar" style="margin-top:1rem" role="tablist">
-      <button type="button" class="tab-btn active" data-tab="simulations" role="tab">Simulations</button>
-      <button type="button" class="tab-btn" data-tab="tournament" role="tab">Tournament</button>
+      <button type="button" class="tab-btn active" data-tab="tournament" role="tab">Tournament</button>
       <button type="button" class="tab-btn" data-tab="teams" role="tab">Team access</button>
       <button type="button" class="tab-btn" data-tab="lineups" role="tab">Squad lineups</button>
     </nav>
 
-    <div id="panel-simulations" class="tab-panel" role="tabpanel">
-      <details class="card" style="margin-top:0">
-        <summary style="cursor:pointer;font-weight:600">Legacy global simulation</summary>
-        <p class="muted">Runs the default matchup into global <code>/api/state</code> (home page legacy viewer).</p>
-        <div class="form-row">
-          <label for="sims">Simulations</label>
-          <input id="sims" type="number" value="20000" min="100" max="100000" step="1000" style="max-width:160px" />
-        </div>
-        <div class="form-row">
-          <label for="seed">Seed (optional)</label>
-          <input id="seed" type="number" placeholder="42" style="max-width:160px" />
-        </div>
-        <button type="button" id="runBtn" class="btn-ghost">Run legacy sim</button>
-        <div id="legacyLog" class="log" style="margin-top:0.5rem">—</div>
-      </details>
-    </div>
-
-    <div id="panel-tournament" class="tab-panel" role="tabpanel" hidden>
+    <div id="panel-tournament" class="tab-panel" role="tabpanel">
       <div class="card" style="margin-top:0">
         <h2>Create tournament</h2>
         <div class="form-row">
@@ -111,7 +93,7 @@
     </div>
   </main>
 
-  <script src="/static/common.js?v=engine-realism-17"></script>
+  <script src="/static/common.js?v=engine-realism-18"></script>
   <script src="/static/admin.js"></script>
 </body>
 </html>

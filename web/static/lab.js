@@ -522,10 +522,10 @@ document.getElementById("labForm").addEventListener("submit", async (e) => {
     const payload = {
       team_a: collectTeam("a"),
       team_b: collectTeam("b"),
-      simulations: Number(document.getElementById("sims").value) || 10000,
     };
     const data = await api("/api/experiments", { method: "POST", json: payload });
-    window.location.href = `/experiment/${data.experiment.id}`;
+    await api(`/api/experiments/${data.experiment.id}/start-live`, { method: "POST" });
+    window.location.href = "/matchday";
   } catch (ex) {
     err.textContent = ex.message;
     err.hidden = false;

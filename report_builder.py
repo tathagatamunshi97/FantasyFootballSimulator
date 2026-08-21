@@ -6,7 +6,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from bench_impact import bench_impact_for_team
 from analysis_explainer import (
     build_matchup_analysis,
     build_squad_strengths_report,
@@ -14,7 +13,7 @@ from analysis_explainer import (
     normalize_board_events,
 )
 from formation_fit import player_slot_fit, team_formation_fit
-from match_engine import MatchSimConfig, monte_carlo_matches, simulate_match_once
+from match_engine import expected_matchup
 from models import FantasyTeam, PlayerStats
 from slot_roles import FULLBACK_SLOTS, slot_role
 from team_profile import build_team_profile
@@ -25,7 +24,6 @@ from team_ratings import (
     compute_team_composites,
     compute_unit_ratings,
     compute_unit_ratings_by_slot,
-    compute_wide_matchup_modifier,
     creation_to_xg,
     defence_suppression,
     midfield_battle_multiplier,
@@ -83,15 +81,6 @@ def team_lineup_dict(team: FantasyTeam) -> dict[str, Any]:
             for s in team.lineup
         ],
     }
-
-
-def _starting_xi(team: FantasyTeam) -> list[str]:
-    return [s.player for s in team.lineup if s.player]
-
-
-def _bench_impact_side(team: FantasyTeam, player_stats: dict[str, PlayerStats]) -> dict[str, Any]:
-    squad = _starting_xi(team) + list(team.bench or [])
-    return bench_impact_for_team(team.name, _starting_xi(team), squad, team.bench or [], player_stats)
 
 
 def team_payload_dict(team: dict[str, Any]) -> dict[str, Any]:
@@ -188,56 +177,27 @@ def fullback_profile(team: FantasyTeam, stats: dict[str, PlayerStats]) -> dict[s
     }
 
 
-def _serialize_match_result(result) -> dict[str, Any]:
-    def goals(side) -> list[dict[str, Any]]:
-        return [
-            {"minute": g.minute, "scorer": g.scorer, "assister": g.assister}
-            for g in side.scorers
-        ]
-
-    return {
-        "scoreline": result.scoreline,
-        "home": {
-            "team": result.home.team,
-            "goals": result.home.goals,
-            "xg": result.home.xg,
-            "scorers": goals(result.home),
-        },
-        "away": {
-            "team": result.away.team,
-            "goals": result.away.goals,
-            "xg": result.away.xg,
-            "scorers": goals(result.away),
-        },
-        "winner": result.winner,
-    }
-
-
 def build_report(
     home: FantasyTeam,
     away: FantasyTeam,
     player_stats: dict[str, PlayerStats],
     *,
-    n_simulations: int = 10000,
-    seed: int | None = None,
-    include_single_match: bool = True,
     season_overrides: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     uh = compute_unit_ratings(home, player_stats)
     ua = compute_unit_ratings(away, player_stats)
     h_mid, a_mid = midfield_battle_multiplier(uh.midfield, ua.midfield)
 
-    cfg = MatchSimConfig(n_simulations=n_simulations, seed=seed)
-    mc = monte_carlo_matches(home, away, player_stats, cfg)
+    projection = expected_matchup(home, away, player_stats)
 
     home_prof = build_team_profile(home, player_stats)
     away_prof = build_team_profile(away, player_stats)
-    home_bench = mc.get("bench_impact", {}).get("home") or _bench_impact_side(home, player_stats)
-    away_bench = mc.get("bench_impact", {}).get("away") or _bench_impact_side(away, player_stats)
+    home_bench = projection["bench_impact"]["home"]
+    away_bench = projection["bench_impact"]["away"]
 
     report: dict[str, Any] = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "engine_version": "slot-aware-v2",
+        "engine_version": "ratings-only-v3",
         "matchup": {
             "home": team_lineup_dict(home),
             "away": team_lineup_dict(away),
@@ -269,44 +229,18 @@ def build_report(
                 "home_multiplier": round(h_mid, 3),
                 "away_multiplier": round(a_mid, 3),
             },
-            "wide_matchup": mc.get("wide_matchup")
-            or {
-                "home": compute_wide_matchup_modifier(
-                    home, away, player_stats, ua.transition_risk
-                ),
-                "away": compute_wide_matchup_modifier(
-                    away, home, player_stats, uh.transition_risk
-                ),
-            },
-            "press_matchup": mc.get("press_matchup") or {},
+            "wide_matchup": projection["wide_matchup"],
+            "press_matchup": projection["press_matchup"],
         },
-        "monte_carlo": {
-            "simulations": mc["simulations"],
-            "expected_xg": mc["expected_xg"],
-            "home_win_pct": mc["home_win_pct"],
-            "draw_pct": mc["draw_pct"],
-            "away_win_pct": mc["away_win_pct"],
-            "home_goals_avg": mc["home_goals_avg"],
-            "away_goals_avg": mc["away_goals_avg"],
-            "total_goals_avg": mc["total_goals_avg"],
-            "btts_pct": mc["btts_pct"],
-            "over_2_5_pct": mc["over_2_5_pct"],
-            "scorelines": mc["most_common_scorelines"],
-            "unit_ratings": mc["unit_ratings"],
-            "home_trophy_multiplier": mc["home_trophy_multiplier"],
-            "away_trophy_multiplier": mc["away_trophy_multiplier"],
-            "midfield_battle": mc["midfield_battle"],
-            "bench_impact": mc.get("bench_impact") or {"home": home_bench, "away": away_bench},
+        "projection": {
+            "expected_xg": projection["expected_xg"],
+            "unit_ratings": projection["unit_ratings"],
+            "home_trophy_multiplier": projection["home_trophy_multiplier"],
+            "away_trophy_multiplier": projection["away_trophy_multiplier"],
+            "midfield_battle": projection["midfield_battle"],
         },
         "bench_impact": {"home": home_bench, "away": away_bench},
     }
-
-    if include_single_match:
-        import random
-
-        rng = random.Random(seed)
-        single = simulate_match_once(home, away, player_stats, cfg, rng)
-        report["sample_match"] = _serialize_match_result(single)
 
     if season_overrides:
         report["season_overrides"] = season_overrides
@@ -325,8 +259,6 @@ def build_board_result_report(
     away_goals: int,
     board_events: list[dict[str, Any]] | None = None,
     match_log: list[dict[str, Any]] | dict[str, Any] | None = None,
-    n_simulations: int = 800,
-    seed: int | None = None,
     season_overrides: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Ratings-based report enriched with the official pin-board score and events."""
@@ -334,9 +266,6 @@ def build_board_result_report(
         home,
         away,
         player_stats,
-        n_simulations=max(200, int(n_simulations)),
-        seed=seed,
-        include_single_match=False,
         season_overrides=season_overrides,
     )
     report["analysis"] = enrich_analysis_with_board_result(

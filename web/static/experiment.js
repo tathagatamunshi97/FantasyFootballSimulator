@@ -21,7 +21,7 @@ function setStatus(exp) {
   badge.textContent = exp.status || "unknown";
   badge.className = `badge ${exp.status || ""}`;
   document.getElementById("pageTitle").textContent = `${exp.team_a?.name || "Team A"} vs ${exp.team_b?.name || "Team B"}`;
-  document.getElementById("pageSub").textContent = `By ${exp.user || "—"} · ${exp.simulations?.toLocaleString() || "—"} simulations`;
+  document.getElementById("pageSub").textContent = `By ${exp.user || "—"}`;
 }
 
 let _expWired = false;
@@ -38,8 +38,7 @@ function renderLiveResultCard(liveResult) {
     .join("");
   return `
     <div class="card" style="margin-bottom:1rem">
-      <h2>Actual result — played on the live tactic board</h2>
-      <p class="muted">This is what actually happened when the match was hosted live, not the pre-match prediction below.</p>
+      <h2>Result — played on the live tactic board</h2>
       <p style="font-size:1.4rem;font-weight:600">${esc(liveResult.home)} ${liveResult.home_goals}–${liveResult.away_goals} ${esc(liveResult.away)}</p>
       ${rows ? `<table style="width:100%"><thead><tr><th>Min</th><th>Team</th><th>Scorer</th></tr></thead><tbody>${rows}</tbody></table>` : `<p class="muted">No goal-by-goal detail recorded.</p>`}
     </div>`;
@@ -61,7 +60,7 @@ function renderHostLiveCard() {
   return `
     <div class="card" style="margin-bottom:1rem">
       <h2>Play this match live</h2>
-      <p class="muted">Host these two teams on the live tactic board instead of relying on the pre-match prediction — the actual scorers/assists/result get recorded here once played.</p>
+      <p class="muted">Host these two teams on the live tactic board — the actual scorers/assists/result get recorded here once played.</p>
       <button type="button" id="hostLiveBtn" class="btn-primary">Host live match</button>
     </div>`;
 }
@@ -73,33 +72,24 @@ async function refresh() {
     setStatus(exp);
     const app = document.getElementById("app");
 
-    if (exp.running || exp.status === "running" || exp.status === "queued") {
-      _expWired = false;
-      app.innerHTML = `<div class="empty"><span class="badge live">Live</span><p>${esc(exp.message)}</p><p class="muted">Refreshing every 5 seconds…</p></div>`;
-      return;
-    }
-
     if (exp.status === "error") {
       _expWired = false;
       app.innerHTML = `<div class="empty"><span class="badge error">Error</span><p>${esc(exp.message)}</p><p>${document.getElementById("navBack").innerHTML}</p></div>`;
       return;
     }
 
-    if (!exp.report) {
-      app.innerHTML = `<div class="empty"><p>No report yet.</p></div>`;
-      return;
-    }
-
     const watching = Boolean(document.querySelector("[data-tactic-mount]:not([hidden])"));
-    if (_expWired && (watching || exp.status === "ready")) return;
+    if (_expWired && watching) return;
 
-    let html = exp.live_result ? renderLiveResultCard(exp.live_result) : "";
-    if (canHostLive && !exp.live_result) html += renderHostLiveCard();
-    html += renderReport(exp.report, exp.report.matchup);
-    app.innerHTML = html;
-    if (typeof TacticBoard !== "undefined") {
-      TacticBoard.wireWatchCard(app, exp.report, exp.report.matchup);
+    let html = "";
+    if (exp.live_result) {
+      html = renderLiveResultCard(exp.live_result);
+    } else if (canHostLive) {
+      html = renderHostLiveCard();
+    } else {
+      html = `<div class="empty"><p>Waiting for this match to be hosted live.</p></div>`;
     }
+    app.innerHTML = html;
     const hostBtn = document.getElementById("hostLiveBtn");
     if (hostBtn) hostBtn.addEventListener("click", hostLiveMatch);
     _expWired = true;

@@ -101,7 +101,7 @@ def _build_public_session_locked() -> dict[str, Any] | None:
     out: dict[str, Any] = {
         "active": True,
         "phase": phase,
-        "engine": s.get("engine") or "monte_carlo",
+        "engine": s.get("engine") or "tactic_board",
         "fixture_id": s.get("fixture_id"),
         "tournament_id": s.get("tournament_id"),
         "tournament_name": s.get("tournament_name"),
@@ -237,78 +237,6 @@ def active_status() -> dict[str, Any]:
             "redirect": bool(cache.get("redirect")),
             "session": dict(session) if isinstance(session, dict) else None,
         }
-
-
-def start_session(
-    *,
-    tournament_id: str,
-    tournament_name: str,
-    fixture_id: str,
-    stage: str,
-    home: str,
-    away: str,
-    team_a: dict[str, Any],
-    team_b: dict[str, Any],
-    board: dict[str, Any] | None = None,
-    is_knockout: bool = False,
-    engine: str | None = None,
-    seed: int | None = None,
-) -> dict[str, Any]:
-    """Open a Matchday session (Monte Carlo setup, or tactic-board when ``board`` is set)."""
-    if board is not None or engine == "tactic_board":
-        if board is None:
-            raise ValueError("Tactic-board matchday requires a board payload.")
-        resolved_seed = int(seed) if seed is not None else abs(hash(f"{tournament_id}:{fixture_id}")) % (2**31)
-        return start_board_session(
-            tournament_id=tournament_id,
-            tournament_name=tournament_name,
-            fixture_id=fixture_id,
-            stage=stage,
-            home=home,
-            away=away,
-            team_a=team_a,
-            team_b=team_b,
-            board=board,
-            seed=resolved_seed,
-            is_knockout=is_knockout,
-        )
-
-    global _session, _frame_seq
-    snap: dict[str, Any] | None | bool = False
-    with _lock:
-        if _session and _session.get("phase") in ("setup", "running", "live"):
-            raise ValueError(
-                f"Matchday session already active for {_session.get('home')} vs {_session.get('away')}. "
-                "Wait for it to finish or clear it first."
-            )
-        _frame_seq = 0
-        _session = {
-            "engine": "monte_carlo",
-            "tournament_id": tournament_id,
-            "tournament_name": tournament_name,
-            "fixture_id": fixture_id,
-            "stage": stage,
-            "home": home,
-            "away": away,
-            "team_a": copy.deepcopy(team_a),
-            "team_b": copy.deepcopy(team_b),
-            "is_knockout": False,
-            "seed": None,
-            "board": None,
-            "board_state": None,
-            "frame_seq": 0,
-            "phase": "setup",
-            "running": False,
-            "experiment_id": None,
-            "message": "Teams can review lineups. Admin: start simulation when ready.",
-            "result": None,
-            "started_at": _now(),
-            "updated_at": _now(),
-        }
-        _refresh_poll_cache_locked()
-        snap = _persist_locked(force=True)
-    _flush_persist(snap)
-    return active_status()
 
 
 def start_board_session(

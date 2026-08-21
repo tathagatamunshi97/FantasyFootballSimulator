@@ -12,7 +12,6 @@ MATCHDAY_WATCH_HOURS = 24
 
 from formation_fit import FORMATION_SLOTS, normalize_formation, supported_formations
 from models import FantasyTeam
-from report_builder import build_report
 from stats_resolver import prepare_match_player_stats, validate_season_overrides
 
 from web.state import get_stats_store
@@ -50,11 +49,9 @@ def _default_experiment(
         "matchday": matchday,
         "created_at": _now(),
         "updated_at": _now(),
-        "status": "queued",
-        "message": "Queued for simulation.",
+        "status": "ready",
+        "message": "Ready to host live.",
         "running": False,
-        "simulations": payload.get("simulations", 10000),
-        "seed": payload.get("seed"),
         "team_a": payload["team_a"],
         "team_b": payload["team_b"],
         "report": None,
@@ -140,7 +137,7 @@ def simulation_permission_errors(user: str, *, is_admin: bool) -> list[str]:
     if can_run_simulations(user, is_admin_token=is_admin):
         return []
     return [
-        "Creating simulations requires admin access. "
+        "Creating matchups requires admin access. "
         "Squad logins can view squad evaluation and scout opponents at /squad."
     ]
 
@@ -218,12 +215,6 @@ def _lineup_player_names(payload: dict[str, Any]) -> list[str]:
     return names
 
 
-def _to_fantasy_teams(payload: dict[str, Any]) -> tuple[FantasyTeam, FantasyTeam]:
-    home = FantasyTeam.from_dict(payload["team_a"])
-    away = FantasyTeam.from_dict(payload["team_b"])
-    return home, away
-
-
 def save_experiment(exp: dict[str, Any]) -> None:
     EXPERIMENTS_DIR.mkdir(parents=True, exist_ok=True)
     exp["updated_at"] = _now()
@@ -295,9 +286,8 @@ def list_experiments(*, user: str | None = None) -> list[dict[str, Any]]:
 
 
 def _summary(exp: dict[str, Any]) -> dict[str, Any]:
-    mc = (exp.get("report") or {}).get("monte_carlo") or {}
-    exg = mc.get("expected_xg") or {}
-    top_scores = (mc.get("scorelines") or [])[:3]
+    projection = (exp.get("report") or {}).get("projection") or {}
+    exg = projection.get("expected_xg") or {}
     return {
         "id": exp["id"],
         "user": exp.get("user"),
@@ -311,60 +301,18 @@ def _summary(exp: dict[str, Any]) -> dict[str, Any]:
         "status": exp.get("status"),
         "message": exp.get("message"),
         "running": exp.get("running", False),
-        "simulations": exp.get("simulations"),
         "team_a_name": exp.get("team_a", {}).get("name"),
         "team_b_name": exp.get("team_b", {}).get("name"),
         "team_a_formation": exp.get("team_a", {}).get("formation"),
         "team_b_formation": exp.get("team_b", {}).get("formation"),
         "expected_xg_home": exg.get("home"),
         "expected_xg_away": exg.get("away"),
-        "home_win_pct": mc.get("home_win_pct"),
-        "draw_pct": mc.get("draw_pct"),
-        "away_win_pct": mc.get("away_win_pct"),
-        "top_scorelines": [{"score": r.get("score"), "pct": r.get("pct")} for r in top_scores],
     }
 
 
 def list_matchday_experiments(*, limit: int = 20, watch_only: bool = False) -> list[dict[str, Any]]:
     """Deprecated — matchday uses active session API. Returns empty list."""
     return []
-
-
-def start_matchday_run(
-    user: str,
-    payload: dict[str, Any],
-    *,
-    run_fn,
-    tournament: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    """Create a matchday experiment and run ``run_fn(exp)`` in a background thread."""
-    exp_id = uuid.uuid4().hex[:12]
-    exp = _default_experiment(exp_id, user, payload, matchday=True, tournament=tournament)
-
-    with _lock:
-        if exp_id in _running_ids:
-            raise RuntimeError("Experiment already running.")
-        _running_ids.add(exp_id)
-
-    exp["status"] = "running"
-    exp["running"] = True
-    exp["message"] = f"Running {exp['simulations']:,} simulations…"
-    save_experiment(exp)
-
-    def _job() -> None:
-        try:
-            run_fn(exp)
-        except Exception as exc:
-            exp["status"] = "error"
-            exp["running"] = False
-            exp["message"] = str(exc)
-            save_experiment(exp)
-        finally:
-            with _lock:
-                _running_ids.discard(exp_id)
-
-    threading.Thread(target=_job, daemon=True).start()
-    return _summary(exp) | {"id": exp_id}
 
 
 def is_experiment_running(exp_id: str) -> bool:
@@ -393,12 +341,15 @@ def delete_experiment(exp_id: str) -> dict[str, Any]:
     return {"id": exp_id, "user": exp.get("user")}
 
 
-def create_and_run_experiment(
+def create_experiment(
     user: str,
     payload: dict[str, Any],
     *,
     is_admin: bool = False,
 ) -> dict[str, Any]:
+    """Persist a matchup's two lineups, ready to host live. No prediction is
+    run -- call start_experiment_live_match(exp_id) to actually play it out
+    on the tactic board."""
     errors = validate_matchup_payload(payload)
     errors.extend(simulation_permission_errors(user, is_admin=is_admin))
     if errors:
@@ -406,54 +357,7 @@ def create_and_run_experiment(
 
     exp_id = uuid.uuid4().hex[:12]
     exp = _default_experiment(exp_id, user, payload, matchday=False)
-
-    with _lock:
-        if exp_id in _running_ids:
-            raise RuntimeError("Experiment already running.")
-        _running_ids.add(exp_id)
-
-    exp["status"] = "running"
-    exp["running"] = True
-    exp["message"] = f"Running {exp['simulations']:,} simulations…"
     save_experiment(exp)
-
-    def _job() -> None:
-        try:
-            store = get_stats_store()
-            exp["message"] = "Loading player stats (fetching new players / season profiles)…"
-            save_experiment(exp)
-            player_stats, season_overrides, name_map = prepare_match_player_stats(
-                payload["team_a"], payload["team_b"], store
-            )
-            resolved_payload = _apply_name_map(payload, name_map)
-            exp["team_a"] = resolved_payload["team_a"]
-            exp["team_b"] = resolved_payload["team_b"]
-            home, away = _to_fantasy_teams(resolved_payload)
-            exp["message"] = f"Running {exp['simulations']:,} simulations…"
-            save_experiment(exp)
-            report = build_report(
-                home,
-                away,
-                player_stats,
-                n_simulations=int(exp["simulations"]),
-                seed=exp.get("seed"),
-                season_overrides=season_overrides,
-            )
-            exp["status"] = "ready"
-            exp["running"] = False
-            exp["message"] = f"Completed {exp['simulations']:,} simulations."
-            exp["report"] = report
-            save_experiment(exp)
-        except Exception as exc:
-            exp["status"] = "error"
-            exp["running"] = False
-            exp["message"] = str(exc)
-            save_experiment(exp)
-        finally:
-            with _lock:
-                _running_ids.discard(exp_id)
-
-    threading.Thread(target=_job, daemon=True).start()
     return _summary(exp) | {"id": exp_id}
 
 

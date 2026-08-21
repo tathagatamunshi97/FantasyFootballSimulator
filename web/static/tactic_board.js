@@ -853,13 +853,11 @@
 
     // Engine fix — expected-xG target per side, used by xgPaceMul (near
     // spellChanceP) to anchor total chance volume against what squad quality
-    // actually predicts for a full 90 minutes. opts.xgHome/xgAway (the real
-    // Monte Carlo expected_xg) only exist for the Team Lab "test simulation"
-    // watch flow — tournament/matchday matches (start_experiment_live_match /
-    // matchday_session) never run that Monte Carlo step at all, so those are
-    // always undefined there. Fall back to approximating the same figure from
-    // unit ratings that are present on every live match regardless of flow —
-    // mirrors team_ratings.py's combined_attack_xg / defence_suppression /
+    // actually predicts for a full 90 minutes. opts.xgHome/xgAway usually
+    // aren't set (every match is played live on the board, not predicted),
+    // so this falls back to approximating the same figure from unit ratings
+    // that are present on every live match regardless of flow — mirrors
+    // team_ratings.py's combined_attack_xg / defence_suppression /
     // midfield_battle_multiplier (the dominant terms in the real formula)
     // closely enough to serve as a pacing anchor; deliberately skips the
     // smaller terms (press_xg_suppression, trophy/silverware multiplier)
@@ -13719,10 +13717,10 @@
 
   function optsFromReport(report, matchup) {
     const mu = matchup || report?.matchup || {};
-    const mc = report?.monte_carlo || {};
+    const projection = report?.projection || report?.monte_carlo || {};
     const sample = report?.sample_match || {};
     const profiles = report?.profiles || {};
-    const xg = mc.expected_xg || {};
+    const xg = projection.expected_xg || {};
     const home = enrichTeamFromProfiles(mu.home, profiles.home);
     const away = enrichTeamFromProfiles(mu.away, profiles.away);
     return {

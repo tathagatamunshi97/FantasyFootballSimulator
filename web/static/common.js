@@ -289,26 +289,6 @@ function renderLineup(team) {
     .join("");
 }
 
-function renderTeamProfile(side, teamName) {
-  const fb = side.fullbacks;
-  const fbRows = (fb.fullbacks || [])
-    .map(
-      (f) =>
-        `<tr><td>${esc(f.player)}</td><td>${esc(f.slot)}</td><td class="num">${f.xa90}</td><td class="num">${f.creation_score}</td><td class="num">${f.attack_exposure}</td></tr>`
-    )
-    .join("");
-  if (!fbRows) return "";
-
-  return `
-    <div class="card">
-      <div class="report-eyebrow" style="margin-bottom:0.6rem">${esc(teamName)} — fullbacks</div>
-      <div class="report-table-wrap">
-        <table><thead><tr><th>Player</th><th>Slot</th><th>xA</th><th>Create</th><th>Exposure</th></tr></thead><tbody>${fbRows}</tbody></table>
-      </div>
-      <p class="muted" style="margin:0.6rem 0 0">Transition risk ${num(fb.transition_risk, 3)}</p>
-    </div>`;
-}
-
 function renderSquadAnalysis(squadAnalysis, matchup) {
   if (!squadAnalysis) return "";
 
@@ -450,76 +430,6 @@ function renderAiVerdict(v) {
       ${v.tactical_analysis ? `<div class="analysis-block"><h3>Tactical read</h3><p>${esc(v.tactical_analysis)}</p></div>` : ""}
       ${takeaways ? `<ul class="analysis-bullets" style="margin-top:0.75rem">${takeaways}</ul>` : ""}
     </section>`;
-}
-
-function renderReport(report, matchup) {
-  const mc = report.monte_carlo;
-  const home = matchup.home.name;
-  const away = matchup.away.name;
-
-  const watchCard =
-    typeof TacticBoard !== "undefined" && TacticBoard.renderWatchCard
-      ? TacticBoard.renderWatchCard()
-      : "";
-
-  return `
-    <div class="report-eyebrow">Pre-match simulation · ${esc(matchup.home.formation)} vs ${esc(matchup.away.formation)}</div>
-    <h2 class="report-title">${esc(home)} vs ${esc(away)}</h2>
-    <div class="report-scoreboard">
-      <div class="rsb-cell">
-        <div class="rsb-num">${mc.expected_xg.home}<span style="color:var(--faint);font-size:1.1rem">–</span>${mc.expected_xg.away}</div>
-        <div class="rsb-label">Expected xG</div>
-        <div class="rsb-sub">${mc.simulations.toLocaleString()} runs</div>
-      </div>
-      <div class="rsb-cell">
-        <div class="rsb-num home">${pct(mc.home_win_pct)}</div>
-        <div class="rsb-label">${esc(home)} win</div>
-      </div>
-      <div class="rsb-cell">
-        <div class="rsb-num">${pct(mc.draw_pct)}</div>
-        <div class="rsb-label">Draw</div>
-      </div>
-      <div class="rsb-cell">
-        <div class="rsb-num away">${pct(mc.away_win_pct)}</div>
-        <div class="rsb-label">${esc(away)} win</div>
-      </div>
-      <div class="rsb-cell">
-        <div class="rsb-num">${pct(mc.btts_pct)}</div>
-        <div class="rsb-label">BTTS</div>
-      </div>
-      <div class="rsb-cell">
-        <div class="rsb-num">${pct(mc.over_2_5_pct)}</div>
-        <div class="rsb-label">Over 2.5</div>
-      </div>
-    </div>
-
-    ${watchCard}
-
-    ${renderAnalysis(report.analysis)}
-
-    ${renderAiVerdict(report.ai_verdict)}
-
-    ${renderSquadAnalysis(report.squad_analysis)}
-
-    ${(() => {
-      const fbHome = renderTeamProfile(report.profiles.home, home);
-      const fbAway = renderTeamProfile(report.profiles.away, away);
-      return fbHome || fbAway
-        ? `<div class="grid grid-2" style="margin-top:1rem">${fbHome}${fbAway}</div>`
-        : "";
-    })()}
-
-    <section class="card lineup report-lineup" style="margin-top:1rem">
-      <div>
-        <div class="report-team-head home"><h3>${esc(home)}</h3><span class="rt-formation">${esc(matchup.home.formation)}</span></div>
-        ${renderLineup(matchup.home)}
-      </div>
-      <div>
-        <div class="report-team-head away"><h3>${esc(away)}</h3><span class="rt-formation">${esc(matchup.away.formation)}</span></div>
-        ${renderLineup(matchup.away)}
-      </div>
-    </section>
-  `;
 }
 
 function renderMatchdayList(items) {
