@@ -443,6 +443,19 @@ function renderAnalysis(analysis) {
     </section>`;
 }
 
+function renderAiVerdict(v) {
+  if (!v) return "";
+  const takeaways = (v.key_takeaways || []).map((k) => `<li>${esc(k)}</li>`).join("");
+  return `
+    <section class="card analysis-card ai-verdict-card" style="margin-top:1rem">
+      <h2><span class="ai-badge">AI</span>${esc(v.headline || "AI verdict")}</h2>
+      <p class="analysis-verdict">${esc(v.verdict || "")}</p>
+      ${v.turning_point ? `<div class="analysis-block"><h3>Turning point</h3><p>${esc(v.turning_point)}</p></div>` : ""}
+      ${v.tactical_analysis ? `<div class="analysis-block"><h3>Tactical read</h3><p>${esc(v.tactical_analysis)}</p></div>` : ""}
+      ${takeaways ? `<ul class="analysis-bullets" style="margin-top:0.75rem">${takeaways}</ul>` : ""}
+    </section>`;
+}
+
 function renderReport(report, matchup) {
   const mc = report.monte_carlo;
   const home = matchup.home.name;
@@ -487,6 +500,8 @@ function renderReport(report, matchup) {
     ${watchCard}
 
     ${renderAnalysis(report.analysis)}
+
+    ${renderAiVerdict(report.ai_verdict)}
 
     ${renderSquadAnalysis(report.squad_analysis)}
 

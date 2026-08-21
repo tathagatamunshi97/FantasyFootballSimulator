@@ -568,6 +568,23 @@ a.module-card:hover .module-cta { gap: 0.5rem; }
 .analysis-block { margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
 .analysis-block h3 { margin: 0 0 0.5rem; font-size: 0.95rem; color: var(--text); text-transform: none; letter-spacing: 0; }
 
+.ai-verdict-card { border-left-color: var(--gold); }
+.ai-verdict-card h2::before { background: var(--gold); }
+.ai-badge {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--gold);
+  background: var(--gold-soft);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 4px;
+  padding: 0.08rem 0.35rem;
+  margin-right: 0.4rem;
+}
+
 .report-team-head {
   display: flex;
   align-items: baseline;

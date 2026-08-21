@@ -109,10 +109,14 @@ function wireMatchdayActions(session) {
         const analysis = report?.analysis || r.analysis;
         const squad = report?.squad_analysis || r.squad_analysis;
         const matchup = report?.matchup || r.matchup;
+        const aiVerdict = report?.ai_verdict || r.ai_verdict;
         panel.hidden = false;
         let html = "";
         if (typeof renderAnalysis === "function" && analysis) {
           html += renderAnalysis(analysis);
+        }
+        if (typeof renderAiVerdict === "function" && aiVerdict) {
+          html += renderAiVerdict(aiVerdict);
         }
         if (typeof renderSquadAnalysis === "function" && squad) {
           html += renderSquadAnalysis(squad, matchup);
@@ -131,6 +135,7 @@ function wireMatchdayActions(session) {
         analysis: r.analysis,
         squad_analysis: r.squad_analysis,
         matchup: r.matchup,
+        ai_verdict: r.ai_verdict,
       };
       if (existing.analysis || r.analysis) {
         showReport(existing);
@@ -154,10 +159,12 @@ function wireMatchdayActions(session) {
           session.result.analysis = data.analysis;
           session.result.squad_analysis = data.squad_analysis;
           session.result.matchup = data.matchup;
+          session.result.ai_verdict = data.ai_verdict;
           session.result.report = {
             analysis: data.analysis,
             squad_analysis: data.squad_analysis,
             matchup: data.matchup,
+            ai_verdict: data.ai_verdict,
           };
         }
         showReport(data);

@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+import ai_service
 from models import FantasyTeam
 from report_builder import build_board_result_report, build_report, extended_metrics, team_lineup_dict
 from stats_resolver import prepare_match_player_stats
@@ -762,6 +763,31 @@ def _analysis_payload_from_report(report: dict[str, Any]) -> dict[str, Any]:
         "analysis_matchup": report.get("matchup"),
         "fit_formula_version": _FIT_FORMULA_VERSION,
     }
+
+
+def _attach_ai_verdict(result: dict[str, Any]) -> None:
+    """Best-effort Gemini narrative on top of the deterministic analysis.
+
+    No-ops silently (leaves result["ai_verdict"] unset) if Gemini isn't
+    configured or the call fails -- the rating-based analysis is always the
+    source of truth, this is optional flavor on top of it.
+    """
+    if not ai_service.is_available():
+        return
+    analysis = result.get("analysis")
+    if not isinstance(analysis, dict):
+        return
+    digest = {
+        "home": result.get("home"),
+        "away": result.get("away"),
+        "score": result.get("score"),
+        "expected_xg": analysis.get("expected_xg"),
+        "outcomes": analysis.get("outcomes"),
+        "key_factors": analysis.get("key_factors"),
+    }
+    verdict = ai_service.generate_match_analysis(digest)
+    if verdict:
+        result["ai_verdict"] = verdict
 
 
 def _result_has_analysis(result: dict[str, Any] | None) -> bool:
@@ -2059,6 +2085,7 @@ def _build_and_attach_board_analysis(
         season_overrides=season_overrides,
     )
     result.update(_analysis_payload_from_report(report))
+    _attach_ai_verdict(result)
     return _analysis_response(result, match_id)
 
 
@@ -2368,6 +2395,7 @@ def _analysis_response(result: dict[str, Any], match_id: str) -> dict[str, Any]:
         "analysis": result.get("analysis"),
         "squad_analysis": result.get("squad_analysis"),
         "matchup": result.get("analysis_matchup"),
+        "ai_verdict": result.get("ai_verdict"),
         "has_analysis": _result_has_analysis(result),
         "experiment_id": result.get("experiment_id"),
         "status": "ready",
@@ -2485,6 +2513,7 @@ def _build_and_persist_match_analysis(
         home, away, match_id, n_sims, team_a=team_a, team_b=team_b
     )
     result.update(_analysis_payload_from_report(report))
+    _attach_ai_verdict(result)
     save_tournament(t)
     return _analysis_response(result, match_id)
 

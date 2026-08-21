@@ -3,3 +3,5 @@ cloudflared-config.yaml
 data/public_url.txt
 data/matchday_session.json
 data/matchday_session.json.tmp
+.env
+.env.*
