@@ -432,6 +432,29 @@ function renderAiVerdict(v) {
     </section>`;
 }
 
+function renderAiCommentary(c) {
+  const blocks = c?.blocks || [];
+  if (!blocks.length) return "";
+  const rows = blocks
+    .map(
+      (b) => `
+      <div class="ai-commentary-row">
+        <span class="rl-slot">${esc(String(b.minute ?? "—"))}'</span>
+        <div>
+          <div class="ai-commentary-headline">${esc(b.headline || "")}</div>
+          <p class="muted" style="margin:0.15rem 0 0">${esc(b.text || "")}</p>
+        </div>
+      </div>`
+    )
+    .join("");
+  return `
+    <section class="card analysis-card ai-verdict-card" style="margin-top:1rem">
+      <h2><span class="ai-badge">AI</span>Recap</h2>
+      <p class="muted" style="margin:0 0 0.75rem">Goals from the actual match, narrated after the fact — not the live commentary feed above.</p>
+      ${rows}
+    </section>`;
+}
+
 function renderMatchdayList(items) {
   return renderMatchdaySession(null);
 }

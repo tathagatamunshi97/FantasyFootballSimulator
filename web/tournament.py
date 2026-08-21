@@ -796,6 +796,39 @@ def _board_events_from_result(result: dict[str, Any]) -> list[dict[str, Any]]:
     return []
 
 
+def _attach_ai_commentary(result: dict[str, Any]) -> None:
+    """Best-effort Gemini recap of the goals actually scored on the board.
+
+    The live minute-by-minute ticker on the tactic board stays fully
+    deterministic -- a Gemini call per tick would be far too slow for
+    something that updates almost every second during play. This only
+    narrates the completed event log once the match is over, so it's a
+    post-match recap, not a live commentary feed. No-ops silently if
+    Gemini isn't configured, there are no goals, or the call fails.
+    """
+    if not ai_service.is_available():
+        return
+    home = result.get("home")
+    away = result.get("away")
+    if not home or not away:
+        return
+    events = _board_events_from_result(result)
+    goal_indices = [i for i, e in enumerate(events) if e.get("type") == "goal"]
+    if not goal_indices:
+        return
+    seen: set[int] = set()
+    bundle: list[dict[str, Any]] = []
+    for gi in goal_indices:
+        for i in range(max(0, gi - 3), gi + 1):
+            if i not in seen:
+                seen.add(i)
+                bundle.append(events[i])
+    bundle.sort(key=lambda e: float(e.get("minute") or 0))
+    commentary = ai_service.generate_match_commentary(home, away, bundle)
+    if commentary and commentary.get("blocks"):
+        result["ai_commentary"] = commentary
+
+
 _TALLY_FIELDS = (
     "goals",
     "assists",
@@ -1672,6 +1705,7 @@ def _build_and_attach_board_analysis(
     )
     result.update(_analysis_payload_from_report(report))
     _attach_ai_verdict(result)
+    _attach_ai_commentary(result)
     return _analysis_response(result, match_id)
 
 
@@ -1971,6 +2005,7 @@ def _analysis_response(result: dict[str, Any], match_id: str) -> dict[str, Any]:
         "squad_analysis": result.get("squad_analysis"),
         "matchup": result.get("analysis_matchup"),
         "ai_verdict": result.get("ai_verdict"),
+        "ai_commentary": result.get("ai_commentary"),
         "has_analysis": _result_has_analysis(result),
         "experiment_id": result.get("experiment_id"),
         "status": "ready",

@@ -585,6 +585,16 @@ a.module-card:hover .module-cta { gap: 0.5rem; }
   margin-right: 0.4rem;
 }
 
+.ai-commentary-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.55rem 0;
+  border-top: 1px solid var(--border);
+}
+.ai-commentary-row:first-of-type { border-top: none; }
+.ai-commentary-headline { font-weight: 700; color: var(--text); font-size: 0.92rem; }
+
 .report-team-head {
   display: flex;
   align-items: baseline;

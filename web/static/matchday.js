@@ -110,6 +110,7 @@ function wireMatchdayActions(session) {
         const squad = report?.squad_analysis || r.squad_analysis;
         const matchup = report?.matchup || r.matchup;
         const aiVerdict = report?.ai_verdict || r.ai_verdict;
+        const aiCommentary = report?.ai_commentary || r.ai_commentary;
         panel.hidden = false;
         let html = "";
         if (typeof renderAnalysis === "function" && analysis) {
@@ -117,6 +118,9 @@ function wireMatchdayActions(session) {
         }
         if (typeof renderAiVerdict === "function" && aiVerdict) {
           html += renderAiVerdict(aiVerdict);
+        }
+        if (typeof renderAiCommentary === "function" && aiCommentary) {
+          html += renderAiCommentary(aiCommentary);
         }
         if (typeof renderSquadAnalysis === "function" && squad) {
           html += renderSquadAnalysis(squad, matchup);
@@ -136,6 +140,7 @@ function wireMatchdayActions(session) {
         squad_analysis: r.squad_analysis,
         matchup: r.matchup,
         ai_verdict: r.ai_verdict,
+        ai_commentary: r.ai_commentary,
       };
       if (existing.analysis || r.analysis) {
         showReport(existing);
@@ -160,11 +165,13 @@ function wireMatchdayActions(session) {
           session.result.squad_analysis = data.squad_analysis;
           session.result.matchup = data.matchup;
           session.result.ai_verdict = data.ai_verdict;
+          session.result.ai_commentary = data.ai_commentary;
           session.result.report = {
             analysis: data.analysis,
             squad_analysis: data.squad_analysis,
             matchup: data.matchup,
             ai_verdict: data.ai_verdict,
+            ai_commentary: data.ai_commentary,
           };
         }
         showReport(data);

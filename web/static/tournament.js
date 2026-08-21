@@ -417,8 +417,9 @@ function fillAnalysisPanel(matchId, data) {
   const header = `<p class="muted" style="margin:0 0 0.5rem">${esc(data.home || "")} ${esc(data.score || "")} ${esc(data.away || "")}</p>`;
   const analysisHtml = typeof renderAnalysis === "function" ? renderAnalysis(data.analysis) : "";
   const aiHtml = typeof renderAiVerdict === "function" ? renderAiVerdict(data.ai_verdict) : "";
+  const aiCommentaryHtml = typeof renderAiCommentary === "function" ? renderAiCommentary(data.ai_commentary) : "";
   const squadHtml = typeof renderSquadAnalysis === "function" ? renderSquadAnalysis(data.squad_analysis, data.matchup) : "";
-  panel.innerHTML = header + (analysisHtml || `<p class="muted">No analysis text.</p>`) + aiHtml + (squadHtml || "");
+  panel.innerHTML = header + (analysisHtml || `<p class="muted">No analysis text.</p>`) + aiHtml + aiCommentaryHtml + (squadHtml || "");
   const btn = document.querySelector(`.view-analysis-btn[data-match-id="${matchId}"]`);
   if (btn) btn.textContent = "Hide analysis";
 }
