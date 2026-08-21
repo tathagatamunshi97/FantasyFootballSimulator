@@ -1,18 +1,12 @@
-"""Squad depth: small rating boosts from outstanding bench players (not in starting XI)."""
+"""Squad depth: identify bench players with standout per-90 traits.
+
+Informational only -- bench composition has no effect on unit ratings,
+expected xG, or match outcomes."""
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any
 
 from models import PlayerStats
-from team_ratings import UnitRatings
-
-# --- Weight caps (bench must not dominate match outcomes) ---
-BENCH_WEIGHT = 0.03  # master scale applied to aggregated outstanding scores
-MAX_ATTACK_BOOST = 0.02  # +2% on attack / finishing channel
-MAX_CREATION_BOOST = 0.02  # +2% on chance creation channel
-MAX_DEFENCE_BOOST = 0.02  # +2% on defence / mid-def / GK channels
-MAX_TOTAL_BOOST = 0.05  # hard cap on combined multiplier (~5% on unit ratings)
 
 # Relative threshold: bench player must exceed this percentile among bench peers
 BENCH_PEER_PERCENTILE = 0.75
@@ -100,26 +94,16 @@ def identify_bench(starting_xi: list[str], full_squad: list[str]) -> list[str]:
     return [p for p in full_squad if p and p.strip() and p.strip() not in starters]
 
 
-@dataclass
-class BenchBoosts:
-    attack: float = 0.0
-    creation: float = 0.0
-    defence: float = 0.0
-
-    @property
-    def total(self) -> float:
-        return self.attack + self.creation + self.defence
-
-
 def compute_bench_impact(
     starting_xi: list[str],
     full_squad: list[str],
     player_stats: dict[str, PlayerStats],
 ) -> dict[str, Any]:
     """
-    Score bench players for standout traits and return small multipliers for the match engine.
+    Score bench players for standout per-90 traits, purely for display.
 
-    Returns a dict with bench_players, per-player scores, boosts (0–MAX_*), and a summary string.
+    Returns a dict with bench_players, per-player scores, has_standouts, and
+    a summary string. Does not compute or apply any rating adjustment.
     """
     bench = identify_bench(starting_xi, full_squad)
     empty: dict[str, Any] = {
@@ -128,13 +112,7 @@ def compute_bench_impact(
         "starting_xi": list(starting_xi),
         "full_squad_size": len([p for p in full_squad if p and p.strip()]),
         "players": [],
-        "boosts": {
-            "attack": 0.0,
-            "creation": 0.0,
-            "defence": 0.0,
-            "total_applied_pct": 0.0,
-        },
-        "contributed": False,
+        "has_standouts": False,
         "summary": "No bench players — squad has 11 or fewer.",
     }
     if not bench:
@@ -183,10 +161,6 @@ def compute_bench_impact(
         empty["summary"] = f"{len(bench)} bench player(s) but no stats available."
         return empty
 
-    outstanding_attack: list[float] = []
-    outstanding_creative: list[float] = []
-    outstanding_defence: list[float] = []
-
     for row in scored:
         stats = player_stats[row["player"]]
         a, c, d = row["scores"]["attacking"], row["scores"]["creative"], row["scores"]["defensive"]
@@ -194,41 +168,13 @@ def compute_bench_impact(
         out_c = _absolute_outstanding(stats, "creative") or _percentile_rank(c, creative_scores) >= BENCH_PEER_PERCENTILE
         out_d = _absolute_outstanding(stats, "defensive") or _percentile_rank(d, defence_scores) >= BENCH_PEER_PERCENTILE
         row["outstanding"] = {"attacking": out_a, "creative": out_c, "defensive": out_d}
-        if out_a:
-            outstanding_attack.append(a)
-        if out_c:
-            outstanding_creative.append(c)
-        if out_d:
-            outstanding_defence.append(d)
 
-    def _aggregate_boost(scores: list[float], cap: float) -> float:
-        if not scores:
-            return 0.0
-        raw = sum(scores) / len(scores) * BENCH_WEIGHT
-        return min(cap, round(raw, 4))
-
-    boosts = BenchBoosts(
-        attack=_aggregate_boost(outstanding_attack, MAX_ATTACK_BOOST),
-        creation=_aggregate_boost(outstanding_creative, MAX_CREATION_BOOST),
-        defence=_aggregate_boost(outstanding_defence, MAX_DEFENCE_BOOST),
-    )
-    total = min(MAX_TOTAL_BOOST, boosts.total)
-
-    if total < boosts.total and boosts.total > 0:
-        scale = total / boosts.total
-        boosts = BenchBoosts(
-            attack=round(boosts.attack * scale, 4),
-            creation=round(boosts.creation * scale, 4),
-            defence=round(boosts.defence * scale, 4),
-        )
-
-    contributed = boosts.total > 0.001
     standouts = [r["player"] for r in scored if any(r["outstanding"].values())]
+    has_standouts = bool(standouts)
     summary = (
-        f"{len(bench)} on bench; {len(standouts)} with standout quality "
-        f"(+{boosts.total * 100:.1f}% squad depth boost)."
-        if contributed
-        else f"{len(bench)} on bench; no standout depth impact applied."
+        f"{len(bench)} on bench; {len(standouts)} with standout quality."
+        if has_standouts
+        else f"{len(bench)} on bench; no standout depth."
     )
 
     return {
@@ -237,47 +183,9 @@ def compute_bench_impact(
         "starting_xi": list(starting_xi),
         "full_squad_size": len([p for p in full_squad if p and p.strip()]),
         "players": scored,
-        "boosts": {
-            "attack": boosts.attack,
-            "creation": boosts.creation,
-            "defence": boosts.defence,
-            "total_applied_pct": round(boosts.total, 4),
-        },
-        "contributed": contributed,
+        "has_standouts": has_standouts,
         "summary": summary,
     }
-
-
-def apply_bench_boost_to_units(units: UnitRatings, bench_impact: dict[str, Any]) -> UnitRatings:
-    """Apply small multipliers from bench depth to unit ratings (in-place copy)."""
-    boosts = bench_impact.get("boosts") or {}
-    atk = float(boosts.get("attack") or 0.0)
-    cre = float(boosts.get("creation") or 0.0)
-    def_b = float(boosts.get("defence") or 0.0)
-    if atk + cre + def_b <= 0:
-        return units
-
-    return UnitRatings(
-        attack=round(_clamp(units.attack * (1.0 + atk)), 3),
-        finishing=round(_clamp(units.finishing * (1.0 + atk)), 3),
-        chance_creation=round(_clamp(units.chance_creation * (1.0 + cre)), 3),
-        midfield=round(_clamp(units.midfield * (1.0 + (cre + def_b) * 0.5)), 3),
-        defence=round(_clamp(units.defence * (1.0 + def_b)), 3),
-        midfield_defence=round(_clamp(units.midfield_defence * (1.0 + def_b)), 3),
-        transition_risk=units.transition_risk,
-        goalkeeper=round(_clamp(units.goalkeeper * (1.0 + def_b * 0.5)), 3),
-        overall=round(
-            _clamp(
-                units.overall
-                + 0.28 * units.attack * atk
-                + 0.44 * units.chance_creation * cre * 0.5
-                + 0.20 * units.defence * def_b
-            ),
-            3,
-        ),
-        gk_confidence=units.gk_confidence,
-        gk_is_backup=units.gk_is_backup,
-    )
 
 
 def bench_impact_for_team(

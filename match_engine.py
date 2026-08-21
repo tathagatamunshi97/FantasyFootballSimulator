@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from bench_impact import apply_bench_boost_to_units, bench_impact_for_team
+from bench_impact import bench_impact_for_team
 from formation_fit import team_formation_fit
 from models import FantasyTeam, PlayerStats
 from team_ratings import (
@@ -41,6 +41,8 @@ def _units_with_bench(
     player_stats: dict[str, PlayerStats],
     trophy_mult: float,
 ) -> tuple[UnitRatings, dict[str, Any]]:
+    """Unit ratings plus bench composition info -- the bench dict is purely
+    informational (who's on it, any standouts) and no longer adjusts units."""
     units = apply_trophy_multiplier(
         compute_unit_ratings(team, player_stats),
         trophy_mult,
@@ -52,8 +54,6 @@ def _units_with_bench(
         team.bench,
         player_stats,
     )
-    if bench_impact.get("contributed"):
-        units = apply_bench_boost_to_units(units, bench_impact)
     return units, bench_impact
 
 

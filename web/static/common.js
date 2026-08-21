@@ -169,7 +169,7 @@ const TIER_ORDER = ["strength", "moderate_strength", "balanced", "moderate_weakn
 
 const SQUAD_SECTION_HELP = {
   Defence: "Structural defending — back line, midfield shield, xGA suppression, aerial defence, and transition safety.",
-  "Squad depth": "Bench quality — whether substitutes add small boosts to attack, creation, or defence.",
+  "Squad depth": "Bench composition — standout substitutes by per-90 numbers. Informational only, does not affect ratings.",
 };
 
 function unitMetric(label, value, noteKey) {

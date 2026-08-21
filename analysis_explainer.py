@@ -357,34 +357,27 @@ def _bench_depth_section(
     bench = report.get("bench_impact") or {}
     home_b = bench.get("home") or {}
     away_b = bench.get("away") or {}
-    if not home_b.get("contributed") and not away_b.get("contributed"):
-        if (home_b.get("bench_count") or 0) == 0 and (away_b.get("bench_count") or 0) == 0:
-            return None
+    if (home_b.get("bench_count") or 0) == 0 and (away_b.get("bench_count") or 0) == 0:
+        return None
 
     def _line(side: dict[str, Any], name: str) -> str:
         if not side.get("bench_count"):
             return f"{name}: no bench (11-man squad)."
-        if not side.get("contributed"):
-            return f"{name}: {side.get('summary', 'bench present but no depth boost applied')}."
-        boosts = side.get("boosts") or {}
         standouts = [
             p["player"]
             for p in side.get("players") or []
             if any((p.get("outstanding") or {}).values())
         ]
-        names = ", ".join(standouts[:4]) if standouts else "depth"
-        return (
-            f"{name}: {side.get('summary')} Standouts: {names}. "
-            f"Boosts — attack +{boosts.get('attack', 0) * 100:.1f}%, "
-            f"creation +{boosts.get('creation', 0) * 100:.1f}%, "
-            f"defence +{boosts.get('defence', 0) * 100:.1f}%."
-        )
+        if not standouts:
+            return f"{name}: {side.get('summary', 'bench present, no standout depth')}."
+        names = ", ".join(standouts[:4])
+        return f"{name}: {side.get('summary')} Standouts: {names}."
 
     return {
-        "title": "Squad depth (bench impact)",
+        "title": "Squad depth",
         "paragraphs": [
-            "Non-starters with elite per-90 traits add a small squad-depth multiplier to unit ratings "
-            "(capped at ~5% total; bench cannot dominate outcomes).",
+            "Non-starters with elite per-90 traits — shown for information only; "
+            "bench quality has no effect on ratings or match outcomes.",
             _line(home_b, home_name),
             _line(away_b, away_name),
         ],
@@ -712,7 +705,7 @@ def _analyze_single_squad(
     bench_count = bench.get("bench_count") or 0
     if bench_count == 0:
         tier_items.append(_tier_item("moderate_weakness", "No squad depth on the bench."))
-    elif bench.get("contributed"):
+    elif bench.get("has_standouts"):
         standouts = [
             p["player"]
             for p in bench.get("players") or []
@@ -740,15 +733,8 @@ def _analyze_single_squad(
 
     depth_bullets: list[str] = []
     if bench_count == 0:
-        depth_bullets.append("No bench listed — depth multiplier not applied.")
-    elif bench.get("contributed"):
-        boosts = bench.get("boosts") or {}
-        depth_bullets.append(bench.get("summary") or "Bench adds a small depth boost.")
-        depth_bullets.append(
-            f"Depth boosts: attack +{boosts.get('attack', 0) * 100:.1f}%, "
-            f"creation +{boosts.get('creation', 0) * 100:.1f}%, "
-            f"defence +{boosts.get('defence', 0) * 100:.1f}%."
-        )
+        depth_bullets.append("No bench listed.")
+    elif bench.get("has_standouts"):
         standouts = [
             p["player"]
             for p in bench.get("players") or []
