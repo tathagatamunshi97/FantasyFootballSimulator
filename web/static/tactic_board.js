@@ -264,6 +264,14 @@
    */
   const DEBUG_POS_SYNC = false;
   /**
+   * Live Presentation Director threat-score debug overlay. Off by default;
+   * force on with ?debugThreat=1 in the page URL. Phase 1 (see
+   * computeLiveThreat below): parallel/experimental, FM Mobile broadcast
+   * mode only, purely observational -- does not drive any real
+   * presentation decision yet.
+   */
+  const DEBUG_THREAT = false;
+  /**
    * Decision layer cadence (wall-seconds at 1×). Shape targets refresh here —
    * animation never invents new targets mid-frame.
    */
@@ -1123,6 +1131,25 @@
       }
     });
 
+    // Live Presentation Director debug overlay -- Phase 1, FM Mobile
+    // broadcast mode only. A single breakdown panel (not per-pin dots),
+    // meant as a real tuning tool the user watches during live matches,
+    // not throwaway instrumentation to strip before commit.
+    const showThreatDebug =
+      mobileBroadcast &&
+      (DEBUG_THREAT ||
+        (typeof global.location !== "undefined" &&
+          /(?:\?|&)debugThreat=1(?:&|$)/.test(String(global.location.search || ""))));
+    if (showThreatDebug) {
+      threatDebugEl = document.createElement("div");
+      threatDebugEl.className = "tactic-debug-threat";
+      threatDebugEl.style.cssText =
+        "position:absolute;top:6px;left:6px;z-index:7;pointer-events:none;" +
+        "background:rgba(10,12,16,0.82);color:#e8eaed;border:1px solid rgba(255,255,255,0.25);" +
+        "border-radius:6px;padding:6px 8px;font:11px/1.4 ui-monospace,monospace;white-space:pre;min-width:150px";
+      pitch.appendChild(threatDebugEl);
+    }
+
     pitch.addEventListener("click", (ev) => {
       if (viewerMode || finished || !playing) return;
       const rect = pitch.getBoundingClientRect();
@@ -1217,6 +1244,22 @@
     // wide: 0-1 scale of how exposed the wing zones are (FB beaten)
     // Decays over time as defenders reset shape
     let defensiveShapeExposure = { home: { central: 0, wide: 0 }, away: { central: 0, wide: 0 } };
+    /**
+     * Live Presentation Director (experimental, Phase 1) -- a parallel
+     * threat-score system alongside willAttemptChance/isMobileKeyEvent, per
+     * the user's own staged spec: build it observationally first (compute +
+     * debug-display only, drive nothing real) before ever considering it as
+     * a replacement for the existing highlight trigger. See
+     * computeLiveThreat() near tickRender. Answers "how interesting is the
+     * current situation becoming", not "how likely is a shot" -- shot
+     * quality (shotAngleQuality) is only the single biggest of six inputs.
+     */
+    let threatScoreSmoothed = 0;
+    let threatPrevDepth = 0.5;
+    let threatMode = "TICKER"; // "TICKER" | "HIGHLIGHT" -- observational only, nothing reads this yet
+    let lastThreatHighlightTs = 0; // performance.now() of the last TICKER->HIGHLIGHT flip
+    let lastThreatResult = null; // { score, breakdown, mode } -- latest computeLiveThreat() output
+    let threatDebugEl = null;
     /**
      * Per-team finishing form for this match (drawn once at reset/kickoff).
      * Multiplies shot conversion; does not invent goals without shots.
@@ -13067,6 +13110,135 @@
       }
     }
 
+    /**
+     * Live Presentation Director -- Phase 1 (experimental, parallel to
+     * willAttemptChance/isMobileKeyEvent). Purely observational: computes
+     * and (optionally) displays a "how interesting is the current
+     * situation becoming" score every render tick, but does not touch
+     * possession/spell/carrier/speed/mobileEventUntilTs or drive any real
+     * presentation decision yet -- per the user's own staged spec, this
+     * stays additive until it's been watched against real matches.
+     *
+     * Deliberately NOT a shot-probability model: shot opportunity
+     * (shotAngleQuality) is the single biggest of six inputs, not the
+     * whole score, so a promising buildup that never quite reaches a shot
+     * still registers as "interesting". Nothing here calls rng() --
+     * estimateChanceXg was ruled out for exactly that reason, since
+     * sampling it speculatively every tick (instead of only at real
+     * shot-taking) would perturb the seeded match-outcome sequence.
+     */
+    function computeLiveThreat() {
+      const carrier = findCarrier();
+      const rel = fromPitchPct(possession, ball.left, ball.top);
+
+      // 1. Ball zone (max 12) -- reuses the engine's own phase bucketing.
+      const zoneScore = { BUILD_UP: 0, PROGRESSING: 4, FINAL_THIRD: 8, BOX_OCCUPATION: 12 }[phase] || 0;
+
+      // 2. Progression type (max 10) -- depth trend vs. a slow-lagging
+      // baseline (not a single-frame delta), so one backward layoff mid-
+      // surge doesn't read as "retreating".
+      const depthDelta = rel.depth - threatPrevDepth;
+      threatPrevDepth += (rel.depth - threatPrevDepth) * 0.15;
+      const progressionScore =
+        depthDelta > 0.015 ? 10 * clamp(depthDelta / 0.05, 0, 1) : depthDelta < -0.015 ? 0 : 4;
+
+      // 3. Defensive structure (max 20) -- reuses Phase 3's live, decaying
+      // exposure tracking (set the instant a defender is beaten).
+      const exposure = defensiveShapeExposure[possession] || { central: 0, wide: 0 };
+      const structureScore = 20 * clamp(Math.max(exposure.central, exposure.wide), 0, 1);
+
+      // 4. Numerical situation (max 16) -- attackers vs. defenders actually
+      // near the ball, not a whole-pitch count.
+      const attackersNear = pinsOf(possession).filter((p) => p.role !== "GK" && dist(p, ball) <= 16).length;
+      const defendersNear = pinsOf(oppOf(possession)).filter((p) => p.role !== "GK" && dist(p, ball) <= 16).length;
+      const numbersUp = attackersNear - defendersNear;
+      const numbersScore = numbersUp >= 2 ? 16 : numbersUp === 1 ? 10 : numbersUp === 0 ? 4 : 0;
+
+      // 5. Player position / zone quality (max 12) -- carrier's box proximity.
+      const positionScore = !carrier
+        ? 0
+        : inPenaltyBox(carrier)
+          ? 12
+          : nearPenaltyBox(carrier)
+            ? 7
+            : isWideChannel(carrier) && rel.depth > 0.6
+              ? 4
+              : 0;
+
+      // 6. Shot opportunity (max 30, deliberately the biggest single
+      // component) -- shotAngleQuality is a pure-geometry, RNG-free proxy.
+      const shotScore = carrier ? 30 * clamp(shotAngleQuality(carrier) / 1.3, 0, 1) : 0;
+
+      // Engine-flagged build-up bonus -- mobileBuildupActive is already a
+      // real "this spell is genuinely heading toward a chance" signal,
+      // read-only here, never set/cleared by this function.
+      const buildupBonus = mobileBuildupActive ? 8 : 0;
+
+      const rawScore = clamp(
+        zoneScore + progressionScore + structureScore + numbersScore + positionScore + shotScore + buildupBonus,
+        0,
+        100
+      );
+      threatScoreSmoothed += (rawScore - threatScoreSmoothed) * 0.35;
+
+      // Match context -- score/time urgency nudges the hysteresis
+      // thresholds, not the raw score, so an 89th-minute 1-1 counterattack
+      // can interrupt sooner without inflating "how interesting" itself.
+      const scoreDiff = Math.abs(homeScore - awayScore);
+      const closeGame = scoreDiff <= 1 ? 1 : scoreDiff === 2 ? 0.4 : 0;
+      const lateGame = matchMinute >= 75 ? clamp((matchMinute - 75) / 15, 0, 1) : 0;
+      const contextUrgency = clamp(closeGame * 0.6 + lateGame * 0.6, 0, 1);
+
+      const ENTER_BASE = 70;
+      const EXIT_BASE = 30;
+      const COOLDOWN_MS_BASE = 4000;
+      const OVERRIDE_THRESHOLD = 92;
+      const enterThreshold = ENTER_BASE - contextUrgency * 15;
+      const cooldownMs = COOLDOWN_MS_BASE * (1 - contextUrgency * 0.5);
+
+      const nowTs = performance.now();
+      if (threatMode === "TICKER") {
+        const cooldownOk = nowTs - lastThreatHighlightTs > cooldownMs;
+        if (threatScoreSmoothed >= enterThreshold && (cooldownOk || threatScoreSmoothed >= OVERRIDE_THRESHOLD)) {
+          threatMode = "HIGHLIGHT";
+          lastThreatHighlightTs = nowTs;
+        }
+      } else if (threatScoreSmoothed <= EXIT_BASE) {
+        threatMode = "TICKER";
+      }
+
+      lastThreatResult = {
+        score: threatScoreSmoothed,
+        mode: threatMode,
+        breakdown: {
+          zone: zoneScore,
+          progression: progressionScore,
+          structure: structureScore,
+          numbers: numbersScore,
+          position: positionScore,
+          shot: shotScore,
+          buildup: buildupBonus,
+        },
+      };
+      return lastThreatResult;
+    }
+
+    function renderThreatDebug() {
+      if (!threatDebugEl || !lastThreatResult) return;
+      const b = lastThreatResult.breakdown;
+      threatDebugEl.textContent =
+        `LIVE THREAT [experimental]\n` +
+        `zone........${b.zone.toFixed(0).padStart(4)}\n` +
+        `progression.${b.progression.toFixed(0).padStart(4)}\n` +
+        `structure...${b.structure.toFixed(0).padStart(4)}\n` +
+        `numbers.....${b.numbers.toFixed(0).padStart(4)}\n` +
+        `position....${b.position.toFixed(0).padStart(4)}\n` +
+        `shot........${b.shot.toFixed(0).padStart(4)}\n` +
+        `buildup.....${b.buildup.toFixed(0).padStart(4)}\n` +
+        `TOTAL.......${lastThreatResult.score.toFixed(0).padStart(4)}\n` +
+        `MODE: ${lastThreatResult.mode}`;
+    }
+
     function tickRender(dt) {
       const moving = stepBallTween(dt);
       if (!moving && ballFlight) {
@@ -13075,6 +13247,10 @@
         attachBallToCarrier();
       }
       applyPinMotion(dt);
+      if (mobileBroadcast) {
+        computeLiveThreat();
+        if (showThreatDebug) renderThreatDebug();
+      }
     }
 
     // Hardening — tick() drives the whole match via a self-rescheduling
