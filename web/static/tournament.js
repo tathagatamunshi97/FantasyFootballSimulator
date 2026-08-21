@@ -15,6 +15,7 @@ function tabBar(active) {
     ["table", "Tables"],
     ["stats", "Stats"],
     ["knockout", "Knockout"],
+    ["analysis", "Analysis"],
   ];
   return `<nav class="tab-bar">${tabs
     .map(
@@ -145,8 +146,7 @@ function renderFixtures(t, { showRun = false } = {}) {
               data-xg-home="${esc(String(xgH))}"
               data-xg-away="${esc(String(xgA))}"
             >Watch</button>`;
-            status = `<div><strong>${esc(fx.score)}</strong>${fx.winner ? ` · ${esc(fx.winner)}` : ""}${reviewBadge(result)}${watch}</div>
-              ${analysisControls(fx, result)}`;
+            status = `<div><strong>${esc(fx.score)}</strong>${fx.winner ? ` · ${esc(fx.winner)}` : ""}${reviewBadge(result)}${watch}</div>`;
           } else if (showRun) {
             status = `<button type="button" class="btn-ghost btn-sm run-fixture-btn" data-match-id="${esc(fx.id)}">Run</button>
               <a class="btn-link btn-sm" href="/matchday" style="margin-left:0.35rem">Matchday</a>`;
@@ -160,6 +160,26 @@ function renderFixtures(t, { showRun = false } = {}) {
         <table><thead><tr><th>Rd</th><th>Home</th><th>Away</th><th>Result</th></tr></thead><tbody>${rows || "<tr><td colspan='4' class='muted'>—</td></tr>"}</tbody></table></div>`;
     })
     .join("");
+}
+
+function renderAnalysisTab(t) {
+  const results = Object.values(t.match_results || {}).filter(Boolean);
+  if (!results.length) {
+    return `<div class="card"><p class="muted">No matches played yet — analysis appears here once fixtures are hosted live.</p></div>`;
+  }
+  const rows = results
+    .map((r) => {
+      const fx = { id: r.match_id, home: r.home, away: r.away, played: true, score: r.score, winner: r.winner };
+      const stageLabel = `${esc(r.stage || "")}${r.group ? ` (${esc(r.group)})` : ""}`;
+      return `<div class="card" style="margin-bottom:0.75rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem">
+          <div><strong>${esc(r.home)} ${esc(r.score || "")} ${esc(r.away)}</strong> <span class="muted">${stageLabel}</span></div>
+        </div>
+        ${analysisControls(fx, r)}
+      </div>`;
+    })
+    .join("");
+  return rows;
 }
 
 function legWatchBtn(leg, t) {
@@ -296,6 +316,7 @@ function renderTournament(t, activeTab) {
   else if (activeTab === "table") body = renderTables(t);
   else if (activeTab === "stats") body = renderStats(t);
   else if (activeTab === "knockout") body = renderKnockout(t, { showRun });
+  else if (activeTab === "analysis") body = renderAnalysisTab(t);
 
   return meta + tabBar(activeTab) + `<div class="tab-panel">${body}</div>` + `<div class="card tactic-watch-card" id="tournamentWatchDock" style="margin-top:1rem" hidden>
     <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;flex-wrap:wrap">
