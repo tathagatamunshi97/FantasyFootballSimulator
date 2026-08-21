@@ -1,5 +1,5 @@
 :root {
-  --bg: #f4f5f7;
+  --bg: #f5f5f9;
   --panel: #ffffff;
   --panel2: #f0f1f4;
   --border: #dde1e7;
@@ -7,19 +7,22 @@
   --muted: #6b7280;
   --faint: #9aa0ab;
   --accent: #4f46e5;
-  --accent-soft: #eeecfd;
-  --accent2: #2f6fed;
+  --accent-soft: #ece9fd;
+  --accent2: #0891b2;
+  --accent2-soft: #e0f6fa;
+  --accent3: #db2777;
+  --accent3-soft: #fce7f1;
   --success: #16a34a;
   --success-soft: #e7f6ec;
   --warn: #d97706;
   --warn-soft: #fdf1e0;
   --danger: #dc2626;
   --danger-soft: #fbe9e9;
-  --home: #2f6fed;
+  --home: #2563eb;
   --away: #e0483f;
   --radius: 10px;
-  --shadow-sm: 0 1px 2px rgba(20, 21, 26, 0.05);
-  --shadow-md: 0 4px 14px -4px rgba(20, 21, 26, 0.1), 0 1px 3px rgba(20, 21, 26, 0.06);
+  --shadow-sm: 0 1px 2px rgba(79, 70, 229, 0.06), 0 1px 1px rgba(20, 21, 26, 0.04);
+  --shadow-md: 0 8px 20px -6px rgba(79, 70, 229, 0.16), 0 2px 6px rgba(20, 21, 26, 0.06);
   --font-display: "Manrope", system-ui, -apple-system, sans-serif;
   --font-body: "Inter", system-ui, -apple-system, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
@@ -30,8 +33,10 @@ body {
   margin: 0;
   font-family: var(--font);
   background:
-    radial-gradient(900px 480px at 8% -12%, var(--accent-soft) 0%, transparent 55%),
+    radial-gradient(1000px 520px at 4% -14%, var(--accent-soft) 0%, transparent 58%),
+    radial-gradient(760px 420px at 100% 0%, var(--accent2-soft) 0%, transparent 52%),
     var(--bg);
+  background-attachment: fixed;
   color: var(--text);
   line-height: 1.45;
   -webkit-font-smoothing: antialiased;
@@ -48,13 +53,31 @@ header {
   gap: 1rem;
   align-items: center;
   justify-content: space-between;
-  background: rgba(244, 245, 247, 0.85);
+  background: rgba(245, 245, 249, 0.85);
   backdrop-filter: blur(8px);
   position: sticky;
   top: 0;
   z-index: 10;
 }
-header h1 { margin: 0; font-size: 1.25rem; font-weight: 700; letter-spacing: -0.01em; }
+header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+}
+header h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  background: linear-gradient(120deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
 header .sub { color: var(--muted); font-size: 0.85rem; }
 .badge {
   display: inline-block;
@@ -191,14 +214,15 @@ input, select {
   padding: 0.65rem 1.2rem;
   border: none;
   border-radius: 8px;
-  background: linear-gradient(135deg, var(--accent), #3f37c9);
+  background: linear-gradient(135deg, var(--accent2), var(--accent));
   color: #fff;
   font-weight: 700;
   cursor: pointer;
   font-size: 0.95rem;
   box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.15s, transform 0.15s;
 }
-.btn-primary:hover { box-shadow: var(--shadow-md); }
+.btn-primary:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
 .btn-ghost {
   padding: 0.45rem 0.85rem;
   border: 1px solid var(--border);
@@ -241,14 +265,33 @@ a.landing-card {
   color: inherit;
   background: var(--panel);
   box-shadow: var(--shadow-sm);
+  border-top: 3px solid var(--accent);
   transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
 }
 a.landing-card:hover {
   border-color: var(--accent);
   box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
-a.landing-card h2 { color: var(--text); text-transform: none; letter-spacing: 0; font-size: 1.05rem; }
+a.landing-card h2 {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+/* Cycle a distinct hue per landing card so the hub reads as a real map of
+   destinations, not one monotone list. */
+a.landing-card:nth-of-type(1) { border-top-color: var(--accent); }
+a.landing-card:nth-of-type(1) h2 { color: var(--accent); }
+a.landing-card:nth-of-type(2) { border-top-color: var(--accent2); }
+a.landing-card:nth-of-type(2) h2 { color: var(--accent2); }
+a.landing-card:nth-of-type(3) { border-top-color: var(--success); }
+a.landing-card:nth-of-type(3) h2 { color: var(--success); }
+a.landing-card:nth-of-type(4) { border-top-color: var(--accent3); }
+a.landing-card:nth-of-type(4) h2 { color: var(--accent3); }
+a.landing-card:nth-of-type(5) { border-top-color: var(--warn); }
+a.landing-card:nth-of-type(5) h2 { color: var(--warn); }
 .error-msg { color: var(--danger); font-size: 0.9rem; margin-top: 0.5rem; }
 .log {
   padding: 0.75rem;
