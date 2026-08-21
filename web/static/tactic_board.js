@@ -3583,6 +3583,19 @@
       if ((boxed || nearBox || isWideShootingZone(carrier)) && isAttackFinisher(carrier)) {
         let score = scoreShot(carrier);
         if (spell?.lastActionType === "shoot") score += continuityBonus;
+        // Bug fix — a genuinely big-chance-quality position (boxed AND the
+        // team has real box occupation, the same "boxed && ready" pairing
+        // estimateChanceXg/chanceType already tier as the best chance
+        // class) used to always win via the old flat 82%/62% instant-shoot
+        // rule. The scored-competition rewrite treats it identically to a
+        // low-quality half-chance, so it can lose a coin flip to a merely-
+        // decent pass — the "shot count collapsed 6-12->2/match in
+        // testing" gap that rewrite's own commit message flagged but never
+        // re-verified. A shot the engine's own xG tiering already calls a
+        // big chance should reliably be taken, not passed up for a
+        // marginal alternative; the general case (boxed-but-not-ready,
+        // near-box, wide-shooting-zone) keeps competing exactly as before.
+        if (boxed && boxOccupationReady(carrier.side)) score += 0.22;
         candidates.push({ type: "shoot", score, target: null });
       }
 
@@ -6698,7 +6711,17 @@
         return true;
       }
 
-      if ((pick === "recycle" || (!ready && rng() < 0.55 - urg * 0.2)) && urg < 1.05 && !fbDeepInBox(carrier)) {
+      // Bug fix — this used to ALSO override a "cross"/"cutback" win back to
+      // recycle with an independent up-to-55% roll whenever the box wasn't
+      // ready, on top of crossW/cutbackW already carrying a real -0.25/-0.15
+      // penalty (vs +0.35/+0.4 when ready) for exactly that case. Crossing
+      // is one of the main ways box occupation actually BECOMES ready
+      // (cueBoxRuns sends teammates in) -- double-penalizing it created a
+      // self-reinforcing loop: rarely cross because not ready, rarely
+      // become ready because rarely cross. The weight penalty alone already
+      // makes recycle the more likely winner when unready; trust that
+      // selection instead of a second independent coin flip on top of it.
+      if (pick === "recycle" && urg < 1.05 && !fbDeepInBox(carrier)) {
         if (forwardInFinalThird(carrier)) {
           return forwardFinalThirdAction(carrier);
         }
