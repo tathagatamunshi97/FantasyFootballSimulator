@@ -1154,7 +1154,17 @@
     let speed = mobileBroadcast ? 2.5 : 0.5;
     const MOBILE_NORMAL_SPEED = 2.5;
     const MOBILE_EVENT_SPEED = 0.3;
-    const MOBILE_EVENT_MS = 4200;
+    // How long (real ms) the full pitch stays up after a key event. This is
+    // the dominant lever on live-view share -- calibrated so live/highlight
+    // time lands around 20-25% of total watch time (user's explicit target),
+    // measured across several seeds: 4200ms held live ~35-58%, too much;
+    // 1200ms holds ~17-29%, averaging ~22%.
+    const MOBILE_EVENT_MS = 1200;
+    // Bug fix -- how close to a spell's estimated resolution (spell.end)
+    // before the buildup view kicks in. Keeps the "show buildup before
+    // the shot" behavior bounded to roughly the 2-3 match-minutes it was
+    // meant to be, instead of the entire (up to 15-minute) spell.
+    const MOBILE_BUILDUP_WINDOW = 3;
     let mobileEventUntilTs = 0;
     // FM Mobile broadcast mode -- true while the current spell is flagged
     // to attempt a chance (spell.willAttemptChance), so the slow full-pitch
@@ -2551,6 +2561,22 @@
       return total;
     }
 
+    /**
+     * Per-action scoring project, Phase B — promoted out of pickAttackPattern
+     * (it lived there as a private closure over `carrier`, unusable
+     * elsewhere). Openness (0-1-ish, `1/(1+pressureAt)`) of a side-relative
+     * target zone (zx/zd in 0-1 attacking-direction space, same convention
+     * as fromPitchPct/toPitchPct) for the given side — "how open is this
+     * specific patch of pitch right now," independent of who's currently on
+     * the ball. Reused by scoreCarry/scoreSwitch below and still by
+     * pickAttackPattern itself (now passing `carrier.side` explicitly
+     * instead of closing over `carrier`).
+     */
+    function zoneOpenness(side, zx, zd) {
+      const pct = toPitchPct(side, clamp(zx, 0.04, 0.96), clamp(zd, 0.04, 0.96));
+      return 1 / (1 + pressureAt(pct.left, pct.top, side));
+    }
+
     /** Shared by executeAttackPattern's pressure-adaptive method ordering
      * (wide_switch/wing_carry/cut_inside/central each pick between two
      * hand-written try-order arrays off this same threshold). */
@@ -3122,6 +3148,26 @@
      * Updated each tick during position calculations.
      */
     /**
+     * Per-action scoring project — shared "how creative/good a passer is
+     * this carrier" read, 0-0.4 (xa90/key_passes90/pass_pct). Used to weight
+     * pass options UP (scoreDynamicReceiver) and carry/dribble options DOWN
+     * (scoreCarry/scoreDribble) in progression/build-up specifically, per
+     * user feedback: a genuinely creative player's best contribution there
+     * is picking a pass, not running the ball himself. One shared read so
+     * the three consumers can't drift apart the way scoreShot's predecessors
+     * did (see scoreShot's own docstring).
+     */
+    function carrierCreativity(carrier) {
+      return clamp(
+        (carrier.stats.xa90 || 0) * 0.14 +
+          (carrier.stats.key_passes90 || 0) * 0.05 +
+          Math.max(0, (carrier.stats.pass_pct || 70) - 70) * 0.006,
+        0,
+        0.4
+      );
+    }
+
+    /**
      * Phase 2: Open-space reader. Score each potential receiver on how good
      * a target they are RIGHT NOW: combines arrival momentum + real pressure
      * + finishing threat + distance + angle. Returns 0-1 value; highest score
@@ -3216,6 +3262,19 @@
         stageWeight = 1.15;
       }
 
+      // User feedback — in progression/build-up specifically, the CARRIER's
+      // own passing/creativity should factor into how good a pass this is,
+      // not just the receiver's threat profile above. A world-class
+      // creative passer (high xa90/key_passes90/pass_pct) and a poor one
+      // scored an identical pass to an identical receiver identically --
+      // wrong, since the same forward ball is more likely to actually be
+      // picked out by a genuinely creative player. Weighted heavily here
+      // (a deep playmaker's distribution is what matters most during
+      // progression/build-up), lighter in other stages where finishing
+      // threat/arrival already dominate. See carrierCreativity's own
+      // docstring above.
+      const creativityWeight = stage === "PROGRESSING" || stage === "BUILD_UP" ? 0.3 : 0.12;
+
       // Combine all factors. distPenalty/lateralPenalty weighted high
       // enough that an extreme option (either axis) reliably outweighs the
       // ~1.05 max positive score, instead of the old ×0.1 that let it be
@@ -3225,7 +3284,8 @@
         openness * 0.18 +
         finishingThreat * 0.22 +
         laneQuality * 0.12 +
-        progression * 0.25 -
+        progression * 0.25 +
+        carrierCreativity(carrier) * creativityWeight -
         distPenalty * 0.32 -
         lateralPenalty * 0.32;
 
@@ -3275,228 +3335,303 @@
     }
 
     /**
-     * Phase 3: Organic decision-making. Replace pickAttackPattern's decision
-     * tree with live "what's open right now" evaluation. Check in priority order:
-     * 1. Is there a high-value arriving receiver? → Pass to them
-     * 2. Is there open space to dribble? → Dribble
-     * 3. Can I shoot? → Shoot
-     * 4. Otherwise → Recycle / safe pass
+     * Per-action scoring project, Phase A — unified shot-quality score.
+     * Real geometric angle (shotAngleQuality) gates the score
+     * multiplicatively — a bad angle stays bad regardless of finishing
+     * quality — scaled by the carrier's own finishing signal and reduced by
+     * how tightly marked he is, plus a small bonus for general room at the
+     * carrier's own position. Consolidates two formulas for the same real
+     * question ("how good a shot is this, right now") that had drifted
+     * apart with slightly different coefficients: evaluateArrivals's
+     * wide-shooting-zone check and decideWideFinalThird's shootW. Returns
+     * 0-0.75, usable directly as an rng() probability (evaluateArrivals) or
+     * as a relative weight against cross/cutback/recycle (decideWideFinalThird).
+     *
+     * Deliberately NOT wired into evaluateArrivals's separate boxed/near-box
+     * flat-probability shot check (canShoot/shootP) or cut_inside's
+     * tryShootSeq — the former is a flat 0.82/0.62 roll with no angle
+     * sensitivity at all (a real gap, but touching a high-frequency branch
+     * is its own change, not a duplicate-formula cleanup); the latter is a
+     * different kind of gate entirely (xg90/attackDefendDelta/urgency
+     * driven, bundling a through-pass/progressive-pass/drive-into-box/shot
+     * sequence, not a pure shot-quality check) — forcing this formula into
+     * it wouldn't be de-duplication, it'd be a behavior change. Both are
+     * left for the later phases of the unified-scoring project once the
+     * whole action list is being compared on equal footing anyway.
+     */
+    function scoreShot(carrier) {
+      const angleQ = shotAngleQuality(carrier);
+      const fq = finisherQuality(carrier);
+      const marker = nearestOpponent(carrier, 6);
+      const contest = marker ? clamp(1 - marker.d / 6, 0, 1) : 0;
+      const openness = 1 / (1 + pressureAt(carrier.left, carrier.top, carrier.side));
+      return clamp((angleQ - 0.1) * 1.8 * (0.45 + fq * 0.9) + openness * 0.06 - contest * 0.32, 0, 0.75);
+    }
+
+    /**
+     * Per-action scoring project, Phase B — "how good is it to just advance
+     * the ball myself into open space right now," 0-0.6. Reuses the exact
+     * openness/isolation read evaluateArrivals's `trulyIsolated` branch
+     * already used (no real threat within 10, real room at the carrier's
+     * own position), as a continuous score instead of a gated all-or-
+     * nothing check.
+     *
+     * Bug fix (found in Phase C's first real test, not Phase B's own
+     * unit-style checks — flagging the gap) — first cut of this scaled
+     * openness alone up to a 0.92 ceiling. Measured head-to-head against
+     * scoreDynamicReceiver/scoreShot in a real match: openness runs
+     * systematically high across most of the pitch (defenders are sparse
+     * away from the ball), so this carried roughly DOUBLE pass/shoot's
+     * typical realistic score (median 0.65 vs. 0.36/0.26) — dribble/carry
+     * won almost every comparison by scale, not genuine situational
+     * superiority (shot count collapsed 6-12 -> ~2/match in testing).
+     * Rescaled down and folded in a real depth/value term — advancing the
+     * ball yourself is worth more from a genuinely dangerous position than
+     * from inside your own half, the same kind of progression-value signal
+     * scoreDynamicReceiver already has and this didn't.
+     *
+     * User feedback — a genuinely creative carrier (high carrierCreativity)
+     * should be relatively less inclined to just run it himself during
+     * progression/build-up, where his passing is the more valuable
+     * contribution; discounted, not zeroed, so a truly open runway still
+     * wins for anyone. `stage` is optional — omitted, this behaves exactly
+     * as the plain openness/depth score (e.g. for a caller outside the
+     * progression/build-up context that doesn't track stage).
+     */
+    function scoreCarry(carrier, stage) {
+      const threat = nearestOpponent(carrier, 10);
+      const openness = 1 / (1 + pressureAt(carrier.left, carrier.top, carrier.side));
+      const depth = possessionDepth(carrier);
+      if (depth < 0.1 || (threat && threat.d < 7 && openness <= 0.55)) return 0;
+      const score = clamp(openness * 0.4 * (0.55 + depth * 0.6), 0, 0.48);
+      const discountWeight = stage === "PROGRESSING" || stage === "BUILD_UP" ? 0.6 : 0.2;
+      return clamp(score * (1 - carrierCreativity(carrier) * discountWeight), 0, 0.48);
+    }
+
+    /**
+     * Per-action scoring project, Phase B — "how good a take-on is this,
+     * right now," 0-0.55. Originally reused the exact attacker-vs-marker
+     * duel math evaluateArrivals's Priority 1.6 take-on check used
+     * (dribbles90/dribble_pct vs. the marker's tackles90/duels_won_pct),
+     * as a continuous score.
+     *
+     * Bug fix (found via the 100-match real-squad player study, not the
+     * earlier generic-squad Phase B/C testing — flagging the gap) — the
+     * original 0.14 dribbles90 coefficient and 0.68 ceiling were carried
+     * over unchanged from the old system, where this score was only ever
+     * used as `rng() < takeOnP` (a per-attempt probability, fine for a
+     * genuine specialist to hit 68% often). Once compared directly against
+     * pass/shoot/carry in Phase C's real argmax, that ceiling turned out to
+     * be a near-constant for any real elite dribbler: Doku/Hazard/Diomandé
+     * (dribbles90 5.3/3.0/4.0) all hit 0.68 against a COMPLETELY AVERAGE
+     * marker, regardless of actual matchup quality — measured directly:
+     * 100-match sample had these three resolving 83-86% of every touch as
+     * a dribble, far beyond any other position (CBs 12-17%). Generic
+     * ROLE_GENERIC squads never surfaced this because nothing in that pool
+     * has anywhere near a real specialist's dribbles90. Rescaled down and
+     * softened the dribbles90 sensitivity so an elite dribbler still gets a
+     * real, meaningful edge against a weak marker (~0.47 vs a decent pass's
+     * ~0.3) without systematically dominating against an average one
+     * (~0.4) or a tough one (~0.15-0.21, where passing should clearly win).
+     * Distinct from scoreCarry above: this is for a genuine 1v1/1v2 with a
+     * marker close enough to actually challenge, not open space with
+     * nobody around.
+     *
+     * Same carrierCreativity discount as scoreCarry, same reasoning
+     * (per user feedback) — a creative playmaker should generally look to
+     * release the ball rather than dribble through traffic during
+     * progression/build-up.
+     */
+    function scoreDribble(carrier, stage) {
+      const markers = nearestOpponents(carrier, 8, 2);
+      const marker = markers[0];
+      if (!marker || marker.d < 1.4) return 0;
+      let attackerEdge =
+        (carrier.stats.dribbles90 || 0) * 0.05 +
+        Math.max(0, (carrier.stats.dribble_pct || 50) - 50) * 0.006 -
+        (marker.pin.stats.tackles90 || 0) * 0.09 -
+        Math.max(0, (marker.pin.stats.duels_won_pct || 50) - 50) * 0.006;
+      const second = markers[1];
+      if (second) {
+        attackerEdge -= (second.pin.stats.tackles90 || 0) * 0.05 + 0.04;
+      }
+      const score = clamp(0.2 + attackerEdge, 0.05, 0.55);
+      const discountWeight = stage === "PROGRESSING" || stage === "BUILD_UP" ? 0.6 : 0.2;
+      return clamp(score * (1 - carrierCreativity(carrier) * discountWeight), 0.03, 0.55);
+    }
+
+    /**
+     * Per-action scoring project, Phase B — "how good is switching play to
+     * this specific teammate right now," 0-0.95. Generalizes the boolean
+     * isJustifiedSwitch + longBallDifficulty ceiling (currently only used
+     * inside wide_switch's tryFarSwitch) into a continuous score: not a
+     * genuine cross-field situation, or beyond the same 2.3 difficulty
+     * ceiling longBallTarget/tryFarSwitch already use, scores 0; an
+     * unjustified-but-plausible switch is heavily discounted rather than
+     * hard-zeroed, so a real scored comparison downstream isn't just
+     * re-implementing another boolean gate. Additive only this phase.
+     */
+    function scoreSwitch(carrier, target) {
+      if (!target || !isCrossFieldSwitch(carrier, target)) return 0;
+      const difficulty = longBallDifficulty(carrier, target);
+      if (difficulty > 2.3) return 0;
+      const justified = isJustifiedSwitch(carrier, target);
+      const farEdge = flankMatchupEdge(carrier.side, pinFlank(target));
+      const threatValue = (target.stats.xg90 || 0) * 0.5 + (target.stats.xa90 || 0) * 0.6;
+      const base = clamp(
+        0.35 + Math.max(0, farEdge) * 0.6 + threatValue * 0.4 - (difficulty - 1) * 0.22,
+        0,
+        0.95
+      );
+      return justified ? base : base * 0.25;
+    }
+
+    /**
+     * Per-action scoring project, Phase C — true unified argmax, replacing
+     * the priority-ordered early-return ladder this function used to be
+     * (shoot checked and returned before pass was even scored, so a great
+     * pass could never beat a mediocre shot; a beaten winger's dribble
+     * option was buried behind several earlier gates). Build every real
+     * candidate action (shoot/pass/dribble-or-carry), score them on a
+     * comparable 0-1ish scale via the shared scorers (scoreShot, Phase A;
+     * scoreDynamicReceiver via findBestArrivingReceiver; scoreCarry/
+     * scoreDribble, Phase B), and pick via nearOptimalPick — the same
+     * "weighted draw among near-tied top scorers" primitive
+     * decideWideFinalThird/decideFbWingLink already use correctly, so a
+     * genuinely much better option always wins but near-ties still get
+     * realistic variety.
+     *
+     * Continuity (not flip-flopping cross/dribble every tick) is now an
+     * ADDITIVE nudge on spell.lastActionType/actionContinuityConfidence
+     * (see beginSpell) instead of a hard-locked category — same decay
+     * numbers refreshSpellPattern already uses for spell.pattern (-15/
+     * action, invalidated by a real pressure spike since the action was
+     * picked), just applied as a score term so continuity can never block a
+     * genuinely better option, only tip a close call.
      *
      * Returns: { type: 'pass', target } | { type: 'dribble' } | { type: 'shoot' } | { type: 'recycle' }
      */
     function evaluateArrivals(carrier, stage, depth) {
       if (!carrier || !stage) return { type: "recycle" };
 
-      // Bug fix — shooting used to be checked LAST, after the arriving-
-      // receiver pass. That meant a finisher standing in the box with the
-      // ball could get redirected into a pass to a merely-decent teammate
-      // instead of taking the shot himself (the Ronaldo-in-the-box-passes-
-      // back symptom), since findBestArrivingReceiver's 0.15 threshold is
-      // low enough that almost any reasonably open teammate qualifies.
-      // Priority 1: Can I shoot?
-      // Engine fix — 0.45 meant a genuine finisher at the box edge skipped
-      // shooting more often than not, falling through to Priority 2 (pass)
-      // -- and nothing there flags "I was just in a great shooting
-      // position" as a reason to refuse a bad backward option (see the
-      // progression term below). Raised so a clear finisher's chance
-      // actually gets taken more often than not, matching the real
-      // complaint (a striker at the box edge passing backward instead of
-      // shooting).
       const boxed = inPenaltyBox(carrier);
-      const canShoot = (boxed || nearPenaltyBox(carrier)) && isAttackFinisher(carrier);
-      // Bug fix — "hot potato in the box": a flat 0.62 meant a genuinely
-      // boxed carrier with the ball still passed it away well over a third
-      // of the time, falling straight into Priority 2's low (0.15) receiver
-      // bar with nothing forcing a second look at the shot he was just in
-      // position for. Real players shoot the clear majority of clean looks
-      // once actually in the box; edge-of-the-D (near, not boxed) stays a
-      // genuine judgment call, so it keeps the old, more moderate rate.
-      const shootP = boxed ? 0.82 : 0.62;
-      if (canShoot && rng() < shootP) {
-        return { type: "shoot" };
-      }
-
-      // Priority 1.5: Is the carrier personally isolated with real space?
-      // findBestArrivingReceiver's 0.15 bar (Priority 2 below) only scores
-      // teammates — it never looks at the carrier's OWN situation, so a
-      // genuinely open 1v0 carrier was passing almost every time instead of
-      // taking a defender on (bug: isolated players never dribbled). Check
-      // this before the receiver search so real isolation reliably produces
-      // a carry rather than being drowned out by an always-clears-the-bar
-      // pass option.
+      const nearBox = !boxed && nearPenaltyBox(carrier);
       const dribblePressure = pressureAt(carrier.left, carrier.top, carrier.side);
       const dribbleOpenness = 1 / (1 + dribblePressure);
-      const carrierThreat = nearestOpponent(carrier, 10);
 
-      // Priority 1.4: a genuinely wide shooting opportunity that the box
-      // helpers above correctly don't count as boxed/near-boxed (see
-      // isWideShootingZone's own comment — x=0.85-0.95 really is outside
-      // the real penalty area). Real football still has this shot: a
-      // winger cutting to the corner of the box on a tight-but-viable
-      // angle. Weighted, not automatic — angle quality (falls to ~0 right
-      // at the touchline/byline), the carrier's own finishing signal, how
-      // much room he actually has, and how tight the nearest marker is all
-      // compete against just letting the existing priorities below (open-
-      // space dribble, receiver pass, hold-up) carry on exactly as before.
-      if (isWideShootingZone(carrier)) {
-        const angleQ = shotAngleQuality(carrier);
-        const fq = finisherQuality(carrier);
-        const contest = carrierThreat ? clamp(1 - carrierThreat.d / 6, 0, 1) : 0;
-        // Angle GATES the weight (multiplicative), finishing quality only
-        // scales it up or down on top — a weak angle stays a weak angle
-        // regardless of who's got the ball, it doesn't get additively
-        // rescued by a good finishing profile. Verified against three
-        // reference spots before wiring in: wide-but-still-outside-the-box
-        // (~0.16, cross/cutback clearly dominate), a real edge-of-box
-        // angle for an elite finisher (~0.29, genuinely viable) vs. an
-        // average one at the same spot (~0.18, noticeably less so), and
-        // under a tight marker at that same edge-of-box spot (~0.11,
-        // defensive pressure suppresses it).
-        const shootWeight = clamp(
-          (angleQ - 0.1) * 1.8 * (0.45 + fq * 0.9) + dribbleOpenness * 0.06 - contest * 0.32,
-          0,
-          0.75
-        );
-        if (rng() < shootWeight) {
-          return { type: "shoot" };
+      // Bug fix (found via the winger-dribble recalibration follow-up) —
+      // 0.08 was meant as a gentle "don't flip-flop" nudge, but measured
+      // directly against real score gaps: a wide fullback's carry and pass
+      // scores often land within ~0.005-0.03 of each other (e.g. Dimarco:
+      // avg scoreCarry 0.247 vs. avg pass score 0.242, nearly a coin flip),
+      // so an 0.08 bonus is 3-15x the actual gap it's supposed to be a
+      // nudge on top of — whichever option wins the FIRST touch of a spell
+      // (a near-tie, decided by nearOptimalPick's small random draw) then
+      // self-reinforces almost every subsequent touch until confidence
+      // decays out, turning a genuine coin flip into 177/180 (98%) one way
+      // for an entire match sample. Cut to a size that can still break a
+      // literal tie but can't single-handedly override a real difference
+      // between two otherwise-comparable options.
+      let continuityBonus = 0;
+      if (spell && spell.lastActionType) {
+        const spiked =
+          spell.actionContinuityBaselinePressure != null &&
+          dribblePressure > spell.actionContinuityBaselinePressure + 0.6;
+        if (!spiked) {
+          continuityBonus = 0.025 * ((spell.actionContinuityConfidence ?? 100) / 100);
         }
       }
 
-      // Priority 1.45 — pass-first for deep/build-up roles (CB/FB/DM).
-      // Instrumented a real match: CB carriers dribbled 23 times and passed
-      // only 12; the isolation-dribble check right below fires for EVERY
-      // role uniformly whenever the carrier is open, without ever looking
-      // at whether a genuinely good progressive pass exists — and a deep
-      // defender with time on the ball is exactly the carrier state that
-      // check was tuned for, since real opponents press the middle/final
-      // third harder than their own defensive third. The result: the ball
-      // rarely reaches CM/AM before someone in defence has already carried
-      // it forward themselves, starving creative midfielders of service.
-      // Real center-backs/fullbacks/holding mids look to distribute first
-      // and only carry when nothing better is on -- so for these three
-      // roles only, check for a real receiver (reusing
-      // findBestArrivingReceiver's existing quality bar: forward
-      // progression, distance, passing lane, receiver's own pressure and
-      // creative/finishing value -- not "anyone technically open") before
-      // the self-carry option below gets a look. Attacking roles (W/AM/
-      // ST/CM) keep the existing order unchanged -- their own dribble/
-      // take-on instinct is intentional, not the bug this fixes.
-      if (carrier.role === "CB" || carrier.role === "FB" || carrier.role === "DM") {
-        // Bug fix — first cut of this reused Priority 2's default 0.15 bar,
-        // which is tuned for "worth considering at all," not "good enough
-        // that a deep player should prefer it over just carrying a few
-        // yards." Verified against a real match: CB/FB/DM dropped to ZERO
-        // dribbles for the entire 90 minutes at 0.15 — every technically-
-        // open teammate qualified, exactly the "CBs dumping it sideways
-        // every time someone is technically open" failure mode this was
-        // supposed to avoid. Raised so only a genuinely progressive option
-        // (real forward advancement + real openness, not just clearing a
-        // low bar) preempts the carry — a merely-adequate sideways option
-        // now correctly falls through to the isolation-dribble/take-on
-        // logic below instead.
-        const earlyReceiver = findBestArrivingReceiver(carrier, stage, depth, 0.32);
-        if (earlyReceiver) {
-          return { type: "pass", target: earlyReceiver };
-        }
+      const candidates = [];
+
+      // Shoot — eligible when genuinely boxed/near-box (isWideShootingZone
+      // deliberately excludes those, see its own docstring) or a real wide-
+      // angle attempt. Bug fix (folded in here) — the boxed case used to be
+      // a flat 0.82/0.62 roll with ZERO angle sensitivity, unlike the
+      // wide-zone case; a bad-angle box shot got the same odds as a clean
+      // one. One shared score now for both.
+      if ((boxed || nearBox || isWideShootingZone(carrier)) && isAttackFinisher(carrier)) {
+        let score = scoreShot(carrier);
+        if (spell?.lastActionType === "shoot") score += continuityBonus;
+        candidates.push({ type: "shoot", score, target: null });
       }
 
-      // Bug fix — "free on goal, why pass back?": the 0.25 depth floor
-      // excluded a genuinely uncontested carrier receiving deep (e.g. a
-      // striker dropping to help build, or right after winning the ball
-      // back) from ever just advancing it himself -- evaluateArrivals had
-      // no self-carry option at all below this line, only pass targets.
-      // A truly open carrier should size up driving forward regardless of
-      // how deep he is; only the very edge of his own box stays excluded.
-      const trulyIsolated =
-        (!carrierThreat || carrierThreat.d >= 7) && dribbleOpenness > 0.55 && depth >= 0.1;
-      // Bug fix — a carrier with genuinely nobody near him is exactly the
-      // "acres of space, why is he passing backward" case; a modest
-      // 0.35-0.8 coin flip still let a real winger-in-space default to a
-      // backward pass (via Priority 2's low 0.15 receiver bar) far too
-      // often. Real isolation should read as a near-certainty to carry it
-      // forward, not a toss-up.
-      if (trulyIsolated && rng() < clamp(dribbleOpenness * 0.85, 0.55, 0.92)) {
-        return { type: "dribble" };
-      }
-
-      // Priority 1.6: a genuinely good 1v1 (or 1v2) to take the defender(s)
-      // on, even with marking present (not full isolation — that's 1.5
-      // above). The isolation check only fires with no threat nearby at
-      // all, so a good dribbler with the ball in a dangerous area facing a
-      // beatable defender had nothing pushing back against defaulting
-      // straight to the safest backward pass — real football's "take him
-      // on" moment never had a code path. Stat-scaled on the same duel
-      // family doDribble already uses (attacker dribbling vs defender
-      // tackling/duels), not a flat chance, so a real mismatch (Messi vs a
-      // part-timer) attempts it far more than an even one. Explicitly
-      // includes wide/touchline positions (a winger in the wing areas is
-      // exactly who should be trying this, not just central FINAL_THIRD
-      // play), and a second marker only lowers the odds -- it doesn't
-      // block the attempt outright, since real wingers do still sometimes
-      // go at two men and just fail more often.
-      // Bug fix — "winger passing back, why?" this only ever applied to the
-      // literal role==="W" — a genuine winger playing centrally that match
-      // (or an ST/AM who has dropped deep to collect, which real attackers
-      // do constantly) got zero take-on consideration outside FINAL_THIRD/
-      // near-box, no matter how advanced or how beatable the marker was.
-      // Any attacking-minded role gets the same real look once past
-      // halfway. Also loosened the marker-distance floor (2.2->1.4) and
-      // raised the baseline probability -- a tight 1v1 facing-up situation
-      // is exactly when a real attacker sizes up the defender, not a case
-      // to exclude, and the old ceiling (0.55) still let a clear mismatch
-      // default to the safe pass more often than not.
-      if (
-        stage === "FINAL_THIRD" ||
-        stage === "BOX_OCCUPATION" ||
-        nearPenaltyBox(carrier) ||
-        ((carrier.role === "W" || carrier.role === "ST" || carrier.role === "AM") && depth >= 0.5)
-      ) {
-        const markers = nearestOpponents(carrier, 8, 2);
-        const marker = markers[0];
-        if (marker && marker.d >= 1.4) {
-          let attackerEdge =
-            (carrier.stats.dribbles90 || 0) * 0.14 +
-            Math.max(0, (carrier.stats.dribble_pct || 50) - 50) * 0.01 -
-            (marker.pin.stats.tackles90 || 0) * 0.1 -
-            Math.max(0, (marker.pin.stats.duels_won_pct || 50) - 50) * 0.01;
-          const second = markers[1];
-          if (second) {
-            attackerEdge -= (second.pin.stats.tackles90 || 0) * 0.06 + 0.05;
-          }
-          const takeOnP = clamp(0.32 + attackerEdge, 0.14, 0.68);
-          if (rng() < takeOnP) {
-            return { type: "dribble" };
-          }
-        }
-      }
-
-      // Priority 2: Is there a high-value arriving receiver?
-      const bestReceiver = findBestArrivingReceiver(carrier, stage, depth);
+      // Pass — best real receiver right now. The old CB/FB/DM-specific
+      // pass-first pre-empt (a workaround for the priority-order bug: those
+      // roles' own carry/dribble checks used to fire before the receiver
+      // search ever ran) isn't needed anymore — real scoring below already
+      // has a creative deep player's carry/dribble score discounted
+      // (carrierCreativity) and a flatter role-level distribution
+      // preference (distributorRole below) for a less creative one, so a
+      // genuinely good pass wins on its own merits instead of by pre-empt.
+      const bestReceiver = findBestArrivingReceiver(carrier, stage, depth, 0.05);
       if (bestReceiver) {
-        return { type: "pass", target: bestReceiver };
+        let score = scoreDynamicReceiver(carrier, bestReceiver, stage, { x: 0.5, depth });
+        if (spell?.lastActionType === "pass" && spell.lastActionTargetId === bestReceiver.id) {
+          score += continuityBonus;
+        }
+        candidates.push({ type: "pass", score, target: bestReceiver });
       }
 
-      // Priority 3: Is there open space to dribble into?
-      const canDribble = dribbleOpenness > 0.4 && depth >= 0.3; // only dribble if we have space and depth
-      if (canDribble && rng() < clamp(dribbleOpenness * 0.6, 0.2, 0.8)) {
-        return { type: "dribble" };
+      // Dribble/carry — one candidate covering both real situations
+      // (open-space advance vs. a genuine take-on against a close marker):
+      // doDribble already resolves which one actually happens internally
+      // via its own threat check, so evaluateArrivals only ever needed one
+      // "dribble" return type either way. Takes whichever framing scores
+      // better right now. Bug fix (folded in here) — the old code gated
+      // the take-on check to specific stages/roles (FINAL_THIRD/
+      // BOX_OCCUPATION/near-box/advanced-attacking-role); scoreDribble's
+      // own marker-proximity requirement is a real enough gate on its own,
+      // so a genuine 1v1 anywhere on the pitch can now compete honestly
+      // instead of being architecturally unavailable outside those states.
+      const distributorRole = carrier.role === "CB" || carrier.role === "FB" || carrier.role === "DM";
+      const carryMult = distributorRole ? 0.72 : 1;
+      const dribbleScore = Math.max(scoreCarry(carrier, stage), scoreDribble(carrier, stage)) * carryMult;
+      if (dribbleScore > 0) {
+        let score = dribbleScore;
+        if (spell?.lastActionType === "dribble") score += continuityBonus;
+        candidates.push({ type: "dribble", score, target: null });
       }
 
-      // Priority 3.5 — hold-up play. Nothing above fired: no shot, no
-      // isolation, no beatable marker, no receiver already worth finding,
-      // no space to just carry it. Real football's answer here isn't
-      // always "recycle backward" — a composed carrier reads that a
-      // teammate COULD be dangerous a beat from now and holds the ball to
-      // let that develop, instead of only ever reacting to a run that's
-      // already happening. throughBallLegal (used by throughRunner
-      // elsewhere) requires the runner to already be _running — nothing
-      // in the engine ever started that run on the carrier's behalf. This
-      // cues it: pick a genuine runner, send them, and have the carrier
-      // shield the ball for this tick so the next decision (a beat later,
-      // via normal actionTimer pacing) can find them legally through.
-      // Chance of even recognizing the moment scales with the carrier's
-      // own vision (xa90/key_passes90), same signal confidenceMargin uses
-      // — a genuine playmaker holds it up far more than an average passer.
+      if (candidates.length) {
+        candidates.sort((a, b) => b.score - a.score);
+        const winner = nearOptimalPick(candidates, confidenceMargin(carrier, 0.1));
+        if (spell) {
+          const sameAsLast =
+            spell.lastActionType === winner.type &&
+            (winner.type !== "pass" || spell.lastActionTargetId === winner.target?.id);
+          if (sameAsLast) {
+            spell.actionContinuityConfidence = Math.max(0, (spell.actionContinuityConfidence ?? 100) - 15);
+          } else {
+            spell.actionContinuityConfidence = 100;
+            spell.actionContinuityBaselinePressure = dribblePressure;
+          }
+          spell.lastActionType = winner.type;
+          spell.lastActionTargetId = winner.type === "pass" ? winner.target.id : null;
+        }
+        // Below this bar the "winning" candidate still isn't really worth
+        // doing (e.g. the only entry was a barely-above-zero pass) —
+        // fall through to hold-up play / recycle instead of forcing it.
+        if (winner.score > 0.08) {
+          if (winner.type === "shoot") return { type: "shoot" };
+          if (winner.type === "pass") return { type: "pass", target: winner.target };
+          return { type: "dribble" };
+        }
+      }
+
+      // Hold-up play. Nothing scored meaningfully above: no shot, no
+      // decent receiver, no real dribble/carry opportunity. Real football's
+      // answer here isn't always "recycle backward" — a composed carrier
+      // reads that a teammate COULD be dangerous a beat from now and holds
+      // the ball to let that develop, instead of only ever reacting to a
+      // run that's already happening. throughBallLegal (used by
+      // throughRunner elsewhere) requires the runner to already be
+      // _running — nothing in the engine ever started that run on the
+      // carrier's behalf. This cues it: pick a genuine runner, send them,
+      // and have the carrier shield the ball for this tick so the next
+      // decision (a beat later) can find them legally through. Chance of
+      // even recognizing the moment scales with the carrier's own vision
+      // (xa90/key_passes90), same signal confidenceMargin uses.
       if (depth >= 0.4 && dribbleOpenness > 0.32) {
         const vision = clamp((carrier.stats.xa90 || 0) * 0.6 + (carrier.stats.key_passes90 || 0) * 0.15, 0, 1);
         if (rng() < clamp(0.22 + vision * 0.45, 0.15, 0.62)) {
@@ -3507,7 +3642,6 @@
         }
       }
 
-      // Priority 4: Recycle / safe pass
       return { type: "recycle" };
     }
 
@@ -5827,6 +5961,14 @@
       if (carrier.role === "W" || carrier.role === "FB") {
         wWing += flankMatchupEdge(carrier.side, pinFlank(carrier)) * 0.9;
       }
+      // Bug fix — wWing only ever read season-average matchup/xa stats, no
+      // live signal for "my marker is actually beaten right now." Real
+      // space beyond the fullback (no opponent within genuine challenge
+      // range) should itself pull a winger toward attacking the space, not
+      // just his career dribbling average.
+      if ((carrier.role === "W" || carrier.role === "FB") && (!threat || threat.d > 10)) {
+        wWing += 0.6;
+      }
 
       let wCut =
         carrier.role === "W"
@@ -5900,15 +6042,14 @@
       const ownFlank = pinFlank(carrier);
       const farFlank = ownFlank === "L" ? "R" : ownFlank === "R" ? "L" : relC.x > 0.5 ? "L" : "R";
       const farFlankX = farFlank === "L" ? 0.12 : 0.88;
-      const zoneOpenness = (zx, zd) => {
-        const pct = toPitchPct(carrier.side, clamp(zx, 0.04, 0.96), clamp(zd, 0.04, 0.96));
-        return 1 / (1 + pressureAt(pct.left, pct.top, carrier.side));
-      };
-      const centralOpen = zoneOpenness(0.5, Math.min(0.94, relC.depth + 0.12));
-      const farFlankOpen = zoneOpenness(farFlankX, Math.min(0.94, relC.depth + 0.08));
-      const ownFlankOpen = zoneOpenness(relC.x, Math.min(0.94, relC.depth + 0.14));
+      // Per-action scoring project, Phase B — zoneOpenness promoted to a
+      // shared top-level helper (now takes `side` explicitly instead of
+      // closing over `carrier`); see its own docstring near pressureAt.
+      const centralOpen = zoneOpenness(carrier.side, 0.5, Math.min(0.94, relC.depth + 0.12));
+      const farFlankOpen = zoneOpenness(carrier.side, farFlankX, Math.min(0.94, relC.depth + 0.08));
+      const ownFlankOpen = zoneOpenness(carrier.side, relC.x, Math.min(0.94, relC.depth + 0.14));
       const halfSpaceX = clamp(relC.x + (relC.x > 0.5 ? -0.18 : 0.18), 0.05, 0.95);
-      const halfSpaceOpen = zoneOpenness(halfSpaceX, Math.min(0.94, relC.depth + 0.1));
+      const halfSpaceOpen = zoneOpenness(carrier.side, halfSpaceX, Math.min(0.94, relC.depth + 0.1));
       wCentral += (centralOpen - 0.5) * 1.1;
       wSwitch += (farFlankOpen - 0.5) * 1.3;
       wWing += (ownFlankOpen - 0.5) * 1.1;
@@ -6182,9 +6323,24 @@
             }
             return false;
           };
+          // Bug fix — real user report: "when wingers get space beyond the
+          // fullback, he is just passing backwards. not dribbling past
+          // them." The non-pressure branch below used to try tryLink/tryPass
+          // FIRST and only fall back to dribble/carry last — but a winger
+          // who's genuinely beaten his man is, by definition, not "under
+          // pressure" (isUnderPressure reads local pressureAt, which is low
+          // exactly when no defender is close), so this was the ordering
+          // used in precisely the situation it got wrong: real space ahead
+          // led to a reflexive pass, never an attempt to attack the space.
+          // Read the same beaten-marker signal directly — no opponent
+          // within real challenge range — and go at goal first when it's
+          // true, matching what an actual winger does with a run in behind.
+          const isolated = !threat || threat.d > 10;
           const order = isUnderPressure(carrier)
             ? [tryCarry, tryDribble, tryPass, tryLink]
-            : [tryLink, tryPass, tryDribble, tryCarry];
+            : isolated
+              ? [tryDribble, tryCarry, tryPass, tryLink]
+              : [tryLink, tryPass, tryDribble, tryCarry];
           if (tryInOrder(order)) return true;
           if (decideFbWingLink(carrier, stage, depth)) return true;
           const flank = teammates(carrier)
@@ -6448,10 +6604,13 @@
       const angleQ = shotAngleQuality(carrier);
       let shootW = 0;
       if ((boxed || nearBox) && angleQ > 0.12 && isAttackFinisher(carrier)) {
-        const fq = finisherQuality(carrier);
-        const marker = nearestOpponent(carrier, 6);
-        const contest = marker ? clamp(1 - marker.d / 6, 0, 1) : 0;
-        shootW = Math.max(0, 0.1 + angleQ * 0.85 + fq * 0.55 - contest * 0.4);
+        // Per-action scoring project, Phase A — shared with evaluateArrivals's
+        // wide-shooting-zone check via scoreShot(carrier). Scaled ~1.1x to
+        // preserve this function's pre-existing weight scale relative to
+        // crossW/cutbackW/recycleW below — this is a relative weightedPick
+        // weight, not a raw probability, so scoreShot's 0-0.75 clamp alone
+        // would understate it here.
+        shootW = scoreShot(carrier) * 1.1;
       }
 
       const crossW =
@@ -8139,9 +8298,29 @@
                   pin.role === "DM" ? 0.14 : pin.role === "CM" ? 0.12 : 0.1;
                 x = lerp(lerp(pin.baseX, 0.5, 0.42), followX, midCompress + threat * 0.06);
               } else {
+                // Bug fix — W used to fall through to the unlabeled 0.12
+                // default here, the weakest ball-tracking of any outfield
+                // role, real user report: wingers stay pinned wide/high and
+                // barely react when defending. A tracking winger should
+                // compress toward the ball at least as readily as a CM.
                 const compress =
-                  pin.role === "CB" ? 0.18 : pin.role === "DM" ? 0.28 : pin.role === "FB" ? 0.2 : pin.role === "CM" ? 0.24 : 0.12;
-                x = lerp(pin.baseX, relBall.x, compress + threat * (pin.role === "CB" || pin.role === "DM" ? 0.1 : 0.05));
+                  pin.role === "CB" ? 0.18 : pin.role === "DM" ? 0.28 : pin.role === "FB" ? 0.2 : pin.role === "CM" ? 0.24 : pin.role === "W" ? 0.26 : 0.12;
+                x = lerp(pin.baseX, relBall.x, compress + threat * (pin.role === "CB" || pin.role === "DM" ? 0.1 : pin.role === "W" ? 0.08 : 0.05));
+              }
+              if (pin.role === "W") {
+                // Real full-pitch defensive shape: the ball-FAR winger tucks
+                // into the half-space/central channel to thicken the block
+                // rather than stretching to their own touchline for no
+                // reason -- "venture into central areas" per the user's
+                // report. The ball-near winger already tracks the ball via
+                // compress above, so only override when the ball is clearly
+                // on the opposite flank.
+                const ballOnFarSide =
+                  (flank === "R" && relBall.x < 0.42) || (flank === "L" && relBall.x > 0.58);
+                if (ballOnFarSide) {
+                  const tuckX = 0.5 + (flank === "R" ? 0.12 : -0.12);
+                  x = lerp(x, tuckX, 0.4 + threat * 0.15);
+                }
               }
               if (pin.role === "CB") {
                 x = lerp(pin.baseX, 0.5 + (pin.baseX - 0.5) * 0.85, 0.5);
@@ -8158,6 +8337,20 @@
                 const tether = pin.role === "DM" ? 0.05 : pin.role === "CM" ? 0.08 : 0.11;
                 depth = lerp(depth, clamp(defLine + tether, defLine + 0.03, midLine + 0.02), 0.42);
                 depth = Math.min(depth, midLine + (pin.role === "AM" ? 0.04 : 0.02));
+              }
+
+              // Bug fix — LINE_ROLE pins W to "atk" (the team's most advanced
+              // line) unconditionally, so the base depth computed above the
+              // attacking/defending split left wingers parked on the
+              // attacking line even while the team defends. Real user
+              // report: "wingers come down while defending, venture into
+              // central areas" — they don't in this engine at all right
+              // now. Drop the winger back toward the midfield line, deeper
+              // still as the danger rises (own box under threat), same
+              // shape as every other outfield role already gets.
+              if (pin.role === "W") {
+                const wDefDepth = lerp(midLine + bias, defLine + 0.14 + bias, clamp(threat * 1.5, 0, 1));
+                depth = Math.min(depth, wDefDepth);
               }
 
               const carrier = findCarrier();
@@ -8186,11 +8379,18 @@
               const mark = threats[0] || null;
 
               let naturalMode = "hold";
+              // Bug fix — W was excluded from every defensive mode below
+              // (press/track/mark all role-gated without it), so naturalMode
+              // stayed "hold" for a winger 100% of the time on defence — no
+              // pressing, no tracking a runner, no marking anyone, ever.
+              // Give them the same eligibility as a FB: they're the ones
+              // actually positioned out on the flank to close down the ball.
               const pressEligible =
                 pin.role === "DM" ||
                 pin.role === "CM" ||
                 pin.role === "FB" ||
                 pin.role === "CB" ||
+                pin.role === "W" ||
                 (!threeBack && pin.role === "AM");
               const ranked = pins
                 .filter(
@@ -8199,12 +8399,13 @@
                     p.role === "CM" ||
                     p.role === "FB" ||
                     p.role === "CB" ||
+                    p.role === "W" ||
                     (!threeBack && p.role === "AM")
                 )
                 .map((p) => ({
                   id: p.id,
                   d: dist({ left: p.left, top: p.top }, { left: ballLeft, top: ballTop }),
-                  mid: p.role === "DM" || p.role === "CM" ? 0 : p.role === "FB" || p.role === "AM" ? 1 : 2,
+                  mid: p.role === "DM" || p.role === "CM" ? 0 : p.role === "FB" || p.role === "AM" || p.role === "W" ? 1 : 2,
                 }))
                 .sort((a, b) => a.mid - b.mid || a.d - b.d);
               const nPressBase = pressEdge > 0.15 ? (press > 0.55 ? 4 : 3) : press > 0.7 ? 3 : press > 0.42 ? 2 : 1;
@@ -8241,7 +8442,7 @@
 
               if (
                 runner &&
-                (pin.role === "CB" || pin.role === "FB" || (pin.role === "DM" && defQ > 0.5)) &&
+                (pin.role === "CB" || pin.role === "FB" || pin.role === "W" || (pin.role === "DM" && defQ > 0.5)) &&
                 dist(pin, runner) < 16 + trackBoost * 3
               ) {
                 naturalMode = "track";
@@ -8263,7 +8464,7 @@
                   threat > 0.35)
               ) {
                 naturalMode = "cover";
-              } else if (mark && (pin.role === "CB" || pin.role === "FB" || pin.role === "DM" || pin.role === "CM")) {
+              } else if (mark && (pin.role === "CB" || pin.role === "FB" || pin.role === "DM" || pin.role === "CM" || pin.role === "W")) {
                 naturalMode = "mark";
               }
 
@@ -8456,12 +8657,16 @@
                 }
               }
 
-              // Wingers/CAM sat out of any defensive duty entirely — fine to
-              // not track back into their own box, but they shouldn't just
-              // stay pinned upfield either while their side defends. Nudge
-              // them back toward at least the halfway line under real
-              // pressure, well short of the CB/FB/DM low-block retreat above.
-              if (threat > 0.12 && (pin.role === "W" || pin.role === "AM")) {
+              // CAM sat out of any defensive duty entirely — fine to not
+              // track back into their own box, but shouldn't stay pinned
+              // upfield either while the side defends. Nudge back toward at
+              // least the halfway line under real pressure, well short of
+              // the CB/FB/DM low-block retreat above. (W's own retreat is
+              // handled earlier, right after the threeBack tether — this
+              // guard used to also cover W but the condition was inverted:
+              // `depth < wingRetreatCap` only fires when already deep, i.e.
+              // never for a winger actually pinned forward.)
+              if (threat > 0.12 && pin.role === "AM") {
                 const wingRetreatCap = midLine + 0.05;
                 if (depth < wingRetreatCap) {
                   depth = lerp(depth, wingRetreatCap, 0.14 + threat * 0.2);
@@ -9237,6 +9442,17 @@
         patternBaselinePressure: null,
         patternHint: null,
         awaitingBoxShot: false,
+        // Per-action scoring project, Phase C — continuity for the unified
+        // evaluateArrivals argmax. Same shape as pattern/patternConfidence
+        // above (start 100, decay -15/action, invalidated on a pressure
+        // spike) but tracks a concrete last-picked action type instead of
+        // an abstract category, so scoring doesn't flip-flop tick to tick
+        // while still letting a genuinely much better option win instantly
+        // (it's an additive nudge, not a gate).
+        lastActionType: null,
+        lastActionTargetId: null,
+        actionContinuityConfidence: 100,
+        actionContinuityBaselinePressure: null,
       };
       phase = "BUILD_UP";
       pushMatchEvent("possession", side, { detail: reason || "builds" });
@@ -9245,10 +9461,17 @@
         say(`${name} in possession`, 1.4);
       }
       // FM Mobile broadcast mode -- a spell that's going to attempt a
-      // chance gets the slow full-pitch view from the start of the
-      // possession, so the viewer sees the buildup rather than the camera
-      // only snapping in for the shot itself.
-      if (mobileBroadcast && willChance) {
+      // chance gets the slow full-pitch view once it's actually
+      // APPROACHING that chance (see MOBILE_BUILDUP_WINDOW below), not
+      // from the moment the possession starts. Bug fix -- this used to
+      // fire unconditionally on willChance alone, and spells can run
+      // 3.6-15 match-minutes (drawSpellDuration), so a long spell put the
+      // full pitch up for its ENTIRE duration: measured live, 90.7% of a
+      // full match ended up in "live" mode, inverting the whole point of
+      // the commentary-first design. Only a spell already short enough to
+      // BE within the buildup window at kickoff triggers here; everything
+      // else is caught by the tick-loop poll once it's actually close.
+      if (mobileBroadcast && willChance && dur <= MOBILE_BUILDUP_WINDOW) {
         mobileBuildupActive = true;
         if (mobileEventUntilTs <= 0) {
           speed = MOBILE_EVENT_SPEED;
@@ -10212,7 +10435,7 @@
 
         // Clear run (isolation): count how many other defenders are nearby
         const nearDefenders = pinsOf(oppOf(carrier.side)).filter(
-          d => d.role !== "GK" && dist(d, carrier) < 12
+          d => d.role !== "GK" && dist(d, carrier) < 14
         ).length;
         const isClear = nearDefenders <= 1; // Isolated or 1-on-1
 
@@ -10226,11 +10449,19 @@
         const scoreDiff = scoreOf(oppOf(opp.side)) - scoreOf(opp.side); // Positive = defending team trailing
         const isTrailing = scoreDiff > 0;
 
-        // Tactical foul boost: only applies outside box and in clear, dangerous situations
-        const tacticalFoulBoost = !inBox && ((isClear && dangerProximity > 0.3 && isTrailing) ? 0.08 :
-                                             (isClear && dangerProximity > 0.5) ? 0.05 : 0);
+        // Bug fix — real user report: fouls/cards/free kicks read as
+        // extremely rare across a full match, "teams are not fighting for
+        // the ball and fighting for winning." This is the ONLY foul source
+        // in the whole engine (there's no separate foul chance on a tackle
+        // outside a dribble duel), so it was carrying way less weight than
+        // real football's actual foul rate demands. Raised both the base
+        // rate and the tactical/cynical-foul bonus — a team fighting to
+        // stay in the game should be noticeably more willing to give away a
+        // cheap free kick to stop a dangerous break, not just occasionally.
+        const tacticalFoulBoost = !inBox && ((isClear && dangerProximity > 0.3 && isTrailing) ? 0.16 :
+                                             (isClear && dangerProximity > 0.5) ? 0.1 : 0);
 
-        const foulP = (0.22 - duelQuality * 0.14) + (inPenaltyBox(carrier) ? 0.1 : 0) + cardNudge + tacticalFoulBoost;
+        const foulP = (0.32 - duelQuality * 0.16) + (inPenaltyBox(carrier) ? 0.12 : 0) + cardNudge + tacticalFoulBoost;
         if (opp && rng() < foulP) {
           pushMatchEvent("foul", opp.side, {
             player: opp.player,
@@ -12909,9 +13140,19 @@
       // FM Mobile broadcast mode -- willAttemptChance isn't only set at
       // beginSpell; several mid-spell decision points (progressToward-box
       // probes, etc.) can flip it true well after the possession started.
-      // Poll every tick so the buildup view kicks in the instant a spell
-      // commits to a chance, from whichever code path did it.
-      if (mobileBroadcast && spell && spell.willAttemptChance && !mobileBuildupActive) {
+      // Poll every tick so the buildup view kicks in once a spell that's
+      // committed to a chance is actually APPROACHING it (within
+      // MOBILE_BUILDUP_WINDOW of spell.end), not the instant the flag
+      // turns true -- see the beginSpell comment for why an unbounded
+      // trigger blew up the fast/slow ratio for any spell that took a
+      // while to resolve.
+      if (
+        mobileBroadcast &&
+        spell &&
+        spell.willAttemptChance &&
+        !mobileBuildupActive &&
+        spell.end - matchMinute <= MOBILE_BUILDUP_WINDOW
+      ) {
         mobileBuildupActive = true;
         if (mobileEventUntilTs <= 0) {
           speed = MOBILE_EVENT_SPEED;
