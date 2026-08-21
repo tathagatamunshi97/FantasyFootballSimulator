@@ -3434,7 +3434,21 @@
       const depth = possessionDepth(carrier);
       if (depth < 0.1 || (threat && threat.d < 7 && openness <= 0.55)) return 0;
       const score = clamp(openness * 0.4 * (0.55 + depth * 0.6), 0, 0.48);
-      const discountWeight = stage === "PROGRESSING" || stage === "BUILD_UP" ? 0.6 : 0.2;
+      // Bug fix -- this discount used to apply to every role equally, but
+      // "a creative player should look for the pass, not carry it himself"
+      // only really holds for a distributor whose own creativity is
+      // genuinely pass-based (CM/AM/DM). A winger's or striker's
+      // key_passes90/xa90 are just as often earned BY carrying into a
+      // crossing or shooting position in the first place -- applying the
+      // full build-up/progression discount to them was steering exactly
+      // the players whose primary creative tool IS the carry away from it,
+      // at the moment (an early switch of play to an already-advanced wide
+      // player, while the team's own spell.stage is still PROGRESSING)
+      // they'd most want to run at their marker. Non-distributor roles now
+      // get the same light 0.2 weight scoreCarry already uses outside
+      // build-up/progression, instead of an extra stage-specific penalty.
+      const isPrimaryDistributor = carrier.role === "CM" || carrier.role === "AM" || carrier.role === "DM";
+      const discountWeight = (stage === "PROGRESSING" || stage === "BUILD_UP") && isPrimaryDistributor ? 0.6 : 0.2;
       return clamp(score * (1 - carrierCreativity(carrier) * discountWeight), 0, 0.48);
     }
 
@@ -3486,7 +3500,11 @@
         attackerEdge -= (second.pin.stats.tackles90 || 0) * 0.05 + 0.04;
       }
       const score = clamp(0.2 + attackerEdge, 0.05, 0.55);
-      const discountWeight = stage === "PROGRESSING" || stage === "BUILD_UP" ? 0.6 : 0.2;
+      // Same distributor-role scoping as scoreCarry above, same reasoning:
+      // a winger or striker's creative output is usually earned BY
+      // dribbling into a dangerous position, not a reason to dribble less.
+      const isPrimaryDistributor = carrier.role === "CM" || carrier.role === "AM" || carrier.role === "DM";
+      const discountWeight = (stage === "PROGRESSING" || stage === "BUILD_UP") && isPrimaryDistributor ? 0.6 : 0.2;
       return clamp(score * (1 - carrierCreativity(carrier) * discountWeight), 0.03, 0.55);
     }
 
