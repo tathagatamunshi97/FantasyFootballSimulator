@@ -442,6 +442,16 @@ a.module-card:hover .module-cta { gap: 0.5rem; }
 .module-card.tint-cyan { --module-tint: var(--accent2); --module-tint-soft: var(--accent2-soft); }
 .module-card.tint-live { --module-tint: var(--live); --module-tint-soft: var(--live-soft); }
 
+.results-card {
+  background: var(--panel);
+  border: 1px solid var(--border-soft);
+  border-left: 3px solid var(--gold);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.3rem 1.3rem;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.5rem;
+}
+.results-card .eyebrow { color: var(--gold); margin-bottom: 0.75rem; }
 .results-strip {
   display: flex;
   flex-wrap: wrap;

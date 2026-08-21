@@ -39,7 +39,7 @@ function renderLiveResultCard(liveResult) {
   return `
     <div class="card" style="margin-bottom:1rem">
       <h2>Actual result — played on the live tactic board</h2>
-      <p class="muted">This is what actually happened when the match was hosted live, not the Monte Carlo prediction below.</p>
+      <p class="muted">This is what actually happened when the match was hosted live, not the pre-match prediction below.</p>
       <p style="font-size:1.4rem;font-weight:600">${esc(liveResult.home)} ${liveResult.home_goals}–${liveResult.away_goals} ${esc(liveResult.away)}</p>
       ${rows ? `<table style="width:100%"><thead><tr><th>Min</th><th>Team</th><th>Scorer</th></tr></thead><tbody>${rows}</tbody></table>` : `<p class="muted">No goal-by-goal detail recorded.</p>`}
     </div>`;
@@ -61,7 +61,7 @@ function renderHostLiveCard() {
   return `
     <div class="card" style="margin-bottom:1rem">
       <h2>Play this match live</h2>
-      <p class="muted">Host these two teams on the live tactic board instead of relying on the Monte Carlo prediction — the actual scorers/assists/result get recorded here once played.</p>
+      <p class="muted">Host these two teams on the live tactic board instead of relying on the pre-match prediction — the actual scorers/assists/result get recorded here once played.</p>
       <button type="button" id="hostLiveBtn" class="btn-primary">Host live match</button>
     </div>`;
 }

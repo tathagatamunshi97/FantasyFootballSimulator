@@ -108,13 +108,14 @@ function wireMatchdayActions(session) {
       const showReport = (report) => {
         const analysis = report?.analysis || r.analysis;
         const squad = report?.squad_analysis || r.squad_analysis;
+        const matchup = report?.matchup || r.matchup;
         panel.hidden = false;
         let html = "";
         if (typeof renderAnalysis === "function" && analysis) {
           html += renderAnalysis(analysis);
         }
         if (typeof renderSquadAnalysis === "function" && squad) {
-          html += renderSquadAnalysis(squad);
+          html += renderSquadAnalysis(squad, matchup);
         }
         if (!html && analysis) {
           html = `<div class="card"><pre style="white-space:pre-wrap;font-size:0.85rem">${esc(

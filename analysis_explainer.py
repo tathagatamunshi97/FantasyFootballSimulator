@@ -353,29 +353,6 @@ def build_matchup_analysis(report: dict[str, Any]) -> dict[str, Any]:
         insert_at = 2 if sections_season else 1
         sections.insert(insert_at, bench_section)
 
-    top_score = ""
-    if mc.get("scorelines"):
-        top = mc["scorelines"][0]
-        top_score = f"Most common scoreline: {top['score']} ({_pct_str(top['pct'])})."
-    sections.append(
-        {
-            "title": "Monte Carlo interpretation",
-            "paragraphs": [
-                (
-                    f"Across {mc['simulations']:,} neutral-venue runs, average scoreline tendency is "
-                    f"{_fmt(mc['home_goals_avg'])}–{_fmt(mc['away_goals_avg'])}. "
-                    f"Both teams score {_pct_str(mc['btts_pct'])} of the time; over 2.5 goals "
-                    f"{_pct_str(mc['over_2_5_pct'])}."
-                ),
-                top_score or "Outcome spread follows Poisson variance around the expected xG means.",
-            ],
-            "bullets": [
-                f"Trophy boost: {home_name} ×{mc['home_trophy_multiplier']:.3f}, "
-                f"{away_name} ×{mc['away_trophy_multiplier']:.3f} (applied in simulation units).",
-            ],
-        }
-    )
-
     return {
         "favorite": favorite,
         "favorite_side": fav_side,
@@ -835,29 +812,9 @@ def _analyze_single_squad(
     grouped = _group_tier_items(tier_items)
     strengths, weaknesses = _legacy_strengths_weaknesses(grouped)
 
-    attack_bullets = [
-        f"Attacking effectiveness {ext['attacking_effectiveness']:.2f} (whole XI).",
-        f"Unit attack {u['attack']:.2f}; finishing {u['finishing']:.2f}; creation {u['chance_creation']:.2f}.",
-        f"Raw xG split: finishing {ext['xg_split']['finishing']:.2f} + creation {ext['xg_split']['creation']:.2f}.",
-    ]
-    sections.append({"title": "Attack", "bullets": attack_bullets})
-
-    mid_bullets = [
-        f"Midfield unit (DM/CM/AM slots) {u['midfield']:.2f}; team midfield control {tc.get('midfield_control', 0):.2f}.",
-        f"Possession control {ext['possession_control']:.2f}; pass completion avg {ext.get('avg_pass_pct', 0):.1f}%.",
-        f"Pressing intensity {ext.get('pressing_intensity', 0):.2f}; press resistance {ext.get('press_resistance', tc.get('press_resistance', 0)):.2f}.",
-    ]
-    sections.append({"title": "Midfield", "bullets": mid_bullets})
-
-    def_bullets = [
-        f"Back-line unit {u['defence']:.2f}; midfield shield {u['midfield_defence']:.2f}.",
-        f"Team defensive solidity {tc.get('defensive_solidity', 0):.2f}; aerial defence {tc.get('aerial_defence', 0):.2f}; xGA suppression {ext['xga_suppression']:.3f}.",
-        f"Transition risk {u['transition_risk']:.2f} (lower is safer).",
-    ]
     if fb.get("fullbacks"):
         fb_names = ", ".join(f"{r['player']} ({r['slot']})" for r in fb["fullbacks"][:2])
-        def_bullets.append(f"Wide defenders: {fb_names}.")
-    sections.append({"title": "Defence", "bullets": def_bullets})
+        sections.append({"title": "Defence", "bullets": [f"Wide defenders: {fb_names}."]})
 
     weak_slots = [p for p in fit_players if p.get("fit", 1) < 0.55]
     fit_bullets = [
@@ -891,15 +848,6 @@ def _analyze_single_squad(
     else:
         depth_bullets.append(bench.get("summary") or "Bench present but no elite depth traits detected.")
     sections.append({"title": "Squad depth", "bullets": depth_bullets})
-
-    team_profile_bullets = [
-        f"Creativity {tc.get('creativity', 0):.2f} · Midfield control {tc.get('midfield_control', 0):.2f} · "
-        f"Possession {tc.get('possession_control', 0):.2f}.",
-        f"Finishing threat {tc.get('finishing_threat', 0):.2f} · Defensive solidity {tc.get('defensive_solidity', 0):.2f}.",
-        f"Pressing {tc.get('pressing_intensity', 0):.2f} · Press resistance {tc.get('press_resistance', 0):.2f} · "
-        f"Team profile overall {tc.get('overall', 0):.2f}.",
-    ]
-    sections.append({"title": "Team profile", "bullets": team_profile_bullets})
 
     summary_parts = grouped["strength"][:1] + grouped["weakness"][:1]
     summary = f"{team_name}: " + ("; ".join(summary_parts) if summary_parts else "Balanced profile across units.")
@@ -1701,9 +1649,6 @@ def enrich_analysis_with_board_result(
     out = dict(analysis)
     sections = list(analysis.get("sections") or [])
 
-    # Drop Monte Carlo interpretation for board-official results — keep ratings sections.
-    sections = [s for s in sections if (s.get("title") or "") != "Monte Carlo interpretation"]
-
     stack = _pre_match_stackup_section(report, home_name, away_name)
     happened = _what_happened_section(home_name, away_name, home_goals, away_goals, events)
     worked = _what_worked_section(
@@ -1760,7 +1705,7 @@ def enrich_analysis_with_board_result(
         "engine": "tactic_board",
         "xg": board_xg,
     }
-    # Prefer pin-board xG in key factors over Monte Carlo expected_xg (often ~even).
+    # Prefer pin-board xG in key factors over the pre-match expected_xg (often ~even).
     if board_xg and isinstance(out.get("key_factors"), list):
         out["key_factors"] = [
             f
@@ -1775,7 +1720,7 @@ def enrich_analysis_with_board_result(
                 "explanation": (
                     f"Official chance volume from the tactic board "
                     f"({home_name} {board_xg['home']:.2f} – {board_xg['away']:.2f} {away_name}). "
-                    "Pre-match Monte Carlo xG is ratings-only and can look even when the board did not."
+                    "Pre-match expected xG is ratings-only and can look even when the board did not."
                 ),
                 "home": board_xg["home"],
                 "away": board_xg["away"],

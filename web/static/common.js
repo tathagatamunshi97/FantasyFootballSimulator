@@ -287,11 +287,6 @@ function renderScoutComparisons(rows, title) {
   return `<h4 style="font-size:0.85rem;margin:1rem 0 0.35rem">${esc(title)}</h4><div class="scout-comparisons">${body}</div>`;
 }
 
-function barRow(label, value, max = 100) {
-  const w = Math.min(100, (Number(value) / max) * 100);
-  return `<div class="bar-row"><span style="width:5rem">${esc(label)}</span><div class="bar-track"><div class="bar-fill" style="width:${w}%"></div></div><span style="width:3rem;text-align:right">${esc(value)}%</span></div>`;
-}
-
 function renderLineup(team) {
   return team.lineup
     .map((p) => `<div class="slot-row"><span>${esc(p.slot)}</span><span>${esc(p.player)}</span></div>`)
@@ -299,8 +294,6 @@ function renderLineup(team) {
 }
 
 function renderTeamProfile(side, teamName) {
-  const ext = side.extended;
-  const u = ext.units;
   const fb = side.fullbacks;
   const fbRows = (fb.fullbacks || [])
     .map(
@@ -308,28 +301,22 @@ function renderTeamProfile(side, teamName) {
         `<tr><td>${esc(f.player)}</td><td>${esc(f.slot)}</td><td>${f.xa90}</td><td>${f.creation_score}</td><td>${f.attack_exposure}</td></tr>`
     )
     .join("");
+  if (!fbRows) return "";
 
   return `
     <div class="card">
-      <h3>${esc(teamName)}</h3>
-      ${renderUnits(u, { showNotes: false })}
-      <p class="muted" style="margin:0.75rem 0 0">
-        Possession ${num(ext.possession_control)} · Chance creation ${num(ext.chance_creation)} ·
-        Fit ${num(ext.formation_fit)} · xGA suppress ${num(ext.xga_suppression, 3)}
-      </p>
-      <p class="muted">Raw xG: fin ${ext.xg_split?.finishing} + create ${ext.xg_split?.creation} = ${ext.xg_split?.total_raw}</p>
-      ${fbRows ? `<h3 style="margin-top:1rem;font-size:0.9rem">Fullbacks</h3>
-        <table><thead><tr><th>Player</th><th>Slot</th><th>xA</th><th>Create</th><th>Exposure</th></tr></thead><tbody>${fbRows}</tbody></table>
-        <p class="muted">Transition risk ${num(fb.transition_risk, 3)}</p>` : ""}
+      <h3>${esc(teamName)} fullbacks</h3>
+      <table><thead><tr><th>Player</th><th>Slot</th><th>xA</th><th>Create</th><th>Exposure</th></tr></thead><tbody>${fbRows}</tbody></table>
+      <p class="muted">Transition risk ${num(fb.transition_risk, 3)}</p>
     </div>`;
 }
 
-function renderSquadAnalysis(squadAnalysis) {
+function renderSquadAnalysis(squadAnalysis, matchup) {
   if (!squadAnalysis) return "";
 
-  function renderSide(side) {
+  function renderSide(side, team) {
     if (!side) return "";
-    return renderSingleSquadEval(side);
+    return renderSingleSquadEval(side, team);
   }
 
   return `
@@ -337,8 +324,8 @@ function renderSquadAnalysis(squadAnalysis) {
       <h2>Squad strengths &amp; weaknesses</h2>
       <p class="muted">Per-team breakdown from player stats, formation fit, unit ratings, and bench depth.</p>
       <div class="grid grid-2" style="margin-top:1rem">
-        ${renderSide(squadAnalysis.home)}
-        ${renderSide(squadAnalysis.away)}
+        ${renderSide(squadAnalysis.home, matchup?.home)}
+        ${renderSide(squadAnalysis.away, matchup?.away)}
       </div>
     </section>`;
 }
@@ -438,7 +425,7 @@ function renderAnalysis(analysis) {
     boardXg && (boardXg.home != null || boardXg.away != null)
       ? `<p class="muted" style="margin:0.35rem 0 0">Pin-board live xG: <strong>${esc(
           String(boardXg.home ?? "—")
-        )} – ${esc(String(boardXg.away ?? "—"))}</strong> (official chance volume — not Monte Carlo)</p>`
+        )} – ${esc(String(boardXg.away ?? "—"))}</strong> (official chance volume, not the pre-match projection)</p>`
       : "";
   return `
     <section class="card analysis-card" style="margin-top:1rem">
@@ -454,23 +441,6 @@ function renderReport(report, matchup) {
   const mc = report.monte_carlo;
   const home = matchup.home.name;
   const away = matchup.away.name;
-  const topScores = (mc.scorelines || [])
-    .slice(0, 8)
-    .map((r) => barRow(r.score, r.pct, 10))
-    .join("");
-
-  const sample = report.sample_match;
-  let sampleHtml = "";
-  if (sample) {
-    sampleHtml = `
-      <div class="card">
-        <h2>Sample match</h2>
-        <p style="font-size:1.35rem;font-weight:700;text-align:center">
-          ${esc(sample.home.team)} <strong>${sample.home.goals} – ${sample.away.goals}</strong> ${esc(sample.away.team)}
-        </p>
-        <p class="muted" style="text-align:center">xG ${sample.home.xg} – ${sample.away.xg} · Winner: ${esc(sample.winner || "Draw")}</p>
-      </div>`;
-  }
 
   const watchCard =
     typeof TacticBoard !== "undefined" && TacticBoard.renderWatchCard
@@ -514,18 +484,13 @@ function renderReport(report, matchup) {
       </div>
     </section>
 
-    <div class="grid grid-2" style="margin-top:1rem">
-      <div class="card">
-        <h2>Top scorelines</h2>
-        ${topScores || "<p class='muted'>—</p>"}
-      </div>
-      ${sampleHtml}
-    </div>
-
-    <div class="grid grid-2" style="margin-top:1rem">
-      ${renderTeamProfile(report.profiles.home, home)}
-      ${renderTeamProfile(report.profiles.away, away)}
-    </div>
+    ${(() => {
+      const fbHome = renderTeamProfile(report.profiles.home, home);
+      const fbAway = renderTeamProfile(report.profiles.away, away);
+      return fbHome || fbAway
+        ? `<div class="grid grid-2" style="margin-top:1rem">${fbHome}${fbAway}</div>`
+        : "";
+    })()}
 
     <section class="card lineup" style="margin-top:1rem">
       <div>
@@ -658,7 +623,7 @@ function renderMatchdaySession(status, { isAdmin = false } = {}) {
     const waiting =
       session.engine === "tactic_board" || session.board
         ? `<p class="muted" style="margin:0 0 0.75rem">Shared live tactic board — possession and xG update for everyone.</p>`
-        : `<p class="muted" style="margin:0 0 0.75rem">Monte Carlo in progress…</p>`;
+        : `<p class="muted" style="margin:0 0 0.75rem">Simulation in progress…</p>`;
     phaseBody = `
       <div>
         ${waiting}
