@@ -7,48 +7,86 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/static/styles.css?v=engine-realism-10" />
+  <link rel="stylesheet" href="/static/styles.css?v=engine-realism-11" />
 </head>
 <body>
-  <header>
-    <div class="landing-hero">
-      <h1>Football Match Simulator</h1>
-      <div class="sub">Monte Carlo H2H matchups · fantasy tournaments · squad hub</div>
-    </div>
+  <header class="brand-nav">
+    <a href="/" class="brand-mark">
+      <span class="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M12 7.2 15.4 9.6l-1.3 4.1H9.9L8.6 9.6 12 7.2Z"/>
+          <path d="M12 3v4.2M4.6 8l3.3 1.4M4.9 16.3l4-2.6M19.4 8l-3.3 1.4M19.1 16.3l-4-2.6M12 20.8v-3.6"/>
+        </svg>
+      </span>
+      <span class="brand-word">Football Match Simulator</span>
+    </a>
+    <nav class="brand-nav-links" id="navLinks">
+      <a href="/matchday">Matchday</a>
+      <a href="/tournament">Tournament</a>
+      <a href="/squad">Squad Hub</a>
+      <a href="/admin" id="navAdminLink" hidden>Admin</a>
+      <a href="/login" id="navLoginLink">Log in</a>
+      <button type="button" id="navLogoutBtn" class="btn-ghost btn-sm" hidden style="margin-left:0.25rem">Log out</button>
+    </nav>
   </header>
 
-  <main style="max-width: 720px; margin: 2rem auto; padding: 0 1rem;">
-    <div class="grid" style="gap: 1rem;">
-      <a href="/admin" class="card landing-card">
-        <h2>Admin</h2>
-        <p class="muted">Master control panel — tournaments, team passwords, fixture runs. Requires <code>SIM_ADMIN_TOKEN</code>.</p>
+  <main style="max-width: 1080px;">
+    <section class="hero" id="heroSection">
+      <div class="hero-eyebrow"><span class="dot"></span> Active tournament</div>
+      <div id="heroBody" class="hero-empty">Loading tournament status…</div>
+    </section>
+
+    <div class="module-grid">
+      <a href="/matchday" class="module-card tint-live">
+        <span class="module-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"/></svg>
+        </span>
+        <span class="eyebrow">Matchday</span>
+        <h3>Live fixture broadcast</h3>
+        <div class="module-detail" id="matchdayDetail">Watch a fixture play out on the tactic board, kickoff to full time.</div>
+        <span class="module-cta">Open matchday →</span>
       </a>
-      <a href="/tournament" class="card landing-card">
-        <h2>Tournament</h2>
-        <p class="muted">Live active tournament — standings, fixtures, results, and knockout bracket.</p>
+
+      <a href="/tournament" class="module-card">
+        <span class="module-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10"/>
+            <path d="M17 4v2a5 5 0 0 1-5 5 5 5 0 0 1-5-5V4"/>
+            <path d="M17 5h2a2 2 0 0 1 0 4h-1"/><path d="M7 5H5a2 2 0 0 0 0 4h1"/>
+          </svg>
+        </span>
+        <span class="eyebrow">Tournament</span>
+        <h3>Standings &amp; fixtures</h3>
+        <div class="module-detail" id="tournamentDetail">Groups, results, and the knockout bracket for the active competition.</div>
+        <span class="module-cta">View tournament →</span>
       </a>
-      <a href="/matchday" class="card landing-card">
-        <h2>Matchday</h2>
-        <p class="muted">Live tournament fixture broadcast only — setup, simulation, and result (login required).</p>
-      </a>
-      <a href="/squad" class="card landing-card">
-        <h2>Squad hub</h2>
-        <p class="muted">Build your starting XI, set formation and season picks, run squad reports (team login).</p>
-      </a>
-      <a href="/lab" class="card landing-card">
-        <h2>Team lab</h2>
-        <p class="muted">Ad-hoc custom matchups and experiments (admin login only).</p>
+
+      <a href="/squad" class="module-card tint-cyan">
+        <span class="module-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </span>
+        <span class="eyebrow">Squad hub</span>
+        <h3>Starting XI &amp; scouting</h3>
+        <div class="module-detail" id="squadDetail">Build your formation, set season picks, and run squad reports.</div>
+        <span class="module-cta">Manage squad →</span>
       </a>
     </div>
-    <p style="text-align: center; margin-top: 1.5rem;">
-      <a href="/login" class="btn-link">Log in</a>
-      <a href="/squad" class="btn-link">Squad hub</a>
-      <a href="/matchday" class="btn-link">Matchday</a>
-    </p>
+
+    <section id="resultsSection" hidden>
+      <div class="eyebrow" style="margin-bottom:0.6rem">Recent results</div>
+      <div class="results-strip" id="resultsStrip"></div>
+    </section>
   </main>
 
   <footer>
     Engine v2 · Sofascore + Understat
   </footer>
+
+  <script src="/static/common.js?v=engine-realism-11"></script>
+  <script src="/static/landing.js?v=engine-realism-11"></script>
 </body>
 </html>
