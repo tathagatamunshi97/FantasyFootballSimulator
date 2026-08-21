@@ -1226,11 +1226,23 @@ tr.matchday-live { background: var(--success-soft); }
   width: 1px;
   background: rgba(232, 238, 247, 0.28);
 }
+/* Bug fix -- these were drawn at made-up proportions, not the real
+   105x68m pitch this app already uses for .tactic-pitch's aspect-ratio
+   and for the engine's own pitch-meter math (PITCH_LENGTH_M/
+   PITCH_WIDTH_M in tactic_board.js). Since the container's pixel aspect
+   ratio already exactly matches 105:68, a single width% with
+   aspect-ratio:1 maps isotropically to real meters: circle diameter
+   9.15*2=18.3m -> 18.3/105 = 17.4%. Box depth (horizontal axis, 105m) =
+   16.5/105 = 15.7%; box width (vertical axis, 68m) = 40.3/68 = 59.3% --
+   the old 40% made the box a third narrower than the real one on each
+   side, visibly (and, via inPenaltyBox using the same wrong numbers,
+   mechanically) misrepresenting the pitch. Goal width (vertical axis) =
+   7.32/68 = 10.8%. */
 .pitch-circle {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 14%;
+  width: 17.4%;
   aspect-ratio: 1;
   transform: translate(-50%, -50%);
   border: 1px solid rgba(232, 238, 247, 0.28);
@@ -1240,8 +1252,8 @@ tr.matchday-live { background: var(--success-soft); }
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 12%;
-  height: 40%;
+  width: 15.7%;
+  height: 59.3%;
   border: 1px solid rgba(232, 238, 247, 0.28);
 }
 .pitch-box.top { right: 0; border-right: none; }
@@ -1262,7 +1274,7 @@ tr.matchday-live { background: var(--success-soft); }
   top: 50%;
   transform: translateY(-50%);
   width: 2.5%;
-  height: 14%;
+  height: 10.8%;
   border: 2px solid rgba(232, 238, 247, 0.72);
   background: rgba(232, 238, 247, 0.08);
   box-sizing: border-box;

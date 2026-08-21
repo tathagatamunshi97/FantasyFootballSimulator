@@ -5282,16 +5282,30 @@
       return pin.left < 24 || pin.left > 76;
     }
 
+    /**
+     * Bug fix -- the box bounds here were narrower than the real penalty
+     * area on a 105x68m pitch (FIFA reference: box 16.5m deep x 40.3m
+     * wide). Real box depth = 16.5/105 = 0.843 (depth >= that, in the
+     * 0=own-goal/1=opponent-goal convention); real box width = 40.3/68 =
+     * 0.593 of the pitch, centered, so x in [0.5 - 0.593/2, 0.5 + 0.593/2]
+     * = [0.204, 0.796]. The old x in [0.3, 0.7] was only 0.4 of the pitch
+     * wide -- a third narrower than the real box on each side -- which
+     * meant a player standing in a real, wide part of the box (e.g. near
+     * either post) read as OUTSIDE it here, routing them into
+     * isWideShootingZone's lower-angle logic instead of a real boxed
+     * chance. Directly implicated in "nobody gets into the box, goals only
+     * come from low-xG shots" -- the engine was mismeasuring its own box.
+     */
     function inPenaltyBox(pin) {
       if (!pin) return false;
       const rel = fromPitchPct(pin.side, pin.left, pin.top);
-      return rel.depth >= 0.86 && rel.x >= 0.3 && rel.x <= 0.7;
+      return rel.depth >= 0.843 && rel.x >= 0.204 && rel.x <= 0.796;
     }
 
     function nearPenaltyBox(pin) {
       if (!pin) return false;
       const rel = fromPitchPct(pin.side, pin.left, pin.top);
-      return !inPenaltyBox(pin) && rel.depth >= 0.7 && rel.x >= 0.22 && rel.x <= 0.78;
+      return !inPenaltyBox(pin) && rel.depth >= 0.72 && rel.x >= 0.14 && rel.x <= 0.86;
     }
 
     /**
