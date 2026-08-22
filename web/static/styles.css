@@ -1533,3 +1533,62 @@ tr.matchday-live { background: var(--success-soft); }
   .tactic-ticker { font-size: 0.75rem; }
   .tactic-pitch { width: min(100%, 480px); max-height: min(70vh, 360px); }
 }
+
+/* ---- Tactical matchup / key battles (Scout Opponent tab) ---- */
+.tm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.5rem; margin-top: 0.5rem; }
+.tm-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--panel2);
+  border: 1px solid var(--border);
+}
+.tm-row .tm-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.02em; color: var(--muted); }
+.tm-row.tm-good { border-color: rgba(34, 197, 94, 0.3); }
+.tm-row.tm-good span:last-child { color: var(--success); font-weight: 600; }
+.tm-row.tm-bad { border-color: rgba(239, 68, 68, 0.3); }
+.tm-row.tm-bad span:last-child { color: var(--danger); font-weight: 600; }
+
+.kb-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.kb-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--panel2);
+  font-size: 0.88rem;
+}
+.kb-players { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.kb-vs { color: var(--faint); font-size: 0.75rem; text-transform: uppercase; }
+.kb-verdict { font-weight: 600; font-size: 0.82rem; white-space: nowrap; }
+.kb-row.kb-adv { border-color: rgba(34, 197, 94, 0.3); }
+.kb-row.kb-adv .kb-verdict { color: var(--success); }
+.kb-row.kb-dis { border-color: rgba(239, 68, 68, 0.3); }
+.kb-row.kb-dis .kb-verdict { color: var(--danger); }
+.kb-row.kb-even .kb-verdict { color: var(--muted); }
+
+/* ---- Analysis tab form strip ---- */
+.form-strip { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+.form-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.form-chip.form-w { background: var(--success-soft); color: var(--success); }
+.form-chip.form-d { background: var(--panel2); color: var(--muted); border: 1px solid var(--border); }
+.form-chip.form-l { background: var(--danger-soft); color: var(--danger); }
+
+/* ---- Compare two lineups (Lineup Builder tab) ---- */
+.compare-lineups-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; margin-top: 0.5rem; }
+.compare-side { min-width: 0; }

@@ -128,6 +128,35 @@ Do not include any other keys. Write for a manager who already knows their squad
     return _generate_json(prompt)
 
 
+def generate_scout_game_plan(scout_data: dict[str, Any]) -> dict[str, Any] | None:
+    """Manager's game plan grounded in a deterministic scout report.
+
+    ``scout_data`` should be a compact digest: both teams' names/formations,
+    the unit/team comparisons (advantage/disadvantage per area, with the
+    actual values), the tactical_matchup synthesis (biggest advantage/
+    concern), and key_battles (role matchups with a verdict) -- everything
+    the scout report already computed deterministically. The model narrates
+    what these numbers mean tactically; it never invents a stat, a player
+    quality, or a score prediction.
+    """
+    prompt = f"""You are a football analyst writing a pre-match game plan for a fantasy manager, based entirely on a deterministic scout report comparing their squad to an opponent's.
+
+{_GROUNDING_RULE}
+
+SCOUT DATA:
+{json.dumps(scout_data, indent=2, default=str)}
+
+Return JSON with exactly these keys:
+- "headline": one punchy line naming the single clearest tactical opportunity or concern (string)
+- "in_possession": 1-2 sentences on how to attack this specific opponent, grounded in the comparisons/key_battles given (string)
+- "out_of_possession": 1-2 sentences on how to defend against this specific opponent's strengths (string)
+- "transitions": 1-2 sentences on transition moments (attacking or defensive) worth planning for, only if the data supports it -- otherwise a short "Nothing notable in the data" (string)
+- "biggest_danger": 1 sentence on the single biggest risk this matchup poses, grounded in the data (string)
+
+Do not include any other keys, a scoreline, a win probability, or any stat not present in the data given. Write for a manager who already knows football, not a beginner — be specific about which unit/area/player battle you're referencing."""
+    return _generate_json(prompt)
+
+
 def generate_match_commentary(
     home: str, away: str, events: list[dict[str, Any]]
 ) -> dict[str, Any] | None:

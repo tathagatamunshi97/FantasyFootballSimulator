@@ -72,6 +72,21 @@ class WhatIfSwapRequest(BaseModel):
     new_player: str
 
 
+class LineupConfig(BaseModel):
+    formation: str = DEFAULT_FORMATION
+    lineup: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class CompareLineupsRequest(BaseModel):
+    lineup_a: LineupConfig
+    lineup_b: LineupConfig
+
+
+class ScoutCustomLineupRequest(BaseModel):
+    formation: str = DEFAULT_FORMATION
+    lineup: list[dict[str, Any]] = Field(default_factory=list)
+
+
 class TournamentCreateRequest(BaseModel):
     name: str = "Fantasy Tournament"
     team_names: list[str] = Field(default_factory=list)
@@ -745,6 +760,25 @@ def get_my_lineup(
     }
 
 
+@app.get("/api/my-team/analysis")
+def my_team_analysis_api(
+    team: str | None = None,
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Recent tournament form + next fixture for the Squad Hub Analysis tab."""
+    user = _session_user(x_session_token)
+    is_admin = _is_admin(x_admin_token)
+    if not (auth.is_team_user(user) or _is_admin_session(user) or is_admin):
+        raise HTTPException(status_code=403, detail="Analysis requires team or admin login.")
+
+    team_name = _resolve_squad_team_name(user, team=team, is_admin_token=is_admin)
+    if auth.is_team_user(user) and team_name.lower() != user.lower():
+        raise HTTPException(status_code=403, detail="You can only view your own team's analysis.")
+
+    return {"analysis": tournament.team_analysis_summary(team_name)}
+
+
 @app.put("/api/my-lineup")
 def put_my_lineup(
     body: LineupSaveRequest,
@@ -902,6 +936,44 @@ def whatif_squad_api(
             detail=f"What-if comparison failed: {_format_squad_eval_error(exc)}",
         ) from exc
     return {"whatif": result}
+
+
+@app.post("/api/my-squad/compare-lineups")
+def compare_lineups_api(
+    body: CompareLineupsRequest,
+    team: str | None = None,
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Units/team-composite deltas between two hypothetical XIs of your own squad -- not saved."""
+    user = _session_user(x_session_token)
+    is_admin = _is_admin(x_admin_token)
+    if not (auth.is_team_user(user) or _is_admin_session(user) or is_admin):
+        raise HTTPException(status_code=403, detail="Squad test requires team or admin login.")
+
+    team_name = _resolve_squad_team_name(user, team=team, is_admin_token=is_admin)
+    if auth.is_team_user(user) and team_name.lower() != user.lower():
+        raise HTTPException(status_code=403, detail="You can only test your own squad.")
+
+    from squad_intel import compare_lineups
+
+    team_payload = _load_sheet_team_payload(team_name)
+    store = sim_state.get_stats_store()
+    try:
+        result = compare_lineups(
+            team_payload,
+            store,
+            lineup_a=body.lineup_a.model_dump(),
+            lineup_b=body.lineup_b.model_dump(),
+        )
+    except (KeyError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Lineup comparison failed: {_format_squad_eval_error(exc)}",
+        ) from exc
+    return {"compare": result}
 
 
 def _can_view_experiment(
@@ -1101,14 +1173,12 @@ def my_squad_api(
     return {"squad": result}
 
 
-@app.get("/api/scout/{opponent_name}")
-def scout_opponent_api(
+def _resolve_scout_teams(
     opponent_name: str,
-    my_team: str | None = None,
-    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
-    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
-) -> dict:
-    """Limited opponent scout report (comparative, no score predictions)."""
+    my_team: str | None,
+    x_session_token: str | None,
+    x_admin_token: str | None,
+) -> tuple[str, str]:
     user = _session_user(x_session_token)
     is_admin = _is_admin(x_admin_token)
     if not (auth.is_team_user(user) or _is_admin_session(user) or is_admin):
@@ -1119,6 +1189,18 @@ def scout_opponent_api(
         raise HTTPException(status_code=403, detail="You can only scout from your own squad perspective.")
     if opponent_name.strip().lower() == my_team_name.lower():
         raise HTTPException(status_code=400, detail="Cannot scout your own team — use /api/my-squad.")
+    return user, my_team_name
+
+
+@app.get("/api/scout/{opponent_name}")
+def scout_opponent_api(
+    opponent_name: str,
+    my_team: str | None = None,
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Limited opponent scout report (comparative, no score predictions)."""
+    _, my_team_name = _resolve_scout_teams(opponent_name, my_team, x_session_token, x_admin_token)
 
     from squad_intel import build_opponent_scout
 
@@ -1135,6 +1217,93 @@ def scout_opponent_api(
             detail=f"Scout report failed: {_format_squad_eval_error(exc)}",
         ) from exc
     return {"scout": report}
+
+
+@app.post("/api/scout/{opponent_name}")
+def scout_opponent_custom_api(
+    opponent_name: str,
+    body: ScoutCustomLineupRequest,
+    my_team: str | None = None,
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Scout report against a hypothetical opponent XI you set up yourself
+    (e.g. "what if they play their best XI") -- not the opponent's real
+    saved lineup."""
+    _, my_team_name = _resolve_scout_teams(opponent_name, my_team, x_session_token, x_admin_token)
+
+    from squad_intel import build_opponent_scout
+
+    my_payload = _load_sheet_team_payload(my_team_name)
+    opp_payload = _load_sheet_team_payload(opponent_name)
+    store = sim_state.get_stats_store()
+    try:
+        report = build_opponent_scout(
+            my_payload,
+            opp_payload,
+            store,
+            opponent_formation=body.formation,
+            opponent_lineup=body.lineup,
+        )
+    except (KeyError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Scout report failed: {_format_squad_eval_error(exc)}",
+        ) from exc
+    return {"scout": report}
+
+
+@app.post("/api/scout/{opponent_name}/game-plan")
+def scout_game_plan_api(
+    opponent_name: str,
+    body: ScoutCustomLineupRequest | None = None,
+    my_team: str | None = None,
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """AI game plan on top of the deterministic scout report. Best-effort --
+    returns game_plan: null if Gemini is unavailable, never an error, so the
+    deterministic scout report always works standalone."""
+    _, my_team_name = _resolve_scout_teams(opponent_name, my_team, x_session_token, x_admin_token)
+
+    from squad_intel import build_opponent_scout
+
+    my_payload = _load_sheet_team_payload(my_team_name)
+    opp_payload = _load_sheet_team_payload(opponent_name)
+    store = sim_state.get_stats_store()
+    try:
+        if body and body.lineup:
+            report = build_opponent_scout(
+                my_payload, opp_payload, store, opponent_formation=body.formation, opponent_lineup=body.lineup
+            )
+        else:
+            report = build_opponent_scout(my_payload, opp_payload, store)
+    except (KeyError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Scout report failed: {_format_squad_eval_error(exc)}",
+        ) from exc
+
+    import ai_service
+
+    digest = {
+        "my_team": report.get("my_team"),
+        "opponent": report.get("opponent"),
+        "opponent_formation": report.get("formation"),
+        "unit_comparisons": report.get("unit_comparisons"),
+        "team_comparisons": report.get("team_comparisons"),
+        "tactical_matchup": report.get("tactical_matchup"),
+        "key_battles": report.get("key_battles"),
+    }
+    try:
+        game_plan = ai_service.generate_scout_game_plan(digest)
+    except Exception:
+        game_plan = None
+    return {"game_plan": game_plan}
 
 
 @app.get("/api/admin/experiments")

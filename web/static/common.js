@@ -391,6 +391,70 @@ function renderSingleSquadEval(evaluation, team, sideKey) {
     </div>`;
 }
 
+function renderTacticalMatchup(tm, myTeamName, opponentName) {
+  if (!tm || (!tm.my_biggest_advantage && !tm.their_biggest_advantage)) return "";
+  const rows = [
+    tm.my_biggest_advantage
+      ? { label: `Your biggest advantage`, value: tm.my_biggest_advantage, cls: "tm-good" }
+      : null,
+    tm.their_biggest_advantage
+      ? { label: `Their biggest advantage`, value: tm.their_biggest_advantage, cls: "tm-bad" }
+      : null,
+    tm.secondary_advantage ? { label: "Also in your favor", value: tm.secondary_advantage, cls: "tm-good" } : null,
+    tm.secondary_concern ? { label: "Also a concern", value: tm.secondary_concern, cls: "tm-bad" } : null,
+  ].filter(Boolean);
+  const grid = rows
+    .map((r) => `<div class="tm-row ${r.cls}"><span class="tm-label">${esc(r.label)}</span><span>${esc(r.value)}</span></div>`)
+    .join("");
+  const routes = [tm.exploit_route, tm.key_concern].filter(Boolean);
+  return `
+    <div class="card scout-card tactical-matchup-card">
+      <div class="report-eyebrow">Tactical matchup</div>
+      <h3 style="margin:0 0 0.5rem">${esc(myTeamName)} vs ${esc(opponentName)}</h3>
+      <div class="tm-grid">${grid}</div>
+      ${routes.length ? `<ul class="analysis-bullets" style="margin-top:0.85rem">${routes.map((r) => `<li>${esc(r)}</li>`).join("")}</ul>` : ""}
+    </div>`;
+}
+
+function renderKeyBattles(battles) {
+  if (!battles?.length) return "";
+  const verdictLabel = { advantage: "You win this", disadvantage: "They win this", even: "Evenly matched" };
+  const rows = battles
+    .map((b) => {
+      const cls = b.verdict === "advantage" ? "kb-adv" : b.verdict === "disadvantage" ? "kb-dis" : "kb-even";
+      return `<div class="kb-row ${cls}">
+        <div class="kb-players">
+          <span>${esc(b.my_player)} <span class="muted">(${esc(b.my_slot)})</span></span>
+          <span class="kb-vs">vs</span>
+          <span>${esc(b.opp_player)} <span class="muted">(${esc(b.opp_slot)})</span></span>
+        </div>
+        <span class="kb-verdict">${esc(verdictLabel[b.verdict] || b.verdict)}</span>
+      </div>`;
+    })
+    .join("");
+  return `
+    <div class="card scout-card">
+      <div class="report-eyebrow">Key battles</div>
+      <p class="muted" style="margin:0 0 0.75rem">Your starters against whoever's most likely to actually face them, read off existing per-90 stats — a real signal, not a precise prediction.</p>
+      <div class="kb-list">${rows}</div>
+    </div>`;
+}
+
+function renderGamePlan(plan) {
+  if (!plan) return "";
+  const rows = [
+    ["In possession", plan.in_possession],
+    ["Out of possession", plan.out_of_possession],
+    ["Transitions", plan.transitions],
+    ["Biggest danger", plan.biggest_danger],
+  ].filter(([, v]) => v);
+  return `
+    <div class="card scout-card ai-verdict-card">
+      <h2><span class="ai-badge">AI</span>${esc(plan.headline || "Game plan")}</h2>
+      ${rows.map(([label, text]) => `<div class="analysis-block"><h3>${esc(label)}</h3><p>${esc(text)}</p></div>`).join("")}
+    </div>`;
+}
+
 function renderScoutReport(scout) {
   if (!scout) return "";
   const notes = (scout.scout_notes || []).map((n) => `<li>${esc(n)}</li>`).join("");
@@ -410,11 +474,18 @@ function renderScoutReport(scout) {
     `Unit ratings vs ${scout.my_team}`
   );
   const teamCmp = renderScoutComparisons(scout.team_comparisons, `Team profile vs ${scout.my_team}`);
+  const tacticalMatchup = renderTacticalMatchup(scout.tactical_matchup, scout.my_team, scout.opponent);
+  const keyBattles = renderKeyBattles(scout.key_battles);
+  const customBadge = scout.opponent_lineup_is_custom
+    ? `<span class="badge muted" style="margin-left:0.5rem">Custom XI you set up</span>`
+    : `<span class="badge muted" style="margin-left:0.5rem">Their saved lineup</span>`;
   return `
+    ${tacticalMatchup}
+    ${keyBattles}
     <div class="card scout-card">
-      <h3>${esc(scout.opponent)} <span class="muted">expected ${esc(scout.formation)}</span></h3>
+      <h3>${esc(scout.opponent)} <span class="muted">${esc(scout.formation)}</span>${customBadge}</h3>
       <p class="muted">${esc(scout.summary || "")}</p>
-      <h4 style="font-size:0.85rem;margin:1rem 0 0.35rem">Expected lineup</h4>
+      <h4 style="font-size:0.85rem;margin:1rem 0 0.35rem">Lineup scouted</h4>
       ${lineup}
       ${bench}
       <h4 style="font-size:0.85rem;margin:1rem 0 0.35rem">Their unit ratings</h4>
@@ -424,7 +495,8 @@ function renderScoutReport(scout) {
       ${unitCmp}
       ${teamCmp}
       ${notes ? `<h4 style="font-size:0.85rem;margin:1rem 0 0.35rem">Scout notes</h4><ul class="analysis-bullets">${notes}</ul>` : ""}
-    </div>`;
+    </div>
+    <div id="gamePlanContainer" style="margin-top:1rem"></div>`;
 }
 
 function renderAnalysis(analysis) {

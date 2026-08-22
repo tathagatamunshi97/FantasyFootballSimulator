@@ -1022,6 +1022,57 @@ def build_scout_report(
     }
 
 
+def build_tactical_matchup(scout_report: dict[str, Any]) -> dict[str, Any]:
+    """Turns the scout report's per-area advantage/disadvantage rows into a
+    football conclusion, not just a longer list of numbers: your biggest
+    edge, their biggest edge, and the two areas most worth building a plan
+    around. Pure synthesis of unit_comparisons/team_comparisons the scout
+    report already computed -- no new stats.
+    """
+    rows = (scout_report.get("unit_comparisons") or []) + (scout_report.get("team_comparisons") or [])
+    if not rows:
+        return {}
+
+    def _gap(r: dict[str, Any]) -> float:
+        return abs(float(r.get("my_value") or 0) - float(r.get("opp_value") or 0))
+
+    advantages = sorted((r for r in rows if r["verdict"] == "advantage"), key=_gap, reverse=True)
+    disadvantages = sorted((r for r in rows if r["verdict"] == "disadvantage"), key=_gap, reverse=True)
+
+    top_adv = advantages[0] if advantages else None
+    top_dis = disadvantages[0] if disadvantages else None
+
+    result: dict[str, Any] = {
+        "my_biggest_advantage": top_adv["area"] if top_adv else None,
+        "their_biggest_advantage": top_dis["area"] if top_dis else None,
+        "exploit_route": None,
+        "key_concern": None,
+    }
+    if top_adv:
+        result["exploit_route"] = (
+            f"Lean on {top_adv['area'].lower()} — you have a real edge there "
+            f"({num_str(top_adv['my_value'])} vs {num_str(top_adv['opp_value'])})."
+        )
+    if top_dis:
+        result["key_concern"] = (
+            f"Their {top_dis['area'].lower()} is the bigger threat — "
+            f"({num_str(top_dis['opp_value'])} vs {num_str(top_dis['my_value'])}) — plan to limit it."
+        )
+    # A second-tier advantage/concern rounds the story out without repeating the top one.
+    if len(advantages) > 1:
+        result["secondary_advantage"] = advantages[1]["area"]
+    if len(disadvantages) > 1:
+        result["secondary_concern"] = disadvantages[1]["area"]
+    return result
+
+
+def num_str(v: Any) -> str:
+    try:
+        return f"{float(v):.2f}"
+    except (TypeError, ValueError):
+        return str(v)
+
+
 def normalize_board_events(
     board_events: list[dict[str, Any]] | None,
     match_log: list[dict[str, Any]] | dict[str, Any] | None,

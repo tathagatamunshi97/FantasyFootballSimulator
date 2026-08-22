@@ -535,6 +535,122 @@ def get_team_immediate_round(team_name: str, tournament: dict[str, Any] | None =
         return dict(_READY_ROUND)
 
 
+def team_analysis_summary(team_name: str, *, form_limit: int = 5) -> dict[str, Any]:
+    """Recent tournament form + next fixture for a team, for the Squad Hub
+    Analysis tab. Best-effort like get_team_immediate_round: a team with no
+    active tournament (or a malformed one) gets an empty-but-valid shape,
+    never an exception.
+    """
+    name = team_name.strip()
+    try:
+        t = find_active_tournament_for_team(name)
+    except Exception:
+        t = None
+    empty: dict[str, Any] = {
+        "tournament_id": None,
+        "tournament_name": None,
+        "group": None,
+        "table_row": None,
+        "recent_form": [],
+        "next_match": None,
+    }
+    if not t:
+        return empty
+
+    try:
+        match_results = t.get("match_results") or {}
+        played_fixtures: list[dict[str, Any]] = []
+        table_row: dict[str, Any] | None = None
+        group_key_for_team: str | None = None
+
+        for gkey, group in (t.get("groups") or {}).items():
+            table = group.get("table") or {}
+            if name in table:
+                table_row = dict(table[name])
+                group_key_for_team = gkey
+            for fx in group.get("fixtures") or []:
+                if name not in (fx.get("home"), fx.get("away")):
+                    continue
+                if fx.get("played"):
+                    played_fixtures.append(fx)
+
+        played_fixtures.sort(key=lambda fx: int(fx.get("round") or 0))
+        recent_form: list[dict[str, Any]] = []
+        for fx in played_fixtures[-form_limit:]:
+            is_home = fx.get("home") == name
+            gf = fx.get("home_goals") if is_home else fx.get("away_goals")
+            ga = fx.get("away_goals") if is_home else fx.get("home_goals")
+            if gf is None or ga is None:
+                continue
+            opponent = fx.get("away") if is_home else fx.get("home")
+            result = "W" if gf > ga else "L" if gf < ga else "D"
+            xg = None
+            rid = fx.get("result_id")
+            exp = (match_results.get(rid) or {}).get("expected_xg") if rid else None
+            if exp:
+                xg = {
+                    "for": exp.get("home") if is_home else exp.get("away"),
+                    "against": exp.get("away") if is_home else exp.get("home"),
+                }
+            recent_form.append(
+                {
+                    "round": fx.get("round"),
+                    "opponent": opponent,
+                    "home": is_home,
+                    "result": result,
+                    "goals_for": gf,
+                    "goals_against": ga,
+                    "xg": xg,
+                }
+            )
+
+        round_ctx = get_team_immediate_round(name, tournament=t)
+        next_match: dict[str, Any] | None = None
+        if round_ctx.get("stage") == "group":
+            gkey = round_ctx.get("group")
+            group = (t.get("groups") or {}).get(gkey) or {}
+            for fx in group.get("fixtures") or []:
+                if fx.get("played"):
+                    continue
+                if name not in (fx.get("home"), fx.get("away")):
+                    continue
+                if int(fx.get("round") or 0) != round_ctx.get("round"):
+                    continue
+                next_match = {
+                    "opponent": fx.get("away") if fx.get("home") == name else fx.get("home"),
+                    "round_label": round_ctx.get("label"),
+                    "home": fx.get("home") == name,
+                }
+                break
+        elif round_ctx.get("stage") == "knockout":
+            for rnd in (t.get("knockout") or {}).get("rounds") or []:
+                for tie in rnd.get("ties") or []:
+                    if tie.get("played"):
+                        continue
+                    if name not in (tie.get("home"), tie.get("away")):
+                        continue
+                    next_match = {
+                        "opponent": tie.get("away") if tie.get("home") == name else tie.get("home"),
+                        "round_label": round_ctx.get("label"),
+                        "home": tie.get("home") == name,
+                    }
+                    break
+                if next_match:
+                    break
+
+        return {
+            "tournament_id": t.get("id"),
+            "tournament_name": t.get("name"),
+            "group": group_key_for_team,
+            "table_row": table_row,
+            "recent_form": recent_form,
+            "next_match": next_match,
+        }
+    except Exception as exc:
+        print(f"Tournament: team_analysis_summary({team_name!r}) failed, defaulting to empty: {exc}")
+        return empty
+
+
 def resolve_fixture_round_key(
     tournament_id: str | None,
     match_id: str | None,
