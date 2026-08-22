@@ -673,9 +673,11 @@ function renderExperimentList(items, { showDelete = false } = {}) {
   return `
     <div class="card">
       <h2>Your experiments</h2>
-      <table>
-        <thead><tr><th>Matchup</th><th>Formations</th><th>Status</th><th>xG</th><th>Result</th>${deleteHeader}</tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
+      <div class="report-table-wrap">
+        <table>
+          <thead><tr><th>Matchup</th><th>Formations</th><th>Status</th><th>xG</th><th>Result</th>${deleteHeader}</tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
     </div>`;
 }

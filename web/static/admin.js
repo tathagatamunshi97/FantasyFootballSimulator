@@ -132,10 +132,10 @@ function renderTournamentListTable() {
       </tr>`
     )
     .join("");
-  el.innerHTML = `<table>
+  el.innerHTML = `<div class="report-table-wrap"><table>
     <thead><tr><th>Name</th><th>Status</th><th>Teams</th><th>Updated</th><th>Actions</th></tr></thead>
     <tbody>${rows}</tbody>
-  </table>`;
+  </table></div>`;
   el.querySelectorAll(".delete-tournament").forEach((btn) => {
     btn.addEventListener("click", () => deleteTournament(btn.dataset.id, btn.dataset.name));
   });
@@ -557,10 +557,10 @@ function renderPasswordTable(teams) {
       </tr>`;
     })
     .join("");
-  return `<table>
+  return `<div class="report-table-wrap"><table>
     <thead><tr><th>Team</th><th>Roster</th><th>Status</th><th>Actions</th></tr></thead>
     <tbody>${rows}</tbody>
-  </table>`;
+  </table></div>`;
 }
 
 async function loadTeamPasswords() {
@@ -620,10 +620,10 @@ function renderLineupsTable(teams) {
       </tr>`;
     })
     .join("");
-  return `<table>
+  return `<div class="report-table-wrap"><table>
     <thead><tr><th>Team</th><th>Formation</th><th>Status</th><th>Finalized for</th><th>Actions</th></tr></thead>
     <tbody>${rows}</tbody>
-  </table>`;
+  </table></div>`;
 }
 
 async function loadTeamLineups() {

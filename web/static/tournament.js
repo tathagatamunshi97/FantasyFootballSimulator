@@ -35,7 +35,7 @@ function renderLeaderboardTable(rows, countKey, countLabel, emptyMsg, { suffix =
       return `<tr><td>${i + 1}</td><td>${esc(r.player || "—")}</td><td>${esc(r.team || "—")}</td><td class="num"><strong>${esc(String(n))}${suffix}</strong></td></tr>`;
     })
     .join("");
-  return `<div class="report-table-wrap"><table><thead><tr><th>#</th><th>Player</th><th>Team</th><th>${esc(countLabel)}</th></tr></thead><tbody>${body}</tbody></table></div>`;
+  return `<div class="report-table-wrap rank-table emphasize-top"><table><thead><tr><th>#</th><th>Player</th><th>Team</th><th>${esc(countLabel)}</th></tr></thead><tbody>${body}</tbody></table></div>`;
 }
 
 // Team view -- same leaderboard shape as renderLeaderboardTable, minus the
@@ -50,7 +50,7 @@ function renderTeamLeaderboardTable(rows, countKey, countLabel, emptyMsg, { suff
       return `<tr><td>${i + 1}</td><td>${esc(r.team || "—")}</td><td class="num"><strong>${esc(String(n))}${suffix}</strong></td></tr>`;
     })
     .join("");
-  return `<div class="report-table-wrap"><table><thead><tr><th>#</th><th>Team</th><th>${esc(countLabel)}</th></tr></thead><tbody>${body}</tbody></table></div>`;
+  return `<div class="report-table-wrap rank-table emphasize-top"><table><thead><tr><th>#</th><th>Team</th><th>${esc(countLabel)}</th></tr></thead><tbody>${body}</tbody></table></div>`;
 }
 
 // Mirrors web/tournament.py's _TALLY_FIELDS exactly -- every field a
@@ -229,7 +229,7 @@ function renderFixtures(t, { showRun = false } = {}) {
         })
         .join("");
       return `<div class="card"><h3>Group ${esc(k)} fixtures</h3>
-        <table><thead><tr><th>Rd</th><th>Home</th><th>Away</th><th>Result</th></tr></thead><tbody>${rows || "<tr><td colspan='4' class='muted'>—</td></tr>"}</tbody></table></div>`;
+        <div class="report-table-wrap"><table><thead><tr><th>Rd</th><th>Home</th><th>Away</th><th>Result</th></tr></thead><tbody>${rows || "<tr><td colspan='4' class='muted'>—</td></tr>"}</tbody></table></div></div>`;
     })
     .join("");
 }
@@ -331,7 +331,7 @@ function renderKnockout(t, { showRun = false } = {}) {
         })
         .join("");
       return `<div class="card"><h3>${esc(rnd.label || rnd.name)}</h3>
-        <table><thead><tr><th>ID</th><th>Match</th><th>Result</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+        <div class="report-table-wrap"><table><thead><tr><th>ID</th><th>Match</th><th>Result</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
     })
     .join("");
 }
@@ -357,7 +357,7 @@ function renderTables(t) {
         })
         .join("");
       return `<div class="card"><h3>Group ${esc(k)}</h3>
-        <table><thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+        <div class="report-table-wrap emphasize-top"><table><thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
     })
     .join("");
 }
