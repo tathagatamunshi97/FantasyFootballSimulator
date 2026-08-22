@@ -1167,7 +1167,11 @@
     // shown. Standard (non-mobile) boards keep the existing 0.5 default.
     let speed = mobileBroadcast ? 2.5 : 0.5;
     const MOBILE_NORMAL_SPEED = 2.5;
-    const MOBILE_EVENT_SPEED = 0.3;
+    // Highlight mode -- real slow motion (was 0.3, a "slower" ticker speed
+    // that still advanced the clock; now paired with the matchMinute
+    // freeze in _tickBody, this is genuinely how slow the buildup/shot/
+    // goal/card animation plays while the displayed clock is stopped).
+    const MOBILE_EVENT_SPEED = 0.18;
     // How long (real ms) the full pitch stays up after a key event. This is
     // the dominant lever on live-view share -- calibrated so live/highlight
     // time lands around 20-25% of total watch time (user's explicit target),
@@ -1645,8 +1649,11 @@
      * FM Mobile broadcast mode — only corners, direct free kicks, shots,
      * goals, and yellow cards get the full pitch shown, and only for a
      * bounded REAL-time window (not sim-time — the whole point is to
-     * slow the clock down so the viewer has time to actually watch it).
-     * Everything else stays on the fast commentary+zone-strip view.
+     * genuinely stop the clock so the viewer has time to actually watch
+     * it: matchMinute itself freezes in _tickBody for as long as this
+     * window (or mobileBuildupActive) stays open, not just a slower
+     * ticker). Everything else stays on the fast commentary+zone-strip
+     * view.
      */
     function triggerMobileHighlight() {
       if (!mobileBroadcast) return;
@@ -10590,13 +10597,6 @@
 
         const foulP = (0.32 - duelQuality * 0.16) + (inPenaltyBox(carrier) ? 0.12 : 0) + cardNudge + tacticalFoulBoost;
         if (opp && rng() < foulP) {
-          pushMatchEvent("foul", opp.side, {
-            player: opp.player,
-            player_short: opp.short,
-            against: carrier.player,
-            detail: `on ${carrier.short}`,
-          });
-          say(`Foul! ${opp.short} on ${carrier.short}`, 1.3);
           // Bad-foul (yellow card) tier — IFAB Law 12's careless/reckless/
           // excessive-force split: most fouls are merely careless (free
           // kick only, no card); a reckless one earns a caution; excessive
@@ -10611,7 +10611,27 @@
             0.05
           );
           const recklessP = 0.35 - duelQuality * 0.25 + recklessCardNudge;
-          if ((opp._yellowCards || 0) < 1 && rng() < recklessP) {
+          // Bug fix -- decide the card outcome BEFORE logging the foul
+          // (was rolled after) so a card-bound foul can trigger FM Mobile
+          // highlight mode right at the tackle instead of only once the
+          // yellow_card event fires a beat later. isMobileKeyEvent's own
+          // whitelist doesn't include "foul", so a foul that ISN'T going
+          // to draw a card still stays on the fast ticker as before --
+          // only the fouls that are actually about to become a caution
+          // get the early trigger, giving genuine pre-card lead-in
+          // (the tackle animation keeps playing at the new slow speed
+          // while the clock is already frozen) instead of snapping
+          // straight to "card shown".
+          const willCard = (opp._yellowCards || 0) < 1 && rng() < recklessP;
+          if (mobileBroadcast && willCard) triggerMobileHighlight();
+          pushMatchEvent("foul", opp.side, {
+            player: opp.player,
+            player_short: opp.short,
+            against: carrier.player,
+            detail: `on ${carrier.short}`,
+          });
+          say(`Foul! ${opp.short} on ${carrier.short}`, 1.3);
+          if (willCard) {
             opp._yellowCards = (opp._yellowCards || 0) + 1;
             pushMatchEvent("yellow_card", opp.side, {
               player: opp.player,
@@ -13440,7 +13460,19 @@
 
       const prevMinute = matchMinute;
       const cap = clockCap || 90;
-      matchMinute = Math.min(cap, matchMinute + (dt * 90) / MATCH_WATCH_SECONDS);
+      // Highlight mode -- the match clock genuinely stops (not just slows)
+      // while a shot/goal/card highlight is live, so the displayed minute
+      // is a real "we're paused on this moment" tell, not just a crawl.
+      // Deliberately only freezes matchMinute here -- dt itself stays
+      // untouched for everything else (tickRender/commentaryHold/
+      // flashTimer/possSeconds below), since those already slow down
+      // correctly via the reduced `speed` MOBILE_EVENT_SPEED sets, and
+      // splitting dt everywhere those get used would be a much larger,
+      // riskier change for the same visible effect.
+      const inHighlight = mobileBroadcast && (mobileBuildupActive || mobileEventUntilTs > 0);
+      if (!inHighlight) {
+        matchMinute = Math.min(cap, matchMinute + (dt * 90) / MATCH_WATCH_SECONDS);
+      }
       clockEl.textContent = clockLabel();
 
       if (possession === "home" || possession === "away") {
