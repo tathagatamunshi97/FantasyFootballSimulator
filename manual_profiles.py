@@ -14,6 +14,61 @@ DATA_DIR = Path(__file__).resolve().parent / "data"
 MANUAL_PROFILES_FILE = DATA_DIR / "manual_profiles.json"
 MANUAL_PROFILES_XLSX = DATA_DIR / "manual_profiles.xlsx"
 
+# Auction-league legend attribute pack: a 1-20 per-field attribute estimate
+# per legend, linearly converted to realistic per-90 stats by the workbook's
+# own formulas (see its "Read Me"/"Conversion Range" tabs). This is the sole
+# source for these 25 names -- read live from the "Converted Per-90 Preview"
+# tab on every reload (matching the file's mtime, same as the JSON/XLSX
+# sources above), so replacing the file is all a future revision needs.
+LEGEND_ATTRIBUTES_XLSX = DATA_DIR / "legend_player_attributes.xlsx"
+_LEGEND_PREVIEW_SHEET = "Converted Per-90 Preview"
+
+# Position code (from the workbook) -> (primary_position, fpl_position),
+# matching the convention already used elsewhere in manual_profiles.json.
+_LEGEND_POSITION_MAP: dict[str, tuple[str, str]] = {
+    "GK": ("GK", "GK"),
+    "CB": ("CB", "DEF"),
+    "FB": ("FB", "DEF"),
+    "DM": ("DM", "MID"),
+    "CM": ("CM", "MID"),
+    "AM": ("AM", "MID"),
+    "W": ("W", "FWD"),
+    "ST": ("ST", "FWD"),
+}
+
+# Illustrative "peak season" tag per legend -- these are attribute-based
+# estimates, not scraped from a real season, so the label is bookkeeping
+# only. Kept stable across workbook revisions so replacing the file doesn't
+# churn the (name, profile_type, season_suffix) identity these profiles are
+# indexed by.
+_LEGEND_SEASON_SUFFIX: dict[str, str] = {
+    "Eden Hazard": "14/15",
+    "Luis Suárez": "13/14",
+    "Sergio Agüero": "14/15",
+    "Andrés Iniesta": "14/15",
+    "Arjen Robben": "13/14",
+    "Neymar": "14/15",
+    "Gareth Bale": "13/14",
+    "Frank Lampard": "13/14",
+    "Steven Gerrard": "13/14",
+    "Andrea Pirlo": "13/14",
+    "Yaya Touré": "13/14",
+    "Cesc Fàbregas": "14/15",
+    "Mesut Özil": "15/16",
+    "Philipp Lahm": "13/14",
+    "Ashley Cole": "13/14",
+    "Gerard Piqué": "14/15",
+    "John Terry": "14/15",
+    "Nemanja Vidić": "13/14",
+    "Thiago Silva": "13/14",
+    "Gianluigi Buffon": "15/16",
+    "Iker Casillas": "13/14",
+    "Petr Čech": "14/15",
+    "Didier Drogba": "14/15",
+    "Lionel Messi": "14/15",
+    "Cristiano Ronaldo": "14/15",
+}
+
 STAT_FIELDS = (
     "team",
     "primary_position",
@@ -73,7 +128,7 @@ _INDEX_MTIME: float = 0.0
 
 def _source_mtime() -> float:
     mtimes = [0.0]
-    for path in (MANUAL_PROFILES_FILE, MANUAL_PROFILES_XLSX):
+    for path in (MANUAL_PROFILES_FILE, MANUAL_PROFILES_XLSX, LEGEND_ATTRIBUTES_XLSX):
         if path.exists():
             mtimes.append(path.stat().st_mtime)
     return max(mtimes)
@@ -170,6 +225,53 @@ def _normalize_profile_entry(raw: dict[str, Any]) -> dict[str, Any] | None:
     return _row_to_profile(raw)
 
 
+def _load_legend_attribute_profiles() -> list[dict[str, Any]]:
+    """Legend "prime" profiles read live from the attribute-pack workbook.
+
+    Deliberately the sole source for these 25 names: appended last in
+    _load_profiles_list() so _build_index()'s last-entry-wins behavior lets
+    it override any older, first-pass numbers for the same
+    (name, "prime", season_suffix) key sitting in manual_profiles.json,
+    without needing to hand-edit or delete those old rows.
+    """
+    if not LEGEND_ATTRIBUTES_XLSX.exists():
+        return []
+    try:
+        import pandas as pd
+
+        df = pd.read_excel(LEGEND_ATTRIBUTES_XLSX, sheet_name=_LEGEND_PREVIEW_SHEET, engine="calamine")
+    except Exception:
+        return []
+
+    rows: list[dict[str, Any]] = []
+    for record in df.to_dict(orient="records"):
+        name = str(record.get("Player") or "").strip()
+        if not name:
+            continue
+        pos_code = str(record.get("Position") or "").strip().upper()
+        primary_position, fpl_position = _LEGEND_POSITION_MAP.get(pos_code, ("MF", "MID"))
+        row: dict[str, Any] = {
+            "player_name": name,
+            "profile_type": "prime",
+            "season_suffix": _LEGEND_SEASON_SUFFIX.get(name, "14/15"),
+            "primary_position": primary_position,
+            "fpl_position": fpl_position,
+            "positions": primary_position,
+            "minutes": 2500,
+            "games": 30,
+            "starts": 28,
+            "team": "",
+        }
+        for field in STAT_FIELDS:
+            if field in record and record[field] is not None and str(record[field]) != "nan":
+                row[field] = record[field]
+        built = _row_to_profile(row)
+        if built:
+            built["stats"]["data_source"] = "attribute_conversion"
+            rows.append(built)
+    return rows
+
+
 def _load_profiles_list() -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
 
@@ -212,6 +314,12 @@ def _load_profiles_list() -> list[dict[str, Any]]:
                     rows.append(built)
         except Exception:
             pass
+
+    # Legend attribute pack — appended last (before the legacy seed fallback
+    # below, which only fills gaps) so it overrides any older first-pass
+    # legend numbers sitting in manual_profiles.json/XLSX above, per
+    # LEGEND_ATTRIBUTES_XLSX being the sole source for these 25 names.
+    rows.extend(_load_legend_attribute_profiles())
 
     # Legacy seed_seasons.json → season_pick entries.
     # Only fills gaps: a player/profile_type/season already present from

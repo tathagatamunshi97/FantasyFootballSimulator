@@ -1200,11 +1200,31 @@ class StatsStore:
                     continue
             if canon in self._players:
                 out[canon] = self._players[canon]
-            else:
-                out[canon] = PlayerStats.from_dict(
-                    canon,
-                    {"primary_position": "MF", "fpl_position": "MID", "positions": ["MF"]},
-                )
+                continue
+            # Bug fix -- this cache_only path (the one the whole live app
+            # actually uses; the live-fetch path below already does this)
+            # used to always fall through to an all-zero placeholder for an
+            # unrecognized name, even when a real manual "prime" profile
+            # existed for them -- e.g. every auction-drafted legend
+            # (Pirlo, Iniesta, Gerrard, ...) silently played as a
+            # rating-0.0 nobody instead of their real converted stats.
+            # Check manual_profiles first; only place the placeholder if
+            # genuinely nothing is there either.
+            manual_hit = None
+            try:
+                from manual_profiles import lookup_manual_prime
+
+                manual_hit = lookup_manual_prime(canon, cache_only=True)
+            except Exception:
+                manual_hit = None
+            if manual_hit is not None:
+                manual_name, manual_stats, _season_label = manual_hit
+                out[canon] = PlayerStats.from_dict(manual_name, manual_stats)
+                continue
+            out[canon] = PlayerStats.from_dict(
+                canon,
+                {"primary_position": "MF", "fpl_position": "MID", "positions": ["MF"]},
+            )
         return out
 
     def reload(self) -> None:

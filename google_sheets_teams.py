@@ -1,11 +1,18 @@
-"""Load fantasy team rosters from a shared Google Sheet (CSV export)."""
+"""Load fantasy team rosters from the season's static Excel workbook.
+
+Was a live Google Sheets CSV export; moved to a static .xlsx (season 2,
+auction-format league) because converting the source sheet to Google
+Sheets risks mangling its formulas. The workbook lives at
+data/teams_sheet.xlsx -- replace that file when the roster changes, no
+code changes needed. Cache invalidates on the file's mtime, so a
+replacement is picked up on the very next request, not after a delay.
+"""
 from __future__ import annotations
 
-import io
 import os
 import re
-import time
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -14,9 +21,9 @@ from formation_fit import DEFAULT_FORMATION, FORMATION_SLOTS, normalize_formatio
 from lineup_builder import assign_lineup_slots, lineup_from_assignments, select_starting_xi
 from player_names import canonical_name, names_loosely_match, normalize_key, resolve_player_name
 
-# Default: user's teams sheet tab
-DEFAULT_SPREADSHEET_ID = "1bjdf22AWQfPam1Aakiz4STgt7Gal0I4hCkY11GSroDg"
-DEFAULT_TEAMS_GID = "2011460593"
+# The season's roster workbook. TEAMS_XLSX_PATH env var overrides for testing.
+DEFAULT_TEAMS_XLSX_PATH = Path(__file__).resolve().parent / "data" / "teams_sheet.xlsx"
+DEFAULT_TEAMS_SHEET_NAME = "TeamSheet"
 
 # Round 3 season picks live on a separate sheet tab; keyed by normalized team name.
 ROUND3_SEASON_PICKS: dict[str, dict[str, str]] = {
@@ -44,8 +51,14 @@ TEAM_NAME_ALIASES: dict[str, str] = {
     "rohan + anac": "rohan + anac",
 }
 
-_TEAM_NAME_ROW = 1
+# TeamSheet layout: team display name on row 0, a "PlayerName"/"Amount"
+# header pair on row 1 marking each team's two-column block (with a blank
+# spacer column between blocks), players from row 2 down until the first
+# blank cell.
+_TEAM_NAME_ROW = 0
+_HEADER_ROW = 1
 _PLAYER_START_ROW = 2
+_PLAYER_HEADER_TEXT = "playername"
 
 
 @dataclass(frozen=True)
@@ -59,69 +72,56 @@ class SheetRoster:
         return len(self.players)
 
 
+def teams_source_path() -> Path:
+    override = os.environ.get("TEAMS_XLSX_PATH", "").strip()
+    return Path(override) if override else DEFAULT_TEAMS_XLSX_PATH
+
+
 def spreadsheet_config() -> tuple[str, str]:
-    sheet_id = os.environ.get("GOOGLE_SHEETS_ID", DEFAULT_SPREADSHEET_ID).strip()
-    gid = os.environ.get("GOOGLE_SHEETS_TEAMS_GID", DEFAULT_TEAMS_GID).strip()
-    return sheet_id, gid
+    """(workbook path, sheet tab name) -- kept as a 2-tuple for callers built
+    around the old (spreadsheet_id, gid) shape; the values just mean
+    something different now."""
+    return str(teams_source_path()), DEFAULT_TEAMS_SHEET_NAME
 
 
-def sheet_csv_url(spreadsheet_id: str | None = None, gid: str | None = None) -> str:
-    sid, g = spreadsheet_config()
-    sheet_id = spreadsheet_id or sid
-    tab_gid = gid or g
-    return f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv&gid={tab_gid}"
+def sheet_csv_url(spreadsheet_id: str | None = None, gid: str | None = None) -> str | None:
+    """No CSV export URL for a local workbook -- kept for import compatibility."""
+    return None
 
 
-# Bug fix — "Run doesn't start instantly, delayed a lot": measured 21s on a
-# single fixture Run. Root cause: this function did a live, uncached HTTP
-# fetch of the ENTIRE sheet on every call, and _load_teams_for_match (the
-# code path a tournament fixture's Run button hits) calls load_team_by_name
-# (which calls this) 4 times per request -- twice to warm the roster cache,
-# twice more to actually build the two lineups. One click meant 4 separate
-# live downloads of the same spreadsheet, back-to-back, synchronously.
-# Short in-process TTL cache collapses that to one real fetch per burst,
-# while staying fresh enough (20s) that an admin's sheet edit made just
-# before running a match still shows up.
-_SHEET_CACHE_TTL_S = 20.0
-_sheet_cache: dict[tuple[str, str], tuple[float, pd.DataFrame]] = {}
+# Cache invalidates on the workbook's mtime rather than a TTL: a burst of
+# calls in one request (loading both teams for a match) only reads the file
+# once, but replacing data/teams_sheet.xlsx is picked up on the very next
+# call instead of waiting out a fixed window.
+_sheet_cache: dict[str, tuple[float, pd.DataFrame]] = {}
 
 
 def fetch_teams_dataframe(
     spreadsheet_id: str | None = None,
     gid: str | None = None,
 ) -> pd.DataFrame:
-    """Download the teams tab as a CSV (sheet must be link-accessible).
+    """Read the TeamSheet tab of the season's static workbook.
 
-    Cached in-process for _SHEET_CACHE_TTL_S seconds per (spreadsheet_id, gid)
-    so a burst of calls (e.g. loading both teams for a match) only fetches
-    the sheet once.
+    spreadsheet_id/gid are accepted (and ignored) only so old call sites
+    built for the Google Sheets days don't need touching.
     """
-    from urllib.error import HTTPError, URLError
-    from urllib.request import Request, urlopen
-
-    sid, g = spreadsheet_config()
-    cache_key = (spreadsheet_id or sid, gid or g)
-    now = time.monotonic()
+    path = teams_source_path()
+    if not path.exists():
+        raise RuntimeError(
+            f"Teams workbook not found at {path}. Copy the season's .xlsx there "
+            "(or set TEAMS_XLSX_PATH)."
+        )
+    mtime = path.stat().st_mtime
+    cache_key = str(path)
     hit = _sheet_cache.get(cache_key)
-    if hit is not None and now - hit[0] < _SHEET_CACHE_TTL_S:
+    if hit is not None and hit[0] == mtime:
         return hit[1]
 
-    url = sheet_csv_url(spreadsheet_id, gid)
-    req = Request(url, headers={"User-Agent": "fantasy-football-simulator/1.0"})
     try:
-        with urlopen(req, timeout=60) as resp:
-            text = resp.read().decode("utf-8-sig")
-    except HTTPError as exc:
-        raise RuntimeError(f"Google Sheet HTTP {exc.code}: {exc.reason}") from exc
-    except URLError as exc:
-        raise RuntimeError(f"Could not reach Google Sheet: {exc.reason}") from exc
-    if text.lstrip().startswith("<!DOCTYPE") or text.lstrip().startswith("<html"):
-        raise RuntimeError(
-            "Google Sheet returned HTML instead of CSV. Share the sheet as "
-            "'Anyone with the link can view' or publish the tab."
-        )
-    df = pd.read_csv(io.StringIO(text), header=None)
-    _sheet_cache[cache_key] = (now, df)
+        df = pd.read_excel(path, sheet_name=DEFAULT_TEAMS_SHEET_NAME, header=None, engine="calamine")
+    except Exception as exc:
+        raise RuntimeError(f"Could not read '{DEFAULT_TEAMS_SHEET_NAME}' tab from {path}: {exc}") from exc
+    _sheet_cache[cache_key] = (mtime, df)
     return df
 
 
@@ -144,12 +144,20 @@ def _parse_budget(value: str) -> float | None:
 
 
 def parse_teams_from_dataframe(df: pd.DataFrame) -> dict[str, SheetRoster]:
-    """Parse team columns: name on row 2, players below, optional budget in next column."""
+    """Parse team blocks: each team owns a (PlayerName, Amount) column pair,
+    detected by the "PlayerName" header on row 1 rather than a fixed column
+    stride, so an extra/removed team or a wider spacer column doesn't need a
+    code change. Team display name sits directly above its header, on row 0.
+    """
     teams: dict[str, SheetRoster] = {}
     for col in range(df.shape[1]):
+        header = _cell_str(df, _HEADER_ROW, col)
+        if header.strip().lower() != _PLAYER_HEADER_TEXT:
+            continue
         name = _cell_str(df, _TEAM_NAME_ROW, col)
         if not name:
             continue
+        amount_col = col + 1
         players: list[str] = []
         budgets: list[float | None] = []
         for row in range(_PLAYER_START_ROW, df.shape[0]):
@@ -157,8 +165,7 @@ def parse_teams_from_dataframe(df: pd.DataFrame) -> dict[str, SheetRoster]:
             if not player:
                 break
             players.append(player)
-            budget = _parse_budget(_cell_str(df, row, col + 1))
-            budgets.append(budget)
+            budgets.append(_parse_budget(_cell_str(df, row, amount_col)))
         if not players:
             continue
         key = _canonical_team_key(name)
@@ -232,7 +239,10 @@ def team_payload_from_roster(
     if formation not in FORMATION_SLOTS:
         formation = DEFAULT_FORMATION
 
-    raw_squad = roster.players[:15]
+    # No cap here -- the old 15-player sheet made [:15] a no-op safety net,
+    # but this season's rosters are 18 players and a hardcoded 15 would
+    # silently drop the last 3 off every squad.
+    raw_squad = roster.players
     full_resolved: list[str] = []
     for raw in raw_squad:
         if resolve_names and store is not None:
@@ -280,7 +290,7 @@ def team_payload_from_roster(
         "prime_player": "",
         "peak_season": peak_season,
         "sheet_meta": {
-            "source": "google_sheets",
+            "source": "excel_workbook",
             "player_count": roster.player_count,
             "budgets": roster.budgets,
             "ready": roster.player_count >= 11,
@@ -322,9 +332,9 @@ def resolve_sheet_team_name(team_name: str) -> str | None:
 
 
 def is_sheet_team_payload(team: dict[str, Any]) -> bool:
-    """True if team dict came from (or matches) the Google Sheet roster."""
+    """True if team dict came from (or matches) the workbook roster."""
     meta = team.get("sheet_meta") or {}
-    if meta.get("source") == "google_sheets":
+    if meta.get("source") == "excel_workbook":
         return True
     name = (team.get("name") or "").strip()
     if name and resolve_sheet_team_name(name):

@@ -855,11 +855,26 @@ def resolve_player_name(raw: str, store: StatsStore | None = None) -> str:
         for name in store.players:
             if normalize_key(name) == key:
                 return name
-        # Prefix / contains match (handles truncated Excel cells)
+        # Prefix / contains match (handles truncated Excel cells, e.g. a
+        # sheet cell "Bernardo" matching the store's "Bernardo Silva").
+        # Bug fix -- the reverse direction (key.startswith(name)) is a much
+        # riskier heuristic: it assumes the RAW cell had extra text appended
+        # after a real, already-complete name, but in practice it mostly
+        # fires on unrelated short-name coincidences -- "Andrés Iniesta"
+        # (normalized "andresiniesta") satisfies key.startswith("andre") for
+        # the unrelated current player "André" purely because the first five
+        # letters line up, silently mapping a legend to the wrong player's
+        # stats. Only take that direction when the candidate name is a
+        # reasonably large fraction of the input's length, so short names
+        # can't accidentally prefix-match much longer, unrelated inputs.
         matches = [
             name
             for name in store.players
-            if normalize_key(name).startswith(key) or key.startswith(normalize_key(name))
+            if normalize_key(name).startswith(key)
+            or (
+                key.startswith(normalize_key(name))
+                and len(normalize_key(name)) >= 0.6 * len(key)
+            )
         ]
         if len(matches) == 1:
             return matches[0]
