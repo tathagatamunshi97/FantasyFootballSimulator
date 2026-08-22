@@ -40,22 +40,23 @@ function renderLeaderboardTable(rows, countKey, countLabel, emptyMsg, { suffix =
 
 const STAT_CATEGORIES = [
   ["attacking", "Attacking"],
+  ["creation", "Creation"],
+  ["control", "Control"],
   ["defending", "Defending"],
-  ["other", "Other"],
 ];
 
 const STAT_BOARDS = [
   { key: "top_goalscorers", field: "goals", title: "Top goalscorers", label: "G", empty: "No goals recorded yet — play matches on the tactic board.", category: "attacking" },
-  { key: "top_assisters", field: "assists", title: "Top assisters", label: "A", empty: "No assists recorded yet — assists count when a goal follows a teammate's pass.", category: "attacking" },
   { key: "top_shooters", field: "shots", title: "Most shots", label: "Shots", empty: "No shots recorded yet.", category: "attacking" },
-  { key: "top_dribblers", field: "dribbles", title: "Most dribbles", label: "Dribbles", empty: "No completed take-ons recorded yet.", category: "attacking" },
-  { key: "top_key_passers", field: "key_passes", title: "Most key passes", label: "KP", empty: "No key passes recorded yet.", category: "attacking" },
-  { key: "top_big_chances_created", field: "big_chances_created", title: "Most big chances created", label: "BCC", empty: "No big chances created yet.", category: "attacking" },
   { key: "top_big_chances_missed", field: "big_chances_missed", title: "Most big chances missed", label: "BCM", empty: "No big chances missed yet.", category: "attacking" },
+  { key: "top_assisters", field: "assists", title: "Top assisters", label: "A", empty: "No assists recorded yet — assists count when a goal follows a teammate's pass.", category: "creation" },
+  { key: "top_key_passers", field: "key_passes", title: "Most key passes", label: "KP", empty: "No key passes recorded yet.", category: "creation" },
+  { key: "top_big_chances_created", field: "big_chances_created", title: "Most big chances created", label: "BCC", empty: "No big chances created yet.", category: "creation" },
+  { key: "top_dribblers", field: "dribbles", title: "Most dribbles", label: "Dribbles", empty: "No completed take-ons recorded yet.", category: "control" },
+  { key: "top_distance_carried", field: "distance_carried", title: "Most distance carried", label: "Metres", empty: "No carries recorded yet.", suffix: "m", category: "control" },
   { key: "top_clean_sheets", field: "clean_sheets", title: "Most clean sheets", label: "CS", empty: "No clean sheets recorded yet.", category: "defending" },
   { key: "top_tacklers", field: "tackles", title: "Most tackles", label: "Tackles", empty: "No tackles recorded yet.", category: "defending" },
   { key: "top_interceptors", field: "interceptions", title: "Most interceptions", label: "Int", empty: "No interceptions recorded yet.", category: "defending" },
-  { key: "top_distance_carried", field: "distance_carried", title: "Most distance carried", label: "Metres", empty: "No carries recorded yet.", suffix: "m", category: "other" },
 ];
 
 let activeStatCategory = "attacking";
@@ -75,7 +76,7 @@ function renderStats(t) {
     )
     .join("");
   return `<nav class="subtab-bar">${subtabs}</nav>
-    <div class="grid-2" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem">${cards}</div>`;
+    <div class="grid-2" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:1.25rem">${cards}</div>`;
 }
 
 function resultMeta(t, matchId) {

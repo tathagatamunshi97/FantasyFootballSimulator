@@ -617,12 +617,21 @@ a.module-card:hover .module-cta { gap: 0.5rem; }
 .report-team-head.away { --tcolor: var(--away); }
 
 .report-table-wrap {
-  overflow-x: auto;
   border-radius: 10px;
   border: 1px solid var(--border-soft);
   box-shadow: var(--shadow-sm);
 }
-.report-table-wrap table { width: 100%; border-collapse: collapse; background: var(--panel); }
+/* Bug fix -- this used to force overflow-x:auto + nowrap headers on a
+   4-column leaderboard table (#, Player, Team, stat) squeezed into a
+   280px-min card, so real player/team names (especially combined co-op
+   team names like "Sohom+Mayukh") triggered a horizontal scrollbar
+   instead of just wrapping onto a second line. table-layout:fixed with
+   explicit narrow widths on the # and stat columns gives Player/Team the
+   rest of the space; word-break lets a long name wrap instead of
+   overflowing. */
+.report-table-wrap table { width: 100%; border-collapse: collapse; background: var(--panel); table-layout: fixed; }
+.report-table-wrap th:first-child, .report-table-wrap td:first-child { width: 9%; }
+.report-table-wrap th:last-child, .report-table-wrap td:last-child { width: 22%; }
 .report-table-wrap thead th {
   text-align: left;
   font-family: var(--font-mono);
@@ -633,11 +642,10 @@ a.module-card:hover .module-cta { gap: 0.5rem; }
   padding: 0.6rem 0.75rem;
   background: var(--panel2);
   border-bottom: 1px solid var(--border-soft);
-  white-space: nowrap;
 }
-.report-table-wrap td { padding: 0.55rem 0.75rem; border-bottom: 1px solid var(--border-soft); font-size: 0.85rem; }
+.report-table-wrap td { padding: 0.55rem 0.75rem; border-bottom: 1px solid var(--border-soft); font-size: 0.85rem; word-break: break-word; }
 .report-table-wrap tbody tr:last-child td { border-bottom: none; }
-.report-table-wrap td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; }
+.report-table-wrap td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; word-break: normal; }
 
 .report-lineup .slot-row,
 .lineup-mini .slot-row {
