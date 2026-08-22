@@ -38,6 +38,53 @@ function renderLeaderboardTable(rows, countKey, countLabel, emptyMsg, { suffix =
   return `<div class="report-table-wrap"><table><thead><tr><th>#</th><th>Player</th><th>Team</th><th>${esc(countLabel)}</th></tr></thead><tbody>${body}</tbody></table></div>`;
 }
 
+// Team view -- same leaderboard shape as renderLeaderboardTable, minus the
+// Player column, for a table aggregated per team instead of per player.
+function renderTeamLeaderboardTable(rows, countKey, countLabel, emptyMsg, { suffix = "" } = {}) {
+  if (!rows?.length) {
+    return `<p class="muted" style="margin:0">${esc(emptyMsg)}</p>`;
+  }
+  const body = rows
+    .map((r, i) => {
+      const n = r[countKey] ?? 0;
+      return `<tr><td>${i + 1}</td><td>${esc(r.team || "—")}</td><td class="num"><strong>${esc(String(n))}${suffix}</strong></td></tr>`;
+    })
+    .join("");
+  return `<div class="report-table-wrap"><table><thead><tr><th>#</th><th>Team</th><th>${esc(countLabel)}</th></tr></thead><tbody>${body}</tbody></table></div>`;
+}
+
+// Mirrors web/tournament.py's _TALLY_FIELDS exactly -- every field a
+// player_tallies row carries, so a team total is a plain per-field sum
+// across every player who's ever turned out for that team. clean_sheets
+// works out correctly here too: only the match's actual GK is credited
+// per clean sheet server-side, so summing by team already equals that
+// team's real clean-sheet count, not a double-count.
+const TALLY_FIELDS = [
+  "goals", "assists", "shots", "dribbles", "distance_carried",
+  "tackles", "interceptions", "key_passes", "big_chances_created",
+  "big_chances_missed", "clean_sheets",
+];
+
+function aggregateTeamTallies(playerTallies) {
+  const teams = {};
+  for (const row of playerTallies || []) {
+    const team = row.team || "—";
+    if (!teams[team]) {
+      teams[team] = { team };
+      for (const f of TALLY_FIELDS) teams[team][f] = 0;
+    }
+    for (const f of TALLY_FIELDS) teams[team][f] += Number(row[f] || 0);
+  }
+  return Object.values(teams);
+}
+
+function teamBoard(teamTallies, field, limit = 10) {
+  return teamTallies
+    .filter((r) => Number(r[field] || 0) > 0)
+    .sort((a, b) => Number(b[field]) - Number(a[field]) || String(a.team).localeCompare(String(b.team)))
+    .slice(0, limit);
+}
+
 const STAT_CATEGORIES = [
   ["attacking", "Attacking"],
   ["creation", "Creation"],
@@ -60,22 +107,37 @@ const STAT_BOARDS = [
 ];
 
 let activeStatCategory = "attacking";
+let statView = "player"; // "player" | "team"
 
 function renderStats(t) {
+  const viewToggle = ["player", "team"]
+    .map(
+      (v) =>
+        `<button type="button" class="subtab-btn view-toggle-btn${statView === v ? " active" : ""}" data-view="${v}">${v === "player" ? "Players" : "Teams"}</button>`
+    )
+    .join("");
   const subtabs = STAT_CATEGORIES.map(
     ([id, label]) =>
       `<button type="button" class="subtab-btn${activeStatCategory === id ? " active" : ""}" data-cat="${id}">${esc(label)}</button>`
   ).join("");
   const boards = STAT_BOARDS.filter((b) => b.category === activeStatCategory);
+  const teamTallies = statView === "team" ? aggregateTeamTallies(t.player_tallies) : null;
   const cards = boards
-    .map(
-      (b) => `<div class="card">
+    .map((b) => {
+      const table =
+        statView === "team"
+          ? renderTeamLeaderboardTable(teamBoard(teamTallies, b.field), b.field, b.label, b.empty, { suffix: b.suffix || "" })
+          : renderLeaderboardTable(t[b.key] || [], b.field, b.label, b.empty, { suffix: b.suffix || "" });
+      return `<div class="card">
       <h3>${esc(b.title)}</h3>
-      ${renderLeaderboardTable(t[b.key] || [], b.field, b.label, b.empty, { suffix: b.suffix || "" })}
-    </div>`
-    )
+      ${table}
+    </div>`;
+    })
     .join("");
-  return `<nav class="subtab-bar">${subtabs}</nav>
+  return `<div class="stat-view-row" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;align-items:center">
+      <nav class="subtab-bar">${subtabs}</nav>
+      <nav class="subtab-bar">${viewToggle}</nav>
+    </div>
     <div class="grid-2" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:1.25rem">${cards}</div>`;
 }
 
@@ -521,7 +583,8 @@ function bindTabs(t) {
   });
   document.querySelectorAll(".subtab-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
-      activeStatCategory = btn.dataset.cat;
+      if (btn.dataset.view) statView = btn.dataset.view;
+      else activeStatCategory = btn.dataset.cat;
       document.getElementById("app").innerHTML = renderTournament(t, activeTab);
       bindTabs(t);
     });
