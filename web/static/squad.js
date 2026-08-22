@@ -21,7 +21,6 @@ function renderLineupBuilder(data) {
   const formations = meta?.formations?.formations || ["4-3-3 flat", "4-4-2", "3-5-2"];
   const slots = meta?.formations?.slots?.[formation] || [];
   const { map: lineupMap, filters: roleFilters } = lineupMapFromConfig(config);
-  const peakSeason = peak.season || "23/24";
   const locked = Boolean(data.locked);
   const disabled = locked ? "disabled" : "";
   const roundLabel = data.immediate_round?.label || "current round";
