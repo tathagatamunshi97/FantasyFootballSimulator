@@ -5,9 +5,9 @@ import copy
 from typing import Any
 
 from analysis_explainer import analyze_team_squad, build_scout_report
+from bench_impact import bench_impact_for_team
 from models import FantasyTeam
 from report_builder import (
-    _bench_impact_side,
     extended_metrics,
     fullback_profile,
     team_payload_dict,
@@ -52,7 +52,8 @@ def build_squad_evaluation(
         "extended": extended_metrics(fantasy, player_stats),
         "fullbacks": fullback_profile(fantasy, player_stats),
     }
-    bench = _bench_impact_side(fantasy, player_stats)
+    starting_xi = [slot.player for slot in fantasy.lineup if slot.player]
+    bench = bench_impact_for_team(fantasy.name, starting_xi, [], fantasy.bench, player_stats)
     evaluation = analyze_team_squad(fantasy.name, fantasy.formation, profile, bench)
     return {
         "team": team_payload_dict(resolved),
