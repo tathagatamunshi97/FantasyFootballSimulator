@@ -2257,11 +2257,13 @@
         // this becomes a corner-fest, but a real fraction.
         if (rng() < 0.3) {
           say(`${keeper.short} can only palm it behind!`, 1.3);
+          archiveSpell("save");
           spell = null;
           resolveCorner(flight.against);
           return;
         }
         say(`${keeper.short} saves`, 1.3);
+        archiveSpell("save");
         spell = null;
         giveBall(keeper, `${keeper.short} clears`);
         const outlet = pinsOf(keeper.side).find((p) => p.role === "CB" || p.role === "DM" || p.role === "FB");
@@ -2287,11 +2289,13 @@
         // the direction of; often it goes behind rather than staying in play.
         if (blocker && rng() < 0.42) {
           say(`Blocked behind! ${blocker.short} turns it behind for a corner`, 1.3);
+          archiveSpell("blocked");
           spell = null;
           resolveCorner(flight.against);
           return;
         }
         say(`Blocked! ${blocker?.short || "defender"} gets across`, 1.3);
+        archiveSpell("blocked");
         spell = null;
         if (blocker) giveBall(blocker, `${blocker.short} clears the danger`);
         actionTimer = 0.65;
@@ -2306,11 +2310,13 @@
         // (rather than sail well wide) can take a deflection behind too.
         if (rng() < 0.18) {
           say(`${flight.shooterShort || "Shot"} goes wide — off the post and behind`, 1.2);
+          archiveSpell("wide");
           spell = null;
           resolveCorner(flight.against);
           return;
         }
         say(`${flight.shooterShort || "Shot"} goes wide`, 1.2);
+        archiveSpell("wide");
         spell = null;
         if (defPin) giveBall(defPin, `${defPin.short} starts again`);
         actionTimer = 0.7;
@@ -13460,8 +13466,24 @@
 
       const prevMinute = matchMinute;
       const cap = clockCap || 90;
+      // Safety net -- mobileBuildupActive is normally cleared by
+      // archiveSpell() when a spell ends, but several restart/dead-ball
+      // paths (free kicks, corners, kickoffs) null out `spell` directly
+      // without archiving it first. Left uncaught, a spell that got
+      // flagged for the buildup view and then ends via one of those paths
+      // leaves this flag stuck true forever -- and since matchMinute now
+      // genuinely freezes while it's true, that stalls the whole match,
+      // not just the display. No live spell means nothing to be building
+      // up for, so treat "no spell" the same as archiveSpell's own cleanup.
+      if (mobileBroadcast && mobileBuildupActive && !spell) {
+        if (mobileEventUntilTs <= 0) {
+          speed = MOBILE_NORMAL_SPEED;
+          setMobileLive(false);
+        }
+        mobileBuildupActive = false;
+      }
       // Highlight mode -- the match clock genuinely stops (not just slows)
-      // while a shot/goal/card highlight is live, so the displayed minute
+      // once a shot/goal/card has actually fired, so the displayed minute
       // is a real "we're paused on this moment" tell, not just a crawl.
       // Deliberately only freezes matchMinute here -- dt itself stays
       // untouched for everything else (tickRender/commentaryHold/
@@ -13469,7 +13491,22 @@
       // correctly via the reduced `speed` MOBILE_EVENT_SPEED sets, and
       // splitting dt everywhere those get used would be a much larger,
       // riskier change for the same visible effect.
-      const inHighlight = mobileBroadcast && (mobileBuildupActive || mobileEventUntilTs > 0);
+      //
+      // Bug fix -- freezing matchMinute during mobileBuildupActive itself
+      // (the anticipatory approach, before any event has fired) deadlocks
+      // the match: the spell-timeout safety valve at
+      // `matchMinute >= spell.end` (see attemptSpellChance's caller above)
+      // is the only thing that forces a carousel of open passes into an
+      // actual shot once evaluateArrivals stops finding a clean pass -- and
+      // that valve can never fire if matchMinute never advances. Measured
+      // live: a "Chance brewing" spell froze at the same minute for 18+
+      // real seconds with hundreds of ticks running, never resolving.
+      // mobileEventUntilTs's window is bounded by wall-clock
+      // (performance.now() + MOBILE_EVENT_MS), not matchMinute, so it
+      // carries no such risk -- only that window freezes the clock; the
+      // buildup approach itself stays in slow motion (via the reduced
+      // MOBILE_EVENT_SPEED) with matchMinute still crawling forward.
+      const inHighlight = mobileBroadcast && mobileEventUntilTs > 0;
       if (!inHighlight) {
         matchMinute = Math.min(cap, matchMinute + (dt * 90) / MATCH_WATCH_SECONDS);
       }
