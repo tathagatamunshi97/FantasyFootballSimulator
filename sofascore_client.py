@@ -1058,6 +1058,25 @@ class StatsStore:
     def fetch_and_cache(self, raw: str) -> str:
         """Fetch one player from Sofascore, merge Understat, persist to cache."""
         with _STORE_LOCK:
+            # See cached_stats_map's matching comment -- a still-active
+            # legend (Ronaldo, Messi, Suárez, ...) means the auction-legend
+            # peak profile in this league, not whatever their real current
+            # form fetches as, so this must win before the normal
+            # cache/fetch chain below even gets a look.
+            try:
+                from manual_profiles import is_legend_name, lookup_manual_prime
+
+                if is_legend_name(raw):
+                    legend_hit = lookup_manual_prime(raw, cache_only=True)
+                    if legend_hit is not None:
+                        legend_name, legend_stats, _season_label = legend_hit
+                        cache_key = _cache_key_for_player(
+                            legend_name, legend_stats.get("team", ""), set(self._players.keys())
+                        )
+                        self._add_player_to_cache(cache_key, legend_stats)
+                        return cache_key
+            except Exception:
+                pass
             cached = self._find_cached_player_name(raw)
             if cached is not None:
                 if cached not in self._players:
@@ -1189,6 +1208,26 @@ class StatsStore:
             if not raw or not str(raw).strip():
                 continue
             canon = str(raw).strip()
+            # Bug fix -- an auction "legend" pick still active today (e.g.
+            # Ronaldo, Messi, or the case that surfaced this: Luis Suárez,
+            # whose real 2025 Inter Miami CF stats -- npxg90 near 0 --
+            # were silently standing in for his auction-legend peak
+            # profile) shares an exact cache key with their own current
+            # form, so the fallback further down (only checked when
+            # NOTHING is cached) never got a chance to run for them. These
+            # 25 names always mean the legend profile in this league,
+            # checked before the live cache, not as a last resort.
+            try:
+                from manual_profiles import is_legend_name, lookup_manual_prime
+
+                if is_legend_name(canon):
+                    legend_hit = lookup_manual_prime(canon, cache_only=True)
+                    if legend_hit is not None:
+                        legend_name, legend_stats, _season_label = legend_hit
+                        out[canon] = PlayerStats.from_dict(legend_name, legend_stats)
+                        continue
+            except Exception:
+                pass
             cached = self._find_cached_player_name(canon)
             if cached:
                 if cached in self._players:

@@ -69,6 +69,23 @@ _LEGEND_SEASON_SUFFIX: dict[str, str] = {
     "Cristiano Ronaldo": "14/15",
 }
 
+# Normalized-key lookup for "is this one of the 25 auction legends" --
+# checked BEFORE the live stats cache (see sofascore_client.StatsStore.
+# cached_stats_map), not just as a last-resort fallback. Several of these
+# 25 are still-active current players (Ronaldo, Messi, and -- the bug this
+# guards against -- Luis Suárez, whose real 2025 Inter Miami CF numbers
+# were silently winning over his auction-legend peak profile purely
+# because *something* existed in the live cache under the exact same
+# name, so the old "only fall back when nothing is cached" fallback never
+# even triggered for them).
+_LEGEND_NAME_KEYS = frozenset(normalize_key(name) for name in _LEGEND_SEASON_SUFFIX)
+
+
+def is_legend_name(raw: str) -> bool:
+    """True if `raw` is one of the 25 auction-legend names (accent/case-insensitive)."""
+    return normalize_key(str(raw or "").strip()) in _LEGEND_NAME_KEYS
+
+
 STAT_FIELDS = (
     "team",
     "primary_position",
