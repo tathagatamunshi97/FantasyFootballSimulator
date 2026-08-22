@@ -14,23 +14,6 @@ let meta = null;
 let lineupData = null;
 let currentTeam = null;
 
-function playerSelectOptions(players, selected) {
-  const opts = ['<option value="">— pick player —</option>'];
-  players.forEach((p) => {
-    opts.push(`<option value="${esc(p)}" ${p === selected ? "selected" : ""}>${esc(p)}</option>`);
-  });
-  return opts.join("");
-}
-
-function seasonSelectOptions(selected) {
-  return (meta?.seasons || [])
-    .map(
-      (s) =>
-        `<option value="${esc(s.suffix)}" ${s.suffix === selected ? "selected" : ""}>${esc(s.label)}</option>`
-    )
-    .join("");
-}
-
 function renderLineupBuilder(data) {
   const config = data.lineup || {};
   const roster = data.roster || [];
@@ -38,9 +21,6 @@ function renderLineupBuilder(data) {
   const formations = meta?.formations?.formations || ["4-3-3 flat", "4-4-2", "3-5-2"];
   const slots = meta?.formations?.slots?.[formation] || [];
   const { map: lineupMap, filters: roleFilters } = lineupMapFromConfig(config);
-  const prime = config.prime_player || "";
-  const peak = config.peak_season || {};
-  const peakPlayer = peak.player || "";
   const peakSeason = peak.season || "23/24";
   const locked = Boolean(data.locked);
   const disabled = locked ? "disabled" : "";
@@ -75,21 +55,6 @@ function renderLineupBuilder(data) {
         <select id="lineupFormation" ${disabled}>${formationOpts}</select>
       </div>
       <div class="slot-grid">${slotRows}</div>
-      <div class="season-picks" style="margin-top:1rem;padding-top:0.75rem;border-top:1px solid var(--border)">
-        <h3 style="font-size:0.9rem;margin:0 0 0.5rem">Season overrides</h3>
-        <div class="form-row">
-          <label for="lineupPrime">Prime player</label>
-          <select id="lineupPrime" ${disabled}>${playerSelectOptions(roster, prime)}</select>
-        </div>
-        <div class="form-row">
-          <label for="lineupPeakPlayer">Peak season player</label>
-          <select id="lineupPeakPlayer" ${disabled}>${playerSelectOptions(roster, peakPlayer)}</select>
-        </div>
-        <div class="form-row">
-          <label for="lineupPeakSeason">Season</label>
-          <select id="lineupPeakSeason" ${disabled}>${seasonSelectOptions(peakSeason)}</select>
-        </div>
-      </div>
       <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-top:1rem">
         <button type="button" id="saveLineupBtn" class="btn-primary" ${disabled}>Save lineup</button>
         <button type="button" id="testSquadBtn" class="btn-ghost">Test squad</button>
@@ -209,11 +174,6 @@ function collectLineupPayload() {
   return {
     formation,
     lineup,
-    prime_player: document.getElementById("lineupPrime")?.value || "",
-    peak_season: {
-      player: document.getElementById("lineupPeakPlayer")?.value || "",
-      season: document.getElementById("lineupPeakSeason")?.value || "",
-    },
   };
 }
 
