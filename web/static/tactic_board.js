@@ -7707,7 +7707,23 @@
             // shading; the attacking case gets a small flat blend so the
             // keeper still looks alive as an outlet without swinging off
             // his line for his own side's possession.
-            const gkDanger = attacking ? 0 : clamp(1 - relBall.depth, 0, 1);
+            // Bug fix -- gkDanger was purely depth-based, with zero read of
+            // shot angle: a ball pinned wide on the byline reads as
+            // "maximum danger" (relBall.depth near 1) and drags the keeper
+            // up to ~40% of the way toward it, even though a shot from
+            // that tight an angle is one of the least threatening
+            // positions to shoot from directly -- the keeper visibly
+            // overcommitted for a crossing threat as if it were a live
+            // central shot. Blend in the same RNG-free geometric angle
+            // read the shot-decision code already uses (shotAngleQuality),
+            // computed from the ball's own position toward this side's
+            // goal, so a deep-but-wide-angle ball only partially engages
+            // the depth-based danger instead of maxing it out on depth
+            // alone. Floor of 0.4 (not 0) since a tight-angle ball can
+            // still become a cutback/low cross a beat later.
+            const ballAngleQ = shotAngleQuality({ side: oppOf(side), left: ball.left, top: ball.top });
+            const gkDanger =
+              attacking ? 0 : clamp(1 - relBall.depth, 0, 1) * clamp(0.4 + ballAngleQ * 0.6, 0.4, 1);
             x = lerp(pin.baseX, relBall.x, attacking ? 0.05 : 0.06 + gkDanger * gkDanger * 0.34);
           } else {
             if (lineKind === "def") depth = defLine + bias;
