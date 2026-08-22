@@ -172,26 +172,58 @@ const SQUAD_SECTION_HELP = {
   "Squad depth": "Bench composition — standout substitutes by per-90 numbers. Informational only, does not affect ratings.",
 };
 
-function unitMetric(label, value, noteKey) {
+// Mirrors analysis_explainer.py's _PERCENTILE_TIER_THRESHOLDS / _classify_tier
+// / _ordinal exactly, so the badge's tier color always agrees with the
+// tier_labels text generated server-side for the same percentile value.
+const PCT_TIER_THRESHOLDS = { strength: 85, moderate_strength: 65, moderate_weakness: 35, weakness: 15 };
+const MIN_LEAGUE_SIZE_FOR_PERCENTILE = 4;
+
+function pctTierClass(pct) {
+  if (pct >= PCT_TIER_THRESHOLDS.strength) return "pct-strength";
+  if (pct >= PCT_TIER_THRESHOLDS.moderate_strength) return "pct-moderate_strength";
+  if (pct <= PCT_TIER_THRESHOLDS.weakness) return "pct-weakness";
+  if (pct <= PCT_TIER_THRESHOLDS.moderate_weakness) return "pct-moderate_weakness";
+  return "pct-balanced";
+}
+
+function ordinal(n) {
+  const r = Math.round(n);
+  const mod100 = r % 100;
+  if (mod100 >= 10 && mod100 <= 20) return `${r}th`;
+  const suffix = { 1: "st", 2: "nd", 3: "rd" }[r % 10] || "th";
+  return `${r}${suffix}`;
+}
+
+function pctPill(key, percentiles, leagueSize) {
+  if (!percentiles || !leagueSize || leagueSize < MIN_LEAGUE_SIZE_FOR_PERCENTILE) return "";
+  const pct = percentiles[key];
+  if (pct == null) return "";
+  return `<span class="pct-pill ${pctTierClass(pct)}">${ordinal(pct)} of ${leagueSize}</span>`;
+}
+
+function unitMetric(label, value, noteKey, pctHtml) {
   const note = UNIT_RATING_HELP[noteKey];
   const noteHtml = note ? `<p class="metric-note" title="${esc(note)}">${esc(note)}</p>` : "";
-  return `<div class="metric metric-explained"><div class="label">${esc(label)}</div><div class="value">${esc(value)}</div>${noteHtml}</div>`;
+  return `<div class="metric metric-explained"><div class="metric-head"><div class="label">${esc(label)}</div>${pctHtml || ""}</div><div class="value">${esc(value)}</div>${noteHtml}</div>`;
 }
 
 function renderUnits(u, options = {}) {
   if (!u) return "";
   const showNotes = options.showNotes !== false;
+  const pct = options.percentiles;
+  const leagueSize = options.leagueSize;
+  const p = (key) => pctPill(key, pct, leagueSize);
   const grid = showNotes
     ? `
     <div class="metric-grid unit-ratings-grid">
-      ${unitMetric("Attack", num(u.attack), "attack")}
-      ${unitMetric("Finishing", num(u.finishing), "finishing")}
-      ${unitMetric("Creation", num(u.chance_creation), "chance_creation")}
-      ${unitMetric("Midfield", num(u.midfield), "midfield")}
-      ${unitMetric("Defence", num(u.defence), "defence")}
-      ${unitMetric("Mid-def", num(u.midfield_defence), "midfield_defence")}
-      ${unitMetric("Trans risk", num(u.transition_risk), "transition_risk")}
-      ${unitMetric("GK", num(u.goalkeeper), "goalkeeper")}
+      ${unitMetric("Attack", num(u.attack), "attack", p("attack"))}
+      ${unitMetric("Finishing", num(u.finishing), "finishing", p("finishing"))}
+      ${unitMetric("Creation", num(u.chance_creation), "chance_creation", p("chance_creation"))}
+      ${unitMetric("Midfield", num(u.midfield), "midfield", p("midfield"))}
+      ${unitMetric("Defence", num(u.defence), "defence", p("defence"))}
+      ${unitMetric("Mid-def", num(u.midfield_defence), "midfield_defence", p("midfield_defence"))}
+      ${unitMetric("Trans risk", num(u.transition_risk), "transition_risk", p("transition_risk"))}
+      ${unitMetric("GK", num(u.goalkeeper), "goalkeeper", p("goalkeeper"))}
     </div>`
     : `
     <div class="metric-grid">
@@ -207,33 +239,38 @@ function renderUnits(u, options = {}) {
   if (!showNotes) return grid;
   return `
     <div class="unit-ratings-block">
-      <p class="muted unit-ratings-intro">Unit ratings (0–1) from slot-relevant players only — no whole-XI dilution. Hover a tile for the full note.</p>
+      <p class="muted unit-ratings-intro">Unit ratings (0–1) from slot-relevant players only — no whole-XI dilution. Hover a tile for the full note.${
+        leagueSize >= MIN_LEAGUE_SIZE_FOR_PERCENTILE ? ` Percentile is this squad's rank against the other ${leagueSize} squads.` : ""
+      }</p>
       ${grid}
     </div>`;
 }
 
-function teamCompositeMetric(label, value, noteKey) {
+function teamCompositeMetric(label, value, noteKey, pctHtml) {
   const note = TEAM_COMPOSITE_HELP[noteKey];
   const noteHtml = note ? `<p class="metric-note" title="${esc(note)}">${esc(note)}</p>` : "";
-  return `<div class="metric metric-explained"><div class="label">${esc(label)}</div><div class="value">${esc(value)}</div>${noteHtml}</div>`;
+  return `<div class="metric metric-explained"><div class="metric-head"><div class="label">${esc(label)}</div>${pctHtml || ""}</div><div class="value">${esc(value)}</div>${noteHtml}</div>`;
 }
 
 function renderTeamComposites(tc, options = {}) {
   if (!tc) return "";
   const showNotes = options.showNotes !== false;
+  const pct = options.percentiles;
+  const leagueSize = options.leagueSize;
+  const p = (key) => pctPill(key, pct, leagueSize);
   const grid = showNotes
     ? `
     <div class="metric-grid team-profile-grid">
-      ${teamCompositeMetric("Creativity", num(tc.creativity), "creativity")}
-      ${teamCompositeMetric("Mid control", num(tc.midfield_control), "midfield_control")}
-      ${teamCompositeMetric("Possession", num(tc.possession_control), "possession_control")}
-      ${teamCompositeMetric("Fin threat", num(tc.finishing_threat), "finishing_threat")}
-      ${teamCompositeMetric("Def solidity", num(tc.defensive_solidity), "defensive_solidity")}
-      ${teamCompositeMetric("Atk effect", num(tc.attacking_effectiveness), "attacking_effectiveness")}
-      ${teamCompositeMetric("Pressing", num(tc.pressing_intensity), "pressing_intensity")}
-      ${teamCompositeMetric("Press resist", num(tc.press_resistance), "press_resistance")}
-      ${teamCompositeMetric("Trans threat", num(tc.transition_threat), "transition_threat")}
-      ${teamCompositeMetric("Aerial def", num(tc.aerial_defence), "aerial_defence")}
+      ${teamCompositeMetric("Creativity", num(tc.creativity), "creativity", p("creativity"))}
+      ${teamCompositeMetric("Mid control", num(tc.midfield_control), "midfield_control", p("midfield_control"))}
+      ${teamCompositeMetric("Possession", num(tc.possession_control), "possession_control", p("possession_control"))}
+      ${teamCompositeMetric("Fin threat", num(tc.finishing_threat), "finishing_threat", p("finishing_threat"))}
+      ${teamCompositeMetric("Def solidity", num(tc.defensive_solidity), "defensive_solidity", p("defensive_solidity"))}
+      ${teamCompositeMetric("Atk effect", num(tc.attacking_effectiveness), "attacking_effectiveness", p("attacking_effectiveness"))}
+      ${teamCompositeMetric("Pressing", num(tc.pressing_intensity), "pressing_intensity", p("pressing_intensity"))}
+      ${teamCompositeMetric("Press resist", num(tc.press_resistance), "press_resistance", p("press_resistance"))}
+      ${teamCompositeMetric("Trans threat", num(tc.transition_threat), "transition_threat", p("transition_threat"))}
+      ${teamCompositeMetric("Aerial def", num(tc.aerial_defence), "aerial_defence", p("aerial_defence"))}
     </div>`
     : `
     <div class="metric-grid">
@@ -325,8 +362,16 @@ function renderSingleSquadEval(evaluation, team, sideKey) {
   const lineup = team?.lineup?.length
     ? `<div class="lineup-mini report-lineup" style="margin-top:0.75rem">${renderLineup(team)}</div>`
     : "";
-  const units = side.units ? renderUnits(side.units, { showNotes: true }) : "";
-  const teamProfile = side.team_composites ? renderTeamComposites(side.team_composites, { showNotes: true }) : "";
+  const units = side.units
+    ? renderUnits(side.units, { showNotes: true, percentiles: side.percentiles, leagueSize: side.league_size })
+    : "";
+  const teamProfile = side.team_composites
+    ? renderTeamComposites(side.team_composites, {
+        showNotes: true,
+        percentiles: side.percentiles,
+        leagueSize: side.league_size,
+      })
+    : "";
   const headClass = sideKey === "home" ? "home" : sideKey === "away" ? "away" : "";
   return `
     <div class="card squad-card">
