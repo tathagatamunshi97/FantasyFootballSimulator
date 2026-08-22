@@ -74,6 +74,13 @@ header {
   position: sticky;
   top: 0;
   z-index: 10;
+  /* Bug fix -- header had no max-width while `main` below it is capped at
+     1200px and centered, so on any wide viewport the title sat flush left
+     and actions flush right with a growing dead zone between them, while
+     the content below read as a tighter, more deliberate column. Cap the
+     header's own content the same way `main` already is. */
+  max-width: 1200px;
+  margin: 0 auto;
 }
 header h1 {
   margin: 0;
@@ -96,6 +103,9 @@ header .sub { color: var(--muted); font-size: 0.82rem; }
 .badge.live { background: var(--live-soft); color: var(--live); border-color: rgba(244, 63, 94, 0.4); animation: pulse-live 1.5s ease-in-out infinite; }
 @keyframes pulse-live { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 .badge.error { background: var(--danger-soft); color: var(--danger); border-color: rgba(239, 68, 68, 0.35); }
+/* Bug fix -- used in admin.js and squad.js but never actually defined;
+   silently fell back to the plain unstyled .badge look. */
+.badge.muted { background: var(--panel2); color: var(--muted); }
 main { max-width: 1200px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
 .grid { display: grid; gap: 1rem; }
 .grid-2 { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
@@ -273,6 +283,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   position: sticky;
   top: 0;
   z-index: 10;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 .brand-mark {
   display: flex;
@@ -680,20 +692,21 @@ a.module-card:hover .module-cta { gap: 0.5rem; }
   border-bottom: 1px solid var(--border);
 }
 .tab-btn {
-  padding: 0.6rem 0.1rem;
+  padding: 0.5rem 0.85rem;
   border: none;
   border-bottom: 2px solid transparent;
-  border-radius: 0;
+  border-radius: 8px 8px 0 0;
   background: transparent;
   color: var(--muted);
   cursor: pointer;
   font-size: 0.86rem;
   font-weight: 600;
   margin-bottom: -1px;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
-.tab-btn:hover { color: var(--text); }
+.tab-btn:hover { color: var(--text); background: var(--panel2); }
 .tab-btn.active {
-  background: transparent;
+  background: var(--accent-soft);
   color: var(--accent);
   border-bottom-color: var(--accent);
 }
@@ -705,10 +718,10 @@ a.module-card:hover .module-cta { gap: 0.5rem; }
   border-bottom: 1px solid var(--border-soft);
 }
 .subtab-btn {
-  padding: 0.45rem 0.05rem;
+  padding: 0.4rem 0.7rem;
   border: none;
   border-bottom: 2px solid transparent;
-  border-radius: 0;
+  border-radius: 8px 8px 0 0;
   background: transparent;
   color: var(--muted);
   cursor: pointer;
@@ -716,9 +729,11 @@ a.module-card:hover .module-cta { gap: 0.5rem; }
   font-weight: 600;
   font-family: var(--font-display);
   margin-bottom: -1px;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
-.subtab-btn:hover { color: var(--text); }
+.subtab-btn:hover { color: var(--text); background: var(--panel2); }
 .subtab-btn.active {
+  background: var(--accent2-soft);
   color: var(--accent2);
   border-bottom-color: var(--accent2);
 }
