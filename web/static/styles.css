@@ -789,6 +789,16 @@ tr.matchday-live { background: var(--success-soft); }
 .whatif-row.wr-down { border-color: rgba(239, 68, 68, 0.35); background: var(--danger-soft); color: var(--danger); }
 .whatif-summary p { margin: 0; }
 
+.bench-list { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.bench-chip {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--panel2);
+  font-size: 0.82rem;
+}
+
 /* Tactic board — continuous pin / match watch */
 .tactic-watch-card h2 { color: var(--accent2); }
 .tactic-board { display: grid; gap: 0.55rem; position: relative; }

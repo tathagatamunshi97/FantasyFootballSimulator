@@ -35,6 +35,9 @@ function renderLineupBuilder(data) {
     )
     .join("");
 
+  const assignedNow = new Set(Object.values(lineupMap).filter(Boolean));
+  const subsNow = roster.filter((p) => !assignedNow.has(p));
+
   const savedBadge = data.saved
     ? `<span class="badge ready">Saved lineup</span>`
     : `<span class="badge muted">Using auto lineup — save to persist</span>`;
@@ -54,6 +57,15 @@ function renderLineupBuilder(data) {
         <select id="lineupFormation" ${disabled}>${formationOpts}</select>
       </div>
       <div class="slot-grid">${slotRows}</div>
+      <div class="bench-section" style="margin-top:1.25rem">
+        <h3 style="font-size:0.95rem;margin:0 0 0.5rem">Subs</h3>
+        <p class="muted" style="margin:0 0 0.5rem">Roster players not in the starting XI (<span id="benchCount">${subsNow.length}</span> of ${roster.length}).</p>
+        <div class="bench-list" id="benchList">${
+          subsNow.length
+            ? subsNow.map((p) => `<span class="bench-chip">${esc(p)}</span>`).join("")
+            : '<span class="muted">No subs — full roster is in the starting XI.</span>'
+        }</div>
+      </div>
       <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-top:1rem">
         <button type="button" id="saveLineupBtn" class="btn-primary" ${disabled}>Save lineup</button>
         <button type="button" id="testSquadBtn" class="btn-ghost">Test squad</button>
@@ -201,6 +213,7 @@ async function onFormationChange() {
         .map((slot) => renderSlotRow(slot, lineupMap[slot] || "", roster, formation, "", lineupData?.locked))
         .join("");
     }
+    updateBenchList();
     if (status) status.textContent = "";
   } catch (e) {
     if (status) status.textContent = `Could not reassign: ${e.message}`;
@@ -449,6 +462,23 @@ function wireAdminPicker(allTeams, teamName) {
   select.addEventListener("change", () => reloadTeam(select.value));
 }
 
+function updateBenchList() {
+  const listEl = document.getElementById("benchList");
+  const countEl = document.getElementById("benchCount");
+  if (!listEl || !lineupData) return;
+  const roster = lineupData.roster || [];
+  const assigned = new Set(
+    [...document.querySelectorAll("select[data-slot]")].map((el) => el.value.trim()).filter(Boolean)
+  );
+  const subs = roster.filter((p) => !assigned.has(p));
+  listEl.innerHTML = subs.length
+    ? subs.map((p) => `<span class="bench-chip">${esc(p)}</span>`).join("")
+    : '<span class="muted">No subs — full roster is in the starting XI.</span>';
+  if (countEl) countEl.textContent = String(subs.length);
+}
+
+let _benchDelegationWired = false;
+
 function wireLineupBuilder() {
   if (!lineupData?.locked) {
     document.getElementById("lineupFormation")?.addEventListener("change", onFormationChange);
@@ -457,6 +487,13 @@ function wireLineupBuilder() {
   document.getElementById("testSquadBtn")?.addEventListener("click", testSquad);
   document.getElementById("finalizeSquadBtn")?.addEventListener("click", finalizeSquad);
   document.getElementById("unfinalizeSquadBtn")?.addEventListener("click", unfinalizeSquad);
+  if (!_benchDelegationWired) {
+    document.addEventListener("change", (e) => {
+      if (e.target.matches && e.target.matches("select[data-slot]")) updateBenchList();
+    });
+    _benchDelegationWired = true;
+  }
+  updateBenchList();
 }
 
 async function reloadTeam(teamName) {
