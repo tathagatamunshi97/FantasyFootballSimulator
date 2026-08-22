@@ -75,6 +75,15 @@ function aggregateTeamTallies(playerTallies) {
     }
     for (const f of TALLY_FIELDS) teams[team][f] += Number(row[f] || 0);
   }
+  // Bug fix -- distance_carried is the one non-integer field here; each
+  // player row already comes pre-rounded to 1 decimal from the server,
+  // but summing several rounded floats in JS can still land on something
+  // like 222.60000000000002 (plain binary floating-point, the same
+  // reason 0.1 + 0.2 !== 0.3) -- round again after the sum, same 1-decimal
+  // convention the backend already uses for the player-level values.
+  for (const row of Object.values(teams)) {
+    row.distance_carried = Math.round(row.distance_carried * 10) / 10;
+  }
   return Object.values(teams);
 }
 
