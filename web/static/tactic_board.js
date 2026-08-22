@@ -3867,9 +3867,24 @@
       } else if (goals > npxg * 1.20) {
         archetype = "over_performer"; // Significantly outscores xG (>20%)
       }
+      // Bug fix -- these branches were silently exclusive: a player who is
+      // BOTH genuinely clinical on big chances AND a large net over-
+      // performer (also banging in half-chances/worldies well above npxg)
+      // always landed on "clinical_big_chance" here, and the over-
+      // performance fact was simply discarded. Deliberately NOT
+      // reordering to fix this -- clinical_big_chance carries the more
+      // specific, actionable signal profligacyByArchetype actually uses
+      // (a real x0.5 big-chance reduction; over_performer gets no special
+      // multiplier there at all), so checking it first is the right call
+      // for a genuinely clinical finisher. Surfacing the overlap instead
+      // of silently dropping it -- alsoOverPerforms is independent of
+      // which single archetype string won above, for any future caller
+      // that wants both facts rather than just the primary label.
+      const alsoOverPerforms = goals > npxg * 1.2;
 
       return {
         archetype,
+        alsoOverPerforms,
         bigChanceEff: clamp(bigChanceEff, 0, 1),
         halfChanceEff: clamp(halfChanceEff, 0, 1),
         wasteRate: clamp(wasteRate, 0, 1),
@@ -3942,7 +3957,18 @@
       // Assist conversion: do assists match xA expectation?
       const assistConversion = xa90 > 0 ? assists90 / xa90 : 0;
 
-      // Archetype classification
+      // Archetype classification -- same sequential-precedence pattern as
+      // computeFinisherArchetype above (see its own comment on
+      // alsoOverPerforms): a player satisfying two of these conditions at
+      // once (e.g. genuinely elite_chance_creator xA/volume numbers that
+      // also clear volume_creator's own key_passes90 bar) silently gets
+      // whichever branch is checked first. Not changing the order here --
+      // elite_chance_creator's behavioral modifiers (throughBallMultiplier
+      // 1.4x etc., see creatorBehaviorModifiers below) are the more
+      // specific, higher-conviction read for a player who clears ITS
+      // bar specifically -- but flagging this is a known limitation, not
+      // an intentional independent-axis design the way the doc-review
+      // that found this initially assumed.
       let archetype = "balanced";
 
       if (xa90 > 0.28 && keyPasses90 > 1.8) {
