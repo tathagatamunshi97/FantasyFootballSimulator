@@ -12,7 +12,8 @@ from __future__ import annotations
 
 
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Any
 
 
 
@@ -110,6 +111,13 @@ class UnitRatings:
     gk_confidence: float = 1.0
 
     gk_is_backup: bool = False
+
+    # Per-player contributions behind each unit score, weakest first --
+    # only populated by compute_unit_ratings_by_slot (the by-slot loop has
+    # a real player/slot to attach to each score; compute_unit_ratings's
+    # whole-XI loop is kept lean since nothing currently reads this from
+    # there). {"finishing": [{"player":..., "slot":..., "score":...}, ...]}
+    breakdown: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
 
 
 
@@ -862,6 +870,20 @@ def compute_unit_ratings_by_slot(
     gk_backup = False
     wide_partners = _fullback_winger_partners(team, player_stats)
 
+    # Parallel to the *_scores lists above -- who contributed each score, so
+    # a report can name the actual players behind a low unit rating instead
+    # of just showing the averaged number. Only populated here (not in
+    # compute_unit_ratings's whole-XI loop, which nothing currently reads
+    # a breakdown from).
+    breakdown: dict[str, list[dict[str, Any]]] = {
+        "finishing": [],
+        "chance_creation": [],
+        "attack": [],
+        "midfield": [],
+        "defence": [],
+        "midfield_defence": [],
+    }
+
     for slot in team.lineup:
         stats = player_stats[slot.player]
         fit = _slot_fit(stats, team, slot)
@@ -876,25 +898,38 @@ def compute_unit_ratings_by_slot(
             continue
 
         if role in _FINISHING_ROLES:
-            finishing_scores.append(_player_attack_contrib(stats, fit))
+            score = _player_attack_contrib(stats, fit)
+            finishing_scores.append(score)
+            breakdown["finishing"].append({"player": slot.player, "slot": slot.slot, "score": round(score, 3)})
         if role in _CREATION_ROLES:
             creation = _player_chance_creation_contrib(stats, fit)
             if role == "fullback":
                 side = _wide_side(eff)
                 creation += _fullback_winger_combo_bonus(stats, fit, wide_partners.get(side) if side else None)
             creation_scores.append(creation)
-        if role in _ATTACK_ROLES:
-            attack_scores.append(
-                0.56 * _player_attack_contrib(stats, fit)
-                + 0.44 * _player_chance_creation_contrib(stats, fit)
+            breakdown["chance_creation"].append(
+                {"player": slot.player, "slot": slot.slot, "score": round(creation, 3)}
             )
+        if role in _ATTACK_ROLES:
+            atk_score = 0.56 * _player_attack_contrib(stats, fit) + 0.44 * _player_chance_creation_contrib(stats, fit)
+            attack_scores.append(atk_score)
+            breakdown["attack"].append({"player": slot.player, "slot": slot.slot, "score": round(atk_score, 3)})
         if role in _MIDFIELD_ROLES:
-            midfield_scores.append(_player_midfield_contrib(stats, fit))
+            score = _player_midfield_contrib(stats, fit)
+            midfield_scores.append(score)
+            breakdown["midfield"].append({"player": slot.player, "slot": slot.slot, "score": round(score, 3)})
         if role in _DEFENCE_ROLES:
-            defence_scores.append(_player_defence_contrib(stats, fit))
+            score = _player_defence_contrib(stats, fit)
+            defence_scores.append(score)
+            breakdown["defence"].append({"player": slot.player, "slot": slot.slot, "score": round(score, 3)})
         if role in _MIDDEF_ROLES:
             w = 1.0 if role == "dm" else 0.72
-            midfield_defence_scores.append(_player_midfield_defence_contrib(stats, fit) * w)
+            score = _player_midfield_defence_contrib(stats, fit) * w
+            midfield_defence_scores.append(score)
+            breakdown["midfield_defence"].append({"player": slot.player, "slot": slot.slot, "score": round(score, 3)})
+
+    for rows in breakdown.values():
+        rows.sort(key=lambda r: r["score"])
 
     # Top-3 mean (divisor=3): keeps elite above mid-table without everyone at 1.00.
     finishing = _top_n_avg(finishing_scores, 3, divisor=3.0)
@@ -924,6 +959,7 @@ def compute_unit_ratings_by_slot(
         transition_risk=round(transition_risk, 3),
         goalkeeper=round(goalkeeper, 3),
         overall=round(overall, 3),
+        breakdown=breakdown,
         gk_confidence=round(gk_conf, 3),
         gk_is_backup=gk_backup,
     )
@@ -944,6 +980,12 @@ class TeamComposites:
     transition_threat: float
     aerial_defence: float
     overall: float
+
+    # Per-player contributions behind press_resistance, weakest first --
+    # the only team-composite with an obvious per-player decomposition
+    # (the others blend whole-line stat averages, not an averaged list of
+    # individual scores in the same shape). See UnitRatings.breakdown.
+    breakdown: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
 
 
 def compute_team_composites(
@@ -991,11 +1033,15 @@ def compute_team_composites(
     duel_bearers = [p for p in defs + mids if p.duels_won_pct > 0]
     avg_duel_pct = _avg([p.duels_won_pct for p in duel_bearers], default=0.0) if duel_bearers else 0.0
     press_resist_scores: list[float] = []
+    press_resist_breakdown: list[dict[str, Any]] = []
     for slot in team.lineup:
         st = player_stats[slot.player]
         if st.fpl_position in ("DEF", "MID"):
             fit = player_slot_fit(st, team.formation, slot.slot)
-            press_resist_scores.append(_player_press_resistance(st, fit))
+            score = _player_press_resistance(st, fit)
+            press_resist_scores.append(score)
+            press_resist_breakdown.append({"player": slot.player, "slot": slot.slot, "score": round(score, 3)})
+    press_resist_breakdown.sort(key=lambda r: r["score"])
     press_resistance = _clamp(_avg(press_resist_scores, default=0.0))
     attacking_effectiveness = _clamp(
         _scale(_avg([p.xg90 for p in fwds]), 0.85) * 0.30
@@ -1054,6 +1100,7 @@ def compute_team_composites(
         transition_threat=round(transition_threat, 3),
         aerial_defence=round(aerial_defence, 3),
         overall=round(overall, 3),
+        breakdown={"press_resistance": press_resist_breakdown},
     )
 
 
@@ -1070,6 +1117,7 @@ def team_composites_dict(c: TeamComposites) -> dict[str, float]:
         "transition_threat": c.transition_threat,
         "aerial_defence": c.aerial_defence,
         "overall": c.overall,
+        "breakdown": c.breakdown,
     }
 
 

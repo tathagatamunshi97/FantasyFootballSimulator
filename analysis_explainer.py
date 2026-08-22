@@ -508,6 +508,36 @@ _TEAM_TIER_THRESHOLDS: dict[str, tuple[float, float, float, float]] = {
     "attacking_effectiveness": (0.62, 0.54, 0.42, 0.35),
 }
 
+# Percentile-vs-league tier bands (0-100 scale). Reused across every unit
+# and team-composite: percentile is always "higher = better" by construction
+# (a lower-is-better raw metric like transition_risk gets inverted before
+# this point), unlike the absolute _UNIT_TIER_THRESHOLDS above where every
+# metric needed its own hand-tuned cutoff on a different natural scale.
+_PERCENTILE_TIER_THRESHOLDS: tuple[float, float, float, float] = (85.0, 65.0, 35.0, 15.0)
+
+# Below this many teams, a percentile is more noise than signal (e.g. "3rd
+# of 4" swings wildly on one bad week) -- fall back to the absolute
+# thresholds instead of reporting a shaky rank.
+_MIN_LEAGUE_SIZE_FOR_PERCENTILE = 4
+
+
+def _ordinal(n: int) -> str:
+    if 10 <= n % 100 <= 20:
+        suffix = "th"
+    else:
+        suffix = {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+    return f"{n}{suffix}"
+
+
+def _drivers_phrase(rows: list[dict[str, Any]] | None, *, n: int = 2) -> str:
+    """'lowest: Kanté (0.31), Vitinha (0.38)' from a breakdown list (already sorted ascending)."""
+    if not rows:
+        return ""
+    picked = rows[:n]
+    parts = ", ".join(f"{r['player']} ({r['score']:.2f})" for r in picked)
+    return f" — lowest: {parts}"
+
+
 _CRITICAL_SLOTS = frozenset(
     {"GK", "RB", "LB", "RWB", "LWB", "CB1", "CB2", "CB3", "DM", "DM1", "DM2", "ST", "ST1", "ST2"}
 )
@@ -546,36 +576,69 @@ def _tier_item(tier: Tier, text: str) -> dict[str, str]:
     return {"tier": tier, "text": text}
 
 
-def _unit_tier_label(label: str, key: str, value: float, *, higher_better: bool = True) -> dict[str, str] | None:
+def _unit_tier_label(
+    label: str,
+    key: str,
+    value: float,
+    *,
+    higher_better: bool = True,
+    percentile: float | None = None,
+    league_size: int = 0,
+    drivers: list[dict[str, Any]] | None = None,
+) -> dict[str, Any] | None:
     if value <= 0.001 and key != "transition_risk":
-        return None
-    thresholds = _UNIT_TIER_THRESHOLDS.get(key, (0.68, 0.58, 0.45, 0.38))
-    tier = _classify_tier(value, thresholds, higher_better=higher_better)
-    if tier == "balanced":
         return None
     val_txt = f"{value:.2f}"
     if key == "transition_risk":
         val_txt = f"{value:.2f} (lower is safer)"
+
+    use_pct = percentile is not None and league_size >= _MIN_LEAGUE_SIZE_FOR_PERCENTILE
+    if use_pct:
+        tier = _classify_tier(percentile, _PERCENTILE_TIER_THRESHOLDS, higher_better=True)
+        pct_txt = f"{_ordinal(round(percentile))} percentile of {league_size}"
+        val_txt = f"{pct_txt}, {val_txt}"
+    else:
+        thresholds = _UNIT_TIER_THRESHOLDS.get(key, (0.68, 0.58, 0.45, 0.38))
+        tier = _classify_tier(value, thresholds, higher_better=higher_better)
+    if tier == "balanced":
+        return None
+
+    drv_txt = _drivers_phrase(drivers) if tier in ("weakness", "moderate_weakness") else ""
     phrases = {
         "strength": f"Elite {label.lower()} ({val_txt}).",
         "moderate_strength": f"Solid {label.lower()} ({val_txt}).",
-        "moderate_weakness": f"Slight {label.lower()} concern ({val_txt}).",
-        "weakness": f"Thin {label.lower()} ({val_txt}).",
+        "moderate_weakness": f"Slight {label.lower()} concern ({val_txt}){drv_txt}.",
+        "weakness": f"Thin {label.lower()} ({val_txt}){drv_txt}.",
     }
     return _tier_item(tier, phrases[tier])
 
 
-def _team_tier_label(label: str, key: str, value: float) -> dict[str, str] | None:
-    thresholds = _TEAM_TIER_THRESHOLDS.get(key, (0.62, 0.54, 0.42, 0.35))
-    tier = _classify_tier(value, thresholds)
+def _team_tier_label(
+    label: str,
+    key: str,
+    value: float,
+    *,
+    percentile: float | None = None,
+    league_size: int = 0,
+    drivers: list[dict[str, Any]] | None = None,
+) -> dict[str, Any] | None:
+    val_txt = f"{value:.2f}"
+    use_pct = percentile is not None and league_size >= _MIN_LEAGUE_SIZE_FOR_PERCENTILE
+    if use_pct:
+        tier = _classify_tier(percentile, _PERCENTILE_TIER_THRESHOLDS, higher_better=True)
+        val_txt = f"{_ordinal(round(percentile))} percentile of {league_size}, {val_txt}"
+    else:
+        thresholds = _TEAM_TIER_THRESHOLDS.get(key, (0.62, 0.54, 0.42, 0.35))
+        tier = _classify_tier(value, thresholds)
     if tier == "balanced":
         return None
-    val_txt = f"{value:.2f}"
+
+    drv_txt = _drivers_phrase(drivers) if tier in ("weakness", "moderate_weakness") else ""
     phrases = {
         "strength": f"Team {label.lower()} stands out ({val_txt}).",
         "moderate_strength": f"Team {label.lower()} slightly above average ({val_txt}).",
-        "moderate_weakness": f"Team {label.lower()} slightly below average ({val_txt}).",
-        "weakness": f"Team {label.lower()} is a concern ({val_txt}).",
+        "moderate_weakness": f"Team {label.lower()} slightly below average ({val_txt}){drv_txt}.",
+        "weakness": f"Team {label.lower()} is a concern ({val_txt}){drv_txt}.",
     }
     return _tier_item(tier, phrases[tier])
 
@@ -639,6 +702,8 @@ def _analyze_single_squad(
     formation: str,
     profile: dict[str, Any],
     bench: dict[str, Any] | None,
+    *,
+    percentiles: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Per-team strengths, weaknesses, and unit breakdown for squad display."""
     ext = profile["extended"]
@@ -646,6 +711,10 @@ def _analyze_single_squad(
     tc = ext.get("team_composites") or {}
     fb = profile.get("fullbacks") or {}
     fit_players = ext.get("formation_fit_players") or []
+    unit_breakdown = u.get("breakdown") or {}
+    composite_breakdown = tc.get("breakdown") or {}
+    pct_by_key = (percentiles or {}).get("by_key") or {}
+    league_size = (percentiles or {}).get("league_size", 0)
 
     tier_items: list[dict[str, str]] = []
     sections: list[dict[str, Any]] = []
@@ -663,7 +732,15 @@ def _analyze_single_squad(
         val = float(u.get(key, 0))
         if key == "transition_risk" and val <= 0.001 and not fb.get("fullbacks"):
             continue
-        item = _unit_tier_label(label, key, val, higher_better=higher_better)
+        item = _unit_tier_label(
+            label,
+            key,
+            val,
+            higher_better=higher_better,
+            percentile=pct_by_key.get(key),
+            league_size=league_size,
+            drivers=unit_breakdown.get(key),
+        )
         if item:
             tier_items.append(item)
 
@@ -677,7 +754,14 @@ def _analyze_single_squad(
         ("Pressing intensity", "pressing_intensity"),
     ):
         val = float(tc.get(key, 0))
-        item = _team_tier_label(label, key, val)
+        item = _team_tier_label(
+            label,
+            key,
+            val,
+            percentile=pct_by_key.get(key),
+            league_size=league_size,
+            drivers=composite_breakdown.get(key),
+        )
         if item:
             tier_items.append(item)
 
@@ -758,7 +842,9 @@ def _analyze_single_squad(
         "tier_labels": grouped,
         "sections": sections,
         "units": {k: round(float(v), 3) if isinstance(v, (int, float)) else v for k, v in u.items()},
-        "team_composites": {k: round(float(v), 3) for k, v in tc.items()},
+        "team_composites": {k: round(float(v), 3) if isinstance(v, (int, float)) else v for k, v in tc.items()},
+        "percentiles": pct_by_key,
+        "league_size": league_size,
     }
 
 
@@ -787,9 +873,11 @@ def analyze_team_squad(
     formation: str,
     profile: dict[str, Any],
     bench: dict[str, Any] | None,
+    *,
+    percentiles: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Public wrapper for single-team squad evaluation."""
-    return _analyze_single_squad(team_name, formation, profile, bench)
+    return _analyze_single_squad(team_name, formation, profile, bench, percentiles=percentiles)
 
 
 _SCOUT_COMPARE_UNITS: tuple[tuple[str, str, bool], ...] = (

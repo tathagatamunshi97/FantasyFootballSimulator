@@ -230,15 +230,121 @@ async function testSquad() {
   try {
     const payload = collectLineupPayload();
     const data = await api(`/api/my-squad/test${q}`, { method: "POST", json: payload });
-    document.getElementById("mySquadSection").innerHTML = renderSingleSquadEval(
-      data.squad.evaluation,
-      data.squad.team
-    );
+    document.getElementById("mySquadSection").innerHTML =
+      renderSingleSquadEval(data.squad.evaluation, data.squad.team) + renderWhatIfPanel(data.squad.team);
+    wireWhatIfPanel();
     if (status) status.textContent = "Test report generated (not saved).";
   } catch (e) {
     document.getElementById("mySquadSection").innerHTML = `<div class="empty"><span class="badge error">Error</span><p>${esc(e.message)}</p></div>`;
     if (status) status.textContent = `Test failed: ${e.message}`;
   }
+}
+
+const _WHATIF_UNIT_LABELS = [
+  ["attack", "Attack", true],
+  ["finishing", "Finishing", true],
+  ["chance_creation", "Creation", true],
+  ["midfield", "Midfield", true],
+  ["defence", "Defence", true],
+  ["midfield_defence", "Mid-def", true],
+  ["transition_risk", "Trans risk", false],
+  ["goalkeeper", "GK", true],
+  ["overall", "Overall", true],
+];
+const _WHATIF_COMPOSITE_LABELS = [
+  ["creativity", "Creativity", true],
+  ["midfield_control", "Mid control", true],
+  ["possession_control", "Possession", true],
+  ["finishing_threat", "Fin threat", true],
+  ["defensive_solidity", "Def solidity", true],
+  ["attacking_effectiveness", "Atk effect", true],
+  ["pressing_intensity", "Pressing", true],
+  ["press_resistance", "Press resist", true],
+  ["transition_threat", "Trans threat", true],
+  ["aerial_defence", "Aerial def", true],
+  ["overall", "Overall", true],
+];
+
+function renderWhatIfPanel(team) {
+  const lineup = team?.lineup || [];
+  const bench = team?.bench || [];
+  if (!lineup.length || !bench.length) return "";
+  const slotOpts = lineup
+    .map((r) => `<option value="${esc(r.slot)}">${esc(r.slot)} — ${esc(r.player)}</option>`)
+    .join("");
+  const playerOpts = bench.map((p) => `<option value="${esc(p)}">${esc(p)}</option>`).join("");
+  return `
+    <div class="card whatif-card" style="margin-top:1rem">
+      <h3 style="font-size:0.95rem;margin:0 0 0.35rem">What if?</h3>
+      <p class="muted" style="margin:0 0 0.75rem">Swap a bench player into a slot and see how the ratings move. Not saved.</p>
+      <div style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:flex-end">
+        <div style="flex:1;min-width:170px">
+          <label for="whatifSlot">Slot (out)</label>
+          <select id="whatifSlot">${slotOpts}</select>
+        </div>
+        <div style="flex:1;min-width:170px">
+          <label for="whatifPlayer">Bring in</label>
+          <select id="whatifPlayer">${playerOpts}</select>
+        </div>
+        <button type="button" id="whatifBtn" class="btn-ghost">Compare</button>
+      </div>
+      <div id="whatifResult" style="margin-top:0.85rem"></div>
+    </div>`;
+}
+
+function whatifRow(label, block, higherBetter) {
+  if (!block) return "";
+  const d = block.delta;
+  if (Math.abs(d) < 0.005) {
+    return `<div class="whatif-row"><span class="wr-label">${esc(label)}</span><span class="muted">${num(
+      block.before
+    )} → ${num(block.after)} · no change</span></div>`;
+  }
+  const good = higherBetter ? d > 0 : d < 0;
+  const cls = good ? "wr-up" : "wr-down";
+  const sign = d > 0 ? "+" : "";
+  return `<div class="whatif-row ${cls}"><span class="wr-label">${esc(label)}</span><span>${num(
+    block.before
+  )} → ${num(block.after)} <strong>(${sign}${num(d)})</strong></span></div>`;
+}
+
+function renderWhatIfResult(whatif) {
+  const unitRows = _WHATIF_UNIT_LABELS.map(([k, l, hb]) => whatifRow(l, whatif.units[k], hb)).join("");
+  const compRows = _WHATIF_COMPOSITE_LABELS.map(([k, l, hb]) => whatifRow(l, whatif.team_composites[k], hb)).join(
+    ""
+  );
+  return `
+    <div class="whatif-summary">
+      <p><strong>${esc(whatif.out_player)}</strong> out, <strong>${esc(whatif.in_player)}</strong> in (${esc(
+    whatif.slot
+  )})</p>
+      <h4 style="font-size:0.8rem;margin:0.75rem 0 0.25rem">Unit ratings</h4>
+      <div class="whatif-grid">${unitRows}</div>
+      <h4 style="font-size:0.8rem;margin:0.75rem 0 0.25rem">Team profile</h4>
+      <div class="whatif-grid">${compRows}</div>
+    </div>`;
+}
+
+function wireWhatIfPanel() {
+  const btn = document.getElementById("whatifBtn");
+  if (!btn) return;
+  btn.addEventListener("click", async () => {
+    const slot = document.getElementById("whatifSlot")?.value;
+    const newPlayer = document.getElementById("whatifPlayer")?.value;
+    const resultEl = document.getElementById("whatifResult");
+    if (!slot || !newPlayer || !resultEl) return;
+    resultEl.innerHTML = '<p class="muted">Comparing…</p>';
+    const q = currentTeam ? `?team=${encodeURIComponent(currentTeam)}` : "";
+    try {
+      const data = await api(`/api/my-squad/whatif${q}`, {
+        method: "POST",
+        json: { slot, new_player: newPlayer },
+      });
+      resultEl.innerHTML = renderWhatIfResult(data.whatif);
+    } catch (e) {
+      resultEl.innerHTML = `<p class="muted">Compare failed: ${esc(e.message)}</p>`;
+    }
+  });
 }
 
 async function finalizeSquad() {

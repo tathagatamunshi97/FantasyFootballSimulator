@@ -55,6 +55,7 @@ def _units_dict(u: UnitRatings) -> dict[str, float | bool]:
         "overall": u.overall,
         "gk_confidence": u.gk_confidence,
         "gk_is_backup": u.gk_is_backup,
+        "breakdown": u.breakdown,
     }
 
 

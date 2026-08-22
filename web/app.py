@@ -67,6 +67,11 @@ class LineupSaveRequest(BaseModel):
     peak_season: dict[str, str] | None = None
 
 
+class WhatIfSwapRequest(BaseModel):
+    slot: str
+    new_player: str
+
+
 class TournamentCreateRequest(BaseModel):
     name: str = "Fantasy Tournament"
     team_names: list[str] = Field(default_factory=list)
@@ -864,6 +869,39 @@ def test_my_squad_api(
             detail=f"Squad evaluation failed: {_format_squad_eval_error(exc)}",
         ) from exc
     return {"squad": result, "draft": True}
+
+
+@app.post("/api/my-squad/whatif")
+def whatif_squad_api(
+    body: WhatIfSwapRequest,
+    team: str | None = None,
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Unit/team-composite deltas from swapping one player into the saved lineup -- not saved."""
+    user = _session_user(x_session_token)
+    is_admin = _is_admin(x_admin_token)
+    if not (auth.is_team_user(user) or _is_admin_session(user) or is_admin):
+        raise HTTPException(status_code=403, detail="Squad test requires team or admin login.")
+
+    team_name = _resolve_squad_team_name(user, team=team, is_admin_token=is_admin)
+    if auth.is_team_user(user) and team_name.lower() != user.lower():
+        raise HTTPException(status_code=403, detail="You can only test your own squad.")
+
+    from squad_intel import simulate_lineup_swap
+
+    team_payload = _load_sheet_team_payload(team_name)
+    store = sim_state.get_stats_store()
+    try:
+        result = simulate_lineup_swap(team_payload, store, slot=body.slot, new_player=body.new_player)
+    except (KeyError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"What-if comparison failed: {_format_squad_eval_error(exc)}",
+        ) from exc
+    return {"whatif": result}
 
 
 def _can_view_experiment(
