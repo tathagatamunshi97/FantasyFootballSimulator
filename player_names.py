@@ -520,6 +520,911 @@ KNOWN_PLAYER_POSITIONS_BY_NAME: dict[str, dict[str, Any]] = {
         "fpl_position": "MID",
         "positions": ["LW", "RW", "LM"],
     },
+    # MasterSimulator FC roster audit -- cache had most of this team's
+    # midfield/attack flattened to a generic "CM" (even Doku and Leão, both
+    # genuine wide forwards), and several defenders mislabeled outright
+    # (Porro as CB, Dorgu as CM). User-supplied real positions in order of
+    # preference, 2026-08-22.
+    "Luis Suárez": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": ["ST", "LW"],
+    },
+    "Eden Hazard": {
+        "primary_position": "LW",
+        "fpl_position": "FWD",
+        "positions": ["LW", "AM", "LM"],
+    },
+    "Rafael Leão": {
+        "primary_position": "LW",
+        "fpl_position": "FWD",
+        "positions": ["LW", "LM", "RW", "ST"],
+    },
+    "Joshua Kimmich": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": ["CM", "RB", "DM"],
+    },
+    "Virgil van Dijk": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB"],
+    },
+    "Pedro Porro": {
+        "primary_position": "RB",
+        "fpl_position": "DEF",
+        "positions": ["RB", "RWB", "RM"],
+    },
+    "Willian Pacho": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB"],
+    },
+    "Mile Svilar": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": ["GK"],
+    },
+    "Alexander Isak": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": ["ST", "LW", "RW"],
+    },
+    "Jérémy Doku": {
+        "primary_position": "RW",
+        "fpl_position": "FWD",
+        "positions": ["RW", "LW", "RM", "LM"],
+    },
+    "Luka Modrić": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": ["CM", "AM"],
+    },
+    "Nico Paz": {
+        "primary_position": "AM",
+        "fpl_position": "MID",
+        "positions": ["AM", "RW"],
+    },
+    "Piero Hincapié": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB", "LB"],
+    },
+    "Noussair Mazraoui": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": ["LB", "LWB", "RB", "DM"],
+    },
+    "Joan García": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": ["GK"],
+    },
+    "Dani Olmo": {
+        "primary_position": "AM",
+        "fpl_position": "MID",
+        "positions": ["AM", "CM"],
+    },
+    "Ibrahim Sangaré": {
+        "primary_position": "DM",
+        "fpl_position": "MID",
+        "positions": ["DM"],
+    },
+    "Patrick Dorgu": {
+        "primary_position": "LWB",
+        "fpl_position": "DEF",
+        "positions": ["LWB", "LB", "LM"],
+    },
+    # Mao De Zong FC roster audit -- user-supplied real positions in order
+    # of preference, 2026-08-23.
+    "Neymar": {
+        "primary_position": "LW",
+        "fpl_position": "FWD",
+        "positions": ["LW", "AM"],
+    },
+    "Ashley Cole": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": ["LB", "LWB", "CB"],
+    },
+    "Ousmane Dembélé": {
+        "primary_position": "RW",
+        "fpl_position": "FWD",
+        "positions": ["RW", "LW", "ST"],
+    },
+    "Michael Olise": {
+        "primary_position": "RW",
+        "fpl_position": "FWD",
+        "positions": ["RW", "AM", "RM"],
+    },
+    "Frenkie de Jong": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": ["CM", "DM"],
+    },
+    "Marco Carnesecchi": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": ["GK"],
+    },
+    "Mikel Merino": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": ["CM", "AM", "DM"],
+    },
+    "Ibrahima Konaté": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB"],
+    },
+    "Kai Havertz": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": ["ST", "AM"],
+    },
+    "Mats Wieffer": {
+        "primary_position": "DM",
+        "fpl_position": "MID",
+        "positions": ["DM", "RB"],
+    },
+    "Cristian Romero": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB", "RB"],
+    },
+    "Jonathan Clauss": {
+        "primary_position": "RB",
+        "fpl_position": "DEF",
+        "positions": ["RB", "RWB", "RM"],
+    },
+    "Florian Thauvin": {
+        "primary_position": "LW",
+        "fpl_position": "FWD",
+        "positions": ["LW", "ST", "AM"],
+    },
+    "Adrien Thomasson": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": ["CM", "AM", "DM"],
+    },
+    "Nadiem Amiri": {
+        "primary_position": "AM",
+        "fpl_position": "MID",
+        "positions": ["AM", "CM"],
+    },
+    "Casemiro": {
+        "primary_position": "DM",
+        "fpl_position": "MID",
+        "positions": ["DM", "CB"],
+    },
+    "Dayot Upamecano": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB"],
+    },
+    "Luka Vušković": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB", "RB"],
+    },
+    # Sayaninjal FC roster audit -- user-supplied real positions in order
+    # of preference, 2026-08-23.
+    "Mesut Özil": {
+        "primary_position": "AM",
+        "fpl_position": "MID",
+        "positions": ["AM", "RW"],
+    },
+    "Cristiano Ronaldo": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": ["ST", "LW"],
+    },
+    "Pedri": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": ["CM"],
+    },
+    "João Neves": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": ["CM", "DM"],
+    },
+    "Jonathan Tah": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB"],
+    },
+    "Désiré Doué": {
+        "primary_position": "RW",
+        "fpl_position": "FWD",
+        "positions": ["RW", "LW", "AM"],
+    },
+    "Warren Zaïre-Emery": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": ["CM", "AM"],
+    },
+    "Alejandro Grimaldo": {
+        "primary_position": "LWB",
+        "fpl_position": "DEF",
+        "positions": ["LWB", "LM", "LB"],
+    },
+    "Reece James": {
+        "primary_position": "RB",
+        "fpl_position": "DEF",
+        "positions": ["RB", "RWB", "DM", "CM", "CB"],
+    },
+    "Castello Lukeba": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB", "LB"],
+    },
+    "Guéla Doué": {
+        "primary_position": "RB",
+        "fpl_position": "DEF",
+        "positions": ["RB", "LB", "CB"],
+    },
+    "Rúben Dias": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB"],
+    },
+    "Sergio Herrera": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": ["GK"],
+    },
+    "Moisés Caicedo": {
+        "primary_position": "DM",
+        "fpl_position": "MID",
+        "positions": ["DM", "CM", "RB"],
+    },
+    "Senne Lammens": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": ["GK"],
+    },
+    "Marcus Rashford": {
+        "primary_position": "LW",
+        "fpl_position": "FWD",
+        "positions": ["LW", "ST", "RW"],
+    },
+    "Cole Palmer": {
+        "primary_position": "AM",
+        "fpl_position": "MID",
+        "positions": ["AM", "RW"],
+    },
+    "Florian Lejeune": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB"],
+    },
+    # Nesha Korechi FC roster audit -- user-supplied real positions in
+    # order of preference, 2026-08-23.
+    "Nemanja Vidić": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB"],
+    },
+    "Lionel Messi": {
+        "primary_position": "RW",
+        "fpl_position": "FWD",
+        "positions": ["RW", "AM", "ST"],
+    },
+    "Raphinha": {
+        "primary_position": "LW",
+        "fpl_position": "FWD",
+        "positions": ["LW", "RW", "ST"],
+    },
+    "Lautaro Martínez": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": ["ST"],
+    },
+    "Martin Ødegaard": {
+        "primary_position": "AM",
+        "fpl_position": "MID",
+        "positions": ["AM"],
+    },
+    "Nicolò Barella": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": ["CM", "AM"],
+    },
+    "Tijjani Reijnders": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": ["CM", "AM"],
+    },
+    "Theo Hernández": {
+        "primary_position": "LWB",
+        "fpl_position": "DEF",
+        "positions": ["LWB", "LB"],
+    },
+    "Micky van de Ven": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB", "LB", "LWB"],
+    },
+    "Djed Spence": {
+        "primary_position": "RB",
+        "fpl_position": "DEF",
+        "positions": ["RB", "LB", "LWB", "RWB"],
+    },
+    "Alisson": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": ["GK"],
+    },
+    "Matz Sels": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": ["GK"],
+    },
+    "Ademola Lookman": {
+        "primary_position": "LW",
+        "fpl_position": "FWD",
+        "positions": ["LW", "LM", "RW", "RM"],
+    },
+    "Elliot Anderson": {
+        "primary_position": "DM",
+        "fpl_position": "MID",
+        "positions": ["DM", "CM"],
+    },
+    "Lisandro Martínez": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB", "LB"],
+    },
+    "Denzel Dumfries": {
+        "primary_position": "RWB",
+        "fpl_position": "DEF",
+        "positions": ["RWB", "RB"],
+    },
+    "Youri Tielemans": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": ["CM", "DM"],
+    },
+    "Joao Pedro": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": ["ST", "AM"],
+    },
+    # Diddy's Didier FC roster audit -- user-supplied real positions in
+    # order of preference, 2026-08-23.
+    "Didier Drogba": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": ["ST"],
+    },
+    "Gareth Bale": {
+        "primary_position": "RW",
+        "fpl_position": "FWD",
+        "positions": ["RW", "LW", "LM", "RM"],
+    },
+    "Kylian Mbappé": {
+        "primary_position": "LW",
+        "fpl_position": "FWD",
+        "positions": ["LW", "ST", "RW"],
+    },
+    "Hakan Çalhanoğlu": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": ["CM", "DM"],
+    },
+    "Gabriel Magalhães": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB"],
+    },
+    "Daniel Muñoz": {
+        "primary_position": "RWB",
+        "fpl_position": "DEF",
+        "positions": ["RWB", "RM", "RB"],
+    },
+    "Mike Maignan": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": ["GK"],
+    },
+    "Scott McTominay": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": ["CM", "AM", "DM"],
+    },
+    "Morgan Rogers": {
+        "primary_position": "AM",
+        "fpl_position": "MID",
+        "positions": ["AM", "LW"],
+    },
+    "Rayan Cherki": {
+        "primary_position": "AM",
+        "fpl_position": "MID",
+        "positions": ["AM", "RW"],
+    },
+    "Dean Huijsen": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB"],
+    },
+    "Jan Paul van Hecke": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB"],
+    },
+    "Álvaro Carreras": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": ["LB"],
+    },
+    "Kenan Yıldız": {
+        "primary_position": "LW",
+        "fpl_position": "FWD",
+        "positions": ["LW", "AM", "RW", "LM"],
+    },
+    "James Garner": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": ["CM", "DM"],
+    },
+    "Angelo Stiller": {
+        "primary_position": "DM",
+        "fpl_position": "MID",
+        "positions": ["DM", "CM"],
+    },
+    "Nico O'Reilly": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": ["LB", "CM", "LWB"],
+    },
+    "Matheus Nunes": {
+        "primary_position": "RB",
+        "fpl_position": "DEF",
+        "positions": ["RB", "CM", "RWB", "DM"],
+    },
+    # Mikel Carrick FC roster audit -- user-supplied real positions in
+    # order of preference, 2026-08-23.
+    "Andrés Iniesta": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": ["CM", "AM"],
+    },
+    "Frank Lampard": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": ["CM", "AM"],
+    },
+    "Mohamed Salah": {
+        "primary_position": "RW",
+        "fpl_position": "FWD",
+        "positions": ["RW"],
+    },
+    "Vinícius Júnior": {
+        "primary_position": "LW",
+        "fpl_position": "FWD",
+        "positions": ["LW"],
+    },
+    "Khvicha Kvaratskhelia": {
+        "primary_position": "LW",
+        "fpl_position": "FWD",
+        "positions": ["LW", "ST", "RW", "LM"],
+    },
+    "Manuel Locatelli": {
+        "primary_position": "DM",
+        "fpl_position": "MID",
+        "positions": ["DM", "CM"],
+    },
+    "Marc Guéhi": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB", "RB"],
+    },
+    "Jeremie Frimpong": {
+        "primary_position": "RWB",
+        "fpl_position": "DEF",
+        "positions": ["RWB", "RM", "RB"],
+    },
+    "Cristhian Mosquera": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB", "RB"],
+    },
+    "Serhou Guirassy": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": ["ST"],
+    },
+    "Deniz Undav": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": ["ST", "LW", "AM", "RW"],
+    },
+    "Vanja Milinković-Savić": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": ["GK"],
+    },
+    "Bryan Mbeumo": {
+        "primary_position": "RW",
+        "fpl_position": "FWD",
+        "positions": ["RW", "ST"],
+    },
+    "João Gomes": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": ["CM", "DM"],
+    },
+    "Marcos Senesi": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB"],
+    },
+    "Alejandro Balde": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": ["LB", "LWB"],
+    },
+    "David Raum": {
+        "primary_position": "LWB",
+        "fpl_position": "DEF",
+        "positions": ["LWB", "LM", "LB"],
+    },
+    "Alexander Nübel": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": ["GK"],
+    },
+    "John Terry": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB"],
+    },
+    "Sergio Agüero": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": ["ST"],
+    },
+    "Bradley Barcola": {
+        "primary_position": "LW",
+        "fpl_position": "FWD",
+        "positions": ["LW", "RW", "LM", "RM"],
+    },
+    "Bruno Fernandes": {
+        "primary_position": "AM",
+        "fpl_position": "MID",
+        "positions": ["AM", "CM"],
+    },
+    "Achraf Hakimi": {
+        "primary_position": "RWB",
+        "fpl_position": "DEF",
+        "positions": ["RWB", "RB"],
+    },
+    "William Saliba": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB", "RB"],
+    },
+    "Federico Dimarco": {
+        "primary_position": "LWB",
+        "fpl_position": "DEF",
+        "positions": ["LWB", "LM", "LB"],
+    },
+    "Gianluigi Donnarumma": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": ["GK"],
+    },
+    "Victor Osimhen": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": ["ST"],
+    },
+    "Rodri": {
+        "primary_position": "DM",
+        "fpl_position": "MID",
+        "positions": ["DM", "CM"],
+    },
+    "Ezri Konsa": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB", "RB"],
+    },
+    "Jordan Pickford": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": ["GK"],
+    },
+    "Yan Diomande": {
+        "primary_position": "LW",
+        "fpl_position": "FWD",
+        "positions": ["LW", "RW"],
+    },
+    "Aurélien Tchouaméni": {
+        "primary_position": "DM",
+        "fpl_position": "MID",
+        "positions": ["DM", "CM"],
+    },
+    "Marco Palestra": {
+        "primary_position": "RB",
+        "fpl_position": "DEF",
+        "positions": ["RB", "LB", "RWB", "LWB"],
+    },
+    "Jarrod Bowen": {
+        "primary_position": "RW",
+        "fpl_position": "FWD",
+        "positions": ["RW", "ST", "AM"],
+    },
+    "Granit Xhaka": {
+        "primary_position": "DM",
+        "fpl_position": "MID",
+        "positions": ["DM", "CM"],
+    },
+    "Fermín López": {
+        "primary_position": "AM",
+        "fpl_position": "MID",
+        "positions": ["AM", "RW"],
+    },
+    "Arjen Robben": {
+        "primary_position": "RW",
+        "fpl_position": "FWD",
+        "positions": ["RW", "LW"],
+    },
+    "Gerard Piqué": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB"],
+    },
+    "Lamine Yamal": {
+        "primary_position": "LW",
+        "fpl_position": "FWD",
+        "positions": ["LW"],
+    },
+    "Julián Alvarez": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": ["ST", "AM", "LW"],
+    },
+    "Viktor Gyökeres": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": ["ST"],
+    },
+    "Vitinha (Paris Saint-Germain)": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": ["CM", "DM"],
+    },
+    "Declan Rice": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": ["CM", "DM"],
+    },
+    "Gregor Kobel": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": ["GK"],
+    },
+    "David Raya": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": ["GK"],
+    },
+    "Antoine Semenyo": {
+        "primary_position": "LW",
+        "fpl_position": "FWD",
+        "positions": ["LW", "RW", "LM", "RM"],
+    },
+    "Konrad Laimer": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": ["LB", "DM"],
+    },
+    "Marc Cucurella": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": ["LB"],
+    },
+    "Jurriën Timber": {
+        "primary_position": "RB",
+        "fpl_position": "DEF",
+        "positions": ["RB", "LB"],
+    },
+    "Josip Stanišić": {
+        "primary_position": "RB",
+        "fpl_position": "DEF",
+        "positions": ["RB", "DM", "CM"],
+    },
+    "Mikel Oyarzabal": {
+        "primary_position": "LW",
+        "fpl_position": "FWD",
+        "positions": ["LW", "ST", "AM"],
+    },
+    "Aleksandar Pavlović": {
+        "primary_position": "DM",
+        "fpl_position": "MID",
+        "positions": ["DM", "CM"],
+    },
+    "Jude Bellingham": {
+        "primary_position": "AM",
+        "fpl_position": "MID",
+        "positions": ["AM", "CM"],
+    },
+    "Andrea Pirlo": {
+        "primary_position": "DM",
+        "fpl_position": "MID",
+        "positions": ["DM", "CM"],
+    },
+    "Steven Gerrard": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": ["CM", "DM"],
+    },
+    "Bukayo Saka": {
+        "primary_position": "RW",
+        "fpl_position": "FWD",
+        "positions": ["RW", "LB", "RM"],
+    },
+    "Florian Wirtz": {
+        "primary_position": "AM",
+        "fpl_position": "MID",
+        "positions": ["AM", "LW"],
+    },
+    "Dominik Szoboszlai": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": ["CM", "AM"],
+    },
+    "Nuno Mendes": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": ["LB", "LWB", "LM"],
+    },
+    "Alessandro Bastoni": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB"],
+    },
+    "Jules Koundé": {
+        "primary_position": "RB",
+        "fpl_position": "DEF",
+        "positions": ["RB", "CB"],
+    },
+    "Nico Schlotterbeck": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB"],
+    },
+    "Thibaut Courtois": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": ["GK"],
+    },
+    "Jan Oblak": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": ["GK"],
+    },
+    "Erling Haaland": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": ["ST"],
+    },
+    "Sandro Tonali": {
+        "primary_position": "DM",
+        "fpl_position": "MID",
+        "positions": ["DM", "CM"],
+    },
+    "Kim Min-jae": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB"],
+    },
+    "Marquinhos": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB", "RB", "DM"],
+    },
+    "Marcos Llorente": {
+        "primary_position": "RWB",
+        "fpl_position": "DEF",
+        "positions": ["RWB", "RB", "RM"],
+    },
+    "Ferran Torres": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": ["ST", "LW", "RW"],
+    },
+    "Philipp Lahm": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": ["LB", "RB", "DM"],
+    },
+    "Yaya Touré": {
+        "primary_position": "DM",
+        "fpl_position": "MID",
+        "positions": ["DM", "CM"],
+    },
+    "Harry Kane": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": ["ST", "AM"],
+    },
+    "Robert Lewandowski": {
+        "primary_position": "ST",
+        "fpl_position": "FWD",
+        "positions": ["ST"],
+    },
+    "Jamal Musiala": {
+        "primary_position": "AM",
+        "fpl_position": "MID",
+        "positions": ["AM", "LW"],
+    },
+    "Federico Valverde": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": ["CM", "DM"],
+    },
+    "Bruno Guimarães": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": ["CM", "DM"],
+    },
+    "Trent Alexander-Arnold": {
+        "primary_position": "RWB",
+        "fpl_position": "DEF",
+        "positions": ["RWB", "RB", "CM"],
+    },
+    "Éder Militão": {
+        "primary_position": "CB",
+        "fpl_position": "DEF",
+        "positions": ["CB", "RB"],
+    },
+    "Riccardo Calafiori": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": ["LB", "CB"],
+    },
+    "Emiliano Martínez": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": ["GK"],
+    },
+    "Unai Simón": {
+        "primary_position": "GK",
+        "fpl_position": "GK",
+        "positions": ["GK"],
+    },
+    "Nico Williams": {
+        "primary_position": "RW",
+        "fpl_position": "FWD",
+        "positions": ["RW", "LW", "RM"],
+    },
+    "Antoine Griezmann": {
+        "primary_position": "AM",
+        "fpl_position": "MID",
+        "positions": ["AM", "ST"],
+    },
+    "Rodrygo": {
+        "primary_position": "RW",
+        "fpl_position": "FWD",
+        "positions": ["RW", "LW", "ST", "LM", "RM"],
+    },
+    "Matheus Cunha": {
+        "primary_position": "AM",
+        "fpl_position": "MID",
+        "positions": ["AM", "ST", "LW"],
+    },
+    "Alphonso Davies": {
+        "primary_position": "LB",
+        "fpl_position": "DEF",
+        "positions": ["LB", "LWB"],
+    },
+    "Adam Wharton": {
+        "primary_position": "CM",
+        "fpl_position": "MID",
+        "positions": ["CM", "DM"],
+    },
 }
 
 KNOWN_PLAYER_POSITIONS: dict[int, str] = {

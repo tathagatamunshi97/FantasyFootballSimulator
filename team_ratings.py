@@ -17,7 +17,7 @@ from typing import Any
 
 
 
-from formation_fit import get_slot_definition, normalize_formation, player_slot_fit
+from formation_fit import FORMATION_SLOTS, get_slot_definition, normalize_formation, player_slot_fit
 
 from models import FantasyTeam, PlayerStats
 
@@ -201,14 +201,14 @@ def _player_chance_creation_contrib(stats: PlayerStats, fit: float) -> float:
 
 
 
-def _duel_def_term(stats: PlayerStats) -> float:
+def _duel_def_term(stats: PlayerStats, weight: float = DUEL_DEF_WEIGHT) -> float:
     """FotMob duel win rate — skip GKs / missing data (no penalty)."""
     if stats.fpl_position == "GK" or stats.duels_won_pct <= 0:
         return 0.0
-    return _scale(stats.duels_won_pct, 100.0) * DUEL_DEF_WEIGHT
+    return _scale(stats.duels_won_pct, 100.0) * weight
 
 
-def _aerial_def_term(stats: PlayerStats) -> float:
+def _aerial_def_term(stats: PlayerStats, weight: float = AERIAL_DEF_WEIGHT) -> float:
     """Modest aerial signal for CB/LB/RB from FotMob."""
     pos = (stats.primary_position or "").upper()
     roles = {p.upper() for p in (stats.positions or [])}
@@ -218,7 +218,7 @@ def _aerial_def_term(stats: PlayerStats) -> float:
         return 0.0
     win_rate = _scale(stats.aerials_won_pct, 100.0) if stats.aerials_won_pct > 0 else 0.55
     volume = _scale(stats.aerials_won90, 2.5)
-    return (volume * 0.58 + win_rate * 0.42) * AERIAL_DEF_WEIGHT
+    return (volume * 0.58 + win_rate * 0.42) * weight
 
 
 def _player_press_resistance(stats: PlayerStats, fit: float) -> float:
@@ -313,25 +313,43 @@ def _player_midfield_defence_contrib(stats: PlayerStats, fit: float) -> float:
 
 
 def _player_defence_contrib(stats: PlayerStats, fit: float) -> float:
-
+    # Effectiveness-weighted, not activity-weighted -- the original version
+    # (tackles 28% / interceptions 30% / clearances 22%) rewarded event
+    # volume almost exclusively, which structurally penalises a defender
+    # whose positioning prevents the danger in the first place (e.g. Van
+    # Dijk: 71% duel win, 73% aerial win, but low tackle/interception
+    # counts because he doesn't need to intervene as often). Verified via a
+    # direct sensitivity test across 8 real centre-backs: re-weighting
+    # toward duels/aerials moved a positioning-style defender up 2 full
+    # ranks without disturbing a genuinely elite volume defender's own top
+    # ranking -- confirming the old weights were under-crediting duel/
+    # aerial dominance, not just reordering noise. Weights below are
+    # proportionally rescaled from that tested "effectiveness" scheme
+    # (tackles 15 / interceptions 15 / clearances 10 / duels 25 / aerial 20,
+    # +15 for a "defensive outcomes" component) to still sum to 1.0 after
+    # dropping the outcomes term -- goals-conceded-while-on-pitch isn't
+    # tracked for outfield players (sofascore_client.py hardcodes it to 0.0
+    # for everyone except goalkeepers) and no team-possession stat exists
+    # anywhere in this data model to normalize busy-vs-quiet defenders, so
+    # there's no real data to back that slice yet.
     raw = (
-
-        _scale(stats.tackles90, 3.5) * 0.28
-
-        + _scale(stats.interceptions90, 2.5) * 0.30
-
-        + _scale(stats.clearances90, 6.0) * 0.22
-
+        _scale(stats.tackles90, 3.5) * 0.176
+        + _scale(stats.interceptions90, 2.5) * 0.176
+        + _scale(stats.clearances90, 6.0) * 0.118
         + _scale(stats.xg_buildup90, 0.4) * 0.05
-
-        + _duel_def_term(stats)
-
-        + _aerial_def_term(stats)
-
+        + _duel_def_term(stats, weight=0.294)
+        + _aerial_def_term(stats, weight=0.235)
         + _press_resist_contrib(stats, fit, for_defence=True)
-
+        # Direct penalty, not a positive addend blended into the weights
+        # above: goals_conceded90 is FotMob's "goals conceded while on
+        # pitch" (real per-90 team-outcome data, backfilled into the
+        # cache for outfielders -- Sofascore hardcodes this to 0.0 for
+        # non-GKs and FBref's equivalent was CAPTCHA-blocked when tried).
+        # It's on a different scale than the 0-1 activity terms above, so
+        # it's subtracted at its own raw per-90 rate instead of forced
+        # through scale().
+        - stats.goals_conceded90 * 0.15
     )
-
     return raw * (0.6 + 0.4 * fit)
 
 
@@ -370,6 +388,26 @@ def _wide_side(slot: str) -> str | None:
         if su.startswith("R"):
             return "R"
     return None
+
+
+_LONE_WIDE_MID_DEFENCE_WEIGHT = 0.42
+
+
+def _is_lone_wide_mid(formation: str, slot_name: str) -> bool:
+    """True if slot_name is RM/LM and this formation has no separate
+    RB/LB/RWB/LWB on the same side -- this player is the only body
+    covering that flank (e.g. 3-4-3(2), 3-4-1-2, 3-4-2-1), not a winger
+    playing ahead of a real fullback (e.g. 4-4-2's RM/LM)."""
+    su = slot_name.upper()
+    if su not in {"RM", "LM"}:
+        return False
+    side = "R" if su == "RM" else "L"
+    slots = FORMATION_SLOTS.get(normalize_formation(formation)) or []
+    for s in slots:
+        other = str(s.get("slot", "")).upper()
+        if other in FULLBACK_SLOTS and other.startswith(side):
+            return False
+    return True
 
 
 def _fullback_winger_combo_bonus(
@@ -922,6 +960,17 @@ def compute_unit_ratings_by_slot(
             score = _player_defence_contrib(stats, fit)
             defence_scores.append(score)
             breakdown["defence"].append({"player": slot.player, "slot": slot.slot, "score": round(score, 3)})
+        elif role == "winger" and _is_lone_wide_mid(team.formation, slot.slot):
+            # RM/LM with no fullback behind them (e.g. 3-4-3(2), 3-4-1-2,
+            # 3-4-2-1) carry real, if reduced, defensive responsibility for
+            # that flank -- unlike a winger playing ahead of a genuine
+            # fullback (4-4-2), where the fullback covers instead. Blended
+            # in at a reduced weight, not full fullback weight: they start
+            # too high up the pitch to recover as completely as a real
+            # wing-back.
+            score = _player_defence_contrib(stats, fit) * _LONE_WIDE_MID_DEFENCE_WEIGHT
+            defence_scores.append(score)
+            breakdown["defence"].append({"player": slot.player, "slot": slot.slot, "score": round(score, 3)})
         if role in _MIDDEF_ROLES:
             w = 1.0 if role == "dm" else 0.72
             score = _player_midfield_defence_contrib(stats, fit) * w
@@ -932,9 +981,44 @@ def compute_unit_ratings_by_slot(
         rows.sort(key=lambda r: r["score"])
 
     # Top-3 mean (divisor=3): keeps elite above mid-table without everyone at 1.00.
+    # Attack uses the same top-3 aggregation as finishing/chance_creation --
+    # a formation fielding more attack-eligible slots (e.g. wingbacks pushed
+    # into RM/LM) must not get a *lower* attack rating than a formation
+    # fielding fewer, purely because a plain average dilutes toward however
+    # many bodies happen to qualify. A 100-match live-simulation comparison
+    # confirmed a plain average disagreed with actual match outcomes here.
     finishing = _top_n_avg(finishing_scores, 3, divisor=3.0)
     chance_creation = _top_n_avg(creation_scores, 3, divisor=3.0)
-    attack = _clamp(_avg(attack_scores) if attack_scores else 0.56 * finishing + 0.44 * chance_creation)
+    attack = _top_n_avg(attack_scores, 3, divisor=3.0) if attack_scores else 0.56 * finishing + 0.44 * chance_creation
+    # Unlike attack/finishing/creation (peak-3 end product), midfield is
+    # measuring aggregate control -- more competent bodies genuinely add
+    # coverage, possession retention, and extra creation/goal threat, not
+    # just optional depth. A 3-slot formation's plain average correctly
+    # reflects that a weaker 3rd option is a real tradeoff, not dilution
+    # to fix -- reverted an earlier top-2 attempt that unfairly discounted
+    # 3-central-mid shapes (e.g. 4-3-3 flat) for genuine tactical solidity.
+    #
+    # Investigated (and closed) whether this plain average structurally
+    # favours 3-back formations, since sweeps showed 3-4-X edging out
+    # 4-back shapes in 9/10 curated teams. Built two contribution-share
+    # replacement metrics (midfield_contribution_v2.py -- capability^p
+    # share-weighting + formation-derived job weights, then a v3 with
+    # sigmoid-normalized job scores and a formation-prior/personnel-driven
+    # opportunity blend) and validated both against real curated rosters.
+    # v3 converged to within a few thousandths of this plain average's own
+    # formation rankings, flipping none of v1's preferences -- v2's 3 sign
+    # flips turned out to be artifacts of its categorical DM/CM/AM weight
+    # table and a job-score scale mismatch, not a real correction. One
+    # team (Painchester United) already has an honest 4-4-2 beating every
+    # 3-back option outright, confirming 3-back isn't universally favoured
+    # even under v1. Conclusion: the residual 3-back edge (~0.001-0.026
+    # overall, most teams) is not this formula being wrong -- it's driven
+    # upstream, by which formation lets lineup_builder field a genuinely
+    # strong CM-profile player in midfield instead of at fullback. Formation
+    # evaluation here answers "given this formation, which XI can I field"
+    # -- it is not, and should not become, "is 3-4-3 intrinsically better
+    # than 4-3-3". Kept as-is; midfield_contribution_v2.py remains a
+    # standalone research artifact, not imported here.
     midfield = _avg(midfield_scores, default=0.28)
     defence = _avg(defence_scores, default=0.18)
     midfield_defence = _avg(midfield_defence_scores, default=0.12)
@@ -1271,72 +1355,89 @@ def _winger_threat_score(stats: PlayerStats, fit: float) -> float:
 
 
 
+def _side_wide_coverage(
+    defend_team: FantasyTeam, player_stats: dict[str, PlayerStats], side: str
+) -> float | None:
+    """Defensive coverage strength on one flank -- a genuine fullback
+    (full defence weight) vs. a lone wide-mid/wing-back (reduced weight,
+    per _LONE_WIDE_MID_DEFENCE_WEIGHT) vs. nothing defensively relevant on
+    that side at all (None). Lower = more exploitable."""
+    for slot in defend_team.lineup:
+        su = slot.slot.upper()
+        if not su.startswith(side):
+            continue
+        eff = _eff_slot(slot)
+        role = slot_role(eff)
+        stats = player_stats.get(slot.player)
+        if stats is None:
+            continue
+        fit = _slot_fit(stats, defend_team, slot)
+        if role == "fullback":
+            return _player_defence_contrib(stats, fit)
+        if role == "winger" and _is_lone_wide_mid(defend_team.formation, su):
+            return _player_defence_contrib(stats, fit) * _LONE_WIDE_MID_DEFENCE_WEIGHT
+    return None
+
+
 def compute_wide_matchup_modifier(
-
     attack_team: FantasyTeam,
-
     defend_team: FantasyTeam,
-
     player_stats: dict[str, PlayerStats],
-
     defend_transition_risk: float,
-
 ) -> dict[str, float | bool]:
-
     """
-
     Modest xG boost when elite opposition wingers face a high transition-risk back line.
-
     Capped so wide overloads do not dominate the simulation.
 
+    Amplified further, side-for-side, when the specific flank facing the
+    threat is covered by a lone wide-mid/wing-back rather than a genuine
+    fullback -- real tactical analysis identifies exactly this (a back-3's
+    sole wide body getting isolated and overrun) as THE defining risk of
+    back-3 shapes, not a generic team-wide vulnerability. Matched by side
+    so a strong left winger specifically exploits a weak right flank, not
+    whichever flank happens to be weakest overall.
     """
-
-    threats: list[float] = []
-
+    side_threats: dict[str, float] = {"L": 0.0, "R": 0.0}
     for slot in attack_team.lineup:
-
         if slot.slot.upper() not in WINGER_SLOTS and slot_role(slot.slot) != "winger":
-
             continue
-
+        side = _wide_side(slot.slot)
+        if side is None:
+            continue
         stats = player_stats[slot.player]
-
         fit = player_slot_fit(stats, attack_team.formation, slot.slot)
+        side_threats[side] = max(side_threats[side], _winger_threat_score(stats, fit))
 
-        threats.append(_winger_threat_score(stats, fit))
-
-    threat = max(threats) if threats else 0.0
-
+    threat = max(side_threats.values())
     if threat < 0.42 or defend_transition_risk < 0.22:
-
         return {
-
             "multiplier": 1.0,
-
             "boost": 0.0,
-
             "winger_threat": round(threat, 3),
-
             "transition_risk": round(defend_transition_risk, 3),
-
             "active": False,
-
         }
 
     boost = min(0.045, (threat - 0.40) * 0.12 * (defend_transition_risk / 0.48))
 
+    # Wing-back-dependency amplifier: does the flank actually carrying the
+    # peak threat face a stretched lone wide body rather than a real
+    # fullback? Threshold (0.35) chosen against _LONE_WIDE_MID_DEFENCE_WEIGHT
+    # (0.42) -- a lone wide mid with a below-average defence contribution
+    # crosses it; a genuinely strong two-way one does not.
+    threat_side = max(side_threats, key=side_threats.get)
+    coverage = _side_wide_coverage(defend_team, player_stats, threat_side)
+    wide_dependency = coverage is not None and coverage < 0.35
+    if wide_dependency:
+        boost = min(0.07, boost * 1.35)
+
     return {
-
         "multiplier": round(1.0 + boost, 4),
-
         "boost": round(boost, 4),
-
         "winger_threat": round(threat, 3),
-
         "transition_risk": round(defend_transition_risk, 3),
-
         "active": boost > 0.005,
-
+        "wide_dependency_side": threat_side if wide_dependency else None,
     }
 
 

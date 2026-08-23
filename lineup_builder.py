@@ -10,6 +10,7 @@ from scipy.optimize import linear_sum_assignment
 from formation_fit import DEFAULT_FORMATION, FORMATION_SLOTS, normalize_formation, player_slot_fit
 from models import FantasyTeam, LineupSlot, PlayerStats
 from slot_roles import slot_role
+from team_ratings import _player_midfield_defence_contrib
 
 _FPL_QUOTAS: dict[str, int] = {"GK": 1, "DEF": 4, "MID": 4, "FWD": 2}
 
@@ -39,6 +40,26 @@ def _assignment_score(stats: PlayerStats | None, formation: str, slot: str) -> f
         return 0.0
     fit = player_slot_fit(stats, formation, slot)
     quality = _player_quality(stats)
+    # DM is filled almost entirely by "CM"-tagged players (the data has no
+    # separate CDM/CAM split -- see formation_fit._MIDFIELD_BUCKET_TAGS), so
+    # a generic overall-rating quality lets an attack-driven high-rated
+    # playmaker (e.g. a real CAM merely labeled "CM") outscore a genuine
+    # ball-winner there purely on reputation. For a DM slot specifically,
+    # blend in the same tackles/interceptions/screening contribution
+    # team_ratings already trusts for defensive-mid rating, so a real
+    # defensive profile can actually win the slot on merit.
+    if slot_role(slot) == "dm":
+        defensive_quality = min(1.0, max(0.0, _player_midfield_defence_contrib(stats, fit)))
+        # Raw tackle/interception counts alone don't distinguish a genuine
+        # deep screener from an attacking player winning the ball back high
+        # up the pitch via pressing -- both can post similar counting stats.
+        # A player whose overall profile is heavily creative/carrying-shaped
+        # (high dribbles90/key_passes90) is far more likely the latter, so
+        # discount the defensive credit in proportion to how attack-shaped
+        # the rest of their game is.
+        attacking_shape = min(1.0, (stats.dribbles90 / 2.0 + stats.key_passes90 / 1.5) / 2.0)
+        defensive_quality *= 1.0 - 0.6 * attacking_shape
+        quality = 0.35 * quality + 0.65 * defensive_quality
     # Emphasize fit (wrong-position stars stay penalized); quality breaks close ties.
     return (fit ** 1.35) * (0.30 + 0.70 * quality)
 

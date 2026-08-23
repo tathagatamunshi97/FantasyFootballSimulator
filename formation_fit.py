@@ -47,7 +47,7 @@ FORMATION_SLOTS: dict[str, list[dict[str, Any]]] = {
         *_BACK_FOUR,
         {"slot": "DM", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5, "clearances90": 0.4}},
         {"slot": "CM", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6, "key_passes90": 0.4, "interceptions90": 0.4}},
-        {"slot": "AM", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5}},
+        {"slot": "AM", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5, "xg90": 0.4}},
         {"slot": "RW", "tags": ["RW", "RM", "FW", "MF"], "profile": {"dribbles90": 0.8, "key_passes90": 0.6, "xa90": 0.6, "xg90": 0.4}},
         {"slot": "ST", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 1.0, "shots90": 0.9, "shots_on_target90": 0.7}},
         {"slot": "LW", "tags": ["LW", "LM", "FW", "MF"], "profile": {"dribbles90": 0.8, "key_passes90": 0.6, "xa90": 0.6, "xg90": 0.4}},
@@ -57,7 +57,7 @@ FORMATION_SLOTS: dict[str, list[dict[str, Any]]] = {
         {"slot": "DM", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5, "clearances90": 0.4}},
         {"slot": "CM1", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6, "key_passes90": 0.4, "interceptions90": 0.4}},
         {"slot": "CM2", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6, "key_passes90": 0.4, "interceptions90": 0.4}},
-        {"slot": "AM", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5}},
+        {"slot": "AM", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5, "xg90": 0.4}},
         {"slot": "CF1", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
         {"slot": "CF2", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
     ],
@@ -70,7 +70,7 @@ FORMATION_SLOTS: dict[str, list[dict[str, Any]]] = {
         {"slot": "DM1", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
         {"slot": "DM2", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
         {"slot": "RM", "tags": ["RW", "RM", "WB", "RB", "MF"], "profile": {"key_passes90": 0.6, "dribbles90": 0.6, "xa90": 0.5, "tackles90": 0.5}},
-        {"slot": "AM", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5}},
+        {"slot": "AM", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5, "xg90": 0.4}},
         {"slot": "CF1", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
         {"slot": "CF2", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
     ],
@@ -83,7 +83,7 @@ FORMATION_SLOTS: dict[str, list[dict[str, Any]]] = {
         {"slot": "DM", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
         {"slot": "CM", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6, "key_passes90": 0.4, "interceptions90": 0.4}},
         {"slot": "RM", "tags": ["RW", "RM", "WB", "RB", "MF"], "profile": {"key_passes90": 0.6, "dribbles90": 0.6, "xa90": 0.5, "tackles90": 0.5}},
-        {"slot": "AM", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5}},
+        {"slot": "AM", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5, "xg90": 0.4}},
         {"slot": "CF1", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
         {"slot": "CF2", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
     ],
@@ -96,8 +96,8 @@ FORMATION_SLOTS: dict[str, list[dict[str, Any]]] = {
         {"slot": "DM1", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
         {"slot": "DM2", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
         {"slot": "RM", "tags": ["RW", "RM", "WB", "RB", "MF"], "profile": {"key_passes90": 0.6, "dribbles90": 0.6, "xa90": 0.5, "tackles90": 0.5}},
-        {"slot": "AM1", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5}},
-        {"slot": "AM2", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5}},
+        {"slot": "AM1", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5, "xg90": 0.4}},
+        {"slot": "AM2", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5, "xg90": 0.4}},
         {"slot": "ST", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 1.0, "shots90": 0.9, "shots_on_target90": 0.7}},
     ],
     "4-3-2-1": [
@@ -105,16 +105,16 @@ FORMATION_SLOTS: dict[str, list[dict[str, Any]]] = {
         {"slot": "DM", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5, "clearances90": 0.4}},
         {"slot": "CM1", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6, "key_passes90": 0.4, "interceptions90": 0.4}},
         {"slot": "CM2", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6, "key_passes90": 0.4, "interceptions90": 0.4}},
-        {"slot": "AM1", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5}},
-        {"slot": "AM2", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5}},
+        {"slot": "AM1", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5, "xg90": 0.4}},
+        {"slot": "AM2", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5, "xg90": 0.4}},
         {"slot": "ST", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 1.0, "shots90": 0.9, "shots_on_target90": 0.7}},
     ],
     "4-2-2-2": [
         *_BACK_FOUR,
         {"slot": "DM1", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
         {"slot": "DM2", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
-        {"slot": "AM1", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5}},
-        {"slot": "AM2", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5}},
+        {"slot": "AM1", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5, "xg90": 0.4}},
+        {"slot": "AM2", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5, "xg90": 0.4}},
         {"slot": "ST1", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
         {"slot": "ST2", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
     ],
@@ -140,7 +140,7 @@ FORMATION_SLOTS: dict[str, list[dict[str, Any]]] = {
         {"slot": "DM1", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
         {"slot": "DM2", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
         {"slot": "RW", "tags": ["RW", "RM", "FW", "MF"], "profile": {"dribbles90": 0.8, "key_passes90": 0.6, "xa90": 0.6}},
-        {"slot": "AM", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.9, "xa90": 0.8, "dribbles90": 0.5}},
+        {"slot": "AM", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.9, "xa90": 0.8, "dribbles90": 0.5, "xg90": 0.4}},
         {"slot": "LW", "tags": ["LW", "LM", "FW", "MF"], "profile": {"dribbles90": 0.8, "key_passes90": 0.6, "xa90": 0.6}},
         {"slot": "ST", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 1.0, "shots90": 0.9, "shots_on_target90": 0.7}},
     ],
@@ -610,6 +610,20 @@ def player_slot_fit(
     slot_name: str,
     role_filter: str | None = None,
 ) -> float:
+    """Stat-profile-driven slot fit -- deliberately ignores primary_position/
+    fpl_position tags for every outfield slot. Those tags are coarse labels
+    (a whole roster of central-midfield-type players share "CM" with no
+    CDM/CAM split) that were previously blended in at 80% weight with a 0.90
+    floor once "compatible" -- which let a tag match override the player's
+    actual per-90 output (e.g. an attacking playmaker auto-qualifying as a
+    defensive mid, or a winger's genuinely strong creative profile getting
+    blocked from an AM slot because "winger" wasn't a tag AM recognized).
+    Fit is now purely how well the player's own numbers match the slot's
+    expected statistical profile -- the position label plays no role beyond
+    the GK/outfield boundary, which is a genuine data-type gate (an outfield
+    player has no meaningful save/goals-prevented signal, not a labeling
+    bias) rather than a positional-label judgment.
+    """
     formation = normalize_formation(formation)
     slot_def = _slot_def_for_filter(formation, slot_name, role_filter)
     if slot_def is None:
@@ -617,26 +631,104 @@ def player_slot_fit(
     from slot_roles import effective_slot_name
 
     foot_slot = effective_slot_name(slot_name, role_filter)
-    pos = _position_match(stats, slot_def)
     base_profile = slot_def.get("profile", {})
     slot_tags = {t.upper() for t in slot_def["tags"]}
-    # Natural GKs at GK are always a perfect fit — never dilute with save volume.
-    if slot_tags <= {"GK"} and (stats.primary_position.upper() == "GK" or stats.fpl_position.upper() == "GK"):
-        return 1.0
+    is_gk_player = stats.primary_position.upper() == "GK" or stats.fpl_position.upper() == "GK"
+    if slot_tags <= {"GK"}:
+        return 1.0 if is_gk_player else 0.02
+    if is_gk_player:
+        return 0.02
+    is_cb_slot = _is_centre_back_slot(slot_tags)
+    is_central_mid_slot = bool(slot_tags & {"DM", "CM", "AM"})
+    is_wide_mid_slot = bool(slot_tags & {"RM", "LM"})
+    # The one boundary a pure per-90 stat profile can't reliably tell apart on
+    # its own: a centre-back's tackle/interception/clearance volume looks a
+    # lot like a defensive mid's on paper, but they are structurally
+    # different jobs (last-line covering vs screening ahead of the back
+    # four) -- without this gate a CB's raw defensive stats can outscore a
+    # real DM for a DM slot, and a central midfielder's passing/duel numbers
+    # can win a CB slot outright. Keep this single hard block; everything
+    # else (DM/CM/AM interchange, winger-to-AM, attacking fullback-to-wide-
+    # mid) stays fully profile-driven.
+    if is_cb_slot and stats.fpl_position.upper() in {"MID", "FWD"}:
+        return 0.15
+    if is_central_mid_slot and _is_pure_centre_back(stats):
+        return 0.15
     foot = _preferred_foot_bonus(stats, foot_slot) + _weak_side_fullback_penalty(stats, foot_slot)
-    if _is_centre_back_slot(slot_tags):
+    if is_cb_slot:
         prof = _centre_back_profile_fit(stats, base_profile)
     else:
         # Skip missing source fields so absent FBref zeros do not drag profile.
         prof = _profile_fit(stats, base_profile, skip_missing=True)
-    blend = _NATURAL_POS_WEIGHT * pos + _NATURAL_PROF_WEIGHT * prof
-    # Predominant/natural role match: profile only differentiates within/above
-    # the natural band (never below it). Foot / weak-side apply after the floor
-    # so opposite-flank fullbacks stay penalised.
-    if pos >= _NATURAL_POS_THRESHOLD:
-        blend = max(blend, _NATURAL_FLOOR)
-    fit = blend + foot
-    return max(0.25, min(1.0, fit))
+    fit = prof + foot
+    fit = max(0.25, min(1.0, fit))
+    # Curated real positions (KNOWN_PLAYER_POSITIONS_BY_NAME) are a much
+    # higher-confidence signal than a generic cache label -- when present,
+    # use them as a real eligibility list, not just corrected metadata.
+    # Genuinely unlisted positions get hard-blocked (stats alone can't be
+    # trusted to rule this out, per today's Modrić-at-RB case: nothing
+    # stopped a plausible-looking stat overlap from winning a slot he's
+    # never actually played); positions below the top preference get a mild
+    # discount, not elimination. Players without curated data (positions is
+    # just the single generic [primary_position]) stay fully profile-driven
+    # -- there's no reliable list to gate on yet, which is the same reason
+    # tag-based gating was removed everywhere else.
+    declared = [p.strip().upper() for p in (stats.positions or []) if p and p.strip()]
+    # A curated single-position specialist (e.g. a CB deliberately given
+    # just ["CB"], no secondary position) is structurally identical in
+    # shape to an uncurated player's default (positions=[primary_position])
+    # -- len(declared) alone can't tell them apart. Check the actual
+    # curated-override source so a genuine one-position specialist still
+    # gets gated instead of silently falling through to pure stat-profile
+    # matching like an unverified player would.
+    is_curated = len(declared) > 1
+    if not is_curated and declared:
+        from player_names import KNOWN_PLAYER_POSITIONS_BY_NAME
+
+        is_curated = stats.player in KNOWN_PLAYER_POSITIONS_BY_NAME
+    if is_curated:
+        if is_central_mid_slot:
+            # DM/CM/AM slots list each other as "compatible" tags (that's
+            # the exact bucket-conflation this whole audit started from) --
+            # for this family, match only the slot's own specific identity
+            # (its tags[0], by convention -- verified across every formation
+            # definition), not the shared compatible set. Otherwise a
+            # player who only declared "CM" satisfies an AM slot's tags
+            # just because AM lists CM as compatible, regardless of whether
+            # they've ever actually played AM.
+            own_tags = slot_def.get("tags") or []
+            specific_slot_tags = {str(own_tags[0]).upper()} if own_tags else set()
+        elif is_wide_mid_slot:
+            # RM/LM carry real defensive tracking responsibility (more so
+            # than a pure winger, and -- in back-3 formations where they're
+            # the only body on that flank -- comparable to a wing-back).
+            # A plain winger (RW/LW) declared but never RM/LM/WB/RB/LB is a
+            # genuine, meaningful mismatch, not a free swap: RW and RM are
+            # not interchangeable just because the slot tags list both.
+            # Anyone with an actual wide-mid or fullback/wing-back
+            # declaration (RM/LM/WB/RB/LB -- already present in the 3-back
+            # formations' own slot tags) still passes normally; a
+            # winger-only declaration gets capped low instead of a full
+            # hard block, since it's still closer than a totally alien
+            # position (e.g. a centre-back out wide).
+            winger_tag = "RW" if "RM" in slot_tags else "LW"
+            strong_tags = (slot_tags - _GENERIC_POS_TAGS) - {winger_tag}
+            rank = next((i for i, p in enumerate(declared) if p in strong_tags), None)
+            if rank is None:
+                if winger_tag in declared:
+                    return min(fit, 0.35)
+                return 0.15
+            if rank > 0:
+                fit *= max(0.65, 1.0 - 0.12 * rank)
+            return fit
+        else:
+            specific_slot_tags = slot_tags - _GENERIC_POS_TAGS
+        rank = next((i for i, p in enumerate(declared) if p in specific_slot_tags), None)
+        if rank is None:
+            return 0.15
+        if rank > 0:
+            fit *= max(0.65, 1.0 - 0.12 * rank)
+    return fit
 
 
 def team_formation_fit(

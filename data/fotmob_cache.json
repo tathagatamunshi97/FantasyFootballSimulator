@@ -9218,6 +9218,168 @@
         "team_id": 8637,
         "team_name": "Galatasaray"
       }
+    ],
+    "arjen robben": [
+      {
+        "id": 30834,
+        "name": "Arjen Robben",
+        "team_id": 0,
+        "team_name": ""
+      },
+      {
+        "id": 30834,
+        "name": "Arjen Robben",
+        "team_id": 0,
+        "team_name": ""
+      }
+    ],
+    "ashley cole": [
+      {
+        "id": 38834,
+        "name": "Ashley Cole",
+        "team_id": 0,
+        "team_name": ""
+      },
+      {
+        "id": 38834,
+        "name": "Ashley Cole",
+        "team_id": 0,
+        "team_name": ""
+      }
+    ],
+    "didier drogba": [
+      {
+        "id": 30822,
+        "name": "Didier Drogba",
+        "team_id": 0,
+        "team_name": ""
+      },
+      {
+        "id": 30822,
+        "name": "Didier Drogba",
+        "team_id": 0,
+        "team_name": ""
+      }
+    ],
+    "eden hazard": [
+      {
+        "id": 107417,
+        "name": "Eden Hazard",
+        "team_id": 0,
+        "team_name": ""
+      },
+      {
+        "id": 107417,
+        "name": "Eden Hazard",
+        "team_id": 0,
+        "team_name": ""
+      }
+    ],
+    "frank lampard": [
+      {
+        "id": 30631,
+        "name": "Frank Lampard",
+        "team_id": 8669,
+        "team_name": "Coventry City"
+      },
+      {
+        "id": 30631,
+        "name": "Frank Lampard",
+        "team_id": 8669,
+        "team_name": "Coventry City"
+      }
+    ],
+    "gareth bale": [
+      {
+        "id": 31921,
+        "name": "Gareth Bale",
+        "team_id": 0,
+        "team_name": ""
+      },
+      {
+        "id": 31921,
+        "name": "Gareth Bale",
+        "team_id": 0,
+        "team_name": ""
+      }
+    ],
+    "gerard pique": [
+      {
+        "id": 37482,
+        "name": "Gerard Piqué",
+        "team_id": 0,
+        "team_name": ""
+      },
+      {
+        "id": 37482,
+        "name": "Gerard Piqué",
+        "team_id": 0,
+        "team_name": ""
+      }
+    ],
+    "ibrahim sangare": [
+      {
+        "id": 795371,
+        "name": "Ibrahim Sangaré",
+        "team_id": 10203,
+        "team_name": "Nottingham Forest"
+      },
+      {
+        "id": 231044,
+        "name": "Ibrahim Sangaré",
+        "team_id": 8076,
+        "team_name": "FK Qabala"
+      },
+      {
+        "id": 805917,
+        "name": "Ibrahim Sangaré",
+        "team_id": 0,
+        "team_name": ""
+      },
+      {
+        "id": 795371,
+        "name": "Ibrahim Sangaré",
+        "team_id": 10203,
+        "team_name": "Nottingham Forest"
+      },
+      {
+        "id": 231044,
+        "name": "Ibrahim Sangaré",
+        "team_id": 8076,
+        "team_name": "FK Qabala"
+      },
+      {
+        "id": 805917,
+        "name": "Ibrahim Sangaré",
+        "team_id": 0,
+        "team_name": ""
+      }
+    ],
+    "nemanja vidic": [
+      {
+        "id": 30865,
+        "name": "Nemanja Vidic",
+        "team_id": 1965149,
+        "team_name": "OGFC"
+      },
+      {
+        "id": 251245,
+        "name": "Nemanja Vidic",
+        "team_id": 0,
+        "team_name": ""
+      },
+      {
+        "id": 30865,
+        "name": "Nemanja Vidic",
+        "team_id": 1965149,
+        "team_name": "OGFC"
+      },
+      {
+        "id": 251245,
+        "name": "Nemanja Vidic",
+        "team_id": 0,
+        "team_name": ""
+      }
     ]
   },
   "players": {
@@ -96644,6 +96806,2281 @@
           ]
         }
       ]
+    },
+    "30834": {
+      "id": 30834,
+      "name": "Arjen Robben",
+      "team": "",
+      "preferred_foot": "left",
+      "main_league_name": "",
+      "stat_seasons": [
+        {
+          "seasonName": "2020/2021",
+          "tournaments": [
+            {
+              "name": "Eredivisie",
+              "tournamentId": 57,
+              "entryId": "0-0",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2018/2019",
+          "tournaments": [
+            {
+              "name": "Bundesliga",
+              "tournamentId": 54,
+              "entryId": "1-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "1-1",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2017/2018",
+          "tournaments": [
+            {
+              "name": "1. Bundesliga",
+              "tournamentId": 54,
+              "entryId": "2-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "2-1",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2016/2017",
+          "tournaments": [
+            {
+              "name": "Bundesliga",
+              "tournamentId": 54,
+              "entryId": "3-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "3-1",
+              "hasDeepStats": true
+            },
+            {
+              "name": "World Cup UEFA qualification",
+              "tournamentId": 10195,
+              "entryId": "3-2",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2015/2016",
+          "tournaments": [
+            {
+              "name": "Bundesliga",
+              "tournamentId": 54,
+              "entryId": "4-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "4-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2014/2015",
+          "tournaments": [
+            {
+              "name": "Bundesliga",
+              "tournamentId": 54,
+              "entryId": "5-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "5-1",
+              "hasDeepStats": false
+            },
+            {
+              "name": "World Cup",
+              "tournamentId": 77,
+              "entryId": "5-2",
+              "hasDeepStats": false
+            },
+            {
+              "name": "EURO Qualification qualification",
+              "tournamentId": 10607,
+              "entryId": "5-3",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2013/2014",
+          "tournaments": [
+            {
+              "name": "1. Bundesliga",
+              "tournamentId": 54,
+              "entryId": "6-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "6-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2012/2013",
+          "tournaments": [
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "7-0",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2011/2012",
+          "tournaments": [
+            {
+              "name": "Bundesliga",
+              "tournamentId": 54,
+              "entryId": "8-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "8-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2010/2011",
+          "tournaments": [
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "9-0",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2009/2010",
+          "tournaments": [
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "10-0",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2008/2009",
+          "tournaments": [
+            {
+              "name": "Primera Division",
+              "tournamentId": 87,
+              "entryId": "11-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "11-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2007/2008",
+          "tournaments": [
+            {
+              "name": "LaLiga",
+              "tournamentId": 87,
+              "entryId": "12-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "12-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2006/2007",
+          "tournaments": [
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "13-0",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2005/2006",
+          "tournaments": [
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "14-0",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2004/2005",
+          "tournaments": [
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "15-0",
+              "hasDeepStats": false
+            }
+          ]
+        }
+      ]
+    },
+    "38834": {
+      "id": 38834,
+      "name": "Ashley Cole",
+      "team": "",
+      "preferred_foot": "left",
+      "main_league_name": "",
+      "stat_seasons": [
+        {
+          "seasonName": "2018/2019",
+          "tournaments": [
+            {
+              "name": "Championship",
+              "tournamentId": 48,
+              "entryId": "0-0",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2018",
+          "tournaments": [
+            {
+              "name": "Major League Soccer",
+              "tournamentId": 130,
+              "entryId": "1-0",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2017",
+          "tournaments": [
+            {
+              "name": "Major League Soccer",
+              "tournamentId": 130,
+              "entryId": "2-0",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2014/2015",
+          "tournaments": [
+            {
+              "name": "Serie A",
+              "tournamentId": 55,
+              "entryId": "3-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "3-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2013/2014",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "4-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "4-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2012/2013",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "5-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "5-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2011/2012",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "6-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "6-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2010/2011",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "7-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "7-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2009/2010",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "8-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "8-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2008/2009",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "9-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "9-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2007/2008",
+          "tournaments": [
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "10-0",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2006/2007",
+          "tournaments": [
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "11-0",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2005/2006",
+          "tournaments": [
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "12-0",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2004/2005",
+          "tournaments": [
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "13-0",
+              "hasDeepStats": false
+            }
+          ]
+        }
+      ]
+    },
+    "30822": {
+      "id": 30822,
+      "name": "Didier Drogba",
+      "team": "",
+      "preferred_foot": "right",
+      "main_league_name": "",
+      "stat_seasons": [
+        {
+          "seasonName": "2019",
+          "tournaments": [
+            {
+              "name": "Soccer Aid",
+              "tournamentId": 11648,
+              "entryId": "0-0",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2016",
+          "tournaments": [
+            {
+              "name": "Major League Soccer",
+              "tournamentId": 130,
+              "entryId": "1-0",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2014/2015",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "2-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "2-1",
+              "hasDeepStats": false
+            },
+            {
+              "name": "World Cup",
+              "tournamentId": 77,
+              "entryId": "2-2",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2013/2014",
+          "tournaments": [
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "3-0",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2012/2013",
+          "tournaments": [
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "4-0",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2011/2012",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "5-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "5-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2010/2011",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "6-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "6-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2009/2010",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "7-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "7-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2008/2009",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "8-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "8-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2007/2008",
+          "tournaments": [
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "9-0",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2006/2007",
+          "tournaments": [
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "10-0",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2005/2006",
+          "tournaments": [
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "11-0",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2004/2005",
+          "tournaments": [
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "12-0",
+              "hasDeepStats": false
+            }
+          ]
+        }
+      ]
+    },
+    "107417": {
+      "id": 107417,
+      "name": "Eden Hazard",
+      "team": "",
+      "preferred_foot": "right",
+      "main_league_name": "",
+      "stat_seasons": [
+        {
+          "seasonName": "2024",
+          "tournaments": [
+            {
+              "name": "Soccer Aid",
+              "tournamentId": 11648,
+              "entryId": "0-0",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2022/2023",
+          "tournaments": [
+            {
+              "name": "LaLiga",
+              "tournamentId": 87,
+              "entryId": "1-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Copa del Rey",
+              "tournamentId": 138,
+              "entryId": "1-1",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "1-2",
+              "hasDeepStats": true
+            },
+            {
+              "name": "UEFA Nations League A",
+              "tournamentId": 9806,
+              "entryId": "1-3",
+              "hasDeepStats": true
+            },
+            {
+              "name": "World Cup",
+              "tournamentId": 77,
+              "entryId": "1-4",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2021/2022",
+          "tournaments": [
+            {
+              "name": "LaLiga",
+              "tournamentId": 87,
+              "entryId": "2-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Copa del Rey",
+              "tournamentId": 138,
+              "entryId": "2-1",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "2-2",
+              "hasDeepStats": true
+            },
+            {
+              "name": "World Cup UEFA qualification",
+              "tournamentId": 10195,
+              "entryId": "2-3",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2020/2021",
+          "tournaments": [
+            {
+              "name": "LaLiga",
+              "tournamentId": 87,
+              "entryId": "3-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Copa del Rey",
+              "tournamentId": 138,
+              "entryId": "3-1",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "3-2",
+              "hasDeepStats": true
+            },
+            {
+              "name": "EURO",
+              "tournamentId": 50,
+              "entryId": "3-3",
+              "hasDeepStats": true
+            },
+            {
+              "name": "UEFA Nations League A playoff",
+              "tournamentId": 9806,
+              "entryId": "3-4",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2019/2020",
+          "tournaments": [
+            {
+              "name": "LaLiga",
+              "tournamentId": 87,
+              "entryId": "4-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Super Cup",
+              "tournamentId": 139,
+              "entryId": "4-1",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "4-2",
+              "hasDeepStats": true
+            },
+            {
+              "name": "EURO Qualification qualification",
+              "tournamentId": 10607,
+              "entryId": "4-3",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2018/2019",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "5-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "FA Cup",
+              "tournamentId": 132,
+              "entryId": "5-1",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Europa League",
+              "tournamentId": 73,
+              "entryId": "5-2",
+              "hasDeepStats": true
+            },
+            {
+              "name": "World Cup",
+              "tournamentId": 77,
+              "entryId": "5-3",
+              "hasDeepStats": true
+            },
+            {
+              "name": "UEFA Nations League A",
+              "tournamentId": 9806,
+              "entryId": "5-4",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2017/2018",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "6-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "FA Cup",
+              "tournamentId": 132,
+              "entryId": "6-1",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "6-2",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2016/2017",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "7-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "FA Cup",
+              "tournamentId": 132,
+              "entryId": "7-1",
+              "hasDeepStats": true
+            },
+            {
+              "name": "EFL Cup",
+              "tournamentId": 133,
+              "entryId": "7-2",
+              "hasDeepStats": false
+            },
+            {
+              "name": "EURO",
+              "tournamentId": 50,
+              "entryId": "7-3",
+              "hasDeepStats": true
+            },
+            {
+              "name": "World Cup UEFA qualification",
+              "tournamentId": 10195,
+              "entryId": "7-4",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2015/2016",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "8-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "League Cup",
+              "tournamentId": 133,
+              "entryId": "8-1",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "8-2",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2014/2015",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "9-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "9-1",
+              "hasDeepStats": false
+            },
+            {
+              "name": "World Cup",
+              "tournamentId": 77,
+              "entryId": "9-2",
+              "hasDeepStats": false
+            },
+            {
+              "name": "EURO Qualification qualification",
+              "tournamentId": 10607,
+              "entryId": "9-3",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2013/2014",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "10-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "10-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2012/2013",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "11-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "11-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2011/2012",
+          "tournaments": [
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "12-0",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2010/2011",
+          "tournaments": [
+            {
+              "name": "Ligue 1",
+              "tournamentId": 53,
+              "entryId": "13-0",
+              "hasDeepStats": false
+            }
+          ]
+        }
+      ]
+    },
+    "30631": {
+      "id": 30631,
+      "name": "Frank Lampard",
+      "team": "Coventry City",
+      "preferred_foot": "both",
+      "main_league_name": "",
+      "stat_seasons": [
+        {
+          "seasonName": "2014/2015",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "0-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "0-1",
+              "hasDeepStats": false
+            },
+            {
+              "name": "World Cup",
+              "tournamentId": 77,
+              "entryId": "0-2",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2013/2014",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "1-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "1-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2012/2013",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "2-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "2-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2011/2012",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "3-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "3-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2010/2011",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "4-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "4-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2009/2010",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "5-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "5-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2008/2009",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "6-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "6-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2007/2008",
+          "tournaments": [
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "7-0",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2006/2007",
+          "tournaments": [
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "8-0",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2005/2006",
+          "tournaments": [
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "9-0",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2004/2005",
+          "tournaments": [
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "10-0",
+              "hasDeepStats": false
+            }
+          ]
+        }
+      ]
+    },
+    "31921": {
+      "id": 31921,
+      "name": "Gareth Bale",
+      "team": "",
+      "preferred_foot": "left",
+      "main_league_name": "",
+      "stat_seasons": [
+        {
+          "seasonName": "2022",
+          "tournaments": [
+            {
+              "name": "Major League Soccer",
+              "tournamentId": 130,
+              "entryId": "0-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "UEFA Nations League A",
+              "tournamentId": 9806,
+              "entryId": "0-1",
+              "hasDeepStats": true
+            },
+            {
+              "name": "World Cup",
+              "tournamentId": 77,
+              "entryId": "0-2",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2021/2022",
+          "tournaments": [
+            {
+              "name": "LaLiga",
+              "tournamentId": 87,
+              "entryId": "1-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "1-1",
+              "hasDeepStats": true
+            },
+            {
+              "name": "World Cup UEFA qualification",
+              "tournamentId": 10195,
+              "entryId": "1-2",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2020/2021",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "2-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "FA Cup",
+              "tournamentId": 132,
+              "entryId": "2-1",
+              "hasDeepStats": true
+            },
+            {
+              "name": "EFL Cup",
+              "tournamentId": 133,
+              "entryId": "2-2",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Europa League",
+              "tournamentId": 73,
+              "entryId": "2-3",
+              "hasDeepStats": true
+            },
+            {
+              "name": "UEFA Nations League B",
+              "tournamentId": 9807,
+              "entryId": "2-4",
+              "hasDeepStats": true
+            },
+            {
+              "name": "EURO",
+              "tournamentId": 50,
+              "entryId": "2-5",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2019/2020",
+          "tournaments": [
+            {
+              "name": "LaLiga",
+              "tournamentId": 87,
+              "entryId": "3-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "3-1",
+              "hasDeepStats": true
+            },
+            {
+              "name": "EURO Qualification qualification",
+              "tournamentId": 10607,
+              "entryId": "3-2",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2018/2019",
+          "tournaments": [
+            {
+              "name": "LaLiga",
+              "tournamentId": 87,
+              "entryId": "4-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "4-1",
+              "hasDeepStats": true
+            },
+            {
+              "name": "UEFA Nations League B",
+              "tournamentId": 9807,
+              "entryId": "4-2",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2017/2018",
+          "tournaments": [
+            {
+              "name": "LaLiga",
+              "tournamentId": 87,
+              "entryId": "5-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "5-1",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2016/2017",
+          "tournaments": [
+            {
+              "name": "LaLiga",
+              "tournamentId": 87,
+              "entryId": "6-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "6-1",
+              "hasDeepStats": true
+            },
+            {
+              "name": "EURO",
+              "tournamentId": 50,
+              "entryId": "6-2",
+              "hasDeepStats": true
+            },
+            {
+              "name": "World Cup UEFA qualification",
+              "tournamentId": 10195,
+              "entryId": "6-3",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2015/2016",
+          "tournaments": [
+            {
+              "name": "LaLiga",
+              "tournamentId": 87,
+              "entryId": "7-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "7-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2014/2015",
+          "tournaments": [
+            {
+              "name": "LaLiga",
+              "tournamentId": 87,
+              "entryId": "8-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "8-1",
+              "hasDeepStats": false
+            },
+            {
+              "name": "EURO Qualification qualification",
+              "tournamentId": 10607,
+              "entryId": "8-2",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2013/2014",
+          "tournaments": [
+            {
+              "name": "Primera Division",
+              "tournamentId": 87,
+              "entryId": "9-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "9-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2012/2013",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "10-0",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2011/2012",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "11-0",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2010/2011",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "12-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "12-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2009/2010",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "13-0",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2008/2009",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "14-0",
+              "hasDeepStats": false
+            }
+          ]
+        }
+      ]
+    },
+    "37482": {
+      "id": 37482,
+      "name": "Gerard Piqué",
+      "team": "",
+      "preferred_foot": "right",
+      "main_league_name": "LaLiga",
+      "stat_seasons": [
+        {
+          "seasonName": "2022/2023",
+          "tournaments": [
+            {
+              "name": "LaLiga",
+              "tournamentId": 87,
+              "entryId": "0-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "0-1",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2021/2022",
+          "tournaments": [
+            {
+              "name": "LaLiga",
+              "tournamentId": 87,
+              "entryId": "1-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Copa del Rey",
+              "tournamentId": 138,
+              "entryId": "1-1",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "1-2",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Europa League",
+              "tournamentId": 73,
+              "entryId": "1-3",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2020/2021",
+          "tournaments": [
+            {
+              "name": "LaLiga",
+              "tournamentId": 87,
+              "entryId": "2-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Copa del Rey",
+              "tournamentId": 138,
+              "entryId": "2-1",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Super Cup",
+              "tournamentId": 139,
+              "entryId": "2-2",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "2-3",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2019/2020",
+          "tournaments": [
+            {
+              "name": "LaLiga",
+              "tournamentId": 87,
+              "entryId": "3-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "3-1",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2018/2019",
+          "tournaments": [
+            {
+              "name": "LaLiga",
+              "tournamentId": 87,
+              "entryId": "4-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Super Cup",
+              "tournamentId": 139,
+              "entryId": "4-1",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "4-2",
+              "hasDeepStats": true
+            },
+            {
+              "name": "World Cup",
+              "tournamentId": 77,
+              "entryId": "4-3",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2017/2018",
+          "tournaments": [
+            {
+              "name": "LaLiga",
+              "tournamentId": 87,
+              "entryId": "5-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "5-1",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2016/2017",
+          "tournaments": [
+            {
+              "name": "LaLiga",
+              "tournamentId": 87,
+              "entryId": "6-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "6-1",
+              "hasDeepStats": true
+            },
+            {
+              "name": "EURO",
+              "tournamentId": 50,
+              "entryId": "6-2",
+              "hasDeepStats": true
+            },
+            {
+              "name": "World Cup UEFA qualification",
+              "tournamentId": 10195,
+              "entryId": "6-3",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2015/2016",
+          "tournaments": [
+            {
+              "name": "LaLiga",
+              "tournamentId": 87,
+              "entryId": "7-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "7-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2014/2015",
+          "tournaments": [
+            {
+              "name": "LaLiga",
+              "tournamentId": 87,
+              "entryId": "8-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "8-1",
+              "hasDeepStats": false
+            },
+            {
+              "name": "World Cup",
+              "tournamentId": 77,
+              "entryId": "8-2",
+              "hasDeepStats": false
+            },
+            {
+              "name": "EURO Qualification qualification",
+              "tournamentId": 10607,
+              "entryId": "8-3",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2013/2014",
+          "tournaments": [
+            {
+              "name": "LaLiga",
+              "tournamentId": 87,
+              "entryId": "9-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "9-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2012/2013",
+          "tournaments": [
+            {
+              "name": "LaLiga",
+              "tournamentId": 87,
+              "entryId": "10-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "10-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2011/2012",
+          "tournaments": [
+            {
+              "name": "LaLiga",
+              "tournamentId": 87,
+              "entryId": "11-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "11-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2010/2011",
+          "tournaments": [
+            {
+              "name": "LaLiga",
+              "tournamentId": 87,
+              "entryId": "12-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "12-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2009/2010",
+          "tournaments": [
+            {
+              "name": "LaLiga",
+              "tournamentId": 87,
+              "entryId": "13-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "13-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2008/2009",
+          "tournaments": [
+            {
+              "name": "Primera Division",
+              "tournamentId": 87,
+              "entryId": "14-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "14-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2007/2008",
+          "tournaments": [
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "15-0",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2006/2007",
+          "tournaments": [
+            {
+              "name": "LaLiga",
+              "tournamentId": 87,
+              "entryId": "16-0",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2004/2005",
+          "tournaments": [
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "17-0",
+              "hasDeepStats": false
+            }
+          ]
+        }
+      ]
+    },
+    "795371": {
+      "id": 795371,
+      "name": "Ibrahim Sangaré",
+      "team": "Nottingham Forest",
+      "preferred_foot": "right",
+      "main_league_name": "Premier League",
+      "stat_seasons": [
+        {
+          "seasonName": "2026/2027",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "0-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "World Cup",
+              "tournamentId": 77,
+              "entryId": "0-1",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2025/2026",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "1-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "EFL Cup",
+              "tournamentId": 133,
+              "entryId": "1-1",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Europa League",
+              "tournamentId": 73,
+              "entryId": "1-2",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Africa Cup of Nations",
+              "tournamentId": 289,
+              "entryId": "1-3",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2024/2025",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "2-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "FA Cup",
+              "tournamentId": 132,
+              "entryId": "2-1",
+              "hasDeepStats": true
+            },
+            {
+              "name": "EFL Cup",
+              "tournamentId": 133,
+              "entryId": "2-2",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2023/2024",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "3-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Eredivisie",
+              "tournamentId": 57,
+              "entryId": "3-1",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Champions League Qualification qualification",
+              "tournamentId": 10611,
+              "entryId": "3-2",
+              "hasDeepStats": true
+            },
+            {
+              "name": "World Cup CAF qualification",
+              "tournamentId": 10196,
+              "entryId": "3-3",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Africa Cup of Nations",
+              "tournamentId": 289,
+              "entryId": "3-4",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2022/2023",
+          "tournaments": [
+            {
+              "name": "Eredivisie",
+              "tournamentId": 57,
+              "entryId": "4-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Super Cup",
+              "tournamentId": 237,
+              "entryId": "4-1",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Europa League",
+              "tournamentId": 73,
+              "entryId": "4-2",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Africa Cup of Nations Qualification qualification",
+              "tournamentId": 10608,
+              "entryId": "4-3",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Champions League Qualification qualification",
+              "tournamentId": 10611,
+              "entryId": "4-4",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2021/2022",
+          "tournaments": [
+            {
+              "name": "Eredivisie",
+              "tournamentId": 57,
+              "entryId": "5-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Super Cup",
+              "tournamentId": 237,
+              "entryId": "5-1",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Europa League",
+              "tournamentId": 73,
+              "entryId": "5-2",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Champions League Qualification qualification",
+              "tournamentId": 10611,
+              "entryId": "5-3",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Africa Cup of Nations",
+              "tournamentId": 289,
+              "entryId": "5-4",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Conference League",
+              "tournamentId": 10216,
+              "entryId": "5-5",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2020/2021",
+          "tournaments": [
+            {
+              "name": "Eredivisie",
+              "tournamentId": 57,
+              "entryId": "6-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Ligue 2",
+              "tournamentId": 110,
+              "entryId": "6-1",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Super Cup",
+              "tournamentId": 237,
+              "entryId": "6-2",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Europa League",
+              "tournamentId": 73,
+              "entryId": "6-3",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2019/2020",
+          "tournaments": [
+            {
+              "name": "Ligue 1",
+              "tournamentId": 53,
+              "entryId": "7-0",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Africa Cup of Nations",
+              "tournamentId": 289,
+              "entryId": "7-1",
+              "hasDeepStats": true
+            },
+            {
+              "name": "Africa Cup of Nations Qualification qualification",
+              "tournamentId": 10608,
+              "entryId": "7-2",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2018/2019",
+          "tournaments": [
+            {
+              "name": "Ligue 1",
+              "tournamentId": 53,
+              "entryId": "8-0",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2017/2018",
+          "tournaments": [
+            {
+              "name": "Ligue 1",
+              "tournamentId": 53,
+              "entryId": "9-0",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2016/2017",
+          "tournaments": [
+            {
+              "name": "Ligue 1",
+              "tournamentId": 53,
+              "entryId": "10-0",
+              "hasDeepStats": true
+            }
+          ]
+        }
+      ]
+    },
+    "30865": {
+      "id": 30865,
+      "name": "Nemanja Vidic",
+      "team": "OGFC",
+      "preferred_foot": "right",
+      "main_league_name": "",
+      "stat_seasons": [
+        {
+          "seasonName": "2025",
+          "tournaments": [
+            {
+              "name": "Soccer Aid",
+              "tournamentId": 11648,
+              "entryId": "0-0",
+              "hasDeepStats": true
+            }
+          ]
+        },
+        {
+          "seasonName": "2014/2015",
+          "tournaments": [
+            {
+              "name": "Serie A",
+              "tournamentId": 55,
+              "entryId": "1-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Europa League",
+              "tournamentId": 73,
+              "entryId": "1-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2013/2014",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "2-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "2-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2012/2013",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "3-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "3-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2011/2012",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "4-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "4-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2010/2011",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "5-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "5-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2009/2010",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "6-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "6-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2008/2009",
+          "tournaments": [
+            {
+              "name": "Premier League",
+              "tournamentId": 47,
+              "entryId": "7-0",
+              "hasDeepStats": false
+            },
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "7-1",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2007/2008",
+          "tournaments": [
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "8-0",
+              "hasDeepStats": false
+            }
+          ]
+        },
+        {
+          "seasonName": "2006/2007",
+          "tournaments": [
+            {
+              "name": "Champions League",
+              "tournamentId": 42,
+              "entryId": "9-0",
+              "hasDeepStats": false
+            }
+          ]
+        }
+      ]
     }
   },
   "season_stats": {
@@ -102417,6 +104854,320 @@
       "aerials_won90": 2.630040911747516,
       "blocks90": 0.05260081823495032,
       "ball_recoveries90": 2.2618351841028637
+    },
+    "1296650:1-0": {
+      "player_id": 1296650,
+      "season_name": "2024/2025",
+      "tournament": "Premier League",
+      "entry_id": "1-0",
+      "minutes_played": 2562.0,
+      "duels_won_pct": 48.6,
+      "aerials_won_pct": 43.6,
+      "aerials_won90": 0.8430913348946136,
+      "blocks90": 0.1053864168618267,
+      "ball_recoveries90": 5.796252927400468,
+      "goals_conceded_on_pitch90": 1.5105386416861828
+    },
+    "751202:1-0": {
+      "player_id": 751202,
+      "season_name": "2025/2026",
+      "tournament": "Bundesliga",
+      "entry_id": "1-0",
+      "minutes_played": 523.0,
+      "duels_won_pct": 50.8,
+      "aerials_won_pct": 40.0,
+      "aerials_won90": 1.0325047801147227,
+      "blocks90": 0.5162523900573613,
+      "ball_recoveries90": 8.776290630975144,
+      "goals_conceded_on_pitch90": 1.3766730401529637
+    },
+    "30834:0-0": {
+      "player_id": 30834,
+      "season_name": "2020/2021",
+      "tournament": "Eredivisie",
+      "entry_id": "0-0",
+      "minutes_played": 173.0,
+      "duels_won_pct": 45.2,
+      "aerials_won_pct": 25.0,
+      "aerials_won90": 0.5202312138728323,
+      "ball_recoveries90": 3.6416184971098264,
+      "goals_conceded_on_pitch90": 0.5202312138728323
+    },
+    "30834:1-0": {
+      "player_id": 30834,
+      "season_name": "2018/2019",
+      "tournament": "Bundesliga",
+      "entry_id": "1-0",
+      "minutes_played": 566.0,
+      "duels_won_pct": 39.2,
+      "aerials_won_pct": 54.5,
+      "aerials_won90": 0.9540636042402828,
+      "blocks90": 0.15901060070671377,
+      "ball_recoveries90": 3.816254416961131,
+      "goals_conceded_on_pitch90": 1.431095406360424
+    },
+    "38834:0-0": {
+      "player_id": 38834,
+      "season_name": "2018/2019",
+      "tournament": "Championship",
+      "entry_id": "0-0",
+      "minutes_played": 565.0,
+      "duels_won_pct": 49.1,
+      "aerials_won_pct": 44.4,
+      "aerials_won90": 1.2743362831858407,
+      "blocks90": 1.752212389380531,
+      "ball_recoveries90": 4.778761061946903,
+      "goals_conceded_on_pitch90": 2.0707964601769913
+    },
+    "38834:1-0": {
+      "player_id": 38834,
+      "season_name": "2018",
+      "tournament": "Major League Soccer",
+      "entry_id": "1-0",
+      "minutes_played": 2687.0,
+      "duels_won_pct": 48.3,
+      "aerials_won_pct": 30.8,
+      "aerials_won90": 0.4019352437662821,
+      "blocks90": 0.5024190547078526,
+      "ball_recoveries90": 5.62709341272795,
+      "goals_conceded_on_pitch90": 2.110160029772981
+    },
+    "208494:2-0": {
+      "player_id": 208494,
+      "season_name": "2024/2025",
+      "tournament": "Premier League",
+      "entry_id": "2-0",
+      "minutes_played": 1497.0,
+      "duels_won_pct": 63.5,
+      "aerials_won_pct": 67.2,
+      "aerials_won90": 2.344689378757515,
+      "blocks90": 0.6012024048096193,
+      "ball_recoveries90": 6.1923847695390775,
+      "goals_conceded_on_pitch90": 1.2024048096192386
+    },
+    "1298907:0-0": {
+      "player_id": 1298907,
+      "season_name": "2025/2026",
+      "tournament": "Premier League",
+      "entry_id": "0-0",
+      "minutes_played": 90.0,
+      "duels_won_pct": 40.0,
+      "aerials_won_pct": 33.3,
+      "aerials_won90": 1.0,
+      "ball_recoveries90": 3.0,
+      "goals_conceded_on_pitch90": 0.0
+    },
+    "614834:2-0": {
+      "player_id": 614834,
+      "season_name": "2024/2025",
+      "tournament": "LaLiga",
+      "entry_id": "2-0",
+      "minutes_played": 1216.0,
+      "duels_won_pct": 47.8,
+      "aerials_won_pct": 50.0,
+      "aerials_won90": 0.6661184210526315,
+      "blocks90": 0.2220394736842105,
+      "ball_recoveries90": 3.4046052631578947,
+      "goals_conceded_on_pitch90": 0.7401315789473684
+    },
+    "593118:1-0": {
+      "player_id": 593118,
+      "season_name": "2025/2026",
+      "tournament": "Serie A",
+      "entry_id": "1-0",
+      "minutes_played": 1327.0,
+      "duels_won_pct": 49.6,
+      "aerials_won_pct": 55.6,
+      "aerials_won90": 2.0346646571213265,
+      "ball_recoveries90": 2.373775433308214,
+      "goals_conceded_on_pitch90": 0.9495101733232856
+    },
+    "30822:0-0": {
+      "player_id": 30822,
+      "season_name": "2019",
+      "tournament": "Soccer Aid",
+      "entry_id": "0-0",
+      "minutes_played": 90.0
+    },
+    "30822:1-0": {
+      "player_id": 30822,
+      "season_name": "2016",
+      "tournament": "Major League Soccer",
+      "entry_id": "1-0",
+      "minutes_played": 1726.0,
+      "duels_won_pct": 43.5,
+      "aerials_won_pct": 57.1,
+      "aerials_won90": 2.5028968713789106,
+      "blocks90": 0.20857473928157588,
+      "ball_recoveries90": 2.242178447276941,
+      "goals_conceded_on_pitch90": 2.033603707995365
+    },
+    "107417:0-0": {
+      "player_id": 107417,
+      "season_name": "2024",
+      "tournament": "Soccer Aid",
+      "entry_id": "0-0",
+      "minutes_played": 90.0
+    },
+    "107417:1-0": {
+      "player_id": 107417,
+      "season_name": "2022/2023",
+      "tournament": "LaLiga",
+      "entry_id": "1-0",
+      "minutes_played": 194.0,
+      "duels_won_pct": 63.2,
+      "aerials_won_pct": 100.0,
+      "aerials_won90": 0.4639175257731959,
+      "ball_recoveries90": 2.319587628865979,
+      "goals_conceded_on_pitch90": 0.4639175257731959
+    },
+    "1404415:1-0": {
+      "player_id": 1404415,
+      "season_name": "2024/2025",
+      "tournament": "LaLiga",
+      "entry_id": "1-0",
+      "minutes_played": 1245.0,
+      "duels_won_pct": 40.4,
+      "aerials_won_pct": 30.0,
+      "aerials_won90": 0.6506024096385542,
+      "ball_recoveries90": 4.771084337349397,
+      "goals_conceded_on_pitch90": 1.0843373493975905
+    },
+    "638622:2-0": {
+      "player_id": 638622,
+      "season_name": "2024/2025",
+      "tournament": "LaLiga",
+      "entry_id": "2-0",
+      "minutes_played": 1136.0,
+      "duels_won_pct": 57.1,
+      "aerials_won_pct": 58.8,
+      "aerials_won90": 0.7922535211267606,
+      "blocks90": 0.07922535211267606,
+      "ball_recoveries90": 4.515845070422535,
+      "goals_conceded_on_pitch90": 1.426056338028169
+    },
+    "31921:0-0": {
+      "player_id": 31921,
+      "season_name": "2022",
+      "tournament": "Major League Soccer",
+      "entry_id": "0-0",
+      "minutes_played": 370.0,
+      "duels_won_pct": 57.1,
+      "aerials_won_pct": 52.6,
+      "aerials_won90": 2.4324324324324325,
+      "ball_recoveries90": 4.135135135135135,
+      "goals_conceded_on_pitch90": 2.4324324324324325
+    },
+    "31921:1-0": {
+      "player_id": 31921,
+      "season_name": "2021/2022",
+      "tournament": "LaLiga",
+      "entry_id": "1-0",
+      "minutes_played": 283.0,
+      "duels_won_pct": 38.5,
+      "aerials_won_pct": 53.8,
+      "aerials_won90": 2.2261484098939928,
+      "ball_recoveries90": 1.2720848056537102,
+      "goals_conceded_on_pitch90": 0.9540636042402828
+    },
+    "37482:0-0": {
+      "player_id": 37482,
+      "season_name": "2022/2023",
+      "tournament": "LaLiga",
+      "entry_id": "0-0",
+      "minutes_played": 383.0,
+      "duels_won_pct": 66.7,
+      "aerials_won_pct": 76.9,
+      "aerials_won90": 4.699738903394255,
+      "blocks90": 0.2349869451697128,
+      "ball_recoveries90": 6.109660574412533,
+      "goals_conceded_on_pitch90": 0.0
+    },
+    "37482:1-0": {
+      "player_id": 37482,
+      "season_name": "2021/2022",
+      "tournament": "LaLiga",
+      "entry_id": "1-0",
+      "minutes_played": 2095.0,
+      "duels_won_pct": 61.5,
+      "aerials_won_pct": 64.5,
+      "aerials_won90": 3.436754176610979,
+      "blocks90": 0.6873508353221958,
+      "ball_recoveries90": 7.088305489260143,
+      "goals_conceded_on_pitch90": 0.8162291169451075
+    },
+    "795371:1-0": {
+      "player_id": 795371,
+      "season_name": "2025/2026",
+      "tournament": "Premier League",
+      "entry_id": "1-0",
+      "minutes_played": 2080.0,
+      "duels_won_pct": 48.3,
+      "aerials_won_pct": 47.1,
+      "aerials_won90": 1.0384615384615385,
+      "blocks90": 0.8221153846153847,
+      "ball_recoveries90": 4.9326923076923075,
+      "goals_conceded_on_pitch90": 1.125
+    },
+    "1156141:1-0": {
+      "player_id": 1156141,
+      "season_name": "2025/2026",
+      "tournament": "Bundesliga",
+      "entry_id": "1-0",
+      "minutes_played": 679.0,
+      "duels_won_pct": 48.6,
+      "aerials_won_pct": 100.0,
+      "aerials_won90": 0.2650957290132548,
+      "ball_recoveries90": 3.711340206185567,
+      "goals_conceded_on_pitch90": 1.3254786450662739
+    },
+    "966018:0-0": {
+      "player_id": 966018,
+      "season_name": "2025/2026",
+      "tournament": "Premier League",
+      "entry_id": "0-0",
+      "minutes_played": 1039.0,
+      "duels_won_pct": 48.3,
+      "aerials_won_pct": 41.2,
+      "aerials_won90": 0.6063522617901829,
+      "ball_recoveries90": 4.504331087584215,
+      "goals_conceded_on_pitch90": 1.1260827718960538
+    },
+    "950824:2-0": {
+      "player_id": 950824,
+      "season_name": "2024/2025",
+      "tournament": "Bundesliga",
+      "entry_id": "2-0",
+      "minutes_played": 873.0,
+      "duels_won_pct": 57.9,
+      "aerials_won_pct": 64.7,
+      "aerials_won90": 1.134020618556701,
+      "blocks90": 0.6185567010309279,
+      "ball_recoveries90": 6.5979381443298974,
+      "goals_conceded_on_pitch90": 1.2371134020618557
+    },
+    "847983:1-0": {
+      "player_id": 847983,
+      "season_name": "2025/2026",
+      "tournament": "Premier League",
+      "entry_id": "1-0",
+      "minutes_played": 1231.0,
+      "duels_won_pct": 65.3,
+      "aerials_won_pct": 57.1,
+      "aerials_won90": 0.8773354995938262,
+      "blocks90": 0.8773354995938262,
+      "ball_recoveries90": 4.898456539398863,
+      "goals_conceded_on_pitch90": 1.0966693744922826
+    },
+    "30865:0-0": {
+      "player_id": 30865,
+      "season_name": "2025",
+      "tournament": "Soccer Aid",
+      "entry_id": "0-0",
+      "minutes_played": 45.0,
+      "duels_won_pct": 100.0,
+      "ball_recoveries90": 10.0,
+      "goals_conceded_on_pitch90": 4.0
     }
   }
 }

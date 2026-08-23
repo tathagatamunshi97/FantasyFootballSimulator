@@ -27,7 +27,7 @@ LEAGUE_TO_FBREF: dict[str, str] = {
 FBREF_TO_LEAGUE = {v: k for k, v in LEAGUE_TO_FBREF.items()}
 
 MIN_MINUTES = 180
-STAT_TYPES = ("standard", "shooting", "misc")
+STAT_TYPES = ("standard", "shooting", "misc", "playing_time")
 DEFENSE_STAT_TYPE = "defense"
 AERIAL_CLEARANCE_RATIO: dict[str, float] = {
     "GK": 0.10,
@@ -228,6 +228,19 @@ def _row_to_fbref_entry(row: pd.Series, league_name: str) -> dict[str, Any]:
 
     rating = min(8.5, max(6.2, 6.5 + goals90 * 0.75 + assists90 * 0.45 + tackles90 * 0.08))
 
+    # "Team Success" (playing_time stat_type) -- onGA is goals the TEAM
+    # conceded while this specific player was on the pitch. Sofascore has
+    # no equivalent field for outfielders (goals_conceded90 there is
+    # literally hardcoded 0.0 for non-GKs); this is real per-player data,
+    # only wired in for outfield players -- GK keeps its existing
+    # goals-prevented-derived estimate untouched.
+    goals_conceded90 = 0.0
+    if fpl_pos != "GK":
+        on_ga = _num(_col(row, "Team Success_onGA"))
+        nineties = _num(_col(row, "Playing Time_90s"))
+        if nineties > 0:
+            goals_conceded90 = on_ga / nineties
+
     entry: dict[str, Any] = {
         "team": str(_col(row, "team") or ""),
         "league": league_name,
@@ -257,6 +270,7 @@ def _row_to_fbref_entry(row: pd.Series, league_name: str) -> dict[str, Any]:
         "yellow_cards90": yellow90,
         "red_cards90": red90,
         "rating": round(rating, 2),
+        "goals_conceded90": goals_conceded90,
         "fbref_matched": True,
     }
     if aerials_source:
@@ -443,6 +457,7 @@ FBREF_STAT_KEYS = frozenset(
         "positions",
         "league",
         "team",
+        "goals_conceded90",
     }
 )
 

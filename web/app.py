@@ -34,6 +34,7 @@ class SetPasswordRequest(BaseModel):
     name: str
     new_password: str
     confirm_password: str
+    bootstrap_token: str | None = None
 
 
 class TeamPasswordResetRequest(BaseModel):
@@ -161,6 +162,16 @@ def _is_admin_session(user: str | None) -> bool:
     return auth.is_admin_user(user)
 
 
+def _require_admin(x_admin_token: str | None, x_session_token: str | None = None) -> None:
+    """Admin console access: a logged-in admin session (via the admin
+    password) or the raw SIM_ADMIN_TOKEN override. Session-first so the
+    console works entirely off the admin password once one is set --
+    the raw token remains valid too, as the recovery path if it's lost."""
+    if _is_admin_session(auth.get_user(x_session_token)):
+        return
+    _check_admin(x_admin_token)
+
+
 def _require_sim_builder(
     x_session_token: str | None,
     x_admin_token: str | None = None,
@@ -228,9 +239,10 @@ async def health() -> dict:
 @app.get("/api/admin/storage-status")
 def admin_storage_status(
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
     """Admin diagnostic: actually round-trip PostgreSQL and R2, don't just check env vars."""
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     try:
         import db
         db_status = db.check_connection()
@@ -270,6 +282,29 @@ def login(body: LoginRequest) -> dict:
 
 @app.post("/api/set-password")
 def set_password(body: SetPasswordRequest) -> dict:
+    if auth._normalize_name(body.name).lower() == auth.ADMIN_USER:
+        # Admin's first-time password setup must re-prove the bootstrap
+        # secret here too -- otherwise anyone could POST this endpoint
+        # directly with name="admin" and claim the account without ever
+        # knowing SIM_ADMIN_TOKEN, bypassing the whole point of gating it.
+        if not _is_admin(body.bootstrap_token):
+            raise HTTPException(status_code=403, detail="Invalid or missing admin bootstrap token.")
+        if auth.team_has_password(auth.ADMIN_USER):
+            raise HTTPException(
+                status_code=400,
+                detail="Admin password already set. Log in with it, or use the token to reset.",
+            )
+        try:
+            auth.set_team_password(auth.ADMIN_USER, body.new_password, body.confirm_password)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        try:
+            token = auth.create_session(auth.ADMIN_USER)
+        except ValueError as exc:
+            auth.reset_team_password(auth.ADMIN_USER)
+            raise HTTPException(status_code=429, detail=str(exc)) from exc
+        return {"token": token, "user": auth.ADMIN_USER, "message": "Admin password set. You are now logged in."}
+
     team = auth.resolve_sheet_team(body.name)
     if not team:
         raise HTTPException(status_code=400, detail="Unknown team — must match a Google Sheet team name.")
@@ -352,9 +387,10 @@ def sheets_config() -> dict:
 @app.get("/api/sheets/teams")
 def sheets_teams(
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
     """List fantasy teams from the configured Google Sheet (admin only)."""
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     from google_sheets_teams import list_sheet_teams
 
     try:
@@ -369,9 +405,10 @@ def sheets_team(
     name: str,
     formation: str = DEFAULT_FORMATION,
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
     """Load one team roster from the Google Sheet by name (admin only)."""
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     from google_sheets_teams import load_team_by_name
 
     store = sim_state.get_stats_store()
@@ -516,9 +553,10 @@ def matchday_session_api(
 @app.post("/api/matchday/run")
 def matchday_run_simulation(
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
     """Admin starts the live tactic board for the active matchday session."""
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     try:
         session = matchday_session.require_active_session()
         if not (session.get("board") or session.get("engine") == "tactic_board"):
@@ -539,9 +577,10 @@ def matchday_run_simulation(
 @app.post("/api/matchday/kickoff")
 def matchday_board_kickoff(
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
     """Admin starts the live tactic-board phase on Matchday."""
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     try:
         matchday_session.set_board_live()
         return _enrich_matchday_status(matchday_session.active_status())
@@ -553,9 +592,10 @@ def matchday_board_kickoff(
 def matchday_publish_board_state(
     body: dict,
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
     """Host publishes live pitch snapshot for Matchday viewers."""
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     if not isinstance(body, dict):
         raise HTTPException(status_code=400, detail="Invalid board state")
     try:
@@ -569,9 +609,10 @@ def matchday_publish_board_state(
 def matchday_complete_from_board(
     body: dict,
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
     """Persist FT pin score for the active Matchday fixture."""
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     try:
         session = matchday_session.require_active_session()
         if session.get("is_experiment"):
@@ -609,9 +650,10 @@ def matchday_complete_from_board(
 @app.post("/api/matchday/dismiss")
 def matchday_dismiss(
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
     """Admin clears the result-phase matchday session."""
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     matchday_session.clear_session()
     return {"ok": True}
 
@@ -661,9 +703,10 @@ def matchday_request_action(
 def matchday_ack_actions(
     body: MatchdayActionAckRequest,
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
     """Host confirms it applied these queued actions locally."""
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     matchday_session.consume_matchday_actions(body.ids)
     return {"ok": True}
 
@@ -1060,11 +1103,12 @@ def get_experiment(
 def start_experiment_live_match_api(
     exp_id: str,
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
     """Admin: open a live tactic-board Matchday session for this experiment's
     teams, instead of the scripted Monte-Carlo-scoreline replay. Redirects to
     /matchday, which hosts/completes it exactly like a tournament fixture."""
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     try:
         return experiments.start_experiment_live_match(exp_id)
     except KeyError as exc:
@@ -1309,16 +1353,18 @@ def scout_game_plan_api(
 @app.get("/api/admin/experiments")
 def admin_experiments(
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     return {"experiments": experiments.list_experiments()}
 
 
 @app.get("/api/admin/team-lineups")
 def admin_team_lineups(
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     return {"teams": team_lineups.list_team_lineups()}
 
 
@@ -1352,8 +1398,9 @@ def admin_unfinalize_lineup(
 @app.get("/api/admin/team-passwords")
 def admin_team_passwords(
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     return {"teams": auth.list_team_password_status()}
 
 
@@ -1361,8 +1408,9 @@ def admin_team_passwords(
 def admin_reset_team_password(
     body: TeamPasswordResetRequest,
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     team = auth.resolve_sheet_team(body.team_name)
     if not team:
         raise HTTPException(status_code=400, detail="Unknown team.")
@@ -1374,9 +1422,10 @@ def admin_reset_team_password(
 @app.post("/api/admin/sessions/clear")
 def admin_clear_sessions(
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
     """Revoke all user session tokens (forces re-login everywhere)."""
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     cleared = auth.clear_all_sessions()
     return {"ok": True, "cleared": cleared, "message": f"Revoked {cleared} session(s)."}
 
@@ -1385,9 +1434,10 @@ def admin_clear_sessions(
 def admin_create_experiment(
     body: ExperimentRequest,
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
     """Create a new Team Lab matchup as admin (no user session required)."""
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     try:
         summary = experiments.create_experiment(
             "admin",
@@ -1505,9 +1555,10 @@ def generate_tournament_match_analysis_api(
     tournament_id: str,
     match_id: str,
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ):
     """Admin backfill: start a background rebuild (does not change score)."""
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     try:
         payload = tournament.generate_match_analysis(tournament_id, match_id)
     except KeyError as exc:
@@ -1530,8 +1581,9 @@ def generate_tournament_match_analysis_api(
 def create_tournament_api(
     body: TournamentCreateRequest,
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     try:
         t = tournament.create_tournament(body.name, body.team_names, body.settings)
     except ValueError as exc:
@@ -1544,8 +1596,9 @@ def set_tournament_teams_api(
     tournament_id: str,
     body: TournamentTeamsRequest,
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     try:
         t = tournament.set_teams(tournament_id, body.team_names)
     except KeyError as exc:
@@ -1560,8 +1613,9 @@ def tournament_group_draw_api(
     tournament_id: str,
     body: TournamentDrawRequest | None = None,
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     seed = body.seed if body else None
     try:
         t = tournament.perform_group_draw(tournament_id, seed=seed)
@@ -1576,8 +1630,9 @@ def tournament_group_draw_api(
 def tournament_group_fixtures_api(
     tournament_id: str,
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     try:
         t = tournament.generate_group_fixtures(tournament_id)
     except KeyError as exc:
@@ -1592,8 +1647,9 @@ def run_group_match_api(
     tournament_id: str,
     match_id: str,
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     try:
         return tournament.run_group_match(tournament_id, match_id)
     except KeyError as exc:
@@ -1610,9 +1666,10 @@ def complete_match_from_board_api(
     match_id: str,
     body: TournamentMatchOverrideRequest,
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
     """Save official result from the interactive tactic-board pin score."""
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     try:
         return tournament.complete_from_board(
             tournament_id,
@@ -1639,8 +1696,9 @@ def complete_match_from_board_api(
 def generate_knockout_api(
     tournament_id: str,
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     try:
         t = tournament.generate_knockout_bracket(tournament_id)
     except KeyError as exc:
@@ -1654,11 +1712,12 @@ def generate_knockout_api(
 def reset_knockout_bracket_api(
     tournament_id: str,
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
     """Admin: discard a generated-but-unplayed knockout bracket (e.g. to
     change knockout_format) so settings can be edited and it can be
     regenerated from scratch."""
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     try:
         t = tournament.reset_knockout_bracket(tournament_id)
     except KeyError as exc:
@@ -1673,8 +1732,9 @@ def run_knockout_match_api(
     tournament_id: str,
     match_id: str,
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     try:
         return tournament.run_knockout_match(tournament_id, match_id)
     except KeyError as exc:
@@ -1691,9 +1751,10 @@ def complete_knockout_from_board_api(
     match_id: str,
     body: TournamentMatchOverrideRequest,
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
     """Save official knockout result from the interactive tactic-board pin score."""
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     try:
         return tournament.complete_from_board(
             tournament_id,
@@ -1721,8 +1782,9 @@ def accept_match_result_api(
     tournament_id: str,
     match_id: str,
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     try:
         return tournament.accept_match_result(tournament_id, match_id)
     except KeyError as exc:
@@ -1737,8 +1799,9 @@ def override_match_result_api(
     match_id: str,
     body: TournamentMatchOverrideRequest,
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     try:
         return tournament.override_match_result(
             tournament_id,
@@ -1758,10 +1821,11 @@ def reset_match_result_api(
     tournament_id: str,
     match_id: str,
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
     """Admin: un-play a match (removes its result, reverses table/bracket
     contribution and player tallies) so it can be re-recorded from scratch."""
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     try:
         return tournament.reset_match_result(tournament_id, match_id)
     except KeyError as exc:
@@ -1775,8 +1839,9 @@ def patch_tournament_status_api(
     tournament_id: str,
     body: TournamentStatusRequest,
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     try:
         t = tournament.set_status(tournament_id, body.status)
     except KeyError as exc:
@@ -1791,8 +1856,9 @@ def patch_tournament_settings_api(
     tournament_id: str,
     body: TournamentSettingsRequest,
     x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
 ) -> dict:
-    _check_admin(x_admin_token)
+    _require_admin(x_admin_token, x_session_token)
     payload: dict[str, Any] = {}
     if body.group_count is not None:
         payload["group_count"] = body.group_count

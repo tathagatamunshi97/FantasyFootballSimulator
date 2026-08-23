@@ -88,6 +88,10 @@ FOTMOB_STAT_KEYS = frozenset(
 
         "blocks_source",
 
+        "goals_conceded90",
+
+        "goals_conceded_source",
+
         "fotmob_seasons_blended",
 
         "fotmob_season_minutes",
@@ -633,6 +637,8 @@ def _extract_season_stats_payload(payload: dict[str, Any]) -> dict[str, float]:
 
     recoveries = _stat_item(stats_section, "recoveries")
 
+    goals_conceded_on_pitch = _stat_item(stats_section, "goals_conceded_while_on_pitch")
+
 
 
     if duel_pct is not None:
@@ -654,6 +660,10 @@ def _extract_season_stats_payload(payload: dict[str, Any]) -> dict[str, float]:
     if recoveries is not None:
 
         out["ball_recoveries90"] = _num(recoveries.get("per90"))
+
+    if goals_conceded_on_pitch is not None:
+
+        out["goals_conceded_on_pitch90"] = _num(goals_conceded_on_pitch.get("per90"))
 
     return out
 
@@ -790,6 +800,8 @@ def _blend_season_stats(season_rows: list[dict[str, Any]]) -> dict[str, Any]:
         "blocks90": _weighted("blocks90"),
 
         "ball_recoveries90": _weighted("ball_recoveries90"),
+
+        "goals_conceded_on_pitch90": _weighted("goals_conceded_on_pitch90"),
 
         "fotmob_seasons_blended": [row.get("season_name", "") for row in usable],
 
@@ -1064,6 +1076,17 @@ def merge_fotmob_for_player(display_name: str, data: dict[str, Any], *, use_cach
         if pct > 0:
 
             data["aerials_lost90"] = won * (1.0 - pct) / pct
+
+    # Goals conceded while THIS player was on the pitch -- Sofascore/FBref
+    # have no real per-outfielder equivalent (Sofascore hardcodes 0.0 for
+    # non-GKs; FBref has it but was CAPTCHA-blocked when tried). Only fills
+    # outfielders -- GK keeps its existing goals-prevented-derived estimate,
+    # which other code already depends on.
+    if data.get("fpl_position") != "GK" and profile.get("goals_conceded_on_pitch90", 0) > 0:
+
+        data["goals_conceded90"] = profile["goals_conceded_on_pitch90"]
+
+        data["goals_conceded_source"] = "fotmob"
 
 
 

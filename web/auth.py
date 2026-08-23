@@ -307,9 +307,23 @@ def attempt_login(name: str, password: str) -> dict[str, Any]:
         return {"status": "invalid"}
 
     if canonical.lower() == ADMIN_USER:
+        # SIM_ADMIN_TOKEN is a permanent master override, not just a
+        # one-time bootstrap -- whoever controls the server env var can
+        # always get back in, even after a custom admin password exists
+        # (the recovery path if that password is forgotten). The first
+        # time it's used, it walks through the same first-time password
+        # setup teams get instead of granting a session outright.
         expected = get_admin_token()
         if expected and secrets.compare_digest(pwd, expected):
+            if not team_has_password(ADMIN_USER):
+                return {"status": "needs_password_setup", "user": ADMIN_USER}
             return {"status": "ok", "user": ADMIN_USER}
+        if team_has_password(ADMIN_USER):
+            with _lock:
+                _maybe_reload_passwords()
+                stored = _passwords.get(ADMIN_USER)
+            if stored and _verify_password(pwd, stored):
+                return {"status": "ok", "user": ADMIN_USER}
         return {"status": "invalid"}
 
     sheet_name = resolve_sheet_team(canonical)

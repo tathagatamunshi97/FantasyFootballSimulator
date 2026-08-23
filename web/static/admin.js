@@ -5,6 +5,15 @@ let tournaments = [];
 let currentId = null;
 let currentTournament = null;
 
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+  try {
+    await api("/api/logout", { method: "POST" });
+  } catch (_) {}
+  clearSession();
+  setAdminToken(null);
+  window.location.href = "/login";
+});
+
 function getAdminTokenFromUI() {
   const el = document.getElementById("token");
   const value = (el?.value || getAdminToken() || "").trim();
@@ -22,13 +31,19 @@ function formatApiError(data, statusText) {
   return String(detail);
 }
 
+function hasAdminAccess() {
+  return Boolean((getToken() && isAdminUser()) || getAdminToken());
+}
+
 async function adminApi(path, options = {}) {
   const headers = { ...(options.headers || {}) };
-  const token = getAdminTokenFromUI();
-  if (!token) {
-    throw new Error("Enter the admin token (same value as SIM_ADMIN_TOKEN on the server).");
+  const sessionToken = getToken() && isAdminUser() ? getToken() : null;
+  const adminToken = getAdminTokenFromUI();
+  if (!sessionToken && !adminToken) {
+    throw new Error("Log in as admin, or enter the admin token (SIM_ADMIN_TOKEN), to use this.");
   }
-  headers["X-Admin-Token"] = token;
+  if (sessionToken) headers["X-Session-Token"] = sessionToken;
+  if (adminToken) headers["X-Admin-Token"] = adminToken;
   if (options.json !== undefined) {
     headers["Content-Type"] = "application/json";
     options.body = JSON.stringify(options.json);
@@ -38,7 +53,7 @@ async function adminApi(path, options = {}) {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     if (res.status === 401) {
-      throw new Error("Invalid admin token. It must match SIM_ADMIN_TOKEN on the server.");
+      throw new Error("Not authorized. Log in as admin, or enter the admin token (SIM_ADMIN_TOKEN).");
     }
     throw new Error(formatApiError(data, res.statusText));
   }
@@ -59,13 +74,13 @@ function showTab(name) {
   document.getElementById("panel-tournament").hidden = name !== "tournament";
   document.getElementById("panel-teams").hidden = name !== "teams";
   document.getElementById("panel-lineups").hidden = name !== "lineups";
-  if (name === "tournament" && getAdminTokenFromUI()) {
+  if (name === "tournament" && hasAdminAccess()) {
     loadTournamentPanel().catch((e) => tLog(e.message));
   }
-  if (name === "teams" && getAdminTokenFromUI()) {
+  if (name === "teams" && hasAdminAccess()) {
     loadTeamPasswords().catch((e) => pwLog(e.message));
   }
-  if (name === "lineups" && getAdminTokenFromUI()) {
+  if (name === "lineups" && hasAdminAccess()) {
     loadTeamLineups().catch((e) => lineupsLog(e.message));
   }
   if (location.hash !== `#${name}`) {

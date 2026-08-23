@@ -4,7 +4,10 @@ function redirectAfterLogin(user) {
   window.location.href = next;
 }
 
-function showPasswordSetup(teamName) {
+let _pendingBootstrapToken = null;
+
+function showPasswordSetup(teamName, bootstrapToken) {
+  _pendingBootstrapToken = bootstrapToken || null;
   document.getElementById("loginCard").hidden = true;
   document.getElementById("setupCard").hidden = false;
   document.getElementById("setupTeamLabel").textContent = teamName;
@@ -37,7 +40,10 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
       return j;
     });
     if (data.needs_password_setup) {
-      showPasswordSetup(data.user);
+      // For admin's first-time setup, the password just typed above IS the
+      // SIM_ADMIN_TOKEN bootstrap secret -- carry it through so /api/set-
+      // password can re-verify it (it isn't sent any other way).
+      showPasswordSetup(data.user, data.user === "admin" ? password : null);
       return;
     }
     setSession(data.token, data.user);
@@ -59,7 +65,12 @@ document.getElementById("setupForm").addEventListener("submit", async (e) => {
     const data = await fetch("/api/set-password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, new_password, confirm_password }),
+      body: JSON.stringify({
+        name,
+        new_password,
+        confirm_password,
+        bootstrap_token: _pendingBootstrapToken,
+      }),
     }).then(async (r) => {
       const j = await r.json();
       if (!r.ok) throw new Error(j.detail || "Could not set password");

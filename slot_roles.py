@@ -121,12 +121,19 @@ def slot_unit_weights(slot: str, fpl_position: FplPosition) -> SlotUnitWeights:
     su = slot.upper()
     if role == "fullback":
         if su in {"LWB", "RWB"}:
-            # Balanced wingbacks: defend and attack, less forward than LM/RM.
+            # Wing-backs: more attack-involved than a classic RB/LB (higher
+            # license to bomb forward with a spare centre-back covering
+            # behind), and correspondingly less defence-involved -- even
+            # though in a back-3 they're the only body on that flank, their
+            # role emphasis skews toward attack relative to a back-4
+            # fullback, not toward defence.
             return SlotUnitWeights(
-                attack=0.68, creation=0.92, midfield=0.55, defence=0.78, midfield_defence=0.34
+                attack=0.78, creation=1.00, midfield=0.55, defence=0.62, midfield_defence=0.32
             )
+        # Classic RB/LB: defence-primary role -- defence weight explicitly
+        # above attack, not tied with it.
         return SlotUnitWeights(
-            attack=0.72, creation=1.0, midfield=0.52, defence=0.72, midfield_defence=0.28
+            attack=0.62, creation=0.90, midfield=0.50, defence=0.80, midfield_defence=0.28
         )
     if role == "centre_back":
         return SlotUnitWeights(attack=0.12, creation=0.18, midfield=0.24, defence=1.0, midfield_defence=0.18)
