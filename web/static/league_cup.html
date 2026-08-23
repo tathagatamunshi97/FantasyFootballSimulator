@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>League + Cup — Match Simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/styles.css?v=engine-realism-41" />
+</head>
+<body>
+  <header>
+    <div>
+      <h1 id="leagueCupTitle">League + Cup</h1>
+      <div class="sub">Double round-robin league with an intertwined mid-season cup · <a href="/">Home</a> · <a href="/squad">Squad hub</a></div>
+    </div>
+    <div class="header-actions">
+      <span id="userLabel" class="muted"></span>
+      <span id="statusBadge" class="badge">—</span>
+      <a href="/squad" class="btn-link">Squad hub</a>
+      <a href="/tournament" class="btn-link">Groups + Knockout</a>
+      <a href="/admin" class="btn-link">Admin</a>
+      <button type="button" id="refreshBtn" class="btn-ghost">Refresh</button>
+    </div>
+  </header>
+
+  <main id="app">
+    <div class="empty">Loading…</div>
+  </main>
+
+  <footer>
+    Auto-refreshes every 15s · Engine v2
+  </footer>
+
+  <script src="/static/common.js?v=engine-realism-41"></script>
+  <script src="/static/league_cup.js?v=engine-realism-41"></script>
+</body>
+</html>

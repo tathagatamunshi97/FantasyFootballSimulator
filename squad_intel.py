@@ -15,7 +15,7 @@ from report_builder import (
 )
 from slot_roles import effective_slot_name, slot_role
 from stats_resolver import prepare_team_player_stats
-from team_ratings import compute_team_composites, compute_unit_ratings_by_slot, team_composites_dict
+from team_ratings import _wide_side, compute_team_composites, compute_unit_ratings_by_slot, team_composites_dict
 from web.team_lineups import apply_lineup_config, apply_saved_lineup
 
 # Unit/team-composite keys benchmarked against the rest of the league.
@@ -349,7 +349,9 @@ def build_key_battles(
                 continue
             role_filter = (row.get("role_filter") or "").strip()
             eff = effective_slot_name(slot, role_filter or None)
-            rows.append({"slot": slot, "player": resolved, "role": slot_role(eff), "stats": stats})
+            rows.append(
+                {"slot": slot, "player": resolved, "role": slot_role(eff), "side": _wide_side(eff), "stats": stats}
+            )
         return rows
 
     mine = _side_players(my_resolved, my_name_map, my_stats_map)
@@ -365,6 +367,17 @@ def build_key_battles(
         ]
         if not candidates:
             continue
+        # A winger/fullback attacks and defends down one touchline -- their
+        # real-world direct opponent is the MIRRORED flank (my LW faces
+        # their RB, not their LB), not just any role-matching candidate.
+        # Prefer that mirror when one exists; fall back to the plain
+        # role-based candidate list for central battles (no side) or when
+        # the opponent's formation has no player on the mirrored flank.
+        if m["side"]:
+            mirror_side = "R" if m["side"] == "L" else "L"
+            mirrored = [c for c in candidates if c["side"] == mirror_side]
+            if mirrored:
+                candidates = mirrored
         opp = candidates[0]
         used_opp.add(opp["player"])
 

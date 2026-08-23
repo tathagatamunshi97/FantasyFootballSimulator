@@ -14,7 +14,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from formation_fit import DEFAULT_FORMATION, normalize_formation
-from web import auth, experiments, matchday_session, state as sim_state, team_lineups, tournament
+from web import auth, experiments, league_cup, matchday_session, state as sim_state, team_lineups, tournament
 
 STATIC = Path(__file__).resolve().parent / "static"
 
@@ -97,6 +97,13 @@ class TournamentCreateRequest(BaseModel):
 
 class TournamentTeamsRequest(BaseModel):
     team_names: list[str] = Field(default_factory=list)
+
+
+class LeagueCupCreateRequest(BaseModel):
+    name: str = "League + Cup"
+    team_names: list[str] = Field(default_factory=list)
+    friendly_opponent: str = "Organ's XI"
+    settings: dict[str, Any] | None = None
 
 
 class TournamentDrawRequest(BaseModel):
@@ -1499,6 +1506,11 @@ def tournament_page() -> FileResponse:
     return FileResponse(STATIC / "tournament.html")
 
 
+@app.get("/league-cup")
+def league_cup_page() -> FileResponse:
+    return FileResponse(STATIC / "league_cup.html")
+
+
 @app.get("/tournament/admin")
 def tournament_admin_page() -> RedirectResponse:
     return RedirectResponse(url="/admin#tournament", status_code=302)
@@ -1839,6 +1851,128 @@ def reset_match_result_api(
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.get("/api/league-cup/{tournament_id}")
+def get_league_cup_api(tournament_id: str) -> dict:
+    t = league_cup.get_tournament(tournament_id)
+    if not t:
+        raise HTTPException(status_code=404, detail="League + Cup tournament not found")
+    return {"tournament": league_cup.tournament_for_api(t)}
+
+
+@app.delete("/api/league-cup/{tournament_id}")
+def delete_league_cup_api(
+    tournament_id: str,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+) -> dict:
+    _require_admin(x_admin_token, x_session_token)
+    try:
+        result = league_cup.delete_tournament(tournament_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return {"ok": True, **result}
+
+
+@app.post("/api/league-cup")
+def create_league_cup_api(
+    body: LeagueCupCreateRequest,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+) -> dict:
+    _require_admin(x_admin_token, x_session_token)
+    try:
+        t = league_cup.create_tournament(
+            body.name, body.team_names, friendly_opponent=body.friendly_opponent, settings=body.settings
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"tournament": t}
+
+
+@app.post("/api/league-cup/{tournament_id}/matches/{match_id}/run")
+def run_league_cup_match_api(
+    tournament_id: str,
+    match_id: str,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+) -> dict:
+    _require_admin(x_admin_token, x_session_token)
+    try:
+        return league_cup.prepare_board_match(tournament_id, match_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Match run failed: {exc}") from exc
+
+
+@app.post("/api/league-cup/{tournament_id}/matches/{match_id}/complete-from-board")
+def complete_league_cup_match_api(
+    tournament_id: str,
+    match_id: str,
+    body: TournamentMatchOverrideRequest,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+) -> dict:
+    """Save official result from the interactive tactic-board pin score."""
+    _require_admin(x_admin_token, x_session_token)
+    try:
+        return league_cup.complete_from_board(
+            tournament_id,
+            match_id,
+            home_goals=body.home_goals,
+            away_goals=body.away_goals,
+            winner=body.winner,
+            board_events=body.board_events,
+            match_log=body.match_log,
+            decided_by=body.decided_by,
+            ft_home_goals=body.ft_home_goals,
+            ft_away_goals=body.ft_away_goals,
+            pens_home=body.pens_home,
+            pens_away=body.pens_away,
+            score_display=body.score_display,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/api/league-cup/{tournament_id}/matches/{match_id}/reset")
+def reset_league_cup_match_api(
+    tournament_id: str,
+    match_id: str,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+) -> dict:
+    _require_admin(x_admin_token, x_session_token)
+    try:
+        return league_cup.reset_match_result(tournament_id, match_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/api/league-cup/{tournament_id}/cup/draw")
+def draw_league_cup_round_api(
+    tournament_id: str,
+    body: TournamentDrawRequest | None = None,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+) -> dict:
+    _require_admin(x_admin_token, x_session_token)
+    seed = body.seed if body else None
+    try:
+        t = league_cup.draw_cup_round(tournament_id, seed=seed)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"tournament": t}
 
 
 @app.patch("/api/tournament/{tournament_id}/status")

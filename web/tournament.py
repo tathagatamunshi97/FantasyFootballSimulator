@@ -429,7 +429,7 @@ def generate_group_fixtures(tournament_id: str) -> dict[str, Any]:
     return t
 
 
-ACTIVE_TOURNAMENT_STATUSES = ("group_stage", "knockout")
+ACTIVE_TOURNAMENT_STATUSES = ("group_stage", "knockout", "active")
 
 
 def fixture_round_key(stage_key: str, fx: dict[str, Any], *, knockout_round_name: str | None = None) -> str:
@@ -483,6 +483,10 @@ def get_team_immediate_round(team_name: str, tournament: dict[str, Any] | None =
         t = tournament or find_active_tournament_for_team(team_name)
         if not t:
             return dict(_READY_ROUND)
+        if t.get("format") == "league_cup":
+            from web import league_cup
+
+            return league_cup.get_team_immediate_round(team_name, tournament=t)
 
         name = team_name.strip()
         best: dict[str, Any] | None = None
@@ -998,11 +1002,20 @@ def _match_goalkeepers(events: list[dict[str, Any]]) -> dict[str, str]:
     return gks
 
 
-def aggregate_player_tallies(t: dict[str, Any]) -> list[dict[str, Any]]:
-    """Sum goals/assists/shots/defensive & creative stats per player across all completed matches."""
+def aggregate_player_tallies(t: dict[str, Any], *, competition: str | None = None) -> list[dict[str, Any]]:
+    """Sum goals/assists/shots/defensive & creative stats per player across all completed matches.
+
+    ``competition`` optionally filters to results tagged with that value
+    (e.g. "league"/"cup"/"friendly" -- only League+Cup-format tournaments'
+    results carry this tag today). ``None`` (default) sums every result,
+    same as before this filter existed -- fully backward compatible for the
+    groups+knockout format, whose results have no ``competition`` key.
+    """
     tallies: dict[str, dict[str, Any]] = {}
     for result in (t.get("match_results") or {}).values():
         if not isinstance(result, dict):
+            continue
+        if competition is not None and result.get("competition") != competition:
             continue
         home = result.get("home")
         away = result.get("away")
@@ -1089,9 +1102,9 @@ def aggregate_player_tallies(t: dict[str, Any]) -> list[dict[str, Any]]:
     )
 
 
-def player_leaderboards(t: dict[str, Any], *, limit: int = 10) -> dict[str, Any]:
+def player_leaderboards(t: dict[str, Any], *, limit: int = 10, competition: str | None = None) -> dict[str, Any]:
     """Top goalscorers / assisters / shooters / defenders / creators for tournament API + persisted state."""
-    tallies = aggregate_player_tallies(t)
+    tallies = aggregate_player_tallies(t, competition=competition)
 
     def _board(field: str) -> list[dict[str, Any]]:
         rows = sorted(
