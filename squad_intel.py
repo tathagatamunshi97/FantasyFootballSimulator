@@ -16,7 +16,7 @@ from report_builder import (
 from slot_roles import effective_slot_name, slot_role
 from stats_resolver import prepare_team_player_stats
 from team_ratings import compute_team_composites, compute_unit_ratings_by_slot, team_composites_dict
-from web.team_lineups import apply_saved_lineup
+from web.team_lineups import apply_lineup_config, apply_saved_lineup
 
 # Unit/team-composite keys benchmarked against the rest of the league.
 # (label, key, higher_better) -- mirrors the pairs analysis_explainer.py
@@ -403,14 +403,24 @@ def simulate_lineup_swap(
     *,
     slot: str,
     new_player: str,
+    lineup_config: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Units/team-composite deltas from swapping one player into one slot.
 
-    Compares the saved lineup against a hypothetical one-slot substitution
+    Compares a base lineup against a hypothetical one-slot substitution
     (e.g. a bench player replacing a starter) -- both computed through the
-    same rating engine, so the deltas are apples-to-apples.
+    same rating engine, so the deltas are apples-to-apples. ``lineup_config``
+    is the just-tested (possibly unsaved) formation/lineup from the editor;
+    without it, falls back to the saved lineup on disk. The two can name
+    different slots for the same formation family (e.g. a single "CM" vs
+    "CM1"/"CM2"), so comparing against whichever one the slot dropdown was
+    actually built from is what keeps the two in sync.
     """
-    base_dict = apply_saved_lineup(copy.deepcopy(team_dict))
+    base_dict = (
+        apply_lineup_config(copy.deepcopy(team_dict), lineup_config)
+        if lineup_config
+        else apply_saved_lineup(copy.deepcopy(team_dict))
+    )
     swapped_dict = copy.deepcopy(base_dict)
     out_player = None
     found = False

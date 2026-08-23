@@ -706,7 +706,7 @@ function wireWhatIfPanel() {
     try {
       const data = await api(`/api/my-squad/whatif${q}`, {
         method: "POST",
-        json: { slot, new_player: newPlayer },
+        json: { slot, new_player: newPlayer, lineup: collectLineupPayload() },
       });
       resultEl.innerHTML = renderWhatIfResult(data.whatif);
     } catch (e) {

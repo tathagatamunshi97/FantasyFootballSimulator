@@ -68,14 +68,15 @@ class LineupSaveRequest(BaseModel):
     peak_season: dict[str, str] | None = None
 
 
-class WhatIfSwapRequest(BaseModel):
-    slot: str
-    new_player: str
-
-
 class LineupConfig(BaseModel):
     formation: str = DEFAULT_FORMATION
     lineup: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class WhatIfSwapRequest(BaseModel):
+    slot: str
+    new_player: str
+    lineup: LineupConfig | None = None
 
 
 class CompareLineupsRequest(BaseModel):
@@ -970,7 +971,13 @@ def whatif_squad_api(
     team_payload = _load_sheet_team_payload(team_name)
     store = sim_state.get_stats_store()
     try:
-        result = simulate_lineup_swap(team_payload, store, slot=body.slot, new_player=body.new_player)
+        result = simulate_lineup_swap(
+            team_payload,
+            store,
+            slot=body.slot,
+            new_player=body.new_player,
+            lineup_config=body.lineup.model_dump() if body.lineup else None,
+        )
     except (KeyError, ValueError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
