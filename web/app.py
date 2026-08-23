@@ -1861,6 +1861,56 @@ def get_league_cup_api(tournament_id: str) -> dict:
     return {"tournament": league_cup.tournament_for_api(t)}
 
 
+@app.get("/api/league-cup/{tournament_id}/matches/{match_id}/analysis")
+def get_league_cup_match_analysis_api(tournament_id: str, match_id: str):
+    """Return match analysis, or 202 while a background build is in progress.
+    League/cup matches only -- friendlies have no deterministic analysis,
+    just the AI commentary attached at completion time."""
+    try:
+        payload = league_cup.get_match_analysis(tournament_id, match_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if payload.get("status") == "generating":
+        return JSONResponse(payload, status_code=202)
+    if payload.get("status") == "error":
+        raise HTTPException(
+            status_code=500,
+            detail=payload.get("message") or "Analysis generation failed",
+        )
+    return payload
+
+
+@app.post("/api/league-cup/{tournament_id}/matches/{match_id}/analysis")
+def generate_league_cup_match_analysis_api(
+    tournament_id: str,
+    match_id: str,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+):
+    """Admin backfill: start a background rebuild (does not change score)."""
+    _require_admin(x_admin_token, x_session_token)
+    try:
+        payload = league_cup.generate_match_analysis(tournament_id, match_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Analysis generation failed: {exc}") from exc
+    if payload.get("status") == "generating":
+        return JSONResponse(payload, status_code=202)
+    if payload.get("status") == "error":
+        raise HTTPException(
+            status_code=500,
+            detail=payload.get("message") or "Analysis generation failed",
+        )
+    return payload
+
+
 @app.delete("/api/league-cup/{tournament_id}")
 def delete_league_cup_api(
     tournament_id: str,

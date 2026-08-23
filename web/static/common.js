@@ -68,9 +68,12 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-/** Poll tournament match analysis until ready (202 generating → 200 ready). */
-async function fetchTournamentMatchAnalysis(tournamentId, matchId, { force = false } = {}) {
-  const path = `/api/tournament/${tournamentId}/matches/${matchId}/analysis`;
+/** Poll match analysis until ready (202 generating → 200 ready). `apiBase`
+ * picks the format-specific endpoint prefix -- "/api/tournament" (default,
+ * groups+knockout) or "/api/league-cup" (league/cup matches only --
+ * friendlies have no deterministic analysis to poll for). */
+async function fetchTournamentMatchAnalysis(tournamentId, matchId, { force = false, apiBase = "/api/tournament" } = {}) {
+  const path = `${apiBase}/${tournamentId}/matches/${matchId}/analysis`;
   const maxAttempts = 90;
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const data =
@@ -550,25 +553,14 @@ function renderAiVerdict(v) {
 }
 
 function renderAiCommentary(c) {
-  const blocks = c?.blocks || [];
-  if (!blocks.length) return "";
-  const rows = blocks
-    .map(
-      (b) => `
-      <div class="ai-commentary-row">
-        <span class="rl-slot">${esc(String(b.minute ?? "—"))}'</span>
-        <div>
-          <div class="ai-commentary-headline">${esc(b.headline || "")}</div>
-          <p class="muted" style="margin:0.15rem 0 0">${esc(b.text || "")}</p>
-        </div>
-      </div>`
-    )
-    .join("");
+  const paragraphs = c?.narrative || [];
+  if (!paragraphs.length) return "";
+  const body = paragraphs.map((p) => `<p>${esc(p)}</p>`).join("");
   return `
     <section class="card analysis-card ai-verdict-card" style="margin-top:1rem">
-      <h2><span class="ai-badge">AI</span>Recap</h2>
-      <p class="muted" style="margin:0 0 0.75rem">Goals from the actual match, narrated after the fact — not the live commentary feed above.</p>
-      ${rows}
+      <h2><span class="ai-badge">AI</span>${esc(c.headline || "Match recap")}</h2>
+      <p class="muted" style="margin:0 0 0.75rem">Narrated after the fact from the actual match events — not the live commentary feed above.</p>
+      ${body}
     </section>`;
 }
 
@@ -704,9 +696,20 @@ function renderMatchdaySession(status, { isAdmin = false } = {}) {
     const expLink = r.experiment_id
       ? `<p><a href="/experiment/${esc(r.experiment_id)}?from=matchday">Full match analysis</a></p>`
       : "";
-    const analysisBtn = `<button type="button" class="btn-primary" id="matchdaySeeAnalysisBtn" style="margin-top:0.75rem">${
-      r.has_analysis || r.analysis || r.report ? "See analysis" : "Generate analysis"
-    }</button>`;
+    // League + Cup: friendlies never get a deterministic analysis report
+    // (commentary, attached at completion time, is the whole report);
+    // league/cup matches do get one, generated on click same as the
+    // groups+knockout format, just via the league-cup-specific endpoint.
+    const isFriendlyStage = session?.stage === "friendly";
+    const analysisBtnLabel =
+      r.has_analysis || r.analysis || r.report
+        ? "See analysis"
+        : isFriendlyStage
+          ? r.ai_commentary
+            ? "See commentary"
+            : "No commentary"
+          : "Generate analysis";
+    const analysisBtn = `<button type="button" class="btn-primary" id="matchdaySeeAnalysisBtn" style="margin-top:0.75rem">${analysisBtnLabel}</button>`;
     const dismissBtn =
       isAdmin || getAdminToken()
         ? `<button type="button" id="matchdayDismissBtn" class="btn-ghost" style="margin-top:1rem">Dismiss</button>`

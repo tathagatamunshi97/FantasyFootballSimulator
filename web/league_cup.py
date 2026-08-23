@@ -10,6 +10,7 @@ See C:\\Users\\Admin\\.claude\\plans\\piped-strolling-hippo.md for the full desi
 from __future__ import annotations
 
 import random
+import threading
 import uuid
 from datetime import datetime, timezone
 from typing import Any
@@ -811,3 +812,138 @@ def reset_match_result(tournament_id: str, match_id: str) -> dict[str, Any]:
         t["status"] = "active"
     tournament.save_tournament(t)
     return {"tournament": t}
+
+
+# ---------------------------------------------------------------------------
+# Deterministic match analysis (league/cup matches only -- friendlies stay
+# commentary-only, see _load_played_match_result below). This reuses
+# tournament.py's own analysis machinery almost entirely as-is:
+# _build_and_attach_board_analysis is already format-agnostic (it only
+# touches `result`/team payloads, never t["groups"]/t["knockout"]), and the
+# job-tracking dict/lock/response-shape helpers are pure enough to share
+# directly rather than duplicate. Only the fixture lookup differs.
+# ---------------------------------------------------------------------------
+
+
+def _load_played_match_result(
+    tournament_id: str, match_id: str
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
+    """Return (t, fixture, result) for a completed league/cup match."""
+    t = _require_league_cup(tournament_id)
+    kind, fx, _tie = _find_playable(t, match_id)
+    if fx is None:
+        raise KeyError(f"Fixture '{match_id}' not found")
+    if kind == "friendly":
+        raise ValueError("Friendlies don't have a deterministic analysis report -- commentary only.")
+    if not fx.get("played"):
+        raise ValueError(f"Match {match_id} has not been played yet")
+    result_id = fx.get("result_id") or match_id
+    result = (t.get("match_results") or {}).get(result_id)
+    if not result:
+        raise KeyError(f"Result for '{match_id}' not found")
+    return t, fx, result
+
+
+def _build_and_persist_match_analysis(
+    tournament_id: str,
+    match_id: str,
+    *,
+    force: bool = False,
+) -> dict[str, Any]:
+    """CPU-heavy build + disk persist. Run only from a background thread."""
+    t, _fx, result = _load_played_match_result(tournament_id, match_id)
+    if result.get("engine") == "tactic_board":
+        if force or tournament._analysis_needs_rebuild(result):
+            tournament._build_and_attach_board_analysis(t, result, tournament_id=tournament_id, match_id=match_id)
+            result["fit_formula_version"] = tournament._FIT_FORMULA_VERSION
+            tournament.save_tournament(t)
+        return tournament._analysis_response(result, match_id)
+    if tournament._result_has_analysis(result):
+        return tournament._analysis_response(result, match_id)
+    raise ValueError(f"Match {match_id} has no stored analysis to show.")
+
+
+def _start_analysis_job(
+    tournament_id: str,
+    match_id: str,
+    result: dict[str, Any],
+    *,
+    force: bool = False,
+) -> dict[str, Any]:
+    """Start (or join) a background analysis build; return generating/error payload.
+
+    Shares tournament.py's global `_analysis_jobs` dict/lock -- job keys are
+    `f"{tournament_id}:{match_id}"`, and tournament ids are unique across
+    both formats, so there's no real collision risk from sharing it rather
+    than keeping a second, parallel job registry.
+    """
+    key = tournament._analysis_job_key(tournament_id, match_id)
+    with tournament._analysis_jobs_lock:
+        job = tournament._analysis_jobs.get(key)
+        if job and job.get("status") == "generating":
+            return tournament._generating_analysis_response(result, match_id)
+        if job and job.get("status") == "error" and not force:
+            message = str(job.get("error") or "Analysis generation failed")
+            tournament._analysis_jobs.pop(key, None)
+            return tournament._error_analysis_response(result, match_id, message)
+        tournament._analysis_jobs[key] = {
+            "status": "generating",
+            "force": force,
+            "started_at": _now(),
+            "error": None,
+        }
+
+    def _job() -> None:
+        try:
+            _build_and_persist_match_analysis(tournament_id, match_id, force=force)
+            with tournament._analysis_jobs_lock:
+                tournament._analysis_jobs[key] = {"status": "ready", "finished_at": _now(), "error": None}
+        except Exception as exc:
+            with tournament._analysis_jobs_lock:
+                tournament._analysis_jobs[key] = {"status": "error", "finished_at": _now(), "error": str(exc)}
+
+    threading.Thread(target=_job, daemon=True, name=f"lc-analysis-{key}").start()
+    return tournament._generating_analysis_response(result, match_id)
+
+
+def get_match_analysis(tournament_id: str, match_id: str) -> dict[str, Any]:
+    """Return persisted analysis, or start a background build (status=generating)."""
+    _t, _fx, result = _load_played_match_result(tournament_id, match_id)
+
+    key = tournament._analysis_job_key(tournament_id, match_id)
+    with tournament._analysis_jobs_lock:
+        job = dict(tournament._analysis_jobs.get(key) or {})
+
+    if job.get("status") == "generating":
+        if tournament._result_has_analysis(result):
+            return tournament._analysis_response(result, match_id)
+        return tournament._generating_analysis_response(result, match_id)
+
+    if job.get("status") == "error":
+        message = str(job.get("error") or "Analysis generation failed")
+        with tournament._analysis_jobs_lock:
+            tournament._analysis_jobs.pop(key, None)
+        if tournament._result_has_analysis(result):
+            return tournament._analysis_response(result, match_id)
+        return tournament._error_analysis_response(result, match_id, message)
+
+    if job.get("status") == "ready":
+        with tournament._analysis_jobs_lock:
+            tournament._analysis_jobs.pop(key, None)
+        # Reload -- worker persisted to disk after the in-memory snapshot above.
+        _t, _fx, result = _load_played_match_result(tournament_id, match_id)
+
+    if tournament._result_has_analysis(result) and not tournament._analysis_needs_rebuild(result):
+        return tournament._analysis_response(result, match_id)
+
+    if tournament._result_has_analysis(result) and tournament._analysis_needs_rebuild(result):
+        _start_analysis_job(tournament_id, match_id, result, force=False)
+        return tournament._analysis_response(result, match_id)
+
+    return _start_analysis_job(tournament_id, match_id, result, force=False)
+
+
+def generate_match_analysis(tournament_id: str, match_id: str) -> dict[str, Any]:
+    """Admin backfill: start a background rebuild (does not change the score)."""
+    _t, _fx, result = _load_played_match_result(tournament_id, match_id)
+    return _start_analysis_job(tournament_id, match_id, result, force=True)

@@ -916,15 +916,21 @@ def _board_events_from_result(result: dict[str, Any]) -> list[dict[str, Any]]:
     return []
 
 
-def _attach_ai_commentary(result: dict[str, Any]) -> None:
-    """Best-effort Gemini recap of the goals actually scored on the board.
+_COMMENTARY_EVENT_TYPES = frozenset({"goal", "big_chance_missed", "yellow_card"})
 
-    The live minute-by-minute ticker on the tactic board stays fully
-    deterministic -- a Gemini call per tick would be far too slow for
-    something that updates almost every second during play. This only
-    narrates the completed event log once the match is over, so it's a
-    post-match recap, not a live commentary feed. No-ops silently if
-    Gemini isn't configured, there are no goals, or the call fails.
+
+def _attach_ai_commentary(result: dict[str, Any]) -> None:
+    """Best-effort Gemini recap of a completed match -- a single,
+    consolidated, event-driven narrative (goals, big chances missed,
+    cards, plus each goal's immediate buildup), not a minute-by-minute
+    feed.
+
+    The live ticker on the tactic board stays fully deterministic -- a
+    Gemini call per tick would be far too slow for something that updates
+    almost every second during play. This only narrates the completed
+    event log once the match is over, so it's a post-match recap, not a
+    live commentary feed. No-ops silently if Gemini isn't configured,
+    there's nothing notable to write about, or the call fails.
     """
     if not ai_service.is_available():
         return
@@ -934,18 +940,26 @@ def _attach_ai_commentary(result: dict[str, Any]) -> None:
         return
     events = _board_events_from_result(result)
     goal_indices = [i for i, e in enumerate(events) if e.get("type") == "goal"]
-    if not goal_indices:
+    notable_indices = [i for i, e in enumerate(events) if e.get("type") in _COMMENTARY_EVENT_TYPES]
+    if not notable_indices:
         return
     seen: set[int] = set()
     bundle: list[dict[str, Any]] = []
+    # Buildup context (2 events before) for every goal specifically -- the
+    # other notable types (big chances missed, cards) stand fine on their
+    # own without needing the same lead-up.
     for gi in goal_indices:
-        for i in range(max(0, gi - 3), gi + 1):
+        for i in range(max(0, gi - 2), gi + 1):
             if i not in seen:
                 seen.add(i)
                 bundle.append(events[i])
+    for i in notable_indices:
+        if i not in seen:
+            seen.add(i)
+            bundle.append(events[i])
     bundle.sort(key=lambda e: float(e.get("minute") or 0))
     commentary = ai_service.generate_match_commentary(home, away, bundle)
-    if commentary and commentary.get("blocks"):
+    if commentary and commentary.get("narrative"):
         result["ai_commentary"] = commentary
 
 

@@ -160,7 +160,10 @@ Do not include any other keys, a scoreline, a win probability, or any stat not p
 def generate_match_commentary(
     home: str, away: str, events: list[dict[str, Any]]
 ) -> dict[str, Any] | None:
-    """Batch commentary for a completed (or partial) sequence of match events.
+    """Single consolidated recap for a completed match, told as a flowing
+    narrative built around whichever events actually shaped the game
+    (goals, big chances missed, cards) -- not a minute-by-minute feed of
+    isolated blurbs.
 
     ``events`` is a list of dicts like {"minute": 68, "type": "goal",
     "team": "home"|"away", "player": "...", "detail": "..."}, already sorted
@@ -168,20 +171,27 @@ def generate_match_commentary(
     """
     if not events:
         return None
-    prompt = f"""You are a live football commentator writing recap blocks for a match.
+    prompt = f"""You are a football writer producing a single, rich, consolidated
+match recap -- not a minute-by-minute commentary feed and not a list of
+isolated blurbs.
 
 {_GROUNDING_RULE}
 
 HOME TEAM: {home}
 AWAY TEAM: {away}
-EVENTS (chronological):
+EVENTS (chronological -- goals, big chances missed, cards, and the buildup
+just before each goal; use whichever actually shape the story, you don't
+need to mention every single one):
 {json.dumps(events, indent=2, default=str)}
 
-Return JSON with exactly one key, "blocks", an array of objects -- one per
-goal (skip non-goal events unless they directly set up a goal), each with:
-- "minute": the event's minute (number)
-- "headline": a short punchy headline, e.g. "GOAL! {home} strike again!" (string)
-- "text": 1-2 vivid sentences describing the passage of play, using only the given event data (string)
+Return JSON with exactly these keys:
+- "headline": a punchy one-line headline for the match (string)
+- "narrative": an array of 2-4 short paragraphs (strings), in chronological
+  order, weaving the goals and other pivotal moments into flowing prose --
+  never a per-minute or per-event list. Vary sentence rhythm and vocabulary
+  between paragraphs; do not open every paragraph the same way, and do not
+  restate the scoreline in every paragraph.
 
-Do not include any other keys or events without a listed goal."""
+Do not include any other keys. Ground every claim strictly in the events
+given -- never invent a moment, player, or score not present in the data."""
     return _generate_json(prompt)

@@ -142,8 +142,18 @@ function wireMatchdayActions(session) {
         ai_verdict: r.ai_verdict,
         ai_commentary: r.ai_commentary,
       };
-      if (existing.analysis || r.analysis) {
+      if (existing.analysis || r.analysis || existing.ai_commentary || r.ai_commentary) {
         showReport(existing);
+        return;
+      }
+
+      // A League + Cup friendly never gets a deterministic analysis report
+      // -- commentary (attached at completion time, above) is the whole
+      // report for a friendly. Don't fall through to a generate-analysis
+      // fetch, which has no equivalent for friendlies and would 404.
+      if (session?.stage === "friendly") {
+        panel.hidden = false;
+        panel.innerHTML = `<p class="muted">No commentary available for this match.</p>`;
         return;
       }
 
@@ -152,13 +162,18 @@ function wireMatchdayActions(session) {
         return;
       }
 
+      // League/cup matches (not friendlies) do get a real analysis report,
+      // same as groups+knockout, just via the league-cup-specific endpoint.
+      const isLeagueCupMatch = ["league", "cup"].includes(session?.stage);
+      const apiBase = isLeagueCupMatch ? "/api/league-cup" : "/api/tournament";
+
       analysisBtn.disabled = true;
       const prevLabel = analysisBtn.textContent;
       analysisBtn.textContent = "Generating…";
       panel.hidden = false;
       panel.innerHTML = `<p class="muted">Generating analysis…</p>`;
       try {
-        const data = await fetchTournamentMatchAnalysis(tid, mid);
+        const data = await fetchTournamentMatchAnalysis(tid, mid, { apiBase });
         if (session.result) {
           session.result.has_analysis = Boolean(data?.analysis);
           session.result.analysis = data.analysis;
