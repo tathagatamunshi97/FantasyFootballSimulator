@@ -139,6 +139,30 @@ def _clamp(x: float, lo: float = 0.0, hi: float = 1.0) -> float:
 
 
 
+_LEGEND_INFLATION = 1.2
+
+
+def _legend_multiplier(stats: PlayerStats) -> float:
+    """1.2x on every unit contribution for the 25 curated auction legends,
+    across every unit (attack/creation/midfield/defence/gk) -- applied at
+    the final contribution score, after fit and stat-profile math, not to
+    the underlying stats themselves."""
+    from manual_profiles import is_legend_name
+
+    return _LEGEND_INFLATION if is_legend_name(stats.player) else 1.0
+
+
+def _scale_uncapped(value: float, cap: float) -> float:
+    """Same reference-point normalization as _scale, but no ceiling -- a
+    player at 2x the reference rate scores 2.0, not clamped to 1.0. Used
+    where an elite outlier (e.g. Doku's 5.26 dribbles90 against a 3.0
+    reference) should keep earning credit past the "typical elite" mark,
+    not get treated the same as someone who just touches it."""
+    if cap <= 0:
+        return 0.0
+    return max(0.0, value / cap)
+
+
 def _scale(value: float, cap: float) -> float:
 
     if cap <= 0:
@@ -166,20 +190,22 @@ def _player_progressive_raw(stats: PlayerStats) -> float:
 
 def _player_attack_contrib(stats: PlayerStats, fit: float) -> float:
     """Finishing / shooting threat plus progressive involvement in attack chains."""
-    # Caps slightly below elite season rates so dampened Kane/Díaz/Yamal still
-    # saturate finishing (0.70–0.75 xG90 / ~3.6 shots) rather than looking mid-table.
+    # Uncapped: an elite outlier keeps earning credit past the reference
+    # rate instead of saturating alongside anyone who merely reaches it
+    # (e.g. Doku's 5.26 dribbles90 vs a 3.0 reference used to score
+    # identically to a 3.0-dribbles90 player -- it no longer does).
     xg = stats.npxg90 or stats.xg90
     finisher = (
-        _scale(xg, 0.72) * 0.36
-        + _scale(stats.xg90, 0.72) * 0.16
-        + _scale(stats.shots90, 3.6) * 0.13
-        + _scale(stats.shots_on_target90, 2.2) * 0.09
-        + _scale(stats.big_chances_created90, 1.2) * 0.07
-        + _scale(max(0.0, stats.big_chances_created90 - stats.big_chances_missed90), 1.0) * 0.04
+        _scale_uncapped(xg, 0.72) * 0.36
+        + _scale_uncapped(stats.xg90, 0.72) * 0.16
+        + _scale_uncapped(stats.shots90, 3.6) * 0.13
+        + _scale_uncapped(stats.shots_on_target90, 2.2) * 0.09
+        + _scale_uncapped(stats.big_chances_created90, 1.2) * 0.07
+        + _scale_uncapped(max(0.0, stats.big_chances_created90 - stats.big_chances_missed90), 1.0) * 0.04
     )
     # Missing dribble% used to zero the carry term for sparse primes.
     drib_pct = stats.dribble_pct if stats.dribble_pct > 0 else 50.0
-    carry = _scale(stats.dribbles90, 3.0) * 0.10 * _scale(drib_pct, 100.0)
+    carry = _scale_uncapped(stats.dribbles90, 3.0) * 0.10 * _scale_uncapped(drib_pct, 100.0)
     progressive = _player_progressive_raw(stats) * PROGRESSIVE_ATTACK_SHARE
     return (finisher + carry + progressive) * (0.55 + 0.45 * fit)
 
@@ -390,7 +416,8 @@ def _wide_side(slot: str) -> str | None:
     return None
 
 
-_LONE_WIDE_MID_DEFENCE_WEIGHT = 0.42
+_LONE_WIDE_MID_DEFENCE_WEIGHT = 0.40
+_WINGBACK_DEFENCE_WEIGHT = 0.60
 
 
 def _is_lone_wide_mid(formation: str, slot_name: str) -> bool:
@@ -408,6 +435,41 @@ def _is_lone_wide_mid(formation: str, slot_name: str) -> bool:
         if other in FULLBACK_SLOTS and other.startswith(side):
             return False
     return True
+
+
+def _is_double_pivot_cm(formation: str, slot_name: str) -> bool:
+    """True if slot_name is CM and this formation's central-mid structure
+    is a genuine double pivot: exactly one DM + one CM screening behind a
+    dedicated AM (e.g. 3-4-1-2 (normal)) -- not a CM in a 3-central-mid
+    formation (4-3-3, 3-4-1-2 flat's DM1/DM2) or a DM+CM pairing with no
+    AM ahead (4-4-2, 3-4-3(1)/(2)), where the CM is a genuine box-to-box
+    role, not a pure screener paired 1-for-1 with a DM."""
+    if slot_name.strip().upper() != "CM":
+        return False
+    slots = FORMATION_SLOTS.get(normalize_formation(formation)) or []
+    dm_count = sum(1 for s in slots if slot_role(s.get("slot", "")) == "dm")
+    cm_count = sum(1 for s in slots if slot_role(s.get("slot", "")) == "cm")
+    am_count = sum(1 for s in slots if slot_role(s.get("slot", "")) == "am")
+    return dm_count == 1 and cm_count == 1 and am_count >= 1
+
+
+def _is_advanced_cm(formation: str, slot_name: str) -> bool:
+    """True if slot_name is a CM (CM1/CM2, ...) in a formation fielding
+    2+ CM slots -- e.g. 4-3-3 flat's CM1/CM2, 4-3-2-1's CM1/CM2, 4-3-1-2
+    diamond, 3-5-2. A genuine central-mid pair/trio (as opposed to a
+    single CM screening 1-for-1 with a DM, see _is_double_pivot_cm) isn't
+    a pure holding unit -- each of them structurally shares the
+    box-to-box/final-third duty, whether or not the formation also
+    fields an AM (4-3-2-1 has two AMs *and* this CM pair; both still
+    count). A single-CM formation (4-4-2, 3-4-3(1)/(2)) doesn't get this
+    unconditional credit -- that lone CM still earns attack weight only
+    if their own output profile clears the stat gate below."""
+    su = slot_name.strip().upper()
+    if not su.startswith("CM"):
+        return False
+    slots = FORMATION_SLOTS.get(normalize_formation(formation)) or []
+    cm_count = sum(1 for s in slots if slot_role(s.get("slot", "")) == "cm")
+    return cm_count >= 2
 
 
 def _fullback_winger_combo_bonus(
@@ -927,16 +989,18 @@ def compute_unit_ratings_by_slot(
         fit = _slot_fit(stats, team, slot)
         eff = _eff_slot(slot)
         role = slot_role(eff)
+        legend_mult = _legend_multiplier(stats)
 
         if stats.fpl_position == "GK" or role == "gk":
             score, conf, backup = _player_gk_contrib(stats, fit)
+            score *= legend_mult
             gk_scores.append(score)
             gk_conf = conf
             gk_backup = backup
             continue
 
         if role in _FINISHING_ROLES:
-            score = _player_attack_contrib(stats, fit)
+            score = _player_attack_contrib(stats, fit) * legend_mult
             finishing_scores.append(score)
             breakdown["finishing"].append({"player": slot.player, "slot": slot.slot, "score": round(score, 3)})
         if role in _CREATION_ROLES:
@@ -944,20 +1008,75 @@ def compute_unit_ratings_by_slot(
             if role == "fullback":
                 side = _wide_side(eff)
                 creation += _fullback_winger_combo_bonus(stats, fit, wide_partners.get(side) if side else None)
+            creation *= legend_mult
             creation_scores.append(creation)
             breakdown["chance_creation"].append(
                 {"player": slot.player, "slot": slot.slot, "score": round(creation, 3)}
             )
         if role in _ATTACK_ROLES:
-            atk_score = 0.56 * _player_attack_contrib(stats, fit) + 0.44 * _player_chance_creation_contrib(stats, fit)
+            # Winger/striker get full weight -- attack is unambiguously
+            # their primary job. AM is discounted to 0.75: still a
+            # dedicated advanced-playmaking slot (full, unconditional
+            # credit unlike CM), but genuinely a notch behind a real
+            # winger/striker's end product, not equal to it. RM/LM are
+            # discounted further, to 0.7 -- they split real defensive
+            # duty for that flank (see _LONE_WIDE_MID_DEFENCE_WEIGHT
+            # below), so their attacking output isn't the same full-time
+            # threat as an RW/LW who starts every phase already advanced.
+            is_wide_mid = slot.slot.strip().upper() in {"RM", "LM"}
+            if role == "am":
+                role_weight = 0.75
+            elif is_wide_mid:
+                role_weight = 0.7
+            else:
+                role_weight = 1.0
+            atk_score = (
+                0.56 * _player_attack_contrib(stats, fit) + 0.44 * _player_chance_creation_contrib(stats, fit)
+            ) * role_weight * legend_mult
             attack_scores.append(atk_score)
             breakdown["attack"].append({"player": slot.player, "slot": slot.slot, "score": round(atk_score, 3)})
+        elif role == "cm":
+            # A CM (never DM -- DM's job stays defensive regardless of
+            # output profile, no attack credit at all) whose own output
+            # profiles as genuinely attacking (same screen-vs-create
+            # signal used to gate DM eligibility elsewhere) contributes
+            # to attack too, at 0.6.
+            # A CM screening in a genuine double pivot (paired 1-for-1
+            # with a DM behind a dedicated AM, e.g. 3-4-1-2 normal) gets
+            # no attack credit regardless of their own output profile --
+            # that shape asks them to hold, not join the final third.
+            # A CM in a formation fielding 2+ CM slots (4-3-3's CM1/CM2,
+            # 4-3-2-1's CM1/CM2, 4-3-1-2 diamond, 3-5-2) structurally
+            # shares the final-third duty instead of pure screening --
+            # exposed higher up by the shape itself, so they earn the
+            # bonus unconditionally, whether or not the formation also
+            # fields an AM. A single-CM formation (4-4-2, 3-4-3(1)/(2))
+            # still needs its lone CM's own output to clear the bar.
+            is_advanced = _is_advanced_cm(team.formation, slot.slot)
+            if _is_double_pivot_cm(team.formation, slot.slot):
+                screen_signal = create_signal = 0.0
+            else:
+                screen_signal = stats.tackles90 / 3.5 + stats.interceptions90 / 2.5 + stats.duels_won_pct / 100.0
+                create_signal = stats.key_passes90 / 2.5 + stats.xa90 / 0.55
+            if is_advanced or create_signal > screen_signal:
+                atk_score = (
+                    0.56 * _player_attack_contrib(stats, fit) + 0.44 * _player_chance_creation_contrib(stats, fit)
+                ) * 0.60 * legend_mult
+                attack_scores.append(atk_score)
+                breakdown["attack"].append({"player": slot.player, "slot": slot.slot, "score": round(atk_score, 3)})
         if role in _MIDFIELD_ROLES:
-            score = _player_midfield_contrib(stats, fit)
+            score = _player_midfield_contrib(stats, fit) * legend_mult
             midfield_scores.append(score)
             breakdown["midfield"].append({"player": slot.player, "slot": slot.slot, "score": round(score, 3)})
         if role in _DEFENCE_ROLES:
-            score = _player_defence_contrib(stats, fit)
+            # RWB/LWB carry the same last-line duty as a plain RB/LB when
+            # summed into a fixed-reference total, but their real emphasis
+            # skews more attacking (see slot_roles.py's wing-back weights)
+            # -- discounted, not full weight, so a back-3 fielding 2
+            # wing-backs on top of 3 CBs doesn't just add 2 full extra
+            # bodies' worth of defence on top of a back-4's 4.
+            w = _WINGBACK_DEFENCE_WEIGHT if slot.slot.upper() in {"RWB", "LWB"} else 1.0
+            score = _player_defence_contrib(stats, fit) * w * legend_mult
             defence_scores.append(score)
             breakdown["defence"].append({"player": slot.player, "slot": slot.slot, "score": round(score, 3)})
         elif role == "winger" and _is_lone_wide_mid(team.formation, slot.slot):
@@ -968,69 +1087,79 @@ def compute_unit_ratings_by_slot(
             # in at a reduced weight, not full fullback weight: they start
             # too high up the pitch to recover as completely as a real
             # wing-back.
-            score = _player_defence_contrib(stats, fit) * _LONE_WIDE_MID_DEFENCE_WEIGHT
+            score = _player_defence_contrib(stats, fit) * _LONE_WIDE_MID_DEFENCE_WEIGHT * legend_mult
             defence_scores.append(score)
             breakdown["defence"].append({"player": slot.player, "slot": slot.slot, "score": round(score, 3)})
         if role in _MIDDEF_ROLES:
             w = 1.0 if role == "dm" else 0.72
-            score = _player_midfield_defence_contrib(stats, fit) * w
+            score = _player_midfield_defence_contrib(stats, fit) * w * legend_mult
             midfield_defence_scores.append(score)
             breakdown["midfield_defence"].append({"player": slot.player, "slot": slot.slot, "score": round(score, 3)})
 
     for rows in breakdown.values():
         rows.sort(key=lambda r: r["score"])
 
-    # Top-3 mean (divisor=3): keeps elite above mid-table without everyone at 1.00.
-    # Attack uses the same top-3 aggregation as finishing/chance_creation --
-    # a formation fielding more attack-eligible slots (e.g. wingbacks pushed
-    # into RM/LM) must not get a *lower* attack rating than a formation
-    # fielding fewer, purely because a plain average dilutes toward however
-    # many bodies happen to qualify. A 100-match live-simulation comparison
-    # confirmed a plain average disagreed with actual match outcomes here.
-    finishing = _top_n_avg(finishing_scores, 3, divisor=3.0)
-    chance_creation = _top_n_avg(creation_scores, 3, divisor=3.0)
-    attack = _top_n_avg(attack_scores, 3, divisor=3.0) if attack_scores else 0.56 * finishing + 0.44 * chance_creation
-    # Unlike attack/finishing/creation (peak-3 end product), midfield is
-    # measuring aggregate control -- more competent bodies genuinely add
-    # coverage, possession retention, and extra creation/goal threat, not
-    # just optional depth. A 3-slot formation's plain average correctly
-    # reflects that a weaker 3rd option is a real tradeoff, not dilution
-    # to fix -- reverted an earlier top-2 attempt that unfairly discounted
-    # 3-central-mid shapes (e.g. 4-3-3 flat) for genuine tactical solidity.
+    # Summative, not averaged -- every unit is now summative, per explicit
+    # instruction: a genuine extra finishing/creation threat should add
+    # real credit on top of the primary contributors, not get diluted.
+    finishing = sum(finishing_scores) if finishing_scores else 0.5
+    chance_creation = sum(creation_scores) if creation_scores else 0.5
+    # Summative, not averaged: same reasoning as defence/midfield_defence --
+    # a formation genuinely fielding more attacking threats (e.g. an AM on
+    # top of both wingers and the striker, or a CM earning the 80% attack
+    # bonus above) should add real credit on top of what a leaner shape
+    # provides, not get diluted toward whichever contributor is weakest.
+    # Raw sum, not normalized by a reference count -- runs on a materially
+    # larger scale than the old top-3 average, so `overall`'s attack weight
+    # is rescaled down accordingly below.
+    attack = sum(attack_scores) if attack_scores else 0.56 * finishing + 0.44 * chance_creation
+    # Summative, not averaged -- same reasoning as attack/defence: a
+    # genuine extra body (a 3rd competent central mid on top of a
+    # DM/CM pair, e.g. 4-3-3 flat's DM+CM1+CM2 vs a 2-man 3-4-3(2) pivot)
+    # should add real coverage, possession retention, and progression
+    # credit on top of what the primary pair already provides, not get
+    # diluted toward whichever of the three is weakest. Raw sum, not
+    # normalized by a reference count -- runs on a materially larger
+    # scale than the old average, so `overall`'s midfield weight is
+    # rescaled down accordingly below.
     #
-    # Investigated (and closed) whether this plain average structurally
-    # favours 3-back formations, since sweeps showed 3-4-X edging out
-    # 4-back shapes in 9/10 curated teams. Built two contribution-share
-    # replacement metrics (midfield_contribution_v2.py -- capability^p
-    # share-weighting + formation-derived job weights, then a v3 with
-    # sigmoid-normalized job scores and a formation-prior/personnel-driven
-    # opportunity blend) and validated both against real curated rosters.
-    # v3 converged to within a few thousandths of this plain average's own
-    # formation rankings, flipping none of v1's preferences -- v2's 3 sign
-    # flips turned out to be artifacts of its categorical DM/CM/AM weight
-    # table and a job-score scale mismatch, not a real correction. One
-    # team (Painchester United) already has an honest 4-4-2 beating every
-    # 3-back option outright, confirming 3-back isn't universally favoured
-    # even under v1. Conclusion: the residual 3-back edge (~0.001-0.026
-    # overall, most teams) is not this formula being wrong -- it's driven
-    # upstream, by which formation lets lineup_builder field a genuinely
-    # strong CM-profile player in midfield instead of at fullback. Formation
-    # evaluation here answers "given this formation, which XI can I field"
-    # -- it is not, and should not become, "is 3-4-3 intrinsically better
-    # than 4-3-3". Kept as-is; midfield_contribution_v2.py remains a
-    # standalone research artifact, not imported here.
-    midfield = _avg(midfield_scores, default=0.28)
-    defence = _avg(defence_scores, default=0.18)
-    midfield_defence = _avg(midfield_defence_scores, default=0.12)
-    goalkeeper = _avg(gk_scores, default=0.5)
+    # NOTE: this reverses an earlier closed investigation
+    # (midfield_contribution_v2.py) that deliberately kept midfield as a
+    # plain average specifically to avoid rewarding body count over
+    # quality. That conclusion no longer applies now that summative
+    # aggregation is the deliberate, explicit design for every unit.
+    midfield = sum(midfield_scores) if midfield_scores else 0.28
+    # Summative, not averaged: a genuine extra body (3 CBs + 2 discounted
+    # wing-backs vs a plain back-4; or a 3rd screening midfielder on top
+    # of a DM/CM pair) should add real credit on top of what the primary
+    # contributors already provide, not get diluted toward a weak one or
+    # inflated purely by outnumbering a leaner shape. Raw sum, not
+    # averaged and not normalized by a reference count -- this runs on a
+    # materially larger scale than the old average, so `overall`'s weights
+    # for defence/midfield_defence are rescaled down accordingly below.
+    defence = sum(defence_scores) if defence_scores else 0.18
+    midfield_defence = sum(midfield_defence_scores) if midfield_defence_scores else 0.12
+    goalkeeper = sum(gk_scores) if gk_scores else 0.5  # summative; XI always fields exactly one keeper so no scale change
     transition_risk = _compute_transition_risk(team, player_stats)
 
+    # attack/defence/midfield_defence are now raw summative sums (no
+    # averaging), so every one of them runs on a materially larger scale
+    # than its old averaged/top-N form -- overall's weights are rescaled
+    # down per-unit to compensate, not reused as-is. Measured across the
+    # curated league: attack's sum runs ~4x its old top-3-average scale;
+    # midfield's sum runs ~5x its old plain-average scale (a formation
+    # can field 2-5 midfield-role bodies, vs attack's/finishing's usual
+    # top-3 ceiling). goalkeeper is unaffected -- an XI always fields
+    # exactly one keeper, so sum == the old average. midfield_defence
+    # gets less than a pure proportional rescale on top of its own
+    # factor, per explicit guidance that mid-defence should carry a
+    # smaller share of overall than defence/midfield do.
     overall = (
-        0.30 * attack
-        + 0.24 * midfield
-        + 0.22 * defence
+        0.15 * attack
+        + 0.06 * midfield
+        + 0.075 * defence
         + 0.10 * goalkeeper
-        + 0.12 * midfield_defence
+        + 0.03 * midfield_defence
         + 0.04 * (1.0 - transition_risk)
     )
     return UnitRatings(

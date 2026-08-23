@@ -625,7 +625,7 @@ KNOWN_PLAYER_POSITIONS_BY_NAME: dict[str, dict[str, Any]] = {
     "Ashley Cole": {
         "primary_position": "LB",
         "fpl_position": "DEF",
-        "positions": ["LB", "LWB", "CB"],
+        "positions": ["LB", "CB"],
     },
     "Ousmane Dembélé": {
         "primary_position": "RW",

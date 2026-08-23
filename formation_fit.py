@@ -641,6 +641,10 @@ def player_slot_fit(
     is_cb_slot = _is_centre_back_slot(slot_tags)
     is_central_mid_slot = bool(slot_tags & {"DM", "CM", "AM"})
     is_wide_mid_slot = bool(slot_tags & {"RM", "LM"})
+    # RWB/LWB don't list themselves as a tag (their own slot definitions
+    # only carry RB/WB/RM/RW-style compatible tags), so this has to key
+    # off the slot name directly, not slot_tags.
+    is_wingback_slot = slot_name.strip().upper() in {"RWB", "LWB"}
     # The one boundary a pure per-90 stat profile can't reliably tell apart on
     # its own: a centre-back's tackle/interception/clearance volume looks a
     # lot like a defensive mid's on paper, but they are structurally
@@ -697,7 +701,46 @@ def player_slot_fit(
             # just because AM lists CM as compatible, regardless of whether
             # they've ever actually played AM.
             own_tags = slot_def.get("tags") or []
-            specific_slot_tags = {str(own_tags[0]).upper()} if own_tags else set()
+            own_tag = str(own_tags[0]).upper() if own_tags else ""
+            specific_slot_tags = {own_tag} if own_tag else set()
+            if (
+                own_tag == "DM"
+                and own_tag in declared
+                and declared.index(own_tag) > 0
+            ):
+                # DM declared, but not the player's top preference -- a
+                # CM-first declaration alone isn't disqualifying (several
+                # genuine DMs are curated as CM/DM dual-threats), but the
+                # real numbers should back it up. Verified against every
+                # curated DM/CM player: genuine DMs (Sangare, Casemiro,
+                # Caicedo) score screen >> create; real dual-threats
+                # (Rodri, Rice, Guimaraes) still screen > create; but a
+                # handful (Kimmich, Iniesta, Pirlo, Barella, Szoboszlai)
+                # are more creative than defensive by their own output --
+                # a CM wearing a DM tag, not a real screening option.
+                screen_signal = (
+                    stats.tackles90 / 3.5 + stats.interceptions90 / 2.5 + stats.duels_won_pct / 100.0
+                )
+                create_signal = stats.key_passes90 / 2.5 + stats.xa90 / 0.55
+                if create_signal > screen_signal:
+                    return min(fit, 0.35)
+        elif is_wingback_slot:
+            # A plain LB/RB passes through to RWB/LWB via the shared WB
+            # tag regardless of whether they ever actually played an
+            # advancing wing-back role -- not every fullback can. Gate it
+            # on real attacking output instead of just the position label:
+            # key_passes90 >= 1.0 AND xA90 >= 0.10 -- both, not either --
+            # separates a genuinely progressive fullback (Lahm, Laimer)
+            # from a stay-at-home one with occasional end product (a
+            # single strong metric isn't enough on its own), without
+            # needing an explicit RWB/LWB declaration to pass.
+            plain_fb_tag = "RB" if slot_name.strip().upper() == "RWB" else "LB"
+            wb_tag = slot_name.strip().upper()
+            if wb_tag not in declared and plain_fb_tag in declared:
+                attacking_enough = stats.key_passes90 >= 1.0 and stats.xa90 >= 0.10
+                if not attacking_enough:
+                    return min(fit, 0.35)
+            specific_slot_tags = (slot_tags - _GENERIC_POS_TAGS) | {wb_tag}
         elif is_wide_mid_slot:
             # RM/LM carry real defensive tracking responsibility (more so
             # than a pure winger, and -- in back-3 formations where they're
