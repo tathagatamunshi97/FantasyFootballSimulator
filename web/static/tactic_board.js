@@ -831,28 +831,65 @@
       0.4
     );
 
-    // Softer blends — player + unit, compressed so favorites win more often but don't steamroll
-    const attackHome = clamp(teamAttackPower(homePins) * 0.55 + unitAtkHome * 0.45, 0.25, 0.82);
-    const attackAway = clamp(teamAttackPower(awayPins) * 0.55 + unitAtkAway * 0.45, 0.25, 0.82);
+    // Engine fix — attackHome/defendHome/createHome/possHome used to blend
+    // in 40-55% weight from teamAttackPower/teamDefendPower/
+    // teamCreationPower/teamPossessionQuality: a SEPARATE, cruder
+    // recomputation straight from raw per-90 stats (teamDefendPower is
+    // literally just tackles90*0.4 + interceptions90*0.35 -- no duels/
+    // aerials/clearances at all), living alongside the real team_ratings.py
+    // unit ratings already passed in via unitAtkHome/unitDefHome/
+    // unitCreateHome/unitPossHome. Same bug class as the Van Dijk/Romero fix
+    // earlier (raw tackle/interception VOLUME with no effectiveness
+    // weighting) -- except this copy sat inside the actual match engine, and
+    // attackDefendDelta (which reads defendHome/Away) gets read at ~14
+    // separate decision points per match, so even a modest systematic bias
+    // compounded into real scoreline distortion. Measured directly:
+    // MasterSimulator's 4-3-2-1 rates ahead of Mao De Zong FC's on every
+    // real team_ratings.py unit (attack 2.504 vs 2.190, overall 0.797 vs
+    // 0.762), but the old teamDefendPower blend alone gave Mao De Zong a
+    // +0.138 edge (Casemiro's 4.03 tackles90 vs Sangaré's 2.55, zero credit
+    // for either side's duel/aerial/clearance quality) -- enough to flip
+    // the modeled matchup against a team that rates better everywhere else.
+    //
+    // A prior version of this fix tried to be "safer" by keeping the raw
+    // blend on attack/create/poss and only removing it from defend, on the
+    // theory that unitAtkHome's source field (attacking_effectiveness) is
+    // itself _clamp'd to a 0-1 ceiling against a summative attack unit that
+    // regularly exceeds 1.0 -- so it saturates at exactly 1.0 for BOTH sides
+    // in a strong-attack matchup (confirmed: 2.504 vs 2.190 real attack
+    // units, but attacking_effectiveness = 1.0 for both), erasing real
+    // attack differentiation. That reasoning is correct, but A/B testing it
+    // head to head (50 matches each, same seeds/lineups) showed the
+    // "safer" partial fix performing WORSE (20% win, 0.76/1.20 goals) than
+    // fully removing the raw blend everywhere (32% win, 0.98/1.08 goals) --
+    // teamCreationPower/teamPossessionQuality carry their own smaller but
+    // real biases (teamCreationPower alone: -0.035 in Mao De Zong's favor
+    // in this matchup) that hurt more than the attack-saturation issue when
+    // reintroduced. Trusting the empirical result over the theory: full
+    // removal stays. unitAtkHome/unitDefHome/unitCreateHome/unitPossHome
+    // already fall back to these same team*Power() functions when real unit
+    // data is missing (see their unit01(..., team*Power(pins)) definitions
+    // above), so nothing is lost for a payload without ratings -- this only
+    // stops the raw recomputation from diluting an already-correct rating.
+    // The attack-side saturation is still a real, separate issue worth
+    // fixing properly later (rescale the summative unit.attack value the
+    // way normPressIntensity/normPressResistance already rescale their
+    // fields, instead of relying on a pre-clamped composite) -- not solved
+    // here. Total blend weight folded into the surviving term throughout,
+    // so overall calibration/scale is unchanged.
+    const attackHome = clamp(unitAtkHome, 0.25, 0.82);
+    const attackAway = clamp(unitAtkAway, 0.25, 0.82);
     // +6% flat buff — attacking was overpowering defence across the board
     // (chance creation, dribbles/carries, shot conversion all read off this),
     // so raise the one number that feeds every defensive term at once.
-    const defendHome = clamp((teamDefendPower(homePins) * 0.55 + unitDefHome * 0.4 + pressHome * 0.08) * 1.06, 0.25, 0.87);
-    const defendAway = clamp((teamDefendPower(awayPins) * 0.55 + unitDefAway * 0.4 + pressAway * 0.08) * 1.06, 0.25, 0.87);
+    const defendHome = clamp((unitDefHome * 0.95 + pressHome * 0.08) * 1.06, 0.25, 0.87);
+    const defendAway = clamp((unitDefAway * 0.95 + pressAway * 0.08) * 1.06, 0.25, 0.87);
     // Create floor: weak sides still manufacture chances vs strong defences
-    const createHome = clamp(teamCreationPower(homePins) * 0.55 + unitCreateHome * 0.45, 0.42, 0.9);
-    const createAway = clamp(teamCreationPower(awayPins) * 0.55 + unitCreateAway * 0.45, 0.42, 0.9);
-    // Possession control: pin pass quality + press resist + team possession_control composite
-    const possHome = clamp(
-      teamPossessionQuality(homePins) * 0.4 + resistHome * 0.25 + unitPossHome * 0.35,
-      0.25,
-      0.85
-    );
-    const possAway = clamp(
-      teamPossessionQuality(awayPins) * 0.4 + resistAway * 0.25 + unitPossAway * 0.35,
-      0.25,
-      0.85
-    );
+    const createHome = clamp(unitCreateHome, 0.42, 0.9);
+    const createAway = clamp(unitCreateAway, 0.42, 0.9);
+    // Possession control: press resist + team possession_control composite
+    const possHome = clamp(unitPossHome * 0.75 + resistHome * 0.25, 0.25, 0.85);
+    const possAway = clamp(unitPossAway * 0.75 + resistAway * 0.25, 0.25, 0.85);
     const aerialHome = softRating(unit01(unitHome.aerial_defence, 0.45), 0.45, 0.5);
     const aerialAway = softRating(unit01(unitAway.aerial_defence, 0.45), 0.45, 0.5);
     // Raw finishing unit (0–1); drives day-form mixture, not soft-compressed attack
@@ -4728,6 +4765,22 @@
       return flankUnitPower(atkSide, flank, "atk") - flankUnitPower(oppOf(atkSide), flank, "def");
     }
 
+    // How far the opponent's CM/DM screen has actually been dragged off its
+    // base central position right now (pin.x vs pin.baseX, same pre-stretch
+    // 0-1 logical space -- see buildPins/the defensive reactive-chain code
+    // that shifts CM/DM laterally toward sustained ball-side/wide pressure).
+    // wCentral below previously had no live read of this at all: a wide
+    // overload could pull the opponent's mids across, but nothing in the
+    // attack-pattern choice ever noticed the central lane that opened up --
+    // the attacking side just kept grinding the flank instead of cutting
+    // inside to punish it. 0 = mids sitting at home; larger = more central
+    // space actually available right now.
+    function oppCentralOpenness(atkSide) {
+      const mids = pinsOf(oppOf(atkSide)).filter((p) => p.role === "CM" || p.role === "DM");
+      if (!mids.length) return 0;
+      return mids.reduce((s, p) => s + Math.abs((p.x ?? p.baseX) - p.baseX), 0) / mids.length;
+    }
+
     function strikerAerialThreat(side) {
       const sts = pinsOf(side).filter((p) => p.role === "ST" || p.role === "AM");
       if (!sts.length) return 0.35;
@@ -6017,6 +6070,7 @@
       const edgeL = flankMatchupEdge(carrier.side, "L");
       const edgeR = flankMatchupEdge(carrier.side, "R");
       const bestFlankEdge = Math.max(edgeL, edgeR);
+      const centralOpenness = oppCentralOpenness(carrier.side);
       const st = carrier.stats;
       const mates = teammates(carrier);
       const hasW = mates.some((m) => m.role === "W" || m.role === "FB");
@@ -6059,7 +6113,13 @@
         (carrier.role === "CM" || carrier.role === "AM" ? 0.75 : 0.28) +
         (hasCM ? 0.4 : -0.12) +
         (centralBall ? 0.3 : -0.05) +
-        Math.max(0, ad) * 0.55;
+        Math.max(0, ad) * 0.55 +
+        // Punish the opponent for narrowing to defend a wide overload — see
+        // oppCentralOpenness above. A settled CM/DM pair contributes ~0; a
+        // pair genuinely dragged wide by sustained flank pressure can reach
+        // ~0.15-0.25 average drift, worth roughly the same magnitude as the
+        // urgency/ad bonuses below at that extreme, not a dominant term.
+        centralOpenness * 3.0;
       if (depth < 0.5) wCentral += 0.25;
       if (stage === "PROGRESSING") wCentral += 0.2;
       if (urg >= 0.85) wCentral += 0.45 + Math.max(0, ad) * 0.35;
