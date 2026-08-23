@@ -122,6 +122,122 @@ function esc(s) {
   return d.innerHTML;
 }
 
+// ---------------------------------------------------------------------------
+// Shared stat-leaderboard rendering -- used by both tournament.js (old
+// group+knockout viewer) and league_cup.js (League + Cup viewer), which
+// both read the same player_leaderboards()-shaped boards from the backend.
+// Lived only in tournament.js originally; league_cup.js's Stats tab shipped
+// without the player/team toggle, category grouping, or 4 of the 11 stat
+// boards as a result -- moved here so both pages share one implementation
+// instead of the League + Cup page silently drifting out of parity again.
+// ---------------------------------------------------------------------------
+
+function renderLeaderboardTable(rows, countKey, countLabel, emptyMsg, { suffix = "" } = {}) {
+  if (!rows?.length) {
+    return `<p class="muted" style="margin:0">${esc(emptyMsg)}</p>`;
+  }
+  const body = rows
+    .map((r, i) => {
+      const n = r[countKey] ?? 0;
+      return `<tr><td>${i + 1}</td><td>${esc(r.player || "—")}</td><td>${esc(r.team || "—")}</td><td class="num"><strong>${esc(String(n))}${suffix}</strong></td></tr>`;
+    })
+    .join("");
+  return `<div class="report-table-wrap rank-table emphasize-top"><table><thead><tr><th>#</th><th>Player</th><th>Team</th><th>${esc(countLabel)}</th></tr></thead><tbody>${body}</tbody></table></div>`;
+}
+
+// Team view -- same leaderboard shape as renderLeaderboardTable, minus the
+// Player column, for a table aggregated per team instead of per player.
+function renderTeamLeaderboardTable(rows, countKey, countLabel, emptyMsg, { suffix = "" } = {}) {
+  if (!rows?.length) {
+    return `<p class="muted" style="margin:0">${esc(emptyMsg)}</p>`;
+  }
+  const body = rows
+    .map((r, i) => {
+      const n = r[countKey] ?? 0;
+      return `<tr><td>${i + 1}</td><td>${esc(r.team || "—")}</td><td class="num"><strong>${esc(String(n))}${suffix}</strong></td></tr>`;
+    })
+    .join("");
+  return `<div class="report-table-wrap rank-table emphasize-top"><table><thead><tr><th>#</th><th>Team</th><th>${esc(countLabel)}</th></tr></thead><tbody>${body}</tbody></table></div>`;
+}
+
+// Mirrors web/tournament.py's _TALLY_FIELDS exactly -- every field a
+// player_tallies row carries, so a team total is a plain per-field sum
+// across every player who's ever turned out for that team. clean_sheets
+// works out correctly here too: only the match's actual GK is credited
+// per clean sheet server-side, so summing by team already equals that
+// team's real clean-sheet count, not a double-count.
+const TALLY_FIELDS = [
+  "goals", "assists", "shots", "dribbles", "distance_carried",
+  "tackles", "interceptions", "key_passes", "big_chances_created",
+  "big_chances_missed", "clean_sheets",
+];
+
+function aggregateTeamTallies(playerTallies) {
+  const teams = {};
+  for (const row of playerTallies || []) {
+    const team = row.team || "—";
+    if (!teams[team]) {
+      teams[team] = { team };
+      for (const f of TALLY_FIELDS) teams[team][f] = 0;
+    }
+    for (const f of TALLY_FIELDS) teams[team][f] += Number(row[f] || 0);
+  }
+  // Bug fix -- distance_carried is the one non-integer field here; each
+  // player row already comes pre-rounded to 1 decimal from the server,
+  // but summing several rounded floats in JS can still land on something
+  // like 222.60000000000002 (plain binary floating-point, the same
+  // reason 0.1 + 0.2 !== 0.3) -- round again after the sum, same 1-decimal
+  // convention the backend already uses for the player-level values.
+  for (const row of Object.values(teams)) {
+    row.distance_carried = Math.round(row.distance_carried * 10) / 10;
+  }
+  return Object.values(teams);
+}
+
+function teamBoard(teamTallies, field, limit = 10) {
+  return teamTallies
+    .filter((r) => Number(r[field] || 0) > 0)
+    .sort((a, b) => Number(b[field]) - Number(a[field]) || String(a.team).localeCompare(String(b.team)))
+    .slice(0, limit);
+}
+
+const STAT_CATEGORIES = [
+  ["attacking", "Attacking"],
+  ["creation", "Creation"],
+  ["control", "Control"],
+  ["defending", "Defending"],
+];
+
+const STAT_BOARDS = [
+  { key: "top_goalscorers", field: "goals", title: "Top goalscorers", label: "G", empty: "No goals recorded yet — play matches on the tactic board.", category: "attacking" },
+  { key: "top_shooters", field: "shots", title: "Most shots", label: "Shots", empty: "No shots recorded yet.", category: "attacking" },
+  { key: "top_big_chances_missed", field: "big_chances_missed", title: "Most big chances missed", label: "BCM", empty: "No big chances missed yet.", category: "attacking" },
+  { key: "top_assisters", field: "assists", title: "Top assisters", label: "A", empty: "No assists recorded yet — assists count when a goal follows a teammate's pass.", category: "creation" },
+  { key: "top_key_passers", field: "key_passes", title: "Most key passes", label: "KP", empty: "No key passes recorded yet.", category: "creation" },
+  { key: "top_big_chances_created", field: "big_chances_created", title: "Most big chances created", label: "BCC", empty: "No big chances created yet.", category: "creation" },
+  { key: "top_dribblers", field: "dribbles", title: "Most dribbles", label: "Dribbles", empty: "No completed take-ons recorded yet.", category: "control" },
+  { key: "top_distance_carried", field: "distance_carried", title: "Most distance carried", label: "Metres", empty: "No carries recorded yet.", suffix: "m", category: "control" },
+  { key: "top_clean_sheets", field: "clean_sheets", title: "Most clean sheets", label: "CS", empty: "No clean sheets recorded yet.", category: "defending" },
+  { key: "top_tacklers", field: "tackles", title: "Most tackles", label: "Tackles", empty: "No tackles recorded yet.", category: "defending" },
+  { key: "top_interceptors", field: "interceptions", title: "Most interceptions", label: "Int", empty: "No interceptions recorded yet.", category: "defending" },
+];
+
+// Renders one played-match analysis result into its `.match-analysis-panel`
+// -- shared by tournament.js and league_cup.js's analysis-toggle wiring.
+function fillAnalysisPanel(matchId, data) {
+  const panel = document.querySelector(`.match-analysis-panel[data-match-id="${matchId}"]`);
+  if (!panel) return;
+  panel.hidden = false;
+  const header = `<p class="muted" style="margin:0 0 0.5rem">${esc(data.home || "")} ${esc(data.score || "")} ${esc(data.away || "")}</p>`;
+  const analysisHtml = typeof renderAnalysis === "function" ? renderAnalysis(data.analysis) : "";
+  const aiHtml = typeof renderAiVerdict === "function" ? renderAiVerdict(data.ai_verdict) : "";
+  const aiCommentaryHtml = typeof renderAiCommentary === "function" ? renderAiCommentary(data.ai_commentary) : "";
+  const squadHtml = typeof renderSquadAnalysis === "function" ? renderSquadAnalysis(data.squad_analysis, data.matchup) : "";
+  panel.innerHTML = header + (analysisHtml || `<p class="muted">No analysis text.</p>`) + aiHtml + aiCommentaryHtml + (squadHtml || "");
+  const btn = document.querySelector(`.view-analysis-btn[data-match-id="${matchId}"]`);
+  if (btn) btn.textContent = "Hide analysis";
+}
+
 function pct(v) {
   return v == null ? "—" : `${Number(v).toFixed(1)}%`;
 }

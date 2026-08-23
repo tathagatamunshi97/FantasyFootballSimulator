@@ -6,6 +6,10 @@ let lcTournament = null;
 let lcTournamentId = new URLSearchParams(window.location.search).get("id");
 let lcActiveTab = "fixtures";
 let lcStatsCompetition = "league";
+let lcStatView = "player"; // "player" | "team"
+let lcActiveStatCategory = "attacking";
+let lcOpenAnalysisMatchId = null;
+let lcAnalysisCache = {};
 
 function lcIsAdmin() {
   return Boolean((getToken() && isAdminUser()) || getAdminToken());
@@ -139,6 +143,7 @@ const LC_TABS = [
   ["table", "Table"],
   ["cup", "Cup"],
   ["stats", "Stats"],
+  ["analysis", "Analysis"],
 ];
 
 function lcRenderApp() {
@@ -151,6 +156,7 @@ function lcRenderApp() {
   else if (lcActiveTab === "table") body = lcRenderTable();
   else if (lcActiveTab === "cup") body = lcRenderCup();
   else if (lcActiveTab === "stats") body = lcRenderStats();
+  else if (lcActiveTab === "analysis") body = lcRenderAnalysisTab();
   return `${tabs}<div style="margin-top:1rem">${body}</div>`;
 }
 
@@ -339,36 +345,188 @@ function lcRenderCup() {
 // Stats
 // ---------------------------------------------------------------------------
 
-const LC_STAT_BOARDS = [
-  ["top_goalscorers", "Goals", "goals"],
-  ["top_assisters", "Assists", "assists"],
-  ["top_shooters", "Shots", "shots"],
-  ["top_dribblers", "Dribbles", "dribbles"],
-  ["top_clean_sheets", "Clean sheets", "clean_sheets"],
-  ["top_tacklers", "Tackles", "tackles"],
-  ["top_key_passers", "Key passes", "key_passes"],
-];
-
-function lcRenderStatBoard(rows, label, field) {
-  if (!rows || !rows.length) return `<div class="card"><h4>${esc(label)}</h4><p class="muted">No data yet.</p></div>`;
-  const body = rows
-    .slice(0, 10)
-    .map((r) => `<tr><td>${esc(r.player)}</td><td class="muted">${esc(r.team)}</td><td><strong>${esc(String(r[field]))}</strong></td></tr>`)
-    .join("");
-  return `<div class="card"><h4>${esc(label)}</h4><div class="report-table-wrap"><table><tbody>${body}</tbody></table></div></div>`;
-}
-
+// Stat boards/categories/player-vs-team leaderboard tables are shared with
+// tournament.js (see common.js: STAT_CATEGORIES, STAT_BOARDS,
+// renderLeaderboardTable, renderTeamLeaderboardTable, aggregateTeamTallies,
+// teamBoard) -- this used to be a separate, thinner 7-board/player-only
+// implementation that had silently drifted out of parity with the old
+// tournament page (missing the player/team toggle, category grouping, and
+// 4 of the 11 stat boards). league_boards/cup_boards already carry the full
+// player_leaderboards() shape (including player_tallies, needed for the
+// team-aggregate view) from web/league_cup.py's tournament_for_api -- the
+// gap was purely this file never rendering it.
 function lcRenderStats() {
   const boards = lcStatsCompetition === "league" ? lcTournament.league_boards : lcTournament.cup_boards;
-  const toggle = `
+  const compToggle = `
     <div style="display:flex;gap:0.5rem;margin-bottom:1rem">
       <button type="button" class="tab-btn${lcStatsCompetition === "league" ? " active" : ""}" data-lc-stats="league">League</button>
       <button type="button" class="tab-btn${lcStatsCompetition === "cup" ? " active" : ""}" data-lc-stats="cup">Cup</button>
     </div>`;
-  const grid = boards
-    ? `<div class="grid grid-2">${LC_STAT_BOARDS.map(([key, label, field]) => lcRenderStatBoard(boards[key], label, field)).join("")}</div>`
-    : `<p class="muted">No data yet.</p>`;
-  return `<div class="card"><h2>Stats</h2>${toggle}${grid}</div>`;
+  const viewToggle = ["player", "team"]
+    .map(
+      (v) =>
+        `<button type="button" class="subtab-btn view-toggle-btn${lcStatView === v ? " active" : ""}" data-lc-view="${v}">${v === "player" ? "Players" : "Teams"}</button>`
+    )
+    .join("");
+  const subtabs = STAT_CATEGORIES.map(
+    ([id, label]) =>
+      `<button type="button" class="subtab-btn${lcActiveStatCategory === id ? " active" : ""}" data-lc-cat="${id}">${esc(label)}</button>`
+  ).join("");
+  const categoryBoards = STAT_BOARDS.filter((b) => b.category === lcActiveStatCategory);
+  const teamTallies = lcStatView === "team" ? aggregateTeamTallies(boards?.player_tallies) : null;
+  const cards = categoryBoards
+    .map((b) => {
+      const table =
+        lcStatView === "team"
+          ? renderTeamLeaderboardTable(teamBoard(teamTallies, b.field), b.field, b.label, b.empty, { suffix: b.suffix || "" })
+          : renderLeaderboardTable((boards && boards[b.key]) || [], b.field, b.label, b.empty, { suffix: b.suffix || "" });
+      return `<div class="card"><h3>${esc(b.title)}</h3>${table}</div>`;
+    })
+    .join("");
+  return `
+    <div class="card">
+      <h2>Stats</h2>
+      ${compToggle}
+      <div class="stat-view-row" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;align-items:center">
+        <nav class="subtab-bar">${subtabs}</nav>
+        <nav class="subtab-bar">${viewToggle}</nav>
+      </div>
+      <div class="grid-2" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:1.25rem;margin-top:1rem">${cards}</div>
+    </div>`;
+}
+
+// ---------------------------------------------------------------------------
+// Analysis -- was missing entirely (no tab, no per-fixture button), even
+// though the deterministic analysis backend for League + Cup matches
+// already existed (web/league_cup.py's get_match_analysis/
+// generate_match_analysis, wired to /api/league-cup/.../analysis). Only
+// league and cup fixtures get a report here -- friendlies are commentary-
+// only by design (see web/league_cup.py's _load_played_match_result),
+// so they're deliberately excluded from this list.
+// ---------------------------------------------------------------------------
+
+function lcPlayedAnalysisRows() {
+  const rows = [];
+  for (const fx of lcTournament.league.fixtures || []) {
+    if (fx.played) {
+      rows.push({
+        resultId: fx.result_id || fx.id,
+        home: fx.home,
+        away: fx.away,
+        score: fx.score,
+        comp: "league",
+        label: `GW${fx.scheduled_gw}`,
+      });
+    }
+  }
+  for (const row of lcAllCupLegs()) {
+    if (row.leg.played) {
+      rows.push({
+        resultId: row.leg.result_id || row.leg.id,
+        home: row.leg.home,
+        away: row.leg.away,
+        score: row.leg.score,
+        comp: "cup",
+        label: `${row.roundLabel} leg ${row.leg.leg}`,
+      });
+    }
+  }
+  return rows;
+}
+
+function lcAnalysisButtonLabel(matchId) {
+  const has = Boolean(
+    (lcTournament.match_results || {})[matchId]?.has_analysis || lcAnalysisCache[matchId]?.analysis
+  );
+  return has ? "See analysis" : "Generate analysis";
+}
+
+function lcAnalysisControls(row) {
+  const mid = esc(row.resultId);
+  return `<div class="analysis-controls" style="margin-top:0.35rem">
+    <div class="btn-stack">
+      <button type="button" class="btn-ghost btn-sm view-analysis-btn" data-match-id="${mid}">${lcAnalysisButtonLabel(row.resultId)}</button>
+    </div>
+    <div class="match-analysis-panel" data-match-id="${mid}" hidden style="margin-top:0.5rem"></div>
+  </div>`;
+}
+
+function lcRenderAnalysisTab() {
+  const rows = lcPlayedAnalysisRows();
+  if (!rows.length) {
+    return `<div class="card"><p class="muted">No league/cup matches played yet — analysis appears here once fixtures are hosted live. (Friendlies get commentary only, on Matchday.)</p></div>`;
+  }
+  return rows
+    .map(
+      (row) => `<div class="card" style="margin-bottom:0.75rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem">
+          <div>${lcCompTag(row.comp)} <strong>${esc(row.home)} ${esc(row.score || "")} ${esc(row.away)}</strong> <span class="muted">${esc(row.label)}</span></div>
+        </div>
+        ${lcAnalysisControls(row)}
+      </div>`
+    )
+    .join("");
+}
+
+async function lcFetchMatchAnalysis(matchId, { force = false } = {}) {
+  const data = await fetchTournamentMatchAnalysis(lcTournamentId, matchId, { force, apiBase: "/api/league-cup" });
+  lcAnalysisCache[matchId] = data;
+  if (lcTournament?.match_results?.[matchId]) {
+    lcTournament.match_results[matchId].has_analysis = Boolean(data?.analysis);
+  }
+  return data;
+}
+
+async function lcToggleAnalysis(matchId) {
+  const panel = document.querySelector(`.match-analysis-panel[data-match-id="${matchId}"]`);
+  const btn = document.querySelector(`.view-analysis-btn[data-match-id="${matchId}"]`);
+  if (lcOpenAnalysisMatchId === matchId && panel && !panel.hidden) {
+    panel.hidden = true;
+    lcOpenAnalysisMatchId = null;
+    if (btn) btn.textContent = lcAnalysisButtonLabel(matchId);
+    return;
+  }
+  if (lcOpenAnalysisMatchId && lcOpenAnalysisMatchId !== matchId) {
+    const prev = document.querySelector(`.match-analysis-panel[data-match-id="${lcOpenAnalysisMatchId}"]`);
+    const prevBtn = document.querySelector(`.view-analysis-btn[data-match-id="${lcOpenAnalysisMatchId}"]`);
+    if (prev) prev.hidden = true;
+    if (prevBtn) prevBtn.textContent = lcAnalysisButtonLabel(lcOpenAnalysisMatchId);
+  }
+  lcOpenAnalysisMatchId = matchId;
+  const hadCached = Boolean(lcAnalysisCache[matchId]?.analysis);
+  if (panel) {
+    panel.hidden = false;
+    panel.innerHTML = `<p class="muted">${hadCached ? "Loading analysis…" : "Generating analysis…"}</p>`;
+  }
+  if (btn && !hadCached) btn.textContent = "Generating…";
+  try {
+    let data = lcAnalysisCache[matchId];
+    if (!data?.analysis) {
+      try {
+        data = await lcFetchMatchAnalysis(matchId);
+      } catch (err) {
+        // Bug fix -- leaving lcOpenAnalysisMatchId set to this matchId made
+        // the NEXT click on the same button hit the "already open, toggle
+        // closed" branch above instead of retrying: it would silently hide
+        // the panel (wiping the error message) without ever calling the
+        // API again. Reset it here so a failed fetch can be retried.
+        lcOpenAnalysisMatchId = null;
+        if (panel) panel.innerHTML = `<p class="muted">${esc(err.message)}</p>`;
+        if (btn) btn.textContent = lcAnalysisButtonLabel(matchId);
+        return;
+      }
+    }
+    fillAnalysisPanel(matchId, data);
+  } catch (e) {
+    if (panel) panel.innerHTML = `<p class="error-msg">${esc(e.message)}</p>`;
+    if (btn) btn.textContent = lcAnalysisButtonLabel(matchId);
+  }
+}
+
+function lcWireAnalysisButtons() {
+  document.querySelectorAll(".view-analysis-btn").forEach((btn) => {
+    btn.onclick = () => lcToggleAnalysis(btn.dataset.matchId);
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -406,6 +564,20 @@ function lcWire() {
       lcWire();
     });
   });
+  document.querySelectorAll("[data-lc-cat]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      lcActiveStatCategory = btn.dataset.lcCat;
+      document.getElementById("app").innerHTML = lcRenderApp();
+      lcWire();
+    });
+  });
+  document.querySelectorAll("[data-lc-view]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      lcStatView = btn.dataset.lcView;
+      document.getElementById("app").innerHTML = lcRenderApp();
+      lcWire();
+    });
+  });
   document.querySelectorAll(".lc-run-btn").forEach((btn) => {
     btn.addEventListener("click", () => lcRunFixture(btn.dataset.matchId));
   });
@@ -416,6 +588,7 @@ function lcWire() {
     createBtn.addEventListener("click", lcCreate);
     lcPopulateTeamSelects();
   }
+  lcWireAnalysisButtons();
 }
 
 document.getElementById("refreshBtn").addEventListener("click", lcLoad);
