@@ -6,12 +6,12 @@ from dataclasses import dataclass
 from models import FplPosition
 
 FULLBACK_SLOTS = frozenset({"RB", "LB", "RWB", "LWB"})
-CENTRE_BACK_SLOTS = frozenset({"CB1", "CB2", "CB3"})
-DM_SLOTS = frozenset({"DM", "DM1", "DM2"})
-CM_SLOTS = frozenset({"CM", "CM1", "CM2", "CM3"})
-AM_SLOTS = frozenset({"AM", "AM1", "AM2"})
+CENTRE_BACK_SLOTS = frozenset({"RCB", "CCB", "LCB"})
+DM_SLOTS = frozenset({"DM", "RDM", "LDM"})
+CM_SLOTS = frozenset({"CM", "RCM", "LCM"})
+AM_SLOTS = frozenset({"AM", "RAM", "LAM"})
 WINGER_SLOTS = frozenset({"RW", "LW", "RM", "LM"})
-STRIKER_SLOTS = frozenset({"ST", "ST1", "ST2", "CF", "CF1", "CF2"})
+STRIKER_SLOTS = frozenset({"ST", "RST", "LST", "CF", "RCF", "LCF"})
 
 # Optional per-slot role remaps (UI filter). First entry is the natural default.
 # Locked (no options): GK, CB*, ST/CF*, RW/LW.
@@ -29,32 +29,50 @@ ROLE_FILTER_OPTIONS: dict[str, tuple[str, ...]] = {
 
 
 def slot_filter_key(slot: str) -> str:
-    """Canonical key for role-filter lookup (CM1→CM, CB2→CB, …)."""
+    """Canonical key for role-filter lookup (RCM→CM, LCB→CB, …). Suffix-based
+    (not prefix) since every multi-slot role now carries a side prefix
+    (R/L/C) ahead of the family letters."""
     s = (slot or "").strip().upper()
     if s == "GK":
         return s
-    if s.startswith("CB"):
+    if s.endswith("CB"):
         return "CB"
-    if s.startswith("ST") or s.startswith("CF") or s.startswith("FW"):
+    if s.endswith("ST") or s.endswith("CF") or s.endswith("FW"):
         return "ST"
-    if s.startswith("DM"):
+    if s.endswith("DM"):
         return "DM"
-    if s.startswith("CM"):
+    if s.endswith("CM"):
         return "CM"
-    if s.startswith("AM"):
+    if s.endswith("AM"):
         return "AM"
     return s
 
 
-def allowed_role_filters(slot: str) -> list[str]:
-    """Allowed role labels for a formation slot; empty if locked."""
-    opts = ROLE_FILTER_OPTIONS.get(slot_filter_key(slot))
+def _formation_has_multi_cm(formation: str | None) -> bool:
+    """True if `formation` fields 2+ CM-role slots (the RCM/LCM pair) --
+    used to open up the CM role-filter to also offer AM in those shapes."""
+    if not formation:
+        return False
+    from formation_fit import FORMATION_SLOTS, normalize_formation
+
+    slots = FORMATION_SLOTS.get(normalize_formation(formation)) or []
+    return sum(1 for s in slots if slot_role(s.get("slot", "")) == "cm") >= 2
+
+
+def allowed_role_filters(slot: str, formation: str | None = None) -> list[str]:
+    """Allowed role labels for a formation slot; empty if locked. A CM slot
+    in a formation with 2 CM slots also allows AM (real box-to-box/advanced
+    ambiguity a single-CM formation's lone screener doesn't have)."""
+    key = slot_filter_key(slot)
+    if key == "CM" and _formation_has_multi_cm(formation):
+        return ["CM", "DM", "AM"]
+    opts = ROLE_FILTER_OPTIONS.get(key)
     return list(opts) if opts else []
 
 
-def normalize_role_filter(slot: str, role_filter: str | None) -> str:
+def normalize_role_filter(slot: str, role_filter: str | None, formation: str | None = None) -> str:
     """Return a valid filter label, or the natural default when locked/invalid."""
-    opts = ROLE_FILTER_OPTIONS.get(slot_filter_key(slot))
+    opts = allowed_role_filters(slot, formation)
     if not opts:
         return slot_filter_key(slot)
     rf = (role_filter or "").strip().upper()
@@ -63,16 +81,16 @@ def normalize_role_filter(slot: str, role_filter: str | None) -> str:
     return opts[0]
 
 
-def effective_slot_name(slot: str, role_filter: str | None = None) -> str:
+def effective_slot_name(slot: str, role_filter: str | None = None, formation: str | None = None) -> str:
     """
     Slot name used for weights / board role / fit when a filter is applied.
-    Natural midfield numbered slots (CM1, DM2) keep their name when unfiltered.
+    Natural midfield numbered slots (RCM, LDM) keep their name when unfiltered.
     """
     key = slot_filter_key(slot)
-    opts = ROLE_FILTER_OPTIONS.get(key)
+    opts = allowed_role_filters(slot, formation)
     if not opts:
         return slot
-    rf = normalize_role_filter(slot, role_filter)
+    rf = normalize_role_filter(slot, role_filter, formation)
     if rf == opts[0] and key in {"CM", "DM"}:
         return slot
     return rf

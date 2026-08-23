@@ -805,7 +805,7 @@ def _analyze_single_squad(
     strengths, weaknesses = _legacy_strengths_weaknesses(grouped)
 
     defence_bullets: list[str] = []
-    cb_players = [p for p in fit_players if str(p.get("slot", "")).startswith("CB")]
+    cb_players = [p for p in fit_players if str(p.get("slot", "")).endswith("CB")]
     if cb_players:
         cb_names = ", ".join(p["player"] for p in cb_players[:3])
         defence_bullets.append(f"Centre-backs: {cb_names}.")

@@ -42,25 +42,25 @@
     "4-4-2": {
       GK: [0.5, 0.05],
       RB: [0.86, 0.2],
-      CB1: [0.62, 0.18],
-      CB2: [0.38, 0.18],
+      RCB: [0.62, 0.18],
+      LCB: [0.38, 0.18],
       LB: [0.14, 0.2],
       RM: [0.86, 0.4],
       CM: [0.58, 0.4],
       DM: [0.42, 0.34],
       LM: [0.14, 0.4],
-      ST1: [0.62, 0.56],
-      ST2: [0.38, 0.56],
+      RST: [0.62, 0.56],
+      LST: [0.38, 0.56],
     },
     "4-3-3 flat": {
       GK: [0.5, 0.05],
       RB: [0.86, 0.2],
-      CB1: [0.62, 0.18],
-      CB2: [0.38, 0.18],
+      RCB: [0.62, 0.18],
+      LCB: [0.38, 0.18],
       LB: [0.14, 0.2],
       DM: [0.5, 0.32],
-      CM1: [0.68, 0.4],
-      CM2: [0.32, 0.4],
+      RCM: [0.68, 0.4],
+      LCM: [0.32, 0.4],
       RW: [0.86, 0.56],
       ST: [0.5, 0.62],
       LW: [0.14, 0.56],
@@ -73,8 +73,8 @@
       // stay classified as central rather than being read as flank players.
       GK: [0.5, 0.05],
       RB: [0.86, 0.2],
-      CB1: [0.62, 0.18],
-      CB2: [0.38, 0.18],
+      RCB: [0.62, 0.18],
+      LCB: [0.38, 0.18],
       LB: [0.14, 0.2],
       DM: [0.5, 0.3],
       CM: [0.44, 0.4],
@@ -86,102 +86,102 @@
     "4-3-1-2 diamond": {
       GK: [0.5, 0.05],
       RB: [0.86, 0.2],
-      CB1: [0.62, 0.18],
-      CB2: [0.38, 0.18],
+      RCB: [0.62, 0.18],
+      LCB: [0.38, 0.18],
       LB: [0.14, 0.2],
       DM: [0.5, 0.3],
-      CM1: [0.7, 0.4],
-      CM2: [0.3, 0.4],
+      RCM: [0.7, 0.4],
+      LCM: [0.3, 0.4],
       AM: [0.5, 0.5],
-      CF1: [0.62, 0.62],
-      CF2: [0.38, 0.62],
+      RCF: [0.62, 0.62],
+      LCF: [0.38, 0.62],
     },
     "4-3-2-1": {
       GK: [0.5, 0.05],
       RB: [0.86, 0.2],
-      CB1: [0.62, 0.18],
-      CB2: [0.38, 0.18],
+      RCB: [0.62, 0.18],
+      LCB: [0.38, 0.18],
       LB: [0.14, 0.2],
       DM: [0.5, 0.3],
-      CM1: [0.7, 0.4],
-      CM2: [0.3, 0.4],
-      AM1: [0.62, 0.52],
-      AM2: [0.38, 0.52],
+      RCM: [0.7, 0.4],
+      LCM: [0.3, 0.4],
+      RAM: [0.62, 0.52],
+      LAM: [0.38, 0.52],
       ST: [0.5, 0.64],
     },
     "3-4-1-2 (flat)": {
       GK: [0.5, 0.05],
-      CB1: [0.72, 0.18],
-      CB2: [0.5, 0.16],
-      CB3: [0.28, 0.18],
+      RCB: [0.72, 0.18],
+      CCB: [0.5, 0.16],
+      LCB: [0.28, 0.18],
       LM: [0.12, 0.4],
-      DM1: [0.62, 0.34],
-      DM2: [0.38, 0.34],
+      RDM: [0.62, 0.34],
+      LDM: [0.38, 0.34],
       RM: [0.88, 0.4],
       AM: [0.5, 0.5],
-      CF1: [0.62, 0.62],
-      CF2: [0.38, 0.62],
+      RCF: [0.62, 0.62],
+      LCF: [0.38, 0.62],
     },
     "3-4-1-2 (normal)": {
       GK: [0.5, 0.05],
-      CB1: [0.72, 0.18],
-      CB2: [0.5, 0.16],
-      CB3: [0.28, 0.18],
+      RCB: [0.72, 0.18],
+      CCB: [0.5, 0.16],
+      LCB: [0.28, 0.18],
       LM: [0.12, 0.4],
       DM: [0.42, 0.32],
       CM: [0.58, 0.38],
       RM: [0.88, 0.4],
       AM: [0.5, 0.5],
-      CF1: [0.62, 0.62],
-      CF2: [0.38, 0.62],
+      RCF: [0.62, 0.62],
+      LCF: [0.38, 0.62],
     },
     "3-4-2-1": {
       GK: [0.5, 0.05],
-      CB1: [0.72, 0.18],
-      CB2: [0.5, 0.16],
-      CB3: [0.28, 0.18],
+      RCB: [0.72, 0.18],
+      CCB: [0.5, 0.16],
+      LCB: [0.28, 0.18],
       LM: [0.12, 0.4],
-      DM1: [0.62, 0.34],
-      DM2: [0.38, 0.34],
+      RDM: [0.62, 0.34],
+      LDM: [0.38, 0.34],
       RM: [0.88, 0.4],
-      AM1: [0.62, 0.5],
-      AM2: [0.38, 0.5],
+      RAM: [0.62, 0.5],
+      LAM: [0.38, 0.5],
       ST: [0.5, 0.64],
     },
     "4-2-2-2": {
       GK: [0.5, 0.05],
       RB: [0.86, 0.2],
-      CB1: [0.62, 0.18],
-      CB2: [0.38, 0.18],
+      RCB: [0.62, 0.18],
+      LCB: [0.38, 0.18],
       LB: [0.14, 0.2],
-      DM1: [0.62, 0.34],
-      DM2: [0.38, 0.34],
-      AM1: [0.62, 0.52],
-      AM2: [0.38, 0.52],
-      ST1: [0.62, 0.64],
-      ST2: [0.38, 0.64],
+      RDM: [0.62, 0.34],
+      LDM: [0.38, 0.34],
+      RAM: [0.62, 0.52],
+      LAM: [0.38, 0.52],
+      RST: [0.62, 0.64],
+      LST: [0.38, 0.64],
     },
     "3-5-2": {
       GK: [0.5, 0.05],
-      CB1: [0.72, 0.18],
-      CB2: [0.5, 0.16],
-      CB3: [0.28, 0.18],
+      RCB: [0.72, 0.18],
+      CCB: [0.5, 0.16],
+      LCB: [0.28, 0.18],
       RWB: [0.9, 0.4],
-      CM1: [0.68, 0.38],
+      RCM: [0.68, 0.38],
       DM: [0.5, 0.32],
-      CM2: [0.32, 0.38],
+      LCM: [0.32, 0.38],
       LWB: [0.1, 0.4],
-      ST1: [0.62, 0.6],
-      ST2: [0.38, 0.6],
+      RST: [0.62, 0.6],
+      LST: [0.38, 0.6],
     },
     "4-2-3-1": {
       GK: [0.5, 0.05],
       RB: [0.86, 0.2],
-      CB1: [0.62, 0.18],
-      CB2: [0.38, 0.18],
+      RCB: [0.62, 0.18],
+      LCB: [0.38, 0.18],
       LB: [0.14, 0.2],
-      DM1: [0.62, 0.34],
-      DM2: [0.38, 0.34],
+      RDM: [0.62, 0.34],
+      LDM: [0.38, 0.34],
       RW: [0.86, 0.52],
       AM: [0.5, 0.52],
       LW: [0.14, 0.52],
@@ -189,9 +189,9 @@
     },
     "3-4-3(1)": {
       GK: [0.5, 0.05],
-      CB1: [0.72, 0.18],
-      CB2: [0.5, 0.16],
-      CB3: [0.28, 0.18],
+      RCB: [0.72, 0.18],
+      CCB: [0.5, 0.16],
+      LCB: [0.28, 0.18],
       RWB: [0.9, 0.4],
       DM: [0.42, 0.32],
       CM: [0.58, 0.38],
@@ -202,9 +202,9 @@
     },
     "3-4-3(2)": {
       GK: [0.5, 0.05],
-      CB1: [0.72, 0.18],
-      CB2: [0.5, 0.16],
-      CB3: [0.28, 0.18],
+      RCB: [0.72, 0.18],
+      CCB: [0.5, 0.16],
+      LCB: [0.28, 0.18],
       RM: [0.88, 0.42],
       DM: [0.42, 0.32],
       CM: [0.58, 0.38],
@@ -399,15 +399,19 @@
   }
 
   function roleOf(slot) {
+    // Suffix-anchored: every multi-slot role now carries a side prefix
+    // (R/L/C) ahead of the family letters (RCB, LCM, ...), so matching the
+    // end of the string (not the start) is what correctly covers both the
+    // renamed slots and the never-renamed bare ones (CB, CM, DM, AM, ST).
     const s = String(slot || "").toUpperCase();
     if (s === "GK") return "GK";
-    if (/^CB/.test(s)) return "CB";
+    if (/CB$/.test(s)) return "CB";
     if (/^(RB|LB|RWB|LWB)$/.test(s)) return "FB";
-    if (/^DM/.test(s)) return "DM";
-    if (/^(AM|CAM)/.test(s)) return "AM";
+    if (/DM$/.test(s)) return "DM";
+    if (/(AM|CAM)$/.test(s)) return "AM";
     if (/^(RW|LW|RM|LM)$/.test(s)) return "W";
-    if (/^(ST|CF|FW)/.test(s)) return "ST";
-    if (/^CM/.test(s) || s === "CM") return "CM";
+    if (/(ST|CF|FW)$/.test(s)) return "ST";
+    if (/CM$/.test(s) || s === "CM") return "CM";
     return "CM";
   }
 
@@ -3050,8 +3054,10 @@
       const s = String(slot || "").toUpperCase();
       if (/^(LB|LWB|LW|LM)/.test(s)) return "L";
       if (/^(RB|RWB|RW|RM)/.test(s)) return "R";
-      if (/^CM3$/.test(s)) return "L";
-      if (/^CM1$/.test(s)) return "R";
+      // Side-designated slots (RCB/LCB/CCB, RCM/LCM, RDM/LDM, RAM/LAM,
+      // RST/LST, RCF/LCF) carry their side as a literal prefix letter.
+      if (/^L(CB|CM|DM|AM|ST|CF)$/.test(s)) return "L";
+      if (/^R(CB|CM|DM|AM|ST|CF)$/.test(s)) return "R";
       return "C";
     }
 
@@ -7571,12 +7577,12 @@
       }
     }
 
-    /** Wide CBs of a back three (CB1 / CB3), not the central CB2. */
+    /** Wide CBs of a back three (RCB / LCB either side of a CCB). RCB/LCB
+     * also name a back-four's two CBs (no CCB there) -- unlike the old
+     * CB1/CB3-vs-CB2 literal names, "RCB"/"LCB" alone can't tell a back-3's
+     * wide CB from a back-4's, so this reads pitch position instead. */
     function isWideCentreBack(pin) {
       if (!pin || pin.role !== "CB") return false;
-      const slot = String(pin.slot || "").toUpperCase();
-      if (/^CB2$/.test(slot)) return false;
-      if (/^CB[13]$/.test(slot)) return true;
       return Math.abs(pin.baseX - 0.5) >= 0.14;
     }
 
@@ -9022,7 +9028,7 @@
         // forward. Generalized over however many CM+DM pins the formation
         // actually fields (2-3 across the supported formations — some are a
         // DM+DM double pivot with no CM at all, e.g. 4-2-3-1; others a
-        // DM+CM1+CM2 trio, e.g. 4-3-3 flat), rather than assuming an exact
+        // DM+RCM+LCM trio, e.g. 4-3-3 flat), rather than assuming an exact
         // pair. Lateral cover only, deliberately no depth-leveling like the
         // CB pair gets — a DM is supposed to sit behind the CM(s), so
         // flattening that natural depth gap the way the CB pair's shared

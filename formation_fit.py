@@ -15,8 +15,8 @@ _LEGACY_FORMATION_ALIASES: dict[str, str] = {
 _BACK_FOUR: list[dict[str, Any]] = [
     {"slot": "GK", "tags": ["GK"], "profile": {"saves90": 1.0, "goals_prevented90": 0.8, "clean_sheet_pct": 0.6}},
     {"slot": "RB", "tags": ["RB", "WB", "DF"], "profile": {"tackles90": 0.7, "passes_completed90": 0.5, "key_passes90": 0.4}},
-    {"slot": "CB1", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "interceptions90": 0.8, "clearances90": 0.9}},
-    {"slot": "CB2", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "interceptions90": 0.8, "clearances90": 0.9}},
+    {"slot": "RCB", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "interceptions90": 0.8, "clearances90": 0.9}},
+    {"slot": "LCB", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "interceptions90": 0.8, "clearances90": 0.9}},
     {"slot": "LB", "tags": ["LB", "WB", "DF"], "profile": {"tackles90": 0.7, "passes_completed90": 0.5, "key_passes90": 0.4}},
 ]
 
@@ -24,21 +24,21 @@ FORMATION_SLOTS: dict[str, list[dict[str, Any]]] = {
     "4-4-2": [
         {"slot": "GK", "tags": ["GK"], "profile": {"saves90": 1.0, "goals_prevented90": 0.8, "clean_sheet_pct": 0.6}},
         {"slot": "RB", "tags": ["RB", "WB", "DF"], "profile": {"tackles90": 0.7, "key_passes90": 0.5, "passes_completed90": 0.4}},
-        {"slot": "CB1", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "interceptions90": 0.8, "clearances90": 0.9}},
-        {"slot": "CB2", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "interceptions90": 0.8, "clearances90": 0.9}},
+        {"slot": "RCB", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "interceptions90": 0.8, "clearances90": 0.9}},
+        {"slot": "LCB", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "interceptions90": 0.8, "clearances90": 0.9}},
         {"slot": "LB", "tags": ["LB", "WB", "DF"], "profile": {"tackles90": 0.7, "key_passes90": 0.5, "passes_completed90": 0.4}},
         {"slot": "RM", "tags": ["RW", "RM", "MF", "FW"], "profile": {"key_passes90": 0.6, "dribbles90": 0.7, "xa90": 0.5, "shots90": 0.4}},
         {"slot": "CM", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6, "key_passes90": 0.4, "interceptions90": 0.4}},
         {"slot": "DM", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5, "clearances90": 0.4}},
         {"slot": "LM", "tags": ["LW", "LM", "MF", "FW"], "profile": {"key_passes90": 0.6, "dribbles90": 0.7, "xa90": 0.5, "shots90": 0.4}},
-        {"slot": "ST1", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
-        {"slot": "ST2", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
+        {"slot": "RST", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
+        {"slot": "LST", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
     ],
     "4-3-3 flat": [
         *_BACK_FOUR,
         {"slot": "DM", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5, "clearances90": 0.4}},
-        {"slot": "CM1", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6, "key_passes90": 0.4, "interceptions90": 0.4}},
-        {"slot": "CM2", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6, "key_passes90": 0.4, "interceptions90": 0.4}},
+        {"slot": "RCM", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6, "key_passes90": 0.4, "interceptions90": 0.4}},
+        {"slot": "LCM", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6, "key_passes90": 0.4, "interceptions90": 0.4}},
         {"slot": "RW", "tags": ["RW", "RM", "FW", "MF"], "profile": {"dribbles90": 0.8, "key_passes90": 0.6, "xa90": 0.6, "xg90": 0.4}},
         {"slot": "ST", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 1.0, "shots90": 0.9, "shots_on_target90": 0.7}},
         {"slot": "LW", "tags": ["LW", "LM", "FW", "MF"], "profile": {"dribbles90": 0.8, "key_passes90": 0.6, "xa90": 0.6, "xg90": 0.4}},
@@ -55,90 +55,90 @@ FORMATION_SLOTS: dict[str, list[dict[str, Any]]] = {
     "4-3-1-2 diamond": [
         *_BACK_FOUR,
         {"slot": "DM", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5, "clearances90": 0.4}},
-        {"slot": "CM1", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6, "key_passes90": 0.4, "interceptions90": 0.4}},
-        {"slot": "CM2", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6, "key_passes90": 0.4, "interceptions90": 0.4}},
+        {"slot": "RCM", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6, "key_passes90": 0.4, "interceptions90": 0.4}},
+        {"slot": "LCM", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6, "key_passes90": 0.4, "interceptions90": 0.4}},
         {"slot": "AM", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5, "xg90": 0.4}},
-        {"slot": "CF1", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
-        {"slot": "CF2", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
+        {"slot": "RCF", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
+        {"slot": "LCF", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
     ],
     "3-4-1-2 (flat)": [
         {"slot": "GK", "tags": ["GK"], "profile": {"saves90": 1.0, "goals_prevented90": 0.8, "clean_sheet_pct": 0.6}},
-        {"slot": "CB1", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9, "interceptions90": 0.7}},
-        {"slot": "CB2", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9, "interceptions90": 0.7}},
-        {"slot": "CB3", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9, "interceptions90": 0.7}},
+        {"slot": "RCB", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9, "interceptions90": 0.7}},
+        {"slot": "CCB", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9, "interceptions90": 0.7}},
+        {"slot": "LCB", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9, "interceptions90": 0.7}},
         {"slot": "LM", "tags": ["LW", "LM", "WB", "LB", "MF"], "profile": {"key_passes90": 0.6, "dribbles90": 0.6, "xa90": 0.5, "tackles90": 0.5}},
-        {"slot": "DM1", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
-        {"slot": "DM2", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
+        {"slot": "RDM", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
+        {"slot": "LDM", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
         {"slot": "RM", "tags": ["RW", "RM", "WB", "RB", "MF"], "profile": {"key_passes90": 0.6, "dribbles90": 0.6, "xa90": 0.5, "tackles90": 0.5}},
         {"slot": "AM", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5, "xg90": 0.4}},
-        {"slot": "CF1", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
-        {"slot": "CF2", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
+        {"slot": "RCF", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
+        {"slot": "LCF", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
     ],
     "3-4-1-2 (normal)": [
         {"slot": "GK", "tags": ["GK"], "profile": {"saves90": 1.0, "goals_prevented90": 0.8, "clean_sheet_pct": 0.6}},
-        {"slot": "CB1", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9, "interceptions90": 0.7}},
-        {"slot": "CB2", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9, "interceptions90": 0.7}},
-        {"slot": "CB3", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9, "interceptions90": 0.7}},
+        {"slot": "RCB", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9, "interceptions90": 0.7}},
+        {"slot": "CCB", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9, "interceptions90": 0.7}},
+        {"slot": "LCB", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9, "interceptions90": 0.7}},
         {"slot": "LM", "tags": ["LW", "LM", "WB", "LB", "MF"], "profile": {"key_passes90": 0.6, "dribbles90": 0.6, "xa90": 0.5, "tackles90": 0.5}},
         {"slot": "DM", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
         {"slot": "CM", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6, "key_passes90": 0.4, "interceptions90": 0.4}},
         {"slot": "RM", "tags": ["RW", "RM", "WB", "RB", "MF"], "profile": {"key_passes90": 0.6, "dribbles90": 0.6, "xa90": 0.5, "tackles90": 0.5}},
         {"slot": "AM", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5, "xg90": 0.4}},
-        {"slot": "CF1", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
-        {"slot": "CF2", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
+        {"slot": "RCF", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
+        {"slot": "LCF", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
     ],
     "3-4-2-1": [
         {"slot": "GK", "tags": ["GK"], "profile": {"saves90": 1.0, "goals_prevented90": 0.8, "clean_sheet_pct": 0.6}},
-        {"slot": "CB1", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9, "interceptions90": 0.7}},
-        {"slot": "CB2", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9, "interceptions90": 0.7}},
-        {"slot": "CB3", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9, "interceptions90": 0.7}},
+        {"slot": "RCB", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9, "interceptions90": 0.7}},
+        {"slot": "CCB", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9, "interceptions90": 0.7}},
+        {"slot": "LCB", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9, "interceptions90": 0.7}},
         {"slot": "LM", "tags": ["LW", "LM", "WB", "LB", "MF"], "profile": {"key_passes90": 0.6, "dribbles90": 0.6, "xa90": 0.5, "tackles90": 0.5}},
-        {"slot": "DM1", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
-        {"slot": "DM2", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
+        {"slot": "RDM", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
+        {"slot": "LDM", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
         {"slot": "RM", "tags": ["RW", "RM", "WB", "RB", "MF"], "profile": {"key_passes90": 0.6, "dribbles90": 0.6, "xa90": 0.5, "tackles90": 0.5}},
-        {"slot": "AM1", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5, "xg90": 0.4}},
-        {"slot": "AM2", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5, "xg90": 0.4}},
+        {"slot": "RAM", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5, "xg90": 0.4}},
+        {"slot": "LAM", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5, "xg90": 0.4}},
         {"slot": "ST", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 1.0, "shots90": 0.9, "shots_on_target90": 0.7}},
     ],
     "4-3-2-1": [
         *_BACK_FOUR,
         {"slot": "DM", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5, "clearances90": 0.4}},
-        {"slot": "CM1", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6, "key_passes90": 0.4, "interceptions90": 0.4}},
-        {"slot": "CM2", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6, "key_passes90": 0.4, "interceptions90": 0.4}},
-        {"slot": "AM1", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5, "xg90": 0.4}},
-        {"slot": "AM2", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5, "xg90": 0.4}},
+        {"slot": "RCM", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6, "key_passes90": 0.4, "interceptions90": 0.4}},
+        {"slot": "LCM", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6, "key_passes90": 0.4, "interceptions90": 0.4}},
+        {"slot": "RAM", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5, "xg90": 0.4}},
+        {"slot": "LAM", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5, "xg90": 0.4}},
         {"slot": "ST", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 1.0, "shots90": 0.9, "shots_on_target90": 0.7}},
     ],
     "4-2-2-2": [
         *_BACK_FOUR,
-        {"slot": "DM1", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
-        {"slot": "DM2", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
-        {"slot": "AM1", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5, "xg90": 0.4}},
-        {"slot": "AM2", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5, "xg90": 0.4}},
-        {"slot": "ST1", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
-        {"slot": "ST2", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
+        {"slot": "RDM", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
+        {"slot": "LDM", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
+        {"slot": "RAM", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5, "xg90": 0.4}},
+        {"slot": "LAM", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.8, "xa90": 0.7, "dribbles90": 0.5, "xg90": 0.4}},
+        {"slot": "RST", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
+        {"slot": "LST", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8, "shots_on_target90": 0.6}},
     ],
     "3-5-2": [
         {"slot": "GK", "tags": ["GK"], "profile": {"saves90": 1.0, "goals_prevented90": 0.8, "clean_sheet_pct": 0.6}},
-        {"slot": "CB1", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9, "interceptions90": 0.7}},
-        {"slot": "CB2", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9, "interceptions90": 0.7}},
-        {"slot": "CB3", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9, "interceptions90": 0.7}},
+        {"slot": "RCB", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9, "interceptions90": 0.7}},
+        {"slot": "CCB", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9, "interceptions90": 0.7}},
+        {"slot": "LCB", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9, "interceptions90": 0.7}},
         {"slot": "RWB", "tags": ["RB", "WB", "RM", "RW", "DF"], "profile": {"key_passes90": 0.6, "tackles90": 0.6, "dribbles90": 0.5}},
-        {"slot": "CM1", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6, "interceptions90": 0.4}},
+        {"slot": "RCM", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6, "interceptions90": 0.4}},
         {"slot": "DM", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
-        {"slot": "CM2", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6, "interceptions90": 0.4}},
+        {"slot": "LCM", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6, "interceptions90": 0.4}},
         {"slot": "LWB", "tags": ["LB", "WB", "LM", "LW", "DF"], "profile": {"key_passes90": 0.6, "tackles90": 0.6, "dribbles90": 0.5}},
-        {"slot": "ST1", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8}},
-        {"slot": "ST2", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8}},
+        {"slot": "RST", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8}},
+        {"slot": "LST", "tags": ["ST", "CF", "FW"], "profile": {"xg90": 0.9, "shots90": 0.8}},
     ],
     "4-2-3-1": [
         {"slot": "GK", "tags": ["GK"], "profile": {"saves90": 1.0, "goals_prevented90": 0.8, "clean_sheet_pct": 0.6}},
         {"slot": "RB", "tags": ["RB", "WB", "DF"], "profile": {"tackles90": 0.7, "passes_completed90": 0.5}},
-        {"slot": "CB1", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "interceptions90": 0.8, "clearances90": 0.9}},
-        {"slot": "CB2", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "interceptions90": 0.8, "clearances90": 0.9}},
+        {"slot": "RCB", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "interceptions90": 0.8, "clearances90": 0.9}},
+        {"slot": "LCB", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "interceptions90": 0.8, "clearances90": 0.9}},
         {"slot": "LB", "tags": ["LB", "WB", "DF"], "profile": {"tackles90": 0.7, "passes_completed90": 0.5}},
-        {"slot": "DM1", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
-        {"slot": "DM2", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
+        {"slot": "RDM", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
+        {"slot": "LDM", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
         {"slot": "RW", "tags": ["RW", "RM", "FW", "MF"], "profile": {"dribbles90": 0.8, "key_passes90": 0.6, "xa90": 0.6}},
         {"slot": "AM", "tags": ["AM", "CM", "MF"], "profile": {"key_passes90": 0.9, "xa90": 0.8, "dribbles90": 0.5, "xg90": 0.4}},
         {"slot": "LW", "tags": ["LW", "LM", "FW", "MF"], "profile": {"dribbles90": 0.8, "key_passes90": 0.6, "xa90": 0.6}},
@@ -147,9 +147,9 @@ FORMATION_SLOTS: dict[str, list[dict[str, Any]]] = {
     # Balanced wingbacks: help defend and attack; less forward than LM/RM.
     "3-4-3(1)": [
         {"slot": "GK", "tags": ["GK"], "profile": {"saves90": 1.0, "goals_prevented90": 0.8, "clean_sheet_pct": 0.6}},
-        {"slot": "CB1", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9}},
-        {"slot": "CB2", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9}},
-        {"slot": "CB3", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9}},
+        {"slot": "RCB", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9}},
+        {"slot": "CCB", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9}},
+        {"slot": "LCB", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9}},
         {"slot": "RWB", "tags": ["RB", "WB", "RM", "RW", "DF"], "profile": {"key_passes90": 0.55, "tackles90": 0.65, "dribbles90": 0.45, "xa90": 0.4}},
         {"slot": "DM", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
         {"slot": "CM", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6}},
@@ -161,9 +161,9 @@ FORMATION_SLOTS: dict[str, list[dict[str, Any]]] = {
     # Attacking wide mids: push higher, defend less → more attack, higher transition risk.
     "3-4-3(2)": [
         {"slot": "GK", "tags": ["GK"], "profile": {"saves90": 1.0, "goals_prevented90": 0.8, "clean_sheet_pct": 0.6}},
-        {"slot": "CB1", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9}},
-        {"slot": "CB2", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9}},
-        {"slot": "CB3", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9}},
+        {"slot": "RCB", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9}},
+        {"slot": "CCB", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9}},
+        {"slot": "LCB", "tags": ["CB", "DF"], "profile": {"tackles90": 0.8, "clearances90": 0.9}},
         {"slot": "RM", "tags": ["RW", "RM", "WB", "RB", "MF"], "profile": {"key_passes90": 0.65, "dribbles90": 0.7, "xa90": 0.55, "shots90": 0.35, "tackles90": 0.35}},
         {"slot": "DM", "tags": ["DM", "CM", "MF"], "profile": {"tackles90": 0.8, "interceptions90": 0.7, "passes_completed90": 0.5}},
         {"slot": "CM", "tags": ["CM", "DM", "MF"], "profile": {"passes_completed90": 0.7, "tackles90": 0.6}},
@@ -585,13 +585,13 @@ def _slot_def_for_filter(formation: str, slot_name: str, role_filter: str | None
     from slot_roles import effective_slot_name, normalize_role_filter, allowed_role_filters
 
     natural = get_slot_definition(formation, slot_name)
-    if not allowed_role_filters(slot_name):
+    if not allowed_role_filters(slot_name, formation):
         return natural
-    rf = normalize_role_filter(slot_name, role_filter)
-    opts = allowed_role_filters(slot_name)
+    rf = normalize_role_filter(slot_name, role_filter, formation)
+    opts = allowed_role_filters(slot_name, formation)
     if not opts or rf == opts[0]:
         return natural
-    eff = effective_slot_name(slot_name, rf)
+    eff = effective_slot_name(slot_name, rf, formation)
     found = get_slot_definition(formation, eff)
     if found:
         return found
@@ -630,7 +630,7 @@ def player_slot_fit(
         return 0.5
     from slot_roles import effective_slot_name
 
-    foot_slot = effective_slot_name(slot_name, role_filter)
+    foot_slot = effective_slot_name(slot_name, role_filter, formation)
     base_profile = slot_def.get("profile", {})
     slot_tags = {t.upper() for t in slot_def["tags"]}
     is_gk_player = stats.primary_position.upper() == "GK" or stats.fpl_position.upper() == "GK"

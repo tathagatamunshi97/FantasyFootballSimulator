@@ -42,9 +42,9 @@ from slot_roles import (
 )
 
 
-def _eff_slot(slot) -> str:
+def _eff_slot(slot, formation: str | None = None) -> str:
     """Formation slot remapped by optional role_filter for engine weights/roles."""
-    return effective_slot_name(slot.slot, getattr(slot, "role_filter", "") or "")
+    return effective_slot_name(slot.slot, getattr(slot, "role_filter", "") or "", formation)
 
 
 def _slot_fit(stats: PlayerStats, team: FantasyTeam, slot) -> float:
@@ -454,8 +454,8 @@ def _is_double_pivot_cm(formation: str, slot_name: str) -> bool:
 
 
 def _is_advanced_cm(formation: str, slot_name: str) -> bool:
-    """True if slot_name is a CM (CM1/CM2, ...) in a formation fielding
-    2+ CM slots -- e.g. 4-3-3 flat's CM1/CM2, 4-3-2-1's CM1/CM2, 4-3-1-2
+    """True if slot_name is a CM (RCM/LCM, ...) in a formation fielding
+    2+ CM slots -- e.g. 4-3-3 flat's RCM/LCM, 4-3-2-1's RCM/LCM, 4-3-1-2
     diamond, 3-5-2. A genuine central-mid pair/trio (as opposed to a
     single CM screening 1-for-1 with a DM, see _is_double_pivot_cm) isn't
     a pure holding unit -- each of them structurally shares the
@@ -464,8 +464,7 @@ def _is_advanced_cm(formation: str, slot_name: str) -> bool:
     count). A single-CM formation (4-4-2, 3-4-3(1)/(2)) doesn't get this
     unconditional credit -- that lone CM still earns attack weight only
     if their own output profile clears the stat gate below."""
-    su = slot_name.strip().upper()
-    if not su.startswith("CM"):
+    if slot_role(slot_name) != "cm":
         return False
     slots = FORMATION_SLOTS.get(normalize_formation(formation)) or []
     cm_count = sum(1 for s in slots if slot_role(s.get("slot", "")) == "cm")
@@ -501,7 +500,7 @@ def _fullback_winger_partners(
     """
     partners: dict[str, tuple[PlayerStats, float]] = {}
     for slot in team.lineup:
-        eff = _eff_slot(slot)
+        eff = _eff_slot(slot, team.formation)
         if slot_role(eff) != "winger":
             continue
         side = _wide_side(eff)
@@ -607,7 +606,7 @@ def _midfield_shield_best_slots(team: FantasyTeam, player_stats: dict[str, Playe
     """Best-case DM/CM/AM screening for each midfielder — used for 4-back baseline ceiling."""
     by_player: list[float] = []
     for slot in team.lineup:
-        if slot_role(_eff_slot(slot)) not in ("dm", "cm", "am"):
+        if slot_role(_eff_slot(slot, team.formation)) not in ("dm", "cm", "am"):
             continue
         stats = player_stats[slot.player]
         best = 0.0
@@ -747,7 +746,7 @@ def _compute_transition_risk(
 
     for slot in team.lineup:
         stats = player_stats[slot.player]
-        eff = _eff_slot(slot)
+        eff = _eff_slot(slot, formation)
         fit = _slot_fit(stats, team, slot)
         role = slot_role(eff)
 
@@ -789,8 +788,8 @@ def _compute_transition_risk(
         has_def_at_wide = any(
             player_stats[s.player].fpl_position == "DEF"
             and (
-                slot_role(_eff_slot(s)) == "fullback"
-                or _counts_as_transition_exposure(formation, _eff_slot(s), slot_role(_eff_slot(s)))
+                slot_role(_eff_slot(s, formation)) == "fullback"
+                or _counts_as_transition_exposure(formation, _eff_slot(s, formation), slot_role(_eff_slot(s, formation)))
             )
             for s in team.lineup
         )
@@ -836,7 +835,7 @@ def compute_unit_ratings(
         stats = player_stats[slot.player]
 
         fit = _slot_fit(stats, team, slot)
-        eff = _eff_slot(slot)
+        eff = _eff_slot(slot, team.formation)
 
         weights = slot_unit_weights(eff, stats.fpl_position)
 
@@ -987,7 +986,7 @@ def compute_unit_ratings_by_slot(
     for slot in team.lineup:
         stats = player_stats[slot.player]
         fit = _slot_fit(stats, team, slot)
-        eff = _eff_slot(slot)
+        eff = _eff_slot(slot, team.formation)
         role = slot_role(eff)
         legend_mult = _legend_multiplier(stats)
 
@@ -1495,7 +1494,7 @@ def _side_wide_coverage(
         su = slot.slot.upper()
         if not su.startswith(side):
             continue
-        eff = _eff_slot(slot)
+        eff = _eff_slot(slot, defend_team.formation)
         role = slot_role(eff)
         stats = player_stats.get(slot.player)
         if stats is None:

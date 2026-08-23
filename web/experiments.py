@@ -494,7 +494,7 @@ def formation_meta() -> dict[str, Any]:
     role_filters: dict[str, dict[str, list[str]]] = {}
     for form, slot_list in slots.items():
         role_filters[form] = {
-            slot: allowed_role_filters(slot) for slot in slot_list if allowed_role_filters(slot)
+            slot: allowed_role_filters(slot, form) for slot in slot_list if allowed_role_filters(slot, form)
         }
     return {
         "formations": supported_formations(),

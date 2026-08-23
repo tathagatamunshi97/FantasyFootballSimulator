@@ -348,7 +348,7 @@ def build_key_battles(
             if not stats:
                 continue
             role_filter = (row.get("role_filter") or "").strip()
-            eff = effective_slot_name(slot, role_filter or None)
+            eff = effective_slot_name(slot, role_filter or None, team_dict.get("formation"))
             rows.append(
                 {"slot": slot, "player": resolved, "role": slot_role(eff), "side": _wide_side(eff), "stats": stats}
             )
