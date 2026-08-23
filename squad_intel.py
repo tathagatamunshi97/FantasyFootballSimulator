@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import copy
+import dataclasses
 import time
 from typing import Any
 
@@ -15,7 +16,21 @@ from report_builder import (
 )
 from slot_roles import effective_slot_name, slot_role
 from stats_resolver import prepare_team_player_stats
-from team_ratings import _wide_side, compute_team_composites, compute_unit_ratings_by_slot, team_composites_dict
+from team_ratings import (
+    _is_advanced_cm,
+    _is_double_pivot_cm,
+    _legend_multiplier,
+    _player_attack_contrib,
+    _player_chance_creation_contrib,
+    _player_defence_contrib,
+    _player_midfield_contrib,
+    _player_midfield_defence_contrib,
+    _wide_side,
+    _WINGBACK_DEFENCE_WEIGHT,
+    compute_team_composites,
+    compute_unit_ratings_by_slot,
+    team_composites_dict,
+)
 from web.team_lineups import apply_lineup_config, apply_saved_lineup
 
 # Unit/team-composite keys benchmarked against the rest of the league.
@@ -242,9 +257,20 @@ def build_opponent_scout(
     opp_dict = opponent_team_dict
     use_saved = True
     if opponent_lineup:
-        opp_dict = copy.deepcopy(opponent_team_dict)
-        opp_dict["formation"] = opponent_formation or opp_dict.get("formation")
-        opp_dict["lineup"] = opponent_lineup
+        # apply_lineup_config recomputes bench = full_roster - new lineup;
+        # a raw dict mutation here (old code) only overwrote "lineup" and
+        # left the opponent's real saved "bench" stale, so any player the
+        # hypothetical XI pulled off the bench kept showing there too --
+        # duplicated in both the starting XI and subs in the scout report.
+        opp_dict = apply_lineup_config(
+            opponent_team_dict,
+            {
+                "formation": opponent_formation,
+                "lineup": opponent_lineup,
+                "prime_player": opponent_team_dict.get("prime_player"),
+                "peak_season": opponent_team_dict.get("peak_season"),
+            },
+        )
         use_saved = False
     opp_bundle = build_squad_evaluation(opp_dict, store, use_saved_lineup=use_saved)
     report = build_scout_report(
@@ -282,38 +308,113 @@ def _clamp01(x: float) -> float:
     return max(0.0, min(1.0, x))
 
 
-def _battle_attack_score(stats: Any) -> float:
-    """0-1: ball-carrying + creation + finishing threat, from stats already
-    loaded for the unit ratings -- not a new sub-metric system."""
-    dribble = (stats.dribbles90 / 3.0) * ((stats.dribble_pct or 50.0) / 100.0)
-    creation = (stats.key_passes90 + stats.xa90 * 2.0) / 3.0
-    finishing = (stats.npxg90 or stats.xg90) / 0.6
-    return _clamp01(dribble * 0.35 + creation * 0.35 + finishing * 0.30)
+# Manual legend attribute-packs (manual_profiles.py) only carry the fields
+# the curator actually filled in -- a striker's row typically never sets
+# tackles90/interceptions90 at all, so those fields fall back to the
+# PlayerStats dataclass default of 0.0, indistinguishable from a real
+# recorded zero. For a normal Sofascore-sourced player 0.0 is real signal
+# (e.g. a poacher genuinely never tackles) and must stay 0 -- but for a
+# legend it's a data-schema gap, not a rating, so a 0.0 there is swapped
+# for a neutral "average outfield player" baseline instead of silently
+# cratering their score. Reuses _legend_multiplier's is_legend_name check
+# as the "this player's gaps are schema gaps" signal.
+_BATTLE_STAT_BASELINES = {
+    "dribbles90": 1.0,
+    "key_passes90": 1.0,
+    "xa90": 0.15,
+    "finishing90": 0.25,
+    "tackles90": 1.0,
+    "interceptions90": 1.0,
+    "clearances90": 2.0,
+}
 
 
-def _battle_defence_score(stats: Any) -> float:
-    """0-1: containment threat -- tackling/interceptions plus duel win rate."""
-    tackling = (stats.tackles90 + stats.interceptions90) / 4.0
-    duels = (stats.duels_won_pct or 50.0) / 100.0
-    return _clamp01(tackling * 0.6 + duels * 0.4)
+def _legend_baseline_stat(stats: Any, value: float, field: str) -> float:
+    if value:
+        return value
+    if _legend_multiplier(stats) > 1.0:
+        return _BATTLE_STAT_BASELINES[field]
+    return 0.0
 
 
-# Which formula scores a role's OWN threat in a battle -- a striker/winger/AM
-# is scored on attacking threat, a fullback/centre-back on containment, a
-# CM/DM (genuinely two-way in this taxonomy) on a blend of both. Applied per
-# player based on *their* role, never assumed from which side of "mine vs
-# theirs" they're on -- a CB marking a winger must score the CB on defence
-# and the winger on attack, not the reverse.
-_ATTACK_STANCE_ROLES = frozenset({"striker", "winger", "am"})
-_DEFEND_STANCE_ROLES = frozenset({"fullback", "centre_back", "dm"})
+def _legend_adjusted_stats(stats: Any) -> Any:
+    """A legend's manual attribute-pack (manual_profiles.py) only carries
+    the fields the curator actually filled in -- a striker's row typically
+    never sets tackles90/interceptions90/clearances90 at all, so those
+    fields fall back to the PlayerStats dataclass default of 0.0,
+    indistinguishable from a real recorded zero. For a normal
+    Sofascore-sourced player 0.0 is real signal (e.g. a poacher genuinely
+    never tackles) and must stay 0 -- but for a legend it's a data-schema
+    gap, not a rating, so it's swapped for a neutral "average outfield
+    player" baseline instead of silently cratering their score in whichever
+    unit that field feeds."""
+    if _legend_multiplier(stats) <= 1.0:
+        return stats
+    return dataclasses.replace(
+        stats,
+        dribbles90=_legend_baseline_stat(stats, stats.dribbles90, "dribbles90"),
+        key_passes90=_legend_baseline_stat(stats, stats.key_passes90, "key_passes90"),
+        xa90=_legend_baseline_stat(stats, stats.xa90, "xa90"),
+        tackles90=_legend_baseline_stat(stats, stats.tackles90, "tackles90"),
+        interceptions90=_legend_baseline_stat(stats, stats.interceptions90, "interceptions90"),
+        clearances90=_legend_baseline_stat(stats, stats.clearances90, "clearances90"),
+    )
 
 
-def _battle_score(role: str, stats: Any) -> float:
-    if role in _ATTACK_STANCE_ROLES:
-        return _battle_attack_score(stats)
-    if role in _DEFEND_STANCE_ROLES:
-        return _battle_defence_score(stats)
-    return round((_battle_attack_score(stats) + _battle_defence_score(stats)) / 2.0, 3)
+# Battle threat scores are built from the exact same per-role contribution
+# formulas team_ratings.py's real unit ratings use (attack/creation/
+# midfield/defence/midfield_defence contributions, the same advanced-CM /
+# double-pivot / screen-vs-create logic, the same legend multiplier) --
+# not a separate, simplified local formula. Direct instruction: a
+# head-to-head battle must be judged on the SAME rating the rest of the
+# engine (squad ratings, match intelligence) already uses for that player,
+# or the two disagree in ways that don't make sense (Van Dijk rating above
+# Romero overall but losing a raw-volume-only battle to him; a CM's real
+# midfield contribution invisible to a formula that only ever averaged a
+# simplified attack/defence pair). fit=1.0 throughout: battles have no
+# formation-fit slot object the way the real per-XI pipeline does.
+def _battle_score(role: str, slot_name: str, formation: str | None, stats: Any) -> float:
+    fit = 1.0
+    st = _legend_adjusted_stats(stats)
+    slot_up = (slot_name or "").strip().upper()
+
+    if role in ("striker", "winger", "am"):
+        is_wide_mid = slot_up in {"RM", "LM"}
+        role_weight = 0.75 if role == "am" else (0.7 if is_wide_mid else 1.0)
+        score = (0.56 * _player_attack_contrib(st, fit) + 0.44 * _player_chance_creation_contrib(st, fit)) * role_weight
+
+    elif role in ("fullback", "centre_back"):
+        w = _WINGBACK_DEFENCE_WEIGHT if slot_up in {"RWB", "LWB"} else 1.0
+        score = _player_defence_contrib(st, fit) * w
+
+    elif role == "dm":
+        # DM never earns attack credit in the real system regardless of
+        # output profile -- its job stays defensive. Real credit is the
+        # midfield + midfield-defence (screening) contributions, not the
+        # CB/FB-tuned _player_defence_contrib (aerials/clearances aren't a
+        # DM's defining trait the way they are a centre-back's).
+        score = (_player_midfield_contrib(st, fit) + _player_midfield_defence_contrib(st, fit)) / 2.0
+
+    elif role == "cm":
+        weight_total = 1.0 + 0.72
+        weighted_sum = _player_midfield_contrib(st, fit) + _player_midfield_defence_contrib(st, fit) * 0.72
+        is_advanced = _is_advanced_cm(formation or "", slot_name or "")
+        if _is_double_pivot_cm(formation or "", slot_name or ""):
+            screen_signal = create_signal = 0.0
+        else:
+            screen_signal = st.tackles90 / 3.5 + st.interceptions90 / 2.5 + st.duels_won_pct / 100.0
+            create_signal = st.key_passes90 / 2.5 + st.xa90 / 0.55
+        if is_advanced or create_signal > screen_signal:
+            weighted_sum += (0.56 * _player_attack_contrib(st, fit) + 0.44 * _player_chance_creation_contrib(st, fit)) * 0.60
+            weight_total += 0.60
+        score = weighted_sum / weight_total
+
+    else:
+        # Not one of the 7 roles _BATTLE_COUNTER_ROLES ever produces --
+        # defensive fallback only.
+        score = (_player_attack_contrib(st, fit) + _player_defence_contrib(st, fit)) / 2.0
+
+    return _clamp01(score * _legend_multiplier(stats))
 
 
 def build_key_battles(
@@ -348,9 +449,17 @@ def build_key_battles(
             if not stats:
                 continue
             role_filter = (row.get("role_filter") or "").strip()
-            eff = effective_slot_name(slot, role_filter or None, team_dict.get("formation"))
+            formation = team_dict.get("formation")
+            eff = effective_slot_name(slot, role_filter or None, formation)
             rows.append(
-                {"slot": slot, "player": resolved, "role": slot_role(eff), "side": _wide_side(eff), "stats": stats}
+                {
+                    "slot": slot,
+                    "player": resolved,
+                    "role": slot_role(eff),
+                    "side": _wide_side(eff),
+                    "formation": formation,
+                    "stats": stats,
+                }
             )
         return rows
 
@@ -381,8 +490,8 @@ def build_key_battles(
         opp = candidates[0]
         used_opp.add(opp["player"])
 
-        my_score = _battle_score(m["role"], m["stats"])
-        opp_score = _battle_score(opp["role"], opp["stats"])
+        my_score = _battle_score(m["role"], m["slot"], m["formation"], m["stats"])
+        opp_score = _battle_score(opp["role"], opp["slot"], opp["formation"], opp["stats"])
         edge = round(my_score - opp_score, 3)
         if edge >= 0.15:
             verdict = "advantage"
