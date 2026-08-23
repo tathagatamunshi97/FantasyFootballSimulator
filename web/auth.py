@@ -16,6 +16,12 @@ SESSIONS_FILE = ROOT / "data" / "sessions.json"
 PASSWORDS_FILE = ROOT / "data" / "team_passwords.json"
 
 ADMIN_USER = "admin"
+# Teams that exist for admin-side scouting/analysis only (e.g. a custom
+# opponent XI built for Squad Hub comparisons) -- no one can log in as one
+# of these, self-service password setup included. Admins still reach them
+# through every route's existing admin-session/token bypass, which doesn't
+# require the team to have a password at all.
+_ADMIN_ONLY_TEAMS = {"organ's xi"}
 # Shared team accounts: allow a few devices; over-cap logins drop the oldest
 # session instead of returning 429 (two people on the same credentials).
 MAX_TEAM_SESSIONS = 3
@@ -328,6 +334,9 @@ def attempt_login(name: str, password: str) -> dict[str, Any]:
 
     sheet_name = resolve_sheet_team(canonical)
     if not sheet_name:
+        return {"status": "invalid"}
+
+    if sheet_name.strip().lower() in _ADMIN_ONLY_TEAMS:
         return {"status": "invalid"}
 
     if not team_has_password(sheet_name):
