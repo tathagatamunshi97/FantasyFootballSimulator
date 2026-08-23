@@ -91,6 +91,17 @@ class PlayerStats:
             if pid is not None:
                 payload["player_id"] = pid
         _normalize_stat_gaps(payload)
+        # Bug fix -- _normalize_stat_gaps calls the OLDER, ID-keyed
+        # apply_known_position_overrides internally (see player_names.py),
+        # which silently clobbered the name-keyed override just applied
+        # above whenever both existed for the same player (e.g. Neymar:
+        # KNOWN_PLAYER_PRIMARY still lists ST/RW/CM as eligible positions
+        # from before the curated roster audit; KNOWN_PLAYER_POSITIONS_BY_NAME
+        # -- the more recent, user-supplied real positions -- correctly
+        # narrows him to LW/AM only). Re-apply the name-keyed override last
+        # so curated, per-player real positions always win regardless of
+        # what the older ID-keyed table still says.
+        apply_known_position_overrides_by_name(payload, name)
         pos = payload.get("primary_position", "MF")
         fpl = payload.get("fpl_position") or _infer_fpl_position(pos)
         payload["primary_position"] = pos
