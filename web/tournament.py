@@ -299,6 +299,12 @@ def _summary(t: dict[str, Any]) -> dict[str, Any]:
         "id": t["id"],
         "name": t.get("name"),
         "status": t.get("status"),
+        # League+Cup tournaments (web/league_cup.py) share this same storage/
+        # list endpoint but have a totally different shape (no "groups") --
+        # player-facing pages need this to know whether to route to /tournament
+        # or /league-cup instead of guessing (or silently rendering an empty
+        # "0 fixtures" card for a real, correctly-scheduled tournament).
+        "format": t.get("format") or "group_knockout",
         "team_count": len(t.get("team_names") or []),
         "created_at": t.get("created_at"),
         "updated_at": t.get("updated_at"),
