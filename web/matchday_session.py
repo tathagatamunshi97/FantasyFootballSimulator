@@ -117,7 +117,6 @@ def _build_public_session_locked() -> dict[str, Any] | None:
         "board_state": s.get("board_state"),
         "frame": s.get("board_state"),
         "frame_seq": s.get("frame_seq", 0),
-        "pending_actions": s.get("pending_actions") or [],
         "experiment_id": s.get("experiment_id"),
         "running": s.get("running", False),
         "message": s.get("message"),
@@ -162,7 +161,6 @@ def _patch_poll_cache_frame_locked() -> None:
     sess["phase"] = _session.get("phase")
     sess["running"] = _session.get("running", False)
     sess["updated_at"] = _session.get("updated_at")
-    sess["pending_actions"] = _session.get("pending_actions") or []
     _poll_cache["active"] = True
     _poll_cache["redirect"] = sess.get("phase") in ("setup", "running", "live")
 
@@ -301,13 +299,6 @@ def start_board_session(
             "frame_seq": 0,
             "phase": "setup",
             "running": False,
-            # Participant-requested substitutions/formation changes — the
-            # host's browser is the only one actually running the
-            # simulation, so a participating team's action has to relay
-            # through here: queued by queue_matchday_action, applied by the
-            # host's poll loop, then cleared via consume_matchday_actions.
-            "pending_actions": [],
-            "action_seq": 0,
             "experiment_id": None,
             "message": "Pre-match on Matchday — review lineups. Admin starts the live pin match.",
             "result": None,
@@ -337,56 +328,6 @@ def set_board_live(message: str = "Live on Matchday — pin goals are official."
     _flush_persist(snap)
 
 
-def queue_matchday_action(action_type: str, side: str, params: dict[str, Any]) -> dict[str, Any]:
-    """A participating team requests a substitution/formation change.
-
-    The requester's own browser is just a passive viewer (frames only) —
-    it never runs the simulation, so the action can't be applied locally.
-    Queued here instead; the host's poll loop (the one browser actually
-    running createBoard) picks it up, applies it to the live board, and
-    acks it via consume_matchday_actions.
-    """
-    global _session
-    snap: dict[str, Any] | None | bool = False
-    with _lock:
-        if not _session:
-            raise ValueError("No active matchday session.")
-        if _session.get("engine") != "tactic_board":
-            raise ValueError("Active session is not a tactic-board match.")
-        if _session.get("phase") not in ("setup", "live"):
-            raise ValueError("Match is not live.")
-        if side not in ("home", "away"):
-            raise ValueError("side must be 'home' or 'away'")
-        seq = int(_session.get("action_seq") or 0) + 1
-        _session["action_seq"] = seq
-        action = {"id": seq, "type": action_type, "side": side, **params}
-        pending = _session.setdefault("pending_actions", [])
-        pending.append(action)
-        _session["updated_at"] = _now()
-        _refresh_poll_cache_locked()
-        snap = _persist_locked(force=True)
-    _flush_persist(snap)
-    return action
-
-
-def consume_matchday_actions(action_ids: list[int]) -> None:
-    """Host acknowledges it applied these actions — removes them from the queue."""
-    global _session
-    snap: dict[str, Any] | None | bool = False
-    with _lock:
-        if not _session:
-            return
-        ids = set(action_ids or [])
-        if not ids:
-            return
-        pending = _session.get("pending_actions") or []
-        remaining = [a for a in pending if a.get("id") not in ids]
-        if len(remaining) == len(pending):
-            return
-        _session["pending_actions"] = remaining
-        _refresh_poll_cache_locked()
-        snap = _persist_locked(force=True)
-    _flush_persist(snap)
 
 
 def publish_board_state(state: dict[str, Any]) -> int:

@@ -1223,6 +1223,28 @@ tr.matchday-live { background: var(--success-soft); }
 .prematch-xi .slot { color: var(--muted); min-width: 2.4rem; }
 .prematch-screen { display: grid; gap: 0.85rem; }
 .prematch-actions { justify-content: center; margin-top: 0.25rem; }
+.adjust-team-rows {
+  display: grid;
+  gap: 0.4rem;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+.adjust-team-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.adjust-team-slot {
+  color: var(--muted);
+  font-size: 0.78rem;
+  min-width: 3rem;
+}
+.adjust-team-row select {
+  flex: 1;
+}
 .ht-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

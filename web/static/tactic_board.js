@@ -729,16 +729,6 @@
     const viewerMode = Boolean(opts.viewerMode);
     const hostMode = Boolean(opts.hostMode) && !viewerMode;
     const hideControls = Boolean(opts.hideControls) || viewerMode;
-    // A participating team's own browser is still just a passive viewer
-    // (frames only, never runs the sim) — but unlike a spectator, it gets
-    // the subs/formation panel for its OWN side, submitting requests via
-    // onAction instead of mutating pins directly (see substitutePlayer/
-    // changeFormation call sites below).
-    const participantSide =
-      !hostMode && (opts.participantSide === "home" || opts.participantSide === "away")
-        ? opts.participantSide
-        : null;
-    const requestAction = typeof opts.onAction === "function" ? opts.onAction : null;
     /** Knockout ties: level after 90 → ET (2×15) → pens if still level. Group matches ignore this. */
     const isKnockout = Boolean(opts.isKnockout || opts.knockout) && live && !viewerMode;
     // Final: still a knockout tie (ET/pens rules apply the same), but
@@ -985,6 +975,8 @@
           <div class="tactic-topbar-controls" ${hideControls ? "hidden" : ""}>
             <button type="button" class="btn-primary btn-sm" data-tb-play>Play</button>
             <button type="button" class="btn-ghost btn-sm" data-tb-pause>Pause</button>
+            <button type="button" class="btn-ghost btn-sm" data-tb-adjust="home" ${hostMode ? "" : "hidden"}>Adjust Home</button>
+            <button type="button" class="btn-ghost btn-sm" data-tb-adjust="away" ${hostMode ? "" : "hidden"}>Adjust Away</button>
           </div>
         </div>
         <div class="tactic-hud" data-tb-hud>
@@ -1061,11 +1053,18 @@
             <p class="muted" data-tb-ht-stats hidden></p>
             <p class="muted" data-tb-break-note hidden style="margin:0.35rem 0 0.75rem;font-size:0.85rem"></p>
             <ul class="tactic-pens-list" data-tb-pens-list hidden></ul>
+            <div class="ht-adjust-row" data-tb-ht-adjust-row ${hostMode ? "" : "hidden"} style="display:flex;gap:0.5rem;justify-content:center;margin-bottom:0.6rem">
+              <button type="button" class="btn-ghost btn-sm" data-tb-ht-adjust="home">Adjust Home</button>
+              <button type="button" class="btn-ghost btn-sm" data-tb-ht-adjust="away">Adjust Away</button>
+            </div>
             <button type="button" class="btn-primary" data-tb-ht-resume>Resume 2nd half</button>
           </div>
         </div>
         <div class="tactic-overlay" data-tb-prematch hidden>
           <div class="tactic-overlay-card" data-tb-prematch-body></div>
+        </div>
+        <div class="tactic-overlay" data-tb-adjust-overlay hidden>
+          <div class="tactic-overlay-card" data-tb-adjust-body style="max-width:34rem"></div>
         </div>
         <div class="tactic-controls" ${hideControls ? "hidden" : ""}>
           <button type="button" class="btn-ghost btn-sm" data-tb-replay>Replay</button>
@@ -1077,7 +1076,6 @@
           <button type="button" class="btn-ghost btn-sm" data-tb-push="away">Away push</button>
           <button type="button" class="btn-ghost btn-sm" data-tb-sit="away">Away sit</button>
         </div>
-        <div class="tactic-subs" data-tb-subs ${hostMode || participantSide ? "" : "hidden"}></div>
         <p class="muted tactic-note" data-tb-note>
           ${
             viewerMode
@@ -1126,6 +1124,7 @@
     const htScoreLabEl = container.querySelector("[data-tb-ht-score-lab]");
     const htResumeBtn = container.querySelector("[data-tb-ht-resume]");
     const htTitleEl = container.querySelector("[data-tb-ht-title]");
+    const htAdjustRow = container.querySelector("[data-tb-ht-adjust-row]");
     const breakNoteEl = container.querySelector("[data-tb-break-note]");
     const pensListEl = container.querySelector("[data-tb-pens-list]");
     const htStatsGrid = container.querySelector("[data-tb-ht-stats-grid]");
@@ -12650,6 +12649,7 @@
         pensListEl.hidden = true;
         pensListEl.innerHTML = "";
       }
+      if (htAdjustRow) htAdjustRow.hidden = !hostMode || viewerMode || kind !== "ht";
     }
 
     function applyViewerBreak(state) {
@@ -13833,79 +13833,212 @@
     });
     if (htResumeBtn) htResumeBtn.addEventListener("click", () => resumeFromBreak());
 
-    // Engine addition — mid-match personnel controls UI. Host sees both
-    // sides and applies changes directly (it's the browser actually
-    // running the sim). A participating team's own browser only sees its
-    // OWN side and submits a request via onAction instead — the host's
-    // poll loop applies it and the result reaches everyone (including the
-    // requester) through the next broadcast frame, same as any other state
-    // change. Full re-render on every change rather than incremental DOM
-    // patching — the dropdown option lists always need to stay in sync
-    // with substitutePlayer/changeFormation mutating homePins/awayPins/
-    // benchBySide, and this panel is small.
-    const subsEl = container.querySelector("[data-tb-subs]");
-    function renderSubsPanel() {
-      if (!subsEl || (!hostMode && !participantSide)) return;
-      function sideBlock(side, label) {
-        const sidePins = side === "home" ? homePins : awayPins;
-        const bench = benchBySide[side] || [];
-        const outOptions = sidePins
-          .map((p) => `<option value="${escHtml(p.id)}">${escHtml(p.short)} (${escHtml(p.slot)})</option>`)
-          .join("");
-        const inOptions = bench
-          .map((b) => `<option value="${escHtml(b.player)}">${escHtml(b.player)}</option>`)
-          .join("");
-        const teamFormation = side === "home" ? homeTeam.formation : awayTeam.formation;
-        const formOptions = Object.keys(FORMATION_LAYOUTS)
-          .map(
-            (f) =>
-              `<option value="${escHtml(f)}"${f === teamFormation ? " selected" : ""}>${escHtml(f)}</option>`
-          )
-          .join("");
-        const subRow = bench.length
-          ? `<select data-tb-sub-out="${side}">${outOptions}</select>
-             <select data-tb-sub-in="${side}">${inOptions}</select>
-             <button type="button" class="btn-ghost btn-sm" data-tb-sub-go="${side}">Sub</button>`
-          : `<span class="muted" style="font-size:0.78rem">No bench players</span>`;
-        return `<div class="tactic-subs-side">
-          <span class="muted" style="font-size:0.78rem">${escHtml(label)}</span>
-          ${subRow}
-          <select data-tb-formation="${side}">${formOptions}</select>
-          <button type="button" class="btn-ghost btn-sm" data-tb-formation-go="${side}">Change</button>
-        </div>`;
+    // Engine rebuild — replaced the old always-visible inline subs panel
+    // (one bare out/in dropdown pair + a separate, disconnected formation
+    // dropdown, live while the match kept running) with a single "Adjust
+    // Team" flow per side: pauses the match, opens a modal where the admin
+    // sets formation AND every slot's player together, and resumes exactly
+    // where it left off on close. Host-only (the admin acts on a team's
+    // behalf here, not a self-service participant control) -- the old
+    // participant-side requestAction({type:"substitute"|"formation"}) path
+    // is removed along with it.
+    const adjustOverlay = container.querySelector("[data-tb-adjust-overlay]");
+    const adjustBody = container.querySelector("[data-tb-adjust-body]");
+    let adjustState = null; // { side, formation, slots: [{slot, player}], wasPlaying }
+
+    function adjustPoolStats(side) {
+      const sidePins = side === "home" ? homePins : awayPins;
+      const bench = benchBySide[side] || [];
+      const pool = new Map();
+      for (const p of sidePins) pool.set(p.player, p.stats);
+      for (const b of bench) pool.set(b.player, b.stats);
+      return pool;
+    }
+
+    // Role-based carry-over when the staged formation changes inside the
+    // modal — same two-pass logic as changeFormation (same-role slot kept
+    // first, leftovers filled after), just operating on the staged
+    // {slot, player} list instead of live pins, and never touching the
+    // bench (a pure formation swap keeps the same 11 out unless the admin
+    // also edits a slot's player directly).
+    function adjustRemapFormation(newFormation) {
+      const layout = FORMATION_LAYOUTS[newFormation];
+      if (!layout) return;
+      const prevSlots = adjustState.slots;
+      const newSlotNames = Object.keys(layout);
+      const byRole = new Map();
+      for (const slot of newSlotNames) {
+        const role = roleOf(slot);
+        if (!byRole.has(role)) byRole.set(role, []);
+        byRole.get(role).push(slot);
       }
-      const sides = hostMode ? ["home", "away"] : [participantSide];
-      subsEl.innerHTML = sides.map((s) => sideBlock(s, s === "home" ? "Home" : "Away")).join("");
-      subsEl.querySelectorAll("[data-tb-sub-go]").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const side = btn.dataset.tbSubGo;
-          const outSel = subsEl.querySelector(`[data-tb-sub-out="${side}"]`);
-          const inSel = subsEl.querySelector(`[data-tb-sub-in="${side}"]`);
-          if (!outSel || !inSel || !inSel.value) return;
-          if (hostMode) {
-            if (substitutePlayer(side, outSel.value, inSel.value)) renderSubsPanel();
-          } else if (requestAction) {
-            btn.disabled = true;
-            requestAction({ type: "substitute", side, out_pin_id: outSel.value, bench_player: inSel.value });
-          }
-        });
+      const usedSlots = new Set();
+      const usedPlayers = new Set();
+      const next = [];
+      for (const row of prevSlots) {
+        const role = roleOf(row.slot);
+        const candidates = (byRole.get(role) || []).filter((s) => !usedSlots.has(s));
+        const freeSlot = candidates[0];
+        if (freeSlot) {
+          usedSlots.add(freeSlot);
+          usedPlayers.add(row.player);
+          next.push({ slot: freeSlot, player: row.player });
+        }
+      }
+      const leftoverSlots = newSlotNames.filter((s) => !usedSlots.has(s));
+      const leftoverPlayers = prevSlots.filter((r) => !usedPlayers.has(r.player));
+      leftoverSlots.forEach((slot, i) => {
+        if (leftoverPlayers[i]) next.push({ slot, player: leftoverPlayers[i].player });
       });
-      subsEl.querySelectorAll("[data-tb-formation-go]").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const side = btn.dataset.tbFormationGo;
-          const sel = subsEl.querySelector(`[data-tb-formation="${side}"]`);
-          const current = side === "home" ? homeTeam.formation : awayTeam.formation;
-          if (!sel || !sel.value || sel.value === current) return;
-          if (hostMode) {
-            if (changeFormation(side, sel.value)) renderSubsPanel();
-          } else if (requestAction) {
-            btn.disabled = true;
-            requestAction({ type: "formation", side, formation: sel.value });
-          }
-        });
+      adjustState.formation = newFormation;
+      adjustState.slots = next;
+    }
+
+    // Assigning a player already on another staged slot swaps the two
+    // slots' players (the bumped player lands where the incoming one came
+    // from) rather than silently duplicating or dropping anyone — keeps
+    // the staged list a valid 11-player permutation of the side's full
+    // pool at every step, whether the source is a pitch swap or a bench sub.
+    function adjustSetSlot(slotName, playerName) {
+      const rows = adjustState.slots;
+      const target = rows.find((r) => r.slot === slotName);
+      if (!target || target.player === playerName) return;
+      const prevPlayer = target.player;
+      const other = rows.find((r) => r.slot !== slotName && r.player === playerName);
+      if (other) other.player = prevPlayer;
+      target.player = playerName;
+      renderAdjustModal();
+    }
+
+    function openAdjustTeam(side) {
+      if (!hostMode) return;
+      adjustState = {
+        side,
+        wasPlaying: playing,
+        formation: side === "home" ? homeTeam.formation : awayTeam.formation,
+        slots: (side === "home" ? homePins : awayPins).map((p) => ({ slot: p.slot, player: p.player })),
+      };
+      if (playing) pause();
+      renderAdjustModal();
+      adjustOverlay.hidden = false;
+    }
+
+    function closeAdjustTeam() {
+      adjustOverlay.hidden = true;
+      const resume = adjustState && adjustState.wasPlaying;
+      adjustState = null;
+      if (resume) play();
+    }
+
+    function renderAdjustModal() {
+      if (!adjustState) return;
+      const { side, formation, slots } = adjustState;
+      const label = side === "home" ? homeTeam.name : awayTeam.name;
+      const pool = adjustPoolStats(side);
+      const allNames = Array.from(pool.keys());
+      const assignedNames = new Set(slots.map((r) => r.player));
+      const benchNames = allNames.filter((n) => !assignedNames.has(n));
+      const formOptions = Object.keys(FORMATION_LAYOUTS)
+        .map((f) => `<option value="${escHtml(f)}"${f === formation ? " selected" : ""}>${escHtml(f)}</option>`)
+        .join("");
+      const slotRows = slots
+        .map((row) => {
+          const opts = allNames
+            .map((n) => `<option value="${escHtml(n)}"${n === row.player ? " selected" : ""}>${escHtml(n)}${assignedNames.has(n) || n === row.player ? "" : " (bench)"}</option>`)
+            .join("");
+          return `<div class="adjust-team-row">
+            <span class="adjust-team-slot">${escHtml(row.slot)}</span>
+            <select data-tb-adjust-slot="${escHtml(row.slot)}">${opts}</select>
+          </div>`;
+        })
+        .join("");
+      adjustBody.innerHTML = `
+        <h3 style="margin:0 0 0.25rem">Adjust ${escHtml(label)}</h3>
+        <p class="muted" style="margin:0 0 0.75rem;font-size:0.85rem">Match is paused. Set formation and any player changes, then click OK to resume.</p>
+        <label class="muted" style="font-size:0.78rem;display:block;margin-bottom:0.25rem">Formation</label>
+        <select data-tb-adjust-formation style="margin-bottom:0.75rem">${formOptions}</select>
+        <div class="adjust-team-rows">${slotRows}</div>
+        <p class="muted" style="font-size:0.78rem;margin:0.5rem 0 0">Bench: ${benchNames.length ? benchNames.map(escHtml).join(", ") : "—"}</p>
+        <div style="display:flex;gap:0.5rem;justify-content:flex-end;margin-top:1rem">
+          <button type="button" class="btn-ghost" data-tb-adjust-cancel>Cancel</button>
+          <button type="button" class="btn-primary" data-tb-adjust-ok>OK</button>
+        </div>`;
+      adjustBody.querySelector("[data-tb-adjust-formation]").addEventListener("change", (e) => {
+        adjustRemapFormation(e.target.value);
+        renderAdjustModal();
+      });
+      adjustBody.querySelectorAll("[data-tb-adjust-slot]").forEach((sel) => {
+        sel.addEventListener("change", (e) => adjustSetSlot(e.target.dataset.tbAdjustSlot, e.target.value));
+      });
+      adjustBody.querySelector("[data-tb-adjust-cancel]").addEventListener("click", () => closeAdjustTeam());
+      adjustBody.querySelector("[data-tb-adjust-ok]").addEventListener("click", () => {
+        applyAdjustTeam(adjustState.side, adjustState.formation, adjustState.slots);
+        closeAdjustTeam();
       });
     }
-    renderSubsPanel();
+
+    // Applies a full formation + 11-slot player assignment in one atomic
+    // step (unlike the old substitutePlayer/changeFormation, which only
+    // ever handled one bench swap or one formation relabel at a time).
+    // Existing pin objects are reused where the player didn't change
+    // (preserves on-pitch position/animation continuity); pins whose
+    // player is leaving become "free" and get repurposed for whoever's
+    // coming on, same identity-swap substitutePlayer already did for a
+    // single sub. Whatever's left in the side's pool that isn't in the
+    // new 11 becomes the new bench.
+    function applyAdjustTeam(side, formation, slotAssignments) {
+      const layout = FORMATION_LAYOUTS[formation];
+      if (!layout) return false;
+      const sidePins = side === "home" ? homePins : awayPins;
+      const pool = adjustPoolStats(side);
+      const newOnPitch = new Set(slotAssignments.map((r) => r.player));
+
+      const freePins = [];
+      const keepPins = new Map();
+      for (const pin of sidePins) {
+        if (newOnPitch.has(pin.player)) keepPins.set(pin.player, pin);
+        else freePins.push(pin);
+      }
+
+      let freeIdx = 0;
+      for (const row of slotAssignments) {
+        const coord = layout[row.slot];
+        if (!coord) continue;
+        let pin = keepPins.get(row.player);
+        if (!pin) {
+          pin = freePins[freeIdx++];
+          if (!pin) continue;
+          pin.player = row.player;
+          pin.short = shortName(row.player);
+          pin.label = initials(row.player);
+          pin.stats = pool.get(row.player) || {};
+          const el = pinEls.get(pin.id);
+          if (el) {
+            el.title = `${pin.player} (${row.slot}) — click to favor`;
+            const labelEl = el.querySelector(".pin-label");
+            if (labelEl) labelEl.textContent = pin.label;
+          }
+        }
+        applyFormationSlot(pin, row.slot, coord);
+      }
+
+      const newBench = [];
+      for (const [name, stats] of pool) {
+        if (!newOnPitch.has(name)) newBench.push({ player: name, stats });
+      }
+      benchBySide[side] = newBench;
+
+      if (side === "home") homeTeam.formation = formation;
+      else awayTeam.formation = formation;
+      return true;
+    }
+
+    container.querySelectorAll("[data-tb-adjust]").forEach((btn) => {
+      btn.addEventListener("click", () => openAdjustTeam(btn.dataset.tbAdjust));
+    });
+    container.querySelectorAll("[data-tb-ht-adjust]").forEach((btn) => {
+      btn.addEventListener("click", () => openAdjustTeam(btn.dataset.tbHtAdjust));
+    });
 
     function fmtUnit(v) {
       const n = Number(v);
@@ -13967,37 +14100,10 @@
       play();
     }
 
-    // Engine addition — mid-match personnel controls (host-side only; a
-    // substitution/formation change made here gets picked up by viewers
-    // through the next broadcast frame's pin identity fields, same as any
-    // other target/state change).
-    function getBench(side) {
-      return (benchBySide[side] || []).map((b) => b.player);
-    }
-
-    function substitutePlayer(side, outPinId, benchPlayerName) {
-      const pin = pinById.get(outPinId);
-      if (!pin || pin.side !== side) return false;
-      const bench = benchBySide[side] || [];
-      const idx = bench.findIndex((b) => b.player === benchPlayerName);
-      if (idx === -1) return false;
-      const incoming = bench[idx];
-      // Outgoing player takes the vacated bench spot — same shape as the
-      // one being filled, so a sub can be reversed later if needed.
-      bench.splice(idx, 1, { player: pin.player, stats: pin.stats });
-      pin.player = incoming.player;
-      pin.short = shortName(incoming.player);
-      pin.label = initials(incoming.player);
-      pin.stats = mergeStats(pin.roleFilter || pin.slot, incoming.stats || {});
-      const el = pinEls.get(pin.id);
-      if (el) {
-        el.title = `${pin.player} (${pin.slot}) — click to favor`;
-        const labelEl = el.querySelector(".pin-label");
-        if (labelEl) labelEl.textContent = pin.label;
-      }
-      return true;
-    }
-
+    // applyFormationSlot is also used by adjustRemapFormation/applyAdjustTeam
+    // above (the Adjust Team modal) — the old single-action substitutePlayer/
+    // changeFormation/getBench functions that used to sit here were replaced
+    // by that modal's applyAdjustTeam and removed.
     function applyFormationSlot(pin, slot, coord) {
       pin.slot = slot;
       pin.role = roleOf(slot);
@@ -14005,46 +14111,6 @@
       pin.baseX = coord[0];
       pin.baseDepth = coord[1];
       pin.stats = mergeStats(slot, pin.stats);
-    }
-
-    function changeFormation(side, newFormation) {
-      const layout = FORMATION_LAYOUTS[newFormation];
-      if (!layout) return false;
-      const sidePins = side === "home" ? homePins : awayPins;
-      const newSlots = Object.keys(layout);
-      const byRole = new Map();
-      for (const slot of newSlots) {
-        const role = roleOf(slot);
-        if (!byRole.has(role)) byRole.set(role, []);
-        byRole.get(role).push(slot);
-      }
-      const assigned = new Set();
-      const usedSlots = new Set();
-      // First pass: keep each pin on a same-role slot if one's free — a CB
-      // stays a CB, a winger stays a winger, no positions reshuffled just
-      // because the formation label changed.
-      for (const pin of sidePins) {
-        const candidates = byRole.get(pin.role) || [];
-        const freeSlot = candidates.find((s) => !usedSlots.has(s));
-        if (freeSlot) {
-          usedSlots.add(freeSlot);
-          assigned.add(pin.id);
-          applyFormationSlot(pin, freeSlot, layout[freeSlot]);
-        }
-      }
-      // Second pass: whatever's left (role counts differ between the old
-      // and new formation, e.g. 4-4-2 -> 4-3-3) fills remaining slots in
-      // whatever order — a coarser fallback, but every pin still lands on
-      // a valid slot.
-      const leftoverSlots = newSlots.filter((s) => !usedSlots.has(s));
-      const leftoverPins = sidePins.filter((p) => !assigned.has(p.id));
-      leftoverPins.forEach((pin, i) => {
-        const slot = leftoverSlots[i];
-        if (slot) applyFormationSlot(pin, slot, layout[slot]);
-      });
-      if (side === "home") homeTeam.formation = newFormation;
-      else awayTeam.formation = newFormation;
-      return true;
     }
 
     return {
@@ -14066,9 +14132,6 @@
       applyBroadcastState,
       getBroadcastFrame: getBroadcastState,
       applyFrame: applyBroadcastState,
-      getBench,
-      substitutePlayer,
-      changeFormation,
       startMirrorLoop: () => {
         if (!viewerMode) return;
         playing = false;
