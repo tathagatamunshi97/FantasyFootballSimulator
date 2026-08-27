@@ -11498,7 +11498,11 @@
       // via spellChanceP/boxOccupationReady/progressionUrgency), not this.
       const fatigue = totalGoals >= 5 ? 0.55 : totalGoals >= 4 ? 0.7 : 1;
       const boxed = inPenaltyBox(carrier);
-      const box = boxed ? 0.1 : nearPenaltyBox(carrier) ? 0.03 : -0.04;
+      // Real long shots (not boxed, not even near the box) were converting
+      // too often per the user's own report -- widened this penalty
+      // (-0.04 -> -0.08). Near-box efforts (a fair, legitimate edge-of-the-D
+      // shooting position) are untouched.
+      const box = boxed ? 0.1 : nearPenaltyBox(carrier) ? 0.03 : -0.08;
       const skillGap = atk - def;
       const urg = progressionUrgency(spell);
       const ad = attackDefendDelta(carrier.side);
@@ -11516,7 +11520,10 @@
       const clinical = roleFin
         ? clamp((goals - carrier.stats.xg90) * (boxed ? 0.28 : 0.12), 0, boxed ? 0.14 : 0.06)
         : 0;
-      const eliteBoost = roleFin ? clamp((fq - 0.42) * 0.24, 0, 0.2) : 0;
+      // Halved for a genuine long shot (not boxed) -- overall finisher
+      // quality shouldn't translate to a speculative long-range effort
+      // nearly as strongly as it does to a real chance in the box.
+      const eliteBoost = roleFin ? clamp((fq - 0.42) * 0.24, 0, 0.2) * (boxed ? 1 : 0.5) : 0;
       const roleBox = roleFin && boxed ? 0.045 : 0;
       // Real profligacy rate on big chances specifically -- independent of
       // the live anti-drought missBoost below (which only reacts to THIS
@@ -11553,9 +11560,13 @@
       // upstream, in how rarely a big/quality chance gets created at all.
       const lo = boxed ? (form < 0.7 ? 0.012 : 0.04) : form < 0.7 ? 0.006 : 0.015;
       const hiElite = roleFin ? clamp((fq - 0.38) * 0.42, 0, 0.24) : 0;
+      // Non-boxed ceiling trimmed (0.34/0.26 -> 0.26/0.18) -- the user's own
+      // report of too many long shots going in. The boxed branch above is
+      // deliberately untouched (see the comment on it): this is a distance
+      // lever, not a finisher-quality cap.
       const hi = boxed
         ? clamp((0.4 + hiElite) * Math.min(form, 1.55), 0.32, roleFin ? 0.72 : 0.58)
-        : clamp((0.15 + hiElite * 0.4) * Math.min(form, 1.55), 0.11, roleFin ? 0.34 : 0.26);
+        : clamp((0.15 + hiElite * 0.4) * Math.min(form, 1.55), 0.09, roleFin ? 0.26 : 0.18);
       // Engine fix — anti-drought (big chances only, see sideBigMissStreak
       // declaration). Raises odds on the NEXT big chance after a miss; never
       // guarantees one (missBoost and the final probability are both capped),
