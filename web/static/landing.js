@@ -163,6 +163,13 @@ function renderHeroLeagueCup(summary, t) {
   // at the real League + Cup page instead of a page that will show nothing.
   const tournamentCard = document.getElementById("tournamentDetail")?.closest("a");
   if (tournamentCard) tournamentCard.href = href;
+  // Same fix for the persistent top-nav "Tournament" link -- it's static
+  // markup (present on every page load, not just this hero card), so a
+  // league_cup-format active tournament left it pointing at the old
+  // group+knockout viewer too, showing "group draw not performed yet" for
+  // a tournament that was never going to have one.
+  const navTournamentLink = document.getElementById("navTournamentLink");
+  if (navTournamentLink) navTournamentLink.href = href;
   document.getElementById("tournamentDetail").innerHTML =
     `<strong>${esc(summary.name || "")}</strong> · ${played.length} of ${totalMatches || fixtures.length} matches played (League + Cup)`;
 }
