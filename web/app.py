@@ -618,6 +618,32 @@ def matchday_complete_from_board(
                 board_events=body.get("board_events"),
                 match_log=body.get("match_log"),
             )
+        # Bug fix — real user report: every League + Cup fixture (friendly/
+        # league/cup, started via league_cup.py's own start_board_session
+        # call) lives in a completely separate tournament store from the
+        # classic group+knockout Tournament this always routed to — so
+        # completion always 404'd with "Fixture '<id>' not found" (the id
+        # genuinely doesn't exist in the classic store), no matter how the
+        # save was triggered. session["stage"] is exactly the signal
+        # league_cup.py already stamps on the session at kickoff (kind:
+        # "friendly"/"league"/"cup") to distinguish this from a classic
+        # tournament fixture.
+        if session.get("stage") in ("friendly", "league", "cup"):
+            return league_cup.complete_from_board(
+                session["tournament_id"],
+                session["fixture_id"],
+                int(body.get("home_goals", 0)),
+                int(body.get("away_goals", 0)),
+                winner=body.get("winner"),
+                board_events=body.get("board_events"),
+                match_log=body.get("match_log"),
+                decided_by=body.get("decided_by"),
+                ft_home_goals=body.get("ft_home_goals"),
+                ft_away_goals=body.get("ft_away_goals"),
+                pens_home=body.get("pens_home"),
+                pens_away=body.get("pens_away"),
+                score_display=body.get("score_display"),
+            )
         return tournament.complete_from_board(
             session["tournament_id"],
             session["fixture_id"],
