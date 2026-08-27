@@ -184,7 +184,26 @@ function queueBroadcast(frame) {
 }
 
 async function saveFullTime(score, session) {
-  if (_savingFt || !getAdminToken() || !session) return;
+  // Bug fix — real user report: friendlies (and presumably every other
+  // match type) got permanently stuck at "saving..." for any admin logged
+  // in the normal way (username + password session), not just the raw
+  // SIM_ADMIN_TOKEN. api() already correctly sends BOTH X-Session-Token
+  // and X-Admin-Token on every request, and the backend's own
+  // _require_admin is session-first by design ("the raw token remains
+  // valid too, as the recovery path if it's lost") -- but this gate only
+  // ever checked getAdminToken(), so a session-only admin silently failed
+  // this check on literally every match, every time, with zero feedback.
+  const hasAdminAuth = Boolean(getAdminToken()) || isAdminUser();
+  if (_savingFt) return;
+  if (!hasAdminAuth || !session) {
+    // Surface it instead of hanging on "saving..." forever with no
+    // explanation -- if this ever fires again (a genuine non-admin viewer,
+    // or a fully logged-out tab), at least it's visible, not silent.
+    if (!hasAdminAuth) {
+      alert("Not signed in as admin on this tab, so the result can't be saved yet. Log in as admin, then click Resume/refresh to retry.");
+    }
+    return;
+  }
   _savingFt = true;
   const home = session.home;
   const away = session.away;
