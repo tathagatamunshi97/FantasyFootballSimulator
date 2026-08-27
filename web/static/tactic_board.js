@@ -1974,6 +1974,15 @@
      * event is live/building, the info panel otherwise.
      */
     function setMobileLive(isLive) {
+      // Friendlies (recordedHighlights): no pitch, ever -- commentary and
+      // the stat board for the whole match, full stop. Dropped the
+      // buildup/highlight pitch reveal (live on the host, recorded-clip
+      // replay on viewers) after live testing showed it wasn't working
+      // reliably. This is the single choke point every attempted show
+      // routes through (host's live triggers, viewer's clip playback), so
+      // it alone guarantees the pitch never appears, regardless of
+      // anything else going on in the buildup/highlight/recording state.
+      if (recordedHighlights && isLive) return;
       if (pitchWrapEl) pitchWrapEl.classList.toggle("tactic-pitch-wrap--live", isLive);
       if (mobileInfoEl) mobileInfoEl.hidden = isLive;
     }
