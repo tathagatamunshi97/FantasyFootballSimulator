@@ -139,7 +139,7 @@ function renderTournamentListTable() {
   const rows = tournaments
     .map(
       (t) => `<tr>
-        <td><a href="/tournament?id=${esc(t.id)}" target="_blank">${esc(t.name)}</a></td>
+        <td><a href="${t.format === "league_cup" ? `/league-cup?id=${esc(t.id)}` : `/tournament?id=${esc(t.id)}`}" target="_blank">${esc(t.name)}</a></td>
         <td><span class="badge ${esc(t.status)}">${esc(t.status)}</span></td>
         <td class="muted">${t.team_count ?? "—"}</td>
         <td class="muted">${t.updated_at ? new Date(t.updated_at).toLocaleString() : "—"}</td>
@@ -424,6 +424,14 @@ function renderMatchControls(t) {
 
 async function loadCurrent() {
   if (!currentId) return;
+  const summary = tournaments.find((t) => t.id === currentId);
+  if (summary?.format === "league_cup") {
+    currentTournament = null;
+    document.getElementById("controls").innerHTML =
+      `<p class="muted">League + Cup tournaments are created and run from the <a href="/league-cup?id=${esc(currentId)}" target="_blank">League + Cup page</a>, not this panel.</p>`;
+    document.getElementById("matchControls").innerHTML = "";
+    return;
+  }
   const data = await adminApi(`/api/tournament/${currentId}`);
   currentTournament = data.tournament;
   renderControls(currentTournament);
