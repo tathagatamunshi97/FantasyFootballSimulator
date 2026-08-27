@@ -1178,6 +1178,27 @@ class StatsStore:
 
     def ensure_one(self, raw: str) -> str:
         """Resolve name; fetch from Sofascore when missing from cache."""
+        # Same fix as fetch_and_cache/cached_stats_map -- a still-active
+        # legend (Ronaldo, Messi, Suárez, ...) already has a real cache
+        # entry under their exact name from ordinary Sofascore fetches (their
+        # actual current-form stats), so the plain cache lookup below would
+        # return that instead of ever reaching fetch_and_cache's own
+        # legend-priority branch. This endpoint (used by /api/lineup/assign
+        # and any cache_only=False caller) was the one path that fix missed.
+        try:
+            from manual_profiles import is_legend_name, lookup_manual_prime
+
+            if is_legend_name(raw):
+                legend_hit = lookup_manual_prime(raw, cache_only=True)
+                if legend_hit is not None:
+                    legend_name, legend_stats, _season_label = legend_hit
+                    cache_key = _cache_key_for_player(
+                        legend_name, legend_stats.get("team", ""), set(self._players.keys())
+                    )
+                    self._add_player_to_cache(cache_key, legend_stats)
+                    return cache_key
+        except Exception:
+            pass
         cached = self._find_cached_player_name(raw)
         if cached is not None:
             if cached not in self._players:
