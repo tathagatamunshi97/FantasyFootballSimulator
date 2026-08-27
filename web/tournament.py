@@ -1326,7 +1326,7 @@ def _board_side_payload(team: FantasyTeam, player_stats: dict[str, Any]) -> dict
             "finishing_threat": extended.get("finishing_threat"),
             "defensive_unit": extended.get("defensive_unit"),
             "xga_suppression": extended.get("xga_suppression"),
-            "chance_creation": extended.get("chance_creation"),
+            "chance_creation": (extended.get("units") or {}).get("chance_creation"),
             "possession_control": extended.get("possession_control"),
             "aerial_defence": extended.get("aerial_defence"),
             "attack": extended.get("attack") or (extended.get("units") or {}).get("attack"),

@@ -718,6 +718,43 @@
     const awayPins = buildPins(awayTeam, "away");
     const allPins = [...homePins, ...awayPins];
     const pinById = new Map(allPins.map((p) => [p.id, p]));
+    // DIAGNOSTIC (individual-contest-mechanics causality test) — shadow
+    // mode only, opt-in via opts.neutralizeIndividualDefense, off by
+    // default (undefined). When on, every contested dribble/pass replaces
+    // the DEFENDER's own tackles90/interceptions90/duels_won_pct with the
+    // population average across this match's 22 starters, leaving team
+    // ratings, formations, spellChanceP, xgPaceMul, and the attacker's own
+    // stats completely untouched — isolates whether the individual-quality
+    // terms in doDribble/doPass are what's producing the survival gap.
+    const neutralizeIndividualDefense = Boolean(opts.neutralizeIndividualDefense);
+    const popAvgDefenseStats = (() => {
+      const n = allPins.length || 1;
+      let tackles90 = 0,
+        interceptions90 = 0,
+        duels_won_pct = 0;
+      for (const p of allPins) {
+        tackles90 += p.stats.tackles90 || 0;
+        interceptions90 += p.stats.interceptions90 || 0;
+        duels_won_pct += p.stats.duels_won_pct || 0;
+      }
+      return { tackles90: tackles90 / n, interceptions90: interceptions90 / n, duels_won_pct: duels_won_pct / n };
+    })();
+    function defenderStat(pin, key) {
+      return neutralizeIndividualDefense ? popAvgDefenseStats[key] : pin.stats[key];
+    }
+    // DIAGNOSTIC (event-typed defensive model) — shadow mode only, opt-in
+    // via opts.eventTypedDefense, off by default. Splits "how hard is a
+    // pass to intercept" from "how hard is a dribble to win" by event
+    // type instead of reusing tackles90 as a generic defensive-quality
+    // proxy in both: pass interception drops the tackles90 term entirely
+    // (interceptions90 is the causally appropriate stat for reading a
+    // passing lane; a DM's tackle volume reflects how much defending his
+    // team does, not his ability to intercept a pass), and the dribble
+    // contest's tackle term becomes tackles90 scaled by duels_won_pct/100
+    // ("tackle_quality" — high volume + poor duel record shouldn't read
+    // as elite containment). No coefficient magnitudes changed, only
+    // which raw stat feeds them.
+    const eventTypedDefense = Boolean(opts.eventTypedDefense);
     // Mid-match substitutions pull from here — mutated in place by
     // substitutePlayer (outgoing player goes back on, incoming comes off).
     const benchBySide = {
@@ -761,35 +798,130 @@
 
     const unitHome = opts.unitHome || {};
     const unitAway = opts.unitAway || {};
+    // Fix — unit01 used to guess a field's scale from its own magnitude
+    // ("> 1.5 -> must be a legacy 0-100 score, divide by 100"). That
+    // silently wrecked team_ratings.py's genuinely-raw summative fields
+    // (attack/defence/midfield/finishing/midfield_defence -- team_ratings.py's
+    // own comment: "every unit is now summative... attack's sum runs ~4x
+    // its old top-3-average scale; midfield's sum runs ~5x its old
+    // plain-average scale"), which routinely sit at 2-3+ and got divided
+    // into near-zero noise (2.788 -> 0.028) instead of a genuine 0-1
+    // rating. Two explicit kinds now, chosen by the caller, not guessed:
+    // unit01 for fields that are ALREADY 0-1 composites (attacking_
+    // effectiveness, chance_creation, defensive_unit, goalkeeper, ...),
+    // rawUnit01 for the summative UnitRatings fields, rescaled by their
+    // own documented factor instead of a blind /100.
     function unit01(v, fallback = 0.55) {
       const n = Number(v);
       if (!Number.isFinite(n)) return fallback;
-      // Accept 0–1 composites or legacy 0–100 UI scores
-      return n > 1.5 ? clamp(n / 100, 0, 1) : clamp(n, 0, 1);
+      return clamp(n, 0, 1);
+    }
+    function rawUnit01(v, scale, fallback = 0.55) {
+      const n = Number(v);
+      if (!Number.isFinite(n)) return fallback;
+      return clamp(n / scale, 0, 1);
+    }
+    /** First present field wins; each spec is [field, "ratio"|"raw", scale?]. */
+    function pickUnitField(obj, specs, fallback) {
+      for (const [field, kind, scale] of specs) {
+        const v = obj ? obj[field] : undefined;
+        if (v != null && Number.isFinite(Number(v))) {
+          return kind === "raw" ? rawUnit01(v, scale) : unit01(v);
+        }
+      }
+      return fallback;
     }
     const pressHome = normPressIntensity(unit01(unitHome.pressing_intensity, 0.48));
     const pressAway = normPressIntensity(unit01(unitAway.pressing_intensity, 0.48));
     const resistHome = normPressResistance(unit01(unitHome.press_resistance, 0.14));
     const resistAway = normPressResistance(unit01(unitAway.press_resistance, 0.14));
+    // Fix — attacking_effectiveness is itself _clamp'd to a 0-1 ceiling
+    // inside team_ratings.py against a summative attack unit that
+    // routinely exceeds 1.0 for a competent side, so it saturates at
+    // exactly 1.0 for BOTH teams in any strong-attack matchup (confirmed:
+    // 2.504 vs 2.27 real attack units, but attacking_effectiveness = 1.0
+    // for both) -- erasing real attack differentiation between two good
+    // attacking sides. finishing_threat is built the same way and
+    // saturates identically. The raw `attack` composite is the only field
+    // here that isn't pre-clamped, so -- same move already made for
+    // unitFinHome/unitFinAway -- prefer it first, now that rawUnit01
+    // rescales it correctly instead of unit01's old blind /100.
     const unitAtkHome = softRating(
-      unit01(unitHome.attacking_effectiveness ?? unitHome.finishing_threat ?? unitHome.attack, teamAttackPower(homePins))
+      pickUnitField(
+        unitHome,
+        [
+          ["attack", "raw", 4],
+          ["attacking_effectiveness", "ratio"],
+          ["finishing_threat", "ratio"],
+        ],
+        teamAttackPower(homePins)
+      )
     );
     const unitAtkAway = softRating(
-      unit01(unitAway.attacking_effectiveness ?? unitAway.finishing_threat ?? unitAway.attack, teamAttackPower(awayPins))
+      pickUnitField(
+        unitAway,
+        [
+          ["attack", "raw", 4],
+          ["attacking_effectiveness", "ratio"],
+          ["finishing_threat", "ratio"],
+        ],
+        teamAttackPower(awayPins)
+      )
     );
     const unitDefHome = softRating(
-      unit01(unitHome.defensive_unit ?? unitHome.xga_suppression ?? unitHome.defence ?? unitHome.defense, teamDefendPower(homePins))
+      pickUnitField(
+        unitHome,
+        [
+          ["defensive_unit", "ratio"],
+          ["xga_suppression", "ratio"],
+          ["defence", "raw", 4],
+          ["defense", "raw", 4],
+        ],
+        teamDefendPower(homePins)
+      )
     );
     const unitDefAway = softRating(
-      unit01(unitAway.defensive_unit ?? unitAway.xga_suppression ?? unitAway.defence ?? unitAway.defense, teamDefendPower(awayPins))
+      pickUnitField(
+        unitAway,
+        [
+          ["defensive_unit", "ratio"],
+          ["xga_suppression", "ratio"],
+          ["defence", "raw", 4],
+          ["defense", "raw", 4],
+        ],
+        teamDefendPower(awayPins)
+      )
     );
+    // Fix -- chance_creation is a raw summative UnitRatings field (same
+    // family as attack/finishing/defence/midfield, routinely 2-3+ for a
+    // competent XI), not an already-0-1 composite. Reading it through
+    // unit01 (plain clamp(0,1)) silently saturated every real team to 1.0
+    // -- same class of bug already fixed for unitAtkHome/unitFinHome above.
+    // pickUnitField's "raw" kind rescales it by the same /4 reference those
+    // fields use before it ever reaches unit01/softRating.
     const unitCreateHome = softRating(
-      unit01(unitHome.chance_creation ?? unitHome.creation ?? unitHome.attacking_effectiveness, teamCreationPower(homePins)),
+      pickUnitField(
+        unitHome,
+        [
+          ["chance_creation", "raw", 4],
+          ["creation", "raw", 4],
+          ["attacking_effectiveness", "ratio"],
+        ],
+        teamCreationPower(homePins)
+      ),
       0.5,
       0.52
     );
     const unitCreateAway = softRating(
-      unit01(unitAway.chance_creation ?? unitAway.creation ?? unitAway.attacking_effectiveness, teamCreationPower(awayPins)),
+      pickUnitField(
+        unitAway,
+        [
+          ["chance_creation", "raw", 4],
+          ["creation", "raw", 4],
+          ["attacking_effectiveness", "ratio"],
+        ],
+        teamCreationPower(awayPins)
+      ),
       0.5,
       0.52
     );
@@ -883,8 +1015,22 @@
     const aerialHome = softRating(unit01(unitHome.aerial_defence, 0.45), 0.45, 0.5);
     const aerialAway = softRating(unit01(unitAway.aerial_defence, 0.45), 0.45, 0.5);
     // Raw finishing unit (0–1); drives day-form mixture, not soft-compressed attack
-    const unitFinHome = unit01(unitHome.finishing ?? unitHome.finishing_threat, 0.55);
-    const unitFinAway = unit01(unitAway.finishing ?? unitAway.finishing_threat, 0.55);
+    const unitFinHome = pickUnitField(
+      unitHome,
+      [
+        ["finishing", "raw", 4],
+        ["finishing_threat", "ratio"],
+      ],
+      0.55
+    );
+    const unitFinAway = pickUnitField(
+      unitAway,
+      [
+        ["finishing", "raw", 4],
+        ["finishing_threat", "ratio"],
+      ],
+      0.55
+    );
     // Individual goalkeeper quality (backend's confidence-weighted per-keeper rating).
     // Fallback 0.4 matches team_ratings.py's LEAGUE_GK_RATING baseline.
     const gkHome = unit01(unitHome.goalkeeper, 0.4);
@@ -902,8 +1048,8 @@
     // smaller terms (press_xg_suppression, trophy/silverware multiplier)
     // since this only needs to be a reasonable target, not a bit-for-bit
     // replica of the separate Python engine.
-    const unitMidHome = unit01(unitHome.midfield, 0.5);
-    const unitMidAway = unit01(unitAway.midfield, 0.5);
+    const unitMidHome = rawUnit01(unitHome.midfield, 5, 0.5);
+    const unitMidAway = rawUnit01(unitAway.midfield, 5, 0.5);
     const transitionRiskHome = unit01(unitHome.transition_risk, 0.3);
     const transitionRiskAway = unit01(unitAway.transition_risk, 0.3);
     function approxXgTarget(finishing, chanceCreation, oppDefence, oppMidDef, oppGk, oppTransRisk, ownMid, oppMid) {
@@ -1091,6 +1237,41 @@
 
     const pitch = container.querySelector("[data-tb-pitch]");
     const ballEl = container.querySelector("[data-tb-ball]");
+
+    // Perf fix (PIN_RENDER_SMOOTHNESS_PLAN.md) — pin/ball position used to be
+    // written as style.left/style.top percentage strings every single
+    // requestAnimationFrame tick, for up to 22 pins + the ball (+ debug dots).
+    // left/top are layout-triggering CSS properties, so the browser
+    // recomputed layout and repainted every one of those elements every
+    // frame, on the same JS main thread also running the full tactical
+    // engine each tick. transform is compositor-only (no layout/paint), the
+    // standard fix for exactly this class of DOM-animation jank -- but
+    // transform's own percentage values resolve against the ELEMENT's own
+    // box, not the container, so a straight left/top -> transform string
+    // swap would silently mis-position everything. Cache the pitch's actual
+    // pixel size (clientWidth/Height -- the padding-box, i.e. the same
+    // containing block percentage left/top already resolved against) and
+    // convert every render-space percentage to a pixel translate instead.
+    let pitchPxW = pitch.clientWidth || 1;
+    let pitchPxH = pitch.clientHeight || 1;
+    function refreshPitchSize() {
+      pitchPxW = pitch.clientWidth || pitchPxW || 1;
+      pitchPxH = pitch.clientHeight || pitchPxH || 1;
+    }
+    let pitchResizeObserver = null;
+    if (typeof ResizeObserver !== "undefined") {
+      pitchResizeObserver = new ResizeObserver(refreshPitchSize);
+      pitchResizeObserver.observe(pitch);
+    } else if (typeof global.addEventListener === "function") {
+      global.addEventListener("resize", refreshPitchSize);
+    }
+    /** Write a pin/ball/debug-dot's render-space (0-100) position as a
+     * compositor-only transform instead of layout-triggering left/top. */
+    function applyRenderPos(el, renderLeft, renderTop) {
+      const px = (renderLeft / 100) * pitchPxW;
+      const py = (renderTop / 100) * pitchPxH;
+      el.style.transform = `translate(${px}px, ${py}px) translate(-50%, -50%)`;
+    }
     const scoreEl = container.querySelector("[data-tb-score]");
     const clockEl = container.querySelector("[data-tb-clock]");
     const phaseEl = container.querySelector("[data-tb-phase]");
@@ -1147,8 +1328,7 @@
       el.title = `${pin.player} (${pin.slot}) — click to favor`;
       el.innerHTML = `<span class="pin-dot">${escHtml(pin.label)}</span>`;
       const rPos0 = toRenderXY(pin.rx, pin.ry);
-      el.style.left = `${rPos0.left}%`;
-      el.style.top = `${rPos0.top}%`;
+      applyRenderPos(el, rPos0.left, rPos0.top);
       el.addEventListener("click", (ev) => {
         ev.stopPropagation();
         if (viewerMode) return;
@@ -1164,8 +1344,7 @@
           "position:absolute;width:7px;height:7px;border-radius:50%;background:#e53935;border:1px solid rgba(255,255,255,0.85);" +
           "transform:translate(-50%,-50%);z-index:6;pointer-events:none;box-shadow:0 0 0 1px rgba(0,0,0,0.35)";
         const rDbg0 = toRenderXY(pin.left, pin.top);
-        dot.style.left = `${rDbg0.left}%`;
-        dot.style.top = `${rDbg0.top}%`;
+        applyRenderPos(dot, rDbg0.left, rDbg0.top);
         pitch.appendChild(dot);
         debugDotEls.set(pin.id, dot);
       }
@@ -1379,6 +1558,20 @@
      * that state at a time.
      */
     let pendingSetPiece = null;
+    /**
+     * Engine fix — a corner used to cue attacking/defensive box runs
+     * (cueBoxRuns/cueDefensiveBoxCover, which only set tx/ty targets — the
+     * actual movement happens gradually over subsequent ticks via
+     * applyPinMotion) and then deliver the cross in the SAME synchronous
+     * call, so the aerial-duel contest inside doPass always resolved using
+     * whatever positions the runners happened to be in the instant the
+     * corner was awarded — essentially their pre-run positions, since
+     * nothing had moved yet. { taker, attackingSide, defSide, boxMode, at },
+     * drained by flushDeferredRestarts exactly like pendingSetPiece above,
+     * giving runners real (match-clock, speed-scaled) time to actually
+     * reach their cued positions before the ball comes in.
+     */
+    let pendingCornerDelivery = null;
     /** Side that last touched the ball — feeds corner-vs-goal-kick attribution. */
     let lastTouchSide = null;
     /** Set-piece Phase 0/1 instrumentation — see evaluateOutOfBounds/dispatchBallTarget. */
@@ -1475,6 +1668,11 @@
 
     /** Event log for post-match analysis (goals, offsides, broken passes, etc.). */
     let matchLog = emptyMatchLog();
+    // DIAGNOSTIC (coinflip-vs-lopsided-batch investigation) — full
+    // spellChanceP/xgPaceMul probability chain, one entry per call, purely
+    // observational (no rng() draws, no effect on the returned values).
+    let paceLog = [];
+    let spellIdCounter = 0;
 
     function emptyMatchLog() {
       const blank = () => ({
@@ -1533,6 +1731,15 @@
       if (extra.distance != null && Number.isFinite(Number(extra.distance))) entry.distance = Number(extra.distance);
       if (extra.big_chance != null) entry.big_chance = Boolean(extra.big_chance);
       if (extra.in_box != null) entry.in_box = Boolean(extra.in_box);
+      // DIAGNOSTIC (coinflip-vs-lopsided-batch investigation) — shot supply
+      // mechanism + time-since-possession-won, read off doShot below.
+      if (extra.source) entry.source = extra.source;
+      if (extra.buildup != null && Number.isFinite(Number(extra.buildup))) entry.buildup = Number(extra.buildup);
+      if (extra.source_path) entry.source_path = extra.source_path;
+      if (extra.spell_id != null) entry.spell_id = extra.spell_id;
+      if (extra.player_xg90 != null) entry.player_xg90 = extra.player_xg90;
+      if (extra.player_dribbles90 != null) entry.player_dribbles90 = extra.player_dribbles90;
+      if (extra.player_xa90 != null) entry.player_xa90 = extra.player_xa90;
       matchLog.events.push(entry);
       if (mobileBroadcast && isMobileKeyEvent(type, entry.detail)) triggerMobileHighlight();
       if (type === "goal") {
@@ -1787,7 +1994,7 @@
       // expected pace doesn't get full-quality looks on top of also getting
       // more of them, instead of frequency alone carrying the entire
       // correction.
-      xg *= lerp(1, xgPaceMul(carrier.side), 0.45);
+      xg *= lerp(1, xgPaceMul(carrier.side, "xgValue"), 0.45);
       if (isMaestroPin(carrier) && volMul < 0.98) {
         xg *= clamp(1.06 + (1 - volMul) * 0.14, 1, 1.2);
       }
@@ -2074,8 +2281,7 @@
         ball.top = lerp(ballFrom.top, ballTo.top, u);
       }
       const rTween = toRenderXY(ball.left, ball.top);
-      ballEl.style.left = `${rTween.left}%`;
-      ballEl.style.top = `${rTween.top}%`;
+      applyRenderPos(ballEl, rTween.left, rTween.top);
       if (ballTween >= 1) {
         ballCtrl = null;
         return false;
@@ -2091,8 +2297,7 @@
       ball.left = ballTo.left;
       ball.top = ballTo.top;
       const rResolve = toRenderXY(ball.left, ball.top);
-      ballEl.style.left = `${rResolve.left}%`;
-      ballEl.style.top = `${rResolve.top}%`;
+      applyRenderPos(ballEl, rResolve.left, rResolve.top);
       ballTween = 1;
       ballCtrl = null;
 
@@ -2126,7 +2331,7 @@
                 giveBall(contest.pin, `${contest.pin.short} pounces on the loose ball!`);
                 if (inPenaltyBox(contest.pin) || nearPenaltyBox(contest.pin)) {
                   cornerStats.cornerShots++;
-                  doShot(contest.pin, false);
+                  doShot(contest.pin, false, { source: "set_piece" });
                 }
                 actionTimer = 0.5;
                 return;
@@ -2241,6 +2446,9 @@
             player_short: from.short || shortName(from.player),
             side: from.side,
             toId: to.id,
+            // DIAGNOSTIC (coinflip-vs-lopsided-batch investigation) — lets
+            // doShot classify each shot's immediate supply mechanism.
+            kind: flight.passKind || null,
           };
         }
         if (flight.lockRun) {
@@ -2481,6 +2689,12 @@
         }
         return;
       }
+      if (pendingCornerDelivery && matchMinute >= pendingCornerDelivery.at && ballTween >= 1 && !ballFlight) {
+        const cd = pendingCornerDelivery;
+        pendingCornerDelivery = null;
+        deliverCorner(cd.taker, cd.attackingSide, cd.defSide, cd.boxMode);
+        return;
+      }
     }
 
     function pinsOf(side) {
@@ -2641,7 +2855,20 @@
           total *= (1 - exposure.wide * 0.4); // Up to 40% reduction in wide zones
         }
       }
-      return total;
+      // Engine fix — user report: a side's resting defensive LINE height
+      // already scales with its pressing_intensity rating (teamBlockLines'
+      // lineQuality), but nothing about actual on-the-ball pressure did --
+      // everything above this point is built purely from individual
+      // defenders' own stats/proximity/role, with zero team-level pressing
+      // signal anywhere in it. That's the exact disconnect reported: a high
+      // line with pressing that doesn't actually intensify to match it. A
+      // team resting at the normalized-neutral 0.5 press rating is
+      // unaffected (1.0x, so this doesn't silently rebalance every match
+      // that never touched pressing_intensity); a genuinely high-pressing
+      // side now closes down noticeably harder everywhere, not just
+      // structurally higher up the pitch.
+      const teamPressMul = clamp(0.7 + sidePress(oppOf(side)) * 0.6, 0.7, 1.3);
+      return total * teamPressMul;
     }
 
     /**
@@ -3013,9 +3240,29 @@
       return 1;
     }
 
-    /** ST/W in the final third should progress, dribble, or shoot — not recycle back. */
+    /**
+     * ST/W in the final third should progress, dribble, or shoot — not
+     * recycle back. Every backPassTarget recycle branch in the file gates
+     * on this one predicate before defaulting to a backward pass.
+     *
+     * Engine fix — the original role+depth check had no openness signal at
+     * all: a carrier of any other role, or one who hadn't yet crossed the
+     * 66%-depth line, could have genuinely empty space and zero defenders
+     * between him and goal and still fall straight through to a sterile
+     * backPassTarget() recycle, decided purely by role/depth/RNG. This is
+     * the exact "looks free on goal, then suddenly back-passes" bug already
+     * named and partially fixed for one case (see fbDeepInBox above) — same
+     * class, still open everywhere else. Reuses scoreCarry's own openness
+     * read (built from pressureAt, the same real positional-pressure signal
+     * evaluateArrivals already trusts to reward open space) instead of
+     * duplicating a second isolation check: 0.32 requires both real
+     * openness AND meaningful field position (scoreCarry's depth term), not
+     * just technically nobody within an arbitrary radius in his own half.
+     */
     function forwardInFinalThird(carrier) {
-      return Boolean(carrier && isFwdRole(carrier.role) && possessionDepth(carrier) >= 0.66);
+      if (!carrier) return false;
+      if (isFwdRole(carrier.role) && possessionDepth(carrier) >= 0.66) return true;
+      return scoreCarry(carrier, spell?.stage) >= 0.32;
     }
 
     // Engine fix — an overlapping FB who actually reaches the box/edge-of-box
@@ -6921,16 +7168,80 @@
     // toward their own goal (not the whole side -- own attackers shouldn't
     // retreat for a regular open-play cross the way retreatDefensiveShape
     // pulls everyone back for a penalty/dangerous free kick).
-    function cueDefensiveBoxCover(defSide) {
-      for (const pin of pinsOf(defSide)) {
-        if (pin.role !== "CB" && pin.role !== "FB" && pin.role !== "DM") continue;
-        const depthWant = Math.min(pin.baseDepth, 0.12);
-        const pct = toPitchPct(pin.side, pin.baseX, depthWant);
-        pin.tx = pct.left;
-        pin.ty = pct.top;
+    //
+    // Engine fix — a corner is a different situation from a regular cross,
+    // and shared this same narrow CB/FB/DM scope by default, which never
+    // visibly mattered while the cross was delivered in the same tick the
+    // corner was won (nothing had time to move either way). Now that
+    // resolveCornerDelivery gives runners real time to arrive
+    // (pendingCornerDelivery), the gap is visible: a real corner-defending
+    // side commits almost its entire outfield back, keeping only a single
+    // out-ball target upfield for the counter -- not just its back four
+    // plus a holding mid, the way a regular open-play cross correctly
+    // leaves the rest of the team forward. `fullCommit` (corners only)
+    // widens the pulled-back set to CB/FB/DM/CM/AM/W, excluding a single
+    // designated striker (or, if none, the single most advanced pin) as
+    // the kept-forward out-ball option.
+    function cueDefensiveBoxCover(defSide, fullCommit, attackingSide) {
+      const pins = pinsOf(defSide);
+      let keepForwardId = null;
+      if (fullCommit) {
+        const strikers = pins.filter((p) => p.role === "ST");
+        const outlet =
+          strikers[0] ||
+          [...pins].filter((p) => p.role !== "GK").sort((a, b) => b.baseDepth - a.baseDepth)[0];
+        keepForwardId = outlet ? outlet.id : null;
+      }
+      const eligible = pins.filter((pin) => {
+        if (pin.id === keepForwardId) return false;
+        return fullCommit
+          ? pin.role === "CB" || pin.role === "FB" || pin.role === "DM" || pin.role === "CM" || pin.role === "AM" || pin.role === "W"
+          : pin.role === "CB" || pin.role === "FB" || pin.role === "DM";
+      });
+
+      // Engine fix — corner man-marking. Every defender packed into the box
+      // (fullCommit) was still only holding a generic depth-clamped
+      // position, not assigned to any specific attacker — every runner
+      // cueBoxRuns sent into the box was, in marking terms, completely
+      // free, regardless of how many bodies came back. Pairs the best
+      // aerial defenders onto the most dangerous attacking runners (ranked
+      // by xg90, the same signal cueBoxRuns' own attacking side already
+      // trusts for danger); this doesn't prevent a genuinely elite attacker
+      // beating his marker — that's still a real, earned outcome via the
+      // existing cross aerial-duel math in doPass — it just means someone
+      // is actually assigned to contest it. Any defender left over once
+      // every runner has a marker (defenders usually outnumber the 3-4
+      // runners cueBoxRuns sends forward) holds the original zonal/depth
+      // spot instead. Caller must invoke this AFTER cueBoxRuns has set the
+      // attacking runners' tx/ty (their actual run targets, not their
+      // pre-corner position) — resolveCornerDelivery does so.
+      const attackers = fullCommit && attackingSide
+        ? pinsOf(attackingSide).filter((p) => p.role === "ST" || p.role === "AM" || p.role === "W")
+        : [];
+      const rankedAttackers = [...attackers].sort((a, b) => (b.stats.xg90 || 0) - (a.stats.xg90 || 0));
+      const rankedDefenders = fullCommit
+        ? [...eligible].sort((a, b) => (b.stats.aerials_won90 || 0) - (a.stats.aerials_won90 || 0))
+        : eligible;
+
+      rankedDefenders.forEach((pin, i) => {
+        const mark = rankedAttackers[i];
+        if (mark) {
+          // Stand goal-side of where the attacker is actually running to,
+          // not their pre-run position -- a small absolute nudge toward the
+          // defender's own goal line (home's own goal sits near top=96,
+          // away's near top=4) rather than a coordinate-frame conversion.
+          const goalSideSign = pin.side === "home" ? 1 : -1;
+          pin.tx = clamp((mark.tx ?? mark.left) + (rng() - 0.5) * 3, 2, 98);
+          pin.ty = clamp((mark.ty ?? mark.top) + goalSideSign * 2, 2, 98);
+        } else {
+          const depthWant = Math.min(pin.baseDepth, 0.12);
+          const pct = toPitchPct(pin.side, pin.baseX, depthWant);
+          pin.tx = pct.left;
+          pin.ty = pct.top;
+        }
         pin.lockUntil = matchMinute + 1.15;
         pin._running = true;
-      }
+      });
     }
 
     function gkOf(side) {
@@ -7123,7 +7434,14 @@
       // composite defensive/pressing scores (sideDefend/sidePress) already
       // driving individual duels elsewhere, so a team's line height and
       // its actual defending ability stay consistent with each other.
-      const lineQuality = clamp((sideDefend(side) - 0.56) * 0.5 + (sidePress(side) - 0.48) * 0.35, -0.09, 0.09);
+      //
+      // Engine fix — user report: a side rated well on defend/press was
+      // resting its line up around the midfield stripe, well beyond what
+      // the reactive pressure/run-threat pulldown below could justify on
+      // its own. Trimmed to ~60% of its original swing (clamp ±0.09 -> ±0.055)
+      // -- still a real, visible reward for defensive/pressing quality, just
+      // not one that alone can push a good side's resting line that high.
+      const lineQuality = clamp((sideDefend(side) - 0.56) * 0.3 + (sidePress(side) - 0.48) * 0.21, -0.055, 0.055);
       let defLine;
       let midLine;
       let atkLine;
@@ -9462,8 +9780,7 @@
         const el = pinEls.get(pin.id);
         if (el) {
           const rPos = toRenderXY(pin.rx, pin.ry);
-          el.style.left = `${rPos.left}%`;
-          el.style.top = `${rPos.top}%`;
+          applyRenderPos(el, rPos.left, rPos.top);
           el.classList.toggle("has-ball", pin.id === carrierId);
           el.classList.toggle(
             "pressing",
@@ -9474,8 +9791,7 @@
         const dbg = debugDotEls.get(pin.id);
         if (dbg) {
           const rDbg = toRenderXY(pin.left, pin.top);
-          dbg.style.left = `${rDbg.left}%`;
-          dbg.style.top = `${rDbg.top}%`;
+          applyRenderPos(dbg, rDbg.left, rDbg.top);
         }
       }
     }
@@ -9496,14 +9812,12 @@
       const el = pinEls.get(pin.id);
       if (el) {
         const rSnap = toRenderXY(L, T);
-        el.style.left = `${rSnap.left}%`;
-        el.style.top = `${rSnap.top}%`;
+        applyRenderPos(el, rSnap.left, rSnap.top);
       }
       const dbg = debugDotEls.get(pin.id);
       if (dbg) {
         const rDbgSnap = toRenderXY(L, T);
-        dbg.style.left = `${rDbgSnap.left}%`;
-        dbg.style.top = `${rDbgSnap.top}%`;
+        applyRenderPos(dbg, rDbgSnap.left, rDbgSnap.top);
       }
     }
 
@@ -9518,8 +9832,7 @@
       ball.left = smoothDamp(ball.left, wantL, 0.38);
       ball.top = smoothDamp(ball.top, wantT, 0.38);
       const rBall = toRenderXY(ball.left, ball.top);
-      ballEl.style.left = `${rBall.left}%`;
-      ballEl.style.top = `${rBall.top}%`;
+      applyRenderPos(ballEl, rBall.left, rBall.top);
     }
 
     function giveBall(pin, comment) {
@@ -9585,13 +9898,32 @@
      * fewer additional chances AND slightly tougher ones once it does get
      * one, instead of frequency alone trying to carry the whole correction.
      */
-    function xgPaceMul(side) {
+    function xgPaceMul(side, _src) {
       const target = side === "home" ? targetXgHome : targetXgAway;
-      if (!Number.isFinite(target) || target <= 0.05) return 1;
+      if (!Number.isFinite(target) || target <= 0.05) {
+        // DIAGNOSTIC (coinflip-vs-lopsided-batch investigation)
+        paceLog.push({ minute: Math.round(matchMinute * 10) / 10, side, src: _src || "?", target, liveXg: liveXg[side], expectedSoFar: null, relGap: null, mul: 1 });
+        return 1;
+      }
       const progress = clamp(matchMinute / 90, 0.12, 1);
       const expectedSoFar = target * progress;
       const relGap = (liveXg[side] - expectedSoFar) / Math.max(target, 0.6);
-      return clamp(1 - relGap * 1.1, 0.3, 1.7);
+      const mul = clamp(1 - relGap * 1.1, 0.3, 1.7);
+      // DIAGNOSTIC (coinflip-vs-lopsided-batch investigation) — every call,
+      // tagged by caller (spellChanceP = the shot-attempt gate, xgValue =
+      // estimateChanceXg's per-shot magnitude blend), so the trajectory can
+      // be reconstructed and the two effects told apart.
+      paceLog.push({
+        minute: Math.round(matchMinute * 10) / 10,
+        side,
+        src: _src || "?",
+        target: Math.round(target * 1000) / 1000,
+        liveXg: Math.round(liveXg[side] * 1000) / 1000,
+        expectedSoFar: Math.round(expectedSoFar * 1000) / 1000,
+        relGap: Math.round(relGap * 1000) / 1000,
+        mul: Math.round(mul * 1000) / 1000,
+      });
+      return mul;
     }
 
     /** Probability this spell produces a shot attempt (~most spells; target ~10–14 shots / match). */
@@ -9612,22 +9944,37 @@
       const leadProtectMul = (leadProtectUntil[side] || 0) > matchMinute ? 0.72 : 1;
       // Knockout-only home push (chance creation) — see KNOCKOUT_HOME_PUSH.
       const homePushMul = isKnockout && !isFinalRound && side === "home" ? 1 + KNOCKOUT_HOME_PUSH : 1;
-      return clamp(
-        (0.42 + create * 0.24 + atk * 0.18 - def * 0.03 + (rng() - 0.5) * 0.05) *
-          vol *
-          lerp(1, supp, 0.45) *
-          xgPaceMul(side) *
-          leadProtectMul *
-          homePushMul,
-        0.32,
-        0.72
-      );
+      // DIAGNOSTIC (coinflip-vs-lopsided-batch investigation) — same rng()
+      // draw, same order, same formula; just captured into a local before
+      // the clamp/return so it can be logged without changing the result.
+      const noise = (rng() - 0.5) * 0.05;
+      const baseTerm = 0.42 + create * 0.24 + atk * 0.18 - def * 0.03 + noise;
+      const paceMul = xgPaceMul(side, "spellChanceP");
+      const finalProb = clamp(baseTerm * vol * lerp(1, supp, 0.45) * paceMul * leadProtectMul * homePushMul, 0.32, 0.72);
+      paceLog.push({
+        minute: Math.round(matchMinute * 10) / 10,
+        side,
+        src: "spellChanceP_final",
+        create: Math.round(create * 1000) / 1000,
+        atk: Math.round(atk * 1000) / 1000,
+        def: Math.round(def * 1000) / 1000,
+        baseTerm: Math.round(baseTerm * 1000) / 1000,
+        vol: Math.round(vol * 1000) / 1000,
+        supp: Math.round(supp * 1000) / 1000,
+        paceMul: Math.round(paceMul * 1000) / 1000,
+        leadProtectMul,
+        homePushMul,
+        finalProb: Math.round(finalProb * 1000) / 1000,
+      });
+      return finalProb;
     }
 
     function beginSpell(side, reason) {
       const dur = drawSpellDuration(side);
       const willChance = rng() < spellChanceP(side);
       spell = {
+        // DIAGNOSTIC (coinflip-vs-lopsided-batch investigation)
+        id: ++spellIdCounter,
         side,
         stage: "BUILD_UP",
         start: matchMinute,
@@ -9688,6 +10035,8 @@
     function archiveSpell(outcome) {
       if (!spell) return;
       matchLog.spells.push({
+        // DIAGNOSTIC (coinflip-vs-lopsided-batch investigation)
+        spell_id: spell.id,
         side: spell.side,
         start: Math.floor(spell.start),
         end: Math.floor(matchMinute),
@@ -10129,30 +10478,70 @@
         // Lane control bonus: DMs screening the passing lane significantly increase interception probability
         const laneControl = computeLaneControl(def, from, to);
 
+        // DIAGNOSTIC (individual-contest-mechanics causality test) — real
+        // stats unless neutralizeIndividualDefense is on (see its
+        // declaration near allPins), in which case the defender's own
+        // interceptions90/tackles90 are replaced by the match's
+        // population average. Team/context terms untouched.
+        const defInterceptions90 = defenderStat(def, "interceptions90");
+        const defTackles90 = defenderStat(def, "tackles90");
+        const passDefInterceptTerm = defInterceptions90 * 0.05;
+        const passDefTackleTerm = eventTypedDefense ? 0 : defTackles90 * 0.03;
+        const passPressureTerm = Math.min(0.1, Math.max(0, fieldPressure - resist * 1.4) * 0.09);
+        const passAttackerTerm =
+          -from.stats.pass_pct * 0.0015 -
+          from.stats.key_passes90 * 0.008 -
+          (isClinicalCreator(from) ? 0.015 : 0) +
+          (from.stats.possession_lost90 || 0) * 0.0015;
+        const passContextTerm = longPen + throughPen + lanePen + laneControl + anticipationBonus;
         const pIntercept =
           0.035 +
-          def.stats.interceptions90 * 0.05 +
-          def.stats.tackles90 * 0.03 +
-          Math.min(0.1, Math.max(0, fieldPressure - resist * 1.4) * 0.09) +
+          passDefInterceptTerm +
+          passDefTackleTerm +
+          passPressureTerm +
           defU * 0.07 -
           resist * 0.05 -
           possQ * 0.055 -
-          atkU * 0.04 -
-          from.stats.pass_pct * 0.0015 -
-          from.stats.key_passes90 * 0.008 -
-          // A creator who genuinely outscores their own xA in assists
-          // threads passes better than pass_pct/key_passes90 alone predict.
-          (isClinicalCreator(from) ? 0.015 : 0) +
-          // Generic ball-security signal — a passer who loses possession a
-          // lot in real matches is a bit sloppier even before live pressure.
-          (from.stats.possession_lost90 || 0) * 0.0015 +
-          longPen +
-          throughPen +
-          lanePen +
-          laneControl +
-          anticipationBonus;
+          atkU * 0.04 +
+          passAttackerTerm +
+          passContextTerm;
         const cap = passKind === "long" ? 0.48 : passKind === "through" ? 0.4 : 0.3;
-        if (rng() < clamp(pIntercept, 0.025, cap)) {
+        const interceptRoll = rng();
+        const intercepted = interceptRoll < clamp(pIntercept, 0.025, cap);
+        // DIAGNOSTIC (coinflip-vs-lopsided-batch investigation) — every
+        // contested pass (a real defender was in range to threaten it),
+        // tagged to its spell.
+        paceLog.push({
+          minute: Math.round(matchMinute * 10) / 10,
+          side: from.side,
+          src: "pass_contest",
+          spell_id: spell ? spell.id : null,
+          will_attempt: Boolean(spell && spell.willAttemptChance),
+          kind: passKind,
+          attacker: from.player,
+          defender: def.player,
+          distance: Math.round(dist(from, to) * 10) / 10,
+          interceptP: Math.round(clamp(pIntercept, 0.025, cap) * 1000) / 1000,
+          success: !intercepted,
+          atk_pass_pct: from.stats.pass_pct,
+          def_interceptions90: defInterceptions90,
+          def_tackles90: defTackles90,
+          neutralized: neutralizeIndividualDefense,
+          term_def_intercept: Math.round(passDefInterceptTerm * 1000) / 1000,
+          term_def_tackle: Math.round(passDefTackleTerm * 1000) / 1000,
+          term_pressure: Math.round(passPressureTerm * 1000) / 1000,
+          term_attacker: Math.round(passAttackerTerm * 1000) / 1000,
+          term_context: Math.round(passContextTerm * 1000) / 1000,
+          term_teamDefU: Math.round(defU * 0.07 * 1000) / 1000,
+          term_teamAtkU: Math.round(-atkU * 0.04 * 1000) / 1000,
+          term_teamResist: Math.round(-resist * 0.05 * 1000) / 1000,
+          term_teamPoss: Math.round(-possQ * 0.055 * 1000) / 1000,
+          team_create: Math.round(sideCreate(from.side) * 1000) / 1000,
+          team_atk: Math.round(atkU * 1000) / 1000,
+          team_def_opp: Math.round(defU * 1000) / 1000,
+          ad_delta: Math.round(attackDefendDelta(from.side) * 1000) / 1000,
+        });
+        if (intercepted) {
           outcome = "intercept";
           interceptor = def;
           comment = `${def.short} intercepts`;
@@ -10368,6 +10757,9 @@
         lockTx: tx,
         lockTy: ty,
         thenShot: Boolean(spell?.awaitingShot) && (passKind === "cross" ? outcome === "pass" : true),
+        // DIAGNOSTIC (coinflip-vs-lopsided-batch investigation) — carried
+        // onto lastPasser so doShot can classify each shot's supply type.
+        passKind,
       };
       if (outcome !== "pass") clearLastPasser();
       if (spell?.awaitingShot && outcome !== "pass") {
@@ -10483,20 +10875,37 @@
       // OWN stats up, it doesn't touch the defender's side of the contest
       // or any non-attacking role's baseline.
       const dribbleRoleMult = { ST: 1.3, W: 1.35, AM: 1.25, CM: 1.15 }[carrier.role] || 1.0;
+      // DIAGNOSTIC (individual-contest-mechanics causality test) — real
+      // stats unless neutralizeIndividualDefense is on, in which case the
+      // defender's own tackles90/interceptions90/duels_won_pct are
+      // replaced by the match's population average. Everything else
+      // (team_atk, defU, resist, pressure, attacker's own stats) unchanged.
+      const defTackles90 = threat ? defenderStat(threat.pin, "tackles90") : 0;
+      const defInterceptions90 = threat ? defenderStat(threat.pin, "interceptions90") : 0;
+      const defDuelsWonPct = threat ? defenderStat(threat.pin, "duels_won_pct") : 50;
+      const dribAttackTerm =
+        carrier.stats.dribbles90 * 0.07 * dribbleRoleMult + carrier.stats.dribble_pct * 0.0035 * dribbleRoleMult;
+      const dribDefTackleTerm = threat
+        ? (eventTypedDefense ? defTackles90 * (defDuelsWonPct / 100) : defTackles90) * 0.07 * defCommitmentMult
+        : 0;
+      const dribDefInterceptTerm = threat ? defInterceptions90 * 0.02 * defCommitmentMult : 0;
+      const dribAttackerDuelTerm = (carrier.stats.duels_won_pct - 50) * 0.003;
+      const dribDefenderDuelTerm = threat ? (defDuelsWonPct - 50) * 0.0041 : 0;
+      const dribContextPen =
+        -Math.min(streak, 4) * 0.11 - (freshDefender ? 0.16 : 0) - (backToGoal ? 0.12 : 0) - (scrambling ? 0.07 : 0);
       const successP =
         0.28 +
-        carrier.stats.dribbles90 * 0.07 * dribbleRoleMult +
-        carrier.stats.dribble_pct * 0.0035 * dribbleRoleMult +
+        dribAttackTerm +
         resist * 0.16 +
         atkU * 0.06 -
         Math.max(0, fieldPressure - resist * 1.6) * 0.16 -
         defU * 0.08 -
-        (threat ? threat.pin.stats.tackles90 * 0.07 * defCommitmentMult : 0) -
-        (threat ? threat.pin.stats.interceptions90 * 0.02 * defCommitmentMult : 0) +
+        dribDefTackleTerm -
+        dribDefInterceptTerm +
         // General physical-duel modifier, centered on the 50 neutral
         // fallback -- additive to dribble_pct (attack-specific) and
         // tackles90 (defence-specific) above, not a replacement for either.
-        (carrier.stats.duels_won_pct - 50) * 0.003 -
+        dribAttackerDuelTerm -
         // Engine addition — the defender's OWN duel-winning ability is what
         // actually stops a dribbler (a physical, in-the-moment contest),
         // distinct from interceptions90 above (reading/cutting a pass,
@@ -10504,11 +10913,8 @@
         // 0.0041 solved so the pool's best pure tackler (duels_won_pct)
         // vs its most complete dribbler lands at a genuine 50/50, not
         // lopsided toward the attacker the way the shared 0.003 left it.
-        (threat ? (threat.pin.stats.duels_won_pct - 50) * 0.0041 : 0) -
-        Math.min(streak, 4) * 0.11 -
-        (freshDefender ? 0.16 : 0) -
-        (backToGoal ? 0.12 : 0) -
-        (scrambling ? 0.07 : 0) +
+        dribDefenderDuelTerm +
+        dribContextPen +
         (rng() - 0.5) * 0.08;
       // Knockout-only home push (defending) — the home side is tougher to
       // dribble past. See KNOCKOUT_HOME_PUSH.
@@ -10516,6 +10922,38 @@
       const pushedSuccessP = isKnockout && !isFinalRound && defenderIsHome ? successP * (1 - KNOCKOUT_HOME_PUSH) : successP;
 
       const won = rng() < clamp(pushedSuccessP, 0.1, 0.72);
+      // DIAGNOSTIC (coinflip-vs-lopsided-batch investigation) — every
+      // contested dribble, tagged to its spell so it can be filtered to
+      // committed-spell contests specifically.
+      paceLog.push({
+        minute: Math.round(matchMinute * 10) / 10,
+        side: carrier.side,
+        src: "dribble_contest",
+        spell_id: spell ? spell.id : null,
+        will_attempt: Boolean(spell && spell.willAttemptChance),
+        attacker: carrier.player,
+        defender: threat.pin.player,
+        successP: Math.round(clamp(pushedSuccessP, 0.1, 0.72) * 1000) / 1000,
+        success: won,
+        atk_dribbles90: carrier.stats.dribbles90,
+        atk_dribble_pct: carrier.stats.dribble_pct,
+        def_tackles90: defTackles90,
+        def_interceptions90: defInterceptions90,
+        def_duels_won_pct: defDuelsWonPct,
+        neutralized: neutralizeIndividualDefense,
+        term_atk: Math.round(dribAttackTerm * 1000) / 1000,
+        term_def_tackle: Math.round(-dribDefTackleTerm * 1000) / 1000,
+        term_def_intercept: Math.round(-dribDefInterceptTerm * 1000) / 1000,
+        term_atk_duel: Math.round(dribAttackerDuelTerm * 1000) / 1000,
+        term_def_duel: Math.round(-dribDefenderDuelTerm * 1000) / 1000,
+        term_context: Math.round(dribContextPen * 1000) / 1000,
+        term_teamAtkU: Math.round(atkU * 0.06 * 1000) / 1000,
+        term_teamDefU: Math.round(-defU * 0.08 * 1000) / 1000,
+        team_create: Math.round(sideCreate(carrier.side) * 1000) / 1000,
+        team_atk: Math.round(atkU * 1000) / 1000,
+        team_def_opp: Math.round(defU * 1000) / 1000,
+        ad_delta: Math.round(attackDefendDelta(carrier.side) * 1000) / 1000,
+      });
       if (threat) carrier._lastDribbleOpp = threat.pin.id;
       const attackSign = carrier.side === "home" ? -1 : 1;
       // Engine fix — a genuine contested take-on (real defender in range)
@@ -11237,7 +11675,7 @@
       const shootP = clamp(0.12 + centrality * 0.55 + fkTechniqueProxy(taker) * 0.35, 0.08, 0.78);
       if (rng() < shootP) {
         fkStats.directShots++;
-        doShot(taker, false, { wallBoost: 0.14 + centrality * 0.08 });
+        doShot(taker, false, { wallBoost: 0.14 + centrality * 0.08, source: "set_piece" });
       } else {
         fkStats.directCrosses++;
         const mode = rng() < 0.5 ? "near" : "far";
@@ -11586,7 +12024,6 @@
       snapPinPose(taker, flagSpot.left, flagSpot.top);
       taker.lockUntil = matchMinute + 1.6;
 
-      cueDefensiveBoxCover(defSide);
       const keeper = gkOf(defSide);
       if (keeper) {
         const keeperSpot = toPitchPct(defSide, 0.5, 0.02);
@@ -11632,9 +12069,24 @@
      * bail into a standard delivery without duplicating the CB-join/cross
      * logic. Tags the flight via pendingCornerContext so the shared
      * doPass flight-resolution code can run the second-ball contest.
+     *
+     * Engine fix — cueBoxRuns/the joining-CB run only set tx/ty targets;
+     * actually reaching them takes real time via applyPinMotion over
+     * subsequent ticks (cueBoxRuns itself grants runners up to
+     * matchMinute+1.15 before shape logic reclaims them). Cue the runs
+     * here, immediately (so they start moving on the very tick the corner
+     * is awarded), but DEFER the actual delivery (say/giveBall/cross) via
+     * pendingCornerDelivery + flushDeferredRestarts, instead of calling
+     * doPass in the same synchronous breath -- so the aerial-duel contest
+     * inside doPass resolves against genuinely-arrived (or at least well-
+     * progressed) positions, not wherever everyone happened to be standing
+     * the instant the corner was won.
      */
     function resolveCornerDelivery(taker, attackingSide, defSide, boxMode) {
       cueBoxRuns(taker, boxMode);
+      // Man-marking assignment needs the attacking runners' tx/ty already
+      // set by cueBoxRuns above -- see cueDefensiveBoxCover's own comment.
+      cueDefensiveBoxCover(defSide, true, attackingSide);
       // A real detail: a CB joins the attack for a corner, unlike any
       // other cross -- cueBoxRuns deliberately doesn't include CB since
       // that would be wrong for open-play crosses. Only one, not both:
@@ -11654,6 +12106,11 @@
       giveBall(taker, null);
       freeKickUntil = matchMinute + 2;
 
+      pendingCornerDelivery = { taker, attackingSide, defSide, boxMode, at: matchMinute + 0.9 };
+    }
+
+    /** Drained by flushDeferredRestarts once runners have had real time to arrive. */
+    function deliverCorner(taker, attackingSide, defSide, boxMode) {
       const target = crossBoxTarget(taker, boxMode);
       say(`${taker.short} swings it in`, 1.35);
       pendingCornerContext = { attackingSide, defSide, until: matchMinute + 2.5 };
@@ -11766,12 +12223,57 @@
       const chanceXg = estimateChanceXg(carrier, chanceType);
       liveXg[carrier.side] += chanceXg;
       matchLog.counts[carrier.side].xg = Math.round(liveXg[carrier.side] * 1000) / 1000;
+      // DIAGNOSTIC (coinflip-vs-lopsided-batch investigation) — classify
+      // this shot's supply mechanism: explicit opts.source (set pieces),
+      // else the kind of pass that found this carrier (cross/cutback/
+      // through/long-switch/short combination), else "dribble" (carrier
+      // created it himself, no assist pass). buildup = seconds since this
+      // spell won possession, a rough fast-break/counter proxy.
+      const shotSource =
+        (opts && opts.source) ||
+        (lastPasser && lastPasser.toId === carrier.id
+          ? lastPasser.kind === "cross"
+            ? "cross"
+            : lastPasser.kind === "cutback"
+              ? "cutback"
+              : lastPasser.kind === "through"
+                ? "through_ball"
+                : lastPasser.kind === "switch" || lastPasser.kind === "long"
+                  ? "long_switch"
+                  : "combination"
+          : "dribble");
+      const shotBuildup = spell ? Math.round(Math.max(0, matchMinute - spell.start) * 10) / 10 : null;
+      // DIAGNOSTIC (coinflip-vs-lopsided-batch investigation) — which
+      // pathway produced this shot: the team-level spellChanceP gate
+      // ("will_attempt_spell" — the spell currently in progress was already
+      // flagged willAttemptChance=true, whether via the original roll or
+      // the mid-possession probe override, both set the same flag), a
+      // scripted forced-goal path (mustScore, replay/knockout-script only),
+      // a dead-ball ("set_piece"), or a shot that fired with no gating
+      // spell flag at all ("ungated" — an independent decision path like
+      // forwardFinalThirdAction or the standalone dribble-shoot pick,
+      // driven by the shooter's own stats rather than the team formula).
+      const sourcePath =
+        opts && opts.source === "set_piece"
+          ? "set_piece"
+          : mustScore
+            ? "scripted"
+            : spell && spell.willAttemptChance
+              ? "will_attempt_spell"
+              : "ungated";
       pushMatchEvent(chanceType, carrier.side, {
         player: carrier.player,
         player_short: carrier.short,
         detail: boxed || nearBox ? "shot" : "long_shot",
         xg: Math.round(chanceXg * 1000) / 1000,
         in_box: boxed,
+        source: shotSource,
+        buildup: shotBuildup,
+        source_path: sourcePath,
+        spell_id: spell ? spell.id : null,
+        player_xg90: carrier.stats ? Math.round((carrier.stats.xg90 || 0) * 1000) / 1000 : null,
+        player_dribbles90: carrier.stats ? Math.round((carrier.stats.dribbles90 || 0) * 1000) / 1000 : null,
+        player_xa90: carrier.stats ? Math.round((carrier.stats.xa90 || 0) * 1000) / 1000 : null,
       });
       // Engine addition — key passes / big chances created. lastPasser is
       // already tracked (assist attribution reuses it too); a pass that
@@ -12033,7 +12535,8 @@
         !pendingRestart &&
         !pendingKickoffCarrier &&
         !pendingClear &&
-        !pendingSetPiece
+        !pendingSetPiece &&
+        !pendingCornerDelivery
       ) {
         pendingDecisionSnapshot = possessionSnapshot(carrier, decisionDiagAll);
       }
@@ -12042,7 +12545,7 @@
       // before this resolves, which let the scoring side grab another decision
       // (and even score again) before kickoff ever happened. Freeze decisions
       // until the restart actually completes.
-      if (pendingRestart || pendingKickoffCarrier || pendingClear || pendingSetPiece) return;
+      if (pendingRestart || pendingKickoffCarrier || pendingClear || pendingSetPiece || pendingCornerDelivery) return;
 
       if (!spell || spell.side !== possession) beginSpell(possession, "spell");
       // Hierarchy: state → shape already applied in tickDecision → ball decision here
@@ -12284,7 +12787,25 @@
             creatorMod.spellProbeBoost) *
           vol *
           lerp(1, supp, 0.7);
-        if (rng() < clamp(probeP, 0.03, 0.28)) {
+        // DIAGNOSTIC (coinflip-vs-lopsided-batch investigation) — this is
+        // the downstream mid-possession override that can force a shot
+        // attempt even when the spell's initial spellChanceP roll said no;
+        // log both the roll and whether it was already moot (spell had
+        // already won its shot) to separate "extra shots from this gate"
+        // from "would have shot anyway."
+        const probeRoll = rng();
+        const probeFired = probeRoll < clamp(probeP, 0.03, 0.28);
+        paceLog.push({
+          minute: Math.round(matchMinute * 10) / 10,
+          side: carrier.side,
+          src: "probeP",
+          stage,
+          alreadyWillAttempt: Boolean(spell.willAttemptChance),
+          ad: Math.round(ad * 1000) / 1000,
+          probeP: Math.round(clamp(probeP, 0.03, 0.28) * 1000) / 1000,
+          fired: probeFired,
+        });
+        if (probeFired) {
           if (spell) spell.willAttemptChance = true;
           attemptSpellChance(carrier);
           return;
@@ -13719,11 +14240,13 @@
       lastGoalMinute = -20;
       favoredId = null;
       matchLog = emptyMatchLog();
+      paceLog = [];
       clearLastPasser();
       possSeconds = { home: 0, away: 0 };
       liveXg = { home: 0, away: 0 };
       breachRecoveryUntil = { home: 0, away: 0 };
       pendingSetPiece = null;
+      pendingCornerDelivery = null;
       lastTouchSide = null;
       oobStats = {
         outOfBoundsEvents: 0,
@@ -13815,8 +14338,7 @@
           el.classList.remove("has-ball", "pressing", "favored");
         }
       });
-      ballEl.style.left = "50%";
-      ballEl.style.top = "50%";
+      applyRenderPos(ballEl, 50, 50);
     }
 
     container.querySelector("[data-tb-play]").addEventListener("click", play);
@@ -14125,6 +14647,26 @@
       getShortCornerDiag: () => ({ ...shortCornerDiag, samples: shortCornerDiag.samples.slice() }),
       getDecisionDiag: () => ({ samples: decisionDiag.samples.slice() }),
       getPossessionCounts: () => ({ ...possessionCounts }),
+      // DIAGNOSTIC (coinflip-vs-lopsided-batch investigation)
+      getPaceLog: () => paceLog.slice(),
+      // DIAGNOSTIC (coinflip-vs-lopsided-batch investigation) — the static
+      // pre-match model, identical every match for the same two teams/
+      // formations (no RNG dependency), so this only needs reading once
+      // per matchup, not per match.
+      getPrematchModel: () => ({
+        targetXgHome: Math.round(targetXgHome * 1000) / 1000,
+        targetXgAway: Math.round(targetXgAway * 1000) / 1000,
+        attackHome: Math.round(attackHome * 1000) / 1000,
+        attackAway: Math.round(attackAway * 1000) / 1000,
+        defendHome: Math.round(defendHome * 1000) / 1000,
+        defendAway: Math.round(defendAway * 1000) / 1000,
+        createHome: Math.round(createHome * 1000) / 1000,
+        createAway: Math.round(createAway * 1000) / 1000,
+        midDefHome: Math.round(midDefHome * 1000) / 1000,
+        midDefAway: Math.round(midDefAway * 1000) / 1000,
+        unitFinHome: Math.round(unitFinHome * 1000) / 1000,
+        unitFinAway: Math.round(unitFinAway * 1000) / 1000,
+      }),
       setSpeed: (v) => {
         speed = clamp(Number(v) || 0.5, 0.05, 100);
       },
@@ -14143,6 +14685,8 @@
         clearTimers();
         if (raf) cancelAnimationFrame(raf);
         raf = 0;
+        if (pitchResizeObserver) pitchResizeObserver.disconnect();
+        else if (typeof global.removeEventListener === "function") global.removeEventListener("resize", refreshPitchSize);
       },
     };
   }

@@ -81,6 +81,25 @@ _PRESS_CARRY_POSITIONS = frozenset({"CB", "LB", "RB", "DM", "CM"})
 # when the wide player ahead of the fullback is a genuine threat (so a fullback
 # doesn't get free credit just for bombing forward with no one to combine with).
 FULLBACK_WINGER_COMBO_WEIGHT = 0.18
+# AM is the only role that scores in _FINISHING_ROLES + _CREATION_ROLES
+# (attack-side credit) *and* _MIDFIELD_ROLES (midfield credit) at once --
+# every other role's bucket membership mirrors a real tactical trade-off
+# (winger: finishing+creation, no midfield; CM: creation+midfield+
+# midfield_defence, no finishing; DM: midfield+midfield_defence only).
+# Verified via formation sweep across the 11-team league (143 formation x
+# team combinations): AM-containing formations rated +0.043 overall above
+# non-AM ones on average, and a counterfactual stripping AM's midfield
+# credit collapsed that gap to essentially zero (+0.043 -> -0.003) while
+# leaving every non-AM formation's rating untouched -- confirming the
+# "AM formation meta" (4-3-2-1 topping every formation sweep regardless of
+# personnel) was this double-credit, not genuine tactical superiority.
+# 0.10 retained (not 0 -- an AM does contribute *something* to midfield
+# play) chosen over the exact league zero-crossing (0.064) because 0.10,
+# 0.075, and 0.064 all produced identical per-team best-formation results
+# in that sweep -- the model isn't sensitive to the exact figure in that
+# range, so the rounder, more clearly-a-design-choice number is preferred
+# over an overfit decimal.
+AM_MIDFIELD_WEIGHT = 0.10
 
 
 
@@ -1065,6 +1084,8 @@ def compute_unit_ratings_by_slot(
                 breakdown["attack"].append({"player": slot.player, "slot": slot.slot, "score": round(atk_score, 3)})
         if role in _MIDFIELD_ROLES:
             score = _player_midfield_contrib(stats, fit) * legend_mult
+            if role == "am":
+                score *= AM_MIDFIELD_WEIGHT
             midfield_scores.append(score)
             breakdown["midfield"].append({"player": slot.player, "slot": slot.slot, "score": round(score, 3)})
         if role in _DEFENCE_ROLES:

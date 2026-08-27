@@ -1400,7 +1400,16 @@ tr.matchday-live { background: var(--success-soft); }
   transform: scale(1.15);
 }
 .tactic-pin {
+  /* Perf fix (PIN_RENDER_SMOOTHNESS_PLAN.md) — left/top are set once here
+     and never written from JS again; all movement is driven by a
+     compositor-only `transform: translate(px, px) translate(-50%, -50%)`
+     applied per frame (see applyRenderPos in tactic_board.js), avoiding the
+     per-frame layout/paint cost of animating left/top directly. The static
+     translate(-50%, -50%) below is only a fallback for the instant before
+     JS positions the element. */
   position: absolute;
+  left: 0;
+  top: 0;
   transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
@@ -1409,7 +1418,7 @@ tr.matchday-live { background: var(--success-soft); }
   pointer-events: auto;
   cursor: pointer;
   transition: none;
-  will-change: left, top;
+  will-change: transform;
 }
 .tactic-pin.running {
   z-index: 3;
@@ -1450,19 +1459,23 @@ tr.matchday-live { background: var(--success-soft); }
   transform: scale(1.08);
 }
 .tactic-ball {
+  /* Perf fix (PIN_RENDER_SMOOTHNESS_PLAN.md) — same compositor-only
+     transform positioning as .tactic-pin above; the old margin-based
+     centering trick is replaced by the same translate(-50%, -50%) applied
+     via JS. */
   position: absolute;
   width: 10px;
   height: 10px;
-  margin: -5px 0 0 -5px;
   border-radius: 50%;
   background: #f5f7fa;
   border: 1px solid rgba(0, 0, 0, 0.35);
   box-shadow: 0 0 8px rgba(255, 255, 255, 0.35);
   z-index: 3;
-  left: 50%;
-  top: 50%;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);
   transition: none;
-  will-change: left, top;
+  will-change: transform;
 }
 .tactic-flash {
   position: absolute;

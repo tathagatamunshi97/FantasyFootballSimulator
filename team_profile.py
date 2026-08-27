@@ -94,6 +94,7 @@ def build_team_profile(
                 "trophy_notes": tp.details,
                 # Wired in for the live tactic-board engine (previously computed
                 # here but dropped before reaching web/tournament.py).
+                "goals90": round(p.goals90, 2),
                 "assists90": round(p.assists90, 2),
                 "clearances90": round(p.clearances90, 2),
                 "blocks90": round(p.blocks90, 2),
