@@ -15,6 +15,7 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
 
 let _lastMatchdayKey = "";
 let _liveBoard = null;
+let _liveBoardFixtureId = null;
 let _hosting = false;
 let _lastFrameSeq = -1;
 let _savingFt = false;
@@ -27,6 +28,7 @@ function destroyLiveBoard() {
     _liveBoard.destroy();
   }
   _liveBoard = null;
+  _liveBoardFixtureId = null;
   _hosting = false;
   _lastFrameSeq = -1;
   _publishQueue = null;
@@ -283,6 +285,7 @@ async function startHostBoard(session) {
 
   _hosting = true;
   _savingFt = false;
+  _liveBoardFixtureId = session.fixture_id;
   _liveBoard = await TacticBoard.openTournamentWatch(
     mount,
     {
@@ -316,6 +319,21 @@ async function startViewerBoard(session) {
   const board = session.board;
   if (!board) return;
 
+  // Bug fix — real user report: the admin and other viewers ended up
+  // watching two completely different matches. refresh()'s cleanup only
+  // calls destroyLiveBoard() when phase leaves "live"/"running" -- if the
+  // active fixture changed (one match finished, a new one started hosting)
+  // while phase stayed "live" continuously across this tab's poll (missing
+  // the brief "result" phase in between), the OLD board never got torn
+  // down. `if (!_liveBoard)` below then skipped creating a new one and just
+  // kept applying the NEW match's frames onto the OLD match's board --
+  // wrong teams/lineups/kits, with live-looking movement on top. Force a
+  // rebuild whenever the fixture actually changed, not just when no board
+  // exists yet.
+  if (_liveBoard && _liveBoardFixtureId !== session.fixture_id) {
+    destroyLiveBoard();
+  }
+
   if (!_liveBoard) {
     _liveBoard = TacticBoard.createBoard(mount, {
       home: board.home,
@@ -329,6 +347,7 @@ async function startViewerBoard(session) {
       showPrematch: false,
       mobileBroadcast: true,
     });
+    _liveBoardFixtureId = session.fixture_id;
   }
 
   const frame = session.frame || session.board_state;
