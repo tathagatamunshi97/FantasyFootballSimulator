@@ -599,6 +599,23 @@ def matchday_publish_board_state(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
+@app.post("/api/matchday/highlight-clip")
+def matchday_publish_highlight_clip(
+    body: dict,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+) -> dict:
+    """Host publishes one finished buildup-to-event recording (friendlies only)."""
+    _require_admin(x_admin_token, x_session_token)
+    if not isinstance(body, dict) or not isinstance(body.get("clip"), dict):
+        raise HTTPException(status_code=400, detail="Invalid highlight clip")
+    try:
+        seq = matchday_session.publish_highlight_clip(body["clip"])
+        return {"ok": True, "seq": seq}
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
 @app.post("/api/matchday/complete")
 def matchday_complete_from_board(
     body: dict,

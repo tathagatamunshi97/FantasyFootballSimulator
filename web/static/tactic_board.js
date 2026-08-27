@@ -1410,6 +1410,66 @@
     // fast mode if the spell never actually produced a key event) and on
     // reset.
     let mobileBuildupActive = false;
+    // Recorded highlight replays (friendlies only, host side) -- taps the
+    // SAME buildup/highlight state machine above instead of any new
+    // detection: while a buildup or highlight-hold is active, sample
+    // compact position snapshots into `highlightRecording.frames`; once it
+    // resolves into a real key event (isMobileKeyEvent fired during the
+    // window), ship the whole thing as one bundled clip via
+    // opts.onHighlightClip so viewers can play back the full buildup
+    // instead of depending on live polling to catch a short window.
+    const recordedHighlights = Boolean(opts.recordedHighlights);
+    let highlightRecording = null; // { startedAt, frames, kind, side, minute, headline }
+    let highlightClipSeq = 0;
+    let lastHighlightRecordAt = 0;
+    const HIGHLIGHT_RECORD_INTERVAL_MS = 120;
+    function beginHighlightRecording() {
+      if (!recordedHighlights || highlightRecording) return;
+      highlightRecording = {
+        startedAt: performance.now(),
+        frames: [],
+        kind: null,
+        side: null,
+        minute: null,
+        headline: null,
+      };
+      lastHighlightRecordAt = 0;
+    }
+    function recordHighlightFrame() {
+      if (!recordedHighlights || !highlightRecording) return;
+      const now = performance.now();
+      if (now - lastHighlightRecordAt < HIGHLIGHT_RECORD_INTERVAL_MS) return;
+      lastHighlightRecordAt = now;
+      highlightRecording.frames.push({
+        t: Math.round(now - highlightRecording.startedAt),
+        pins: allPins.map((p) => ({
+          id: p.id,
+          x: Math.round(p.left * 100) / 100,
+          y: Math.round(p.top * 100) / 100,
+          b: p.id === carrierId,
+        })),
+        ball: { x: Math.round(ball.left * 100) / 100, y: Math.round(ball.top * 100) / 100 },
+      });
+    }
+    function tagHighlightRecording(type, side, detail) {
+      if (!recordedHighlights || !highlightRecording) return;
+      highlightRecording.kind = type;
+      highlightRecording.side = side;
+      highlightRecording.minute = Math.round(matchMinute * 10) / 10;
+      highlightRecording.headline = String(detail || "");
+    }
+    function finishHighlightRecording() {
+      if (!recordedHighlights || !highlightRecording) return;
+      const rec = highlightRecording;
+      highlightRecording = null;
+      if (!rec.kind || !rec.frames.length) return; // buildup fizzled, never a real event
+      highlightClipSeq += 1;
+      if (typeof opts.onHighlightClip === "function") {
+        try {
+          opts.onHighlightClip({ ...rec, id: highlightClipSeq });
+        } catch (_) {}
+      }
+    }
     let matchMinute = 0;
     let lastTs = 0;
     let raf = 0;
@@ -1502,6 +1562,23 @@
     // guarantee one — see isClinicalFinisher/sideForwardLineClinical below.
     let sideBigMissStreak = { home: 0, away: 0 };
     let commentaryLines = [];
+    // Viewer-side only: applyBroadcastState() used to blindly overwrite the
+    // feed with whatever last-5-lines snapshot the current frame carried --
+    // any commentary that scrolled out of that window between two frames a
+    // viewer actually received (frame coalescing under load, or just a
+    // busy stretch of play) was gone forever, so admin and viewers ended up
+    // seeing genuinely different event histories. Track what's already been
+    // rendered and append only new lines, same accumulate-don't-replace
+    // behavior the host's own local feed already had.
+    const viewerSeenCommentary = new Set();
+    // Viewer-side only: recorded-highlight-clip playback queue (friendlies,
+    // recordedHighlights option). See enqueueHighlightClip/playNextClip
+    // below and applyBroadcastState's `_playingClip` gate, which skips the
+    // regular per-frame pin/ball/clock updates while a clip is playing so
+    // the two don't fight each other.
+    let _clipQueue = [];
+    let _playingClip = null;
+    let _clipPlaybackRaf = 0;
 
     let instrHome = 0;
     let instrAway = 0;
@@ -1741,7 +1818,16 @@
       if (extra.player_dribbles90 != null) entry.player_dribbles90 = extra.player_dribbles90;
       if (extra.player_xa90 != null) entry.player_xa90 = extra.player_xa90;
       matchLog.events.push(entry);
-      if (mobileBroadcast && isMobileKeyEvent(type, entry.detail)) triggerMobileHighlight();
+      if (mobileBroadcast && isMobileKeyEvent(type, entry.detail)) {
+        triggerMobileHighlight();
+        if (recordedHighlights) {
+          beginHighlightRecording(); // no-op if a buildup already started one
+          const who = entry.player_short || entry.player || "";
+          const label =
+            type === "goal" ? "GOAL" : type === "yellow_card" ? "Yellow card" : type === "corner" ? "Corner" : type === "free_kick" ? "Free kick" : "Shot";
+          tagHighlightRecording(type, side, who ? `${label} — ${who}` : label);
+        }
+      }
       if (type === "goal") {
         bumpCount(side, "goals");
         const goalRow = {
@@ -9947,7 +10033,8 @@
       // DIAGNOSTIC (coinflip-vs-lopsided-batch investigation) — same rng()
       // draw, same order, same formula; just captured into a local before
       // the clamp/return so it can be logged without changing the result.
-      const noise = (rng() - 0.5) * 0.05;
+      // Noise damped 50% (0.05 -> 0.025).
+      const noise = (rng() - 0.5) * 0.025;
       const baseTerm = 0.42 + create * 0.24 + atk * 0.18 - def * 0.03 + noise;
       const paceMul = xgPaceMul(side, "spellChanceP");
       const finalProb = clamp(baseTerm * vol * lerp(1, supp, 0.45) * paceMul * leadProtectMul * homePushMul, 0.32, 0.72);
@@ -10029,6 +10116,7 @@
           speed = MOBILE_EVENT_SPEED;
           setMobileLive(true);
         }
+        if (recordedHighlights) beginHighlightRecording();
       }
     }
 
@@ -10055,6 +10143,7 @@
       if (mobileBroadcast && mobileBuildupActive && mobileEventUntilTs <= 0) {
         speed = MOBILE_NORMAL_SPEED;
         setMobileLive(false);
+        if (recordedHighlights) finishHighlightRecording(); // fizzled -- discarded (no kind set)
       }
       mobileBuildupActive = false;
     }
@@ -10143,7 +10232,8 @@
       // into constant turnovers before the final third.
       const edgeTerm = Math.min(0.11, Math.max(0, edge) * 0.12);
       const pressWin = Math.max(0, 0.028 + edgeTerm - possQ * 0.045 - resist * 0.035);
-      return clamp((0.018 + pressWin * stageMul * nearMul * presserBonus + (rng() - 0.5) * 0.022), 0.012, 0.16);
+      // Noise damped 50% (0.022 -> 0.011).
+      return clamp((0.018 + pressWin * stageMul * nearMul * presserBonus + (rng() - 0.5) * 0.011), 0.012, 0.16);
     }
 
     function doTurnover(carrier, detail) {
@@ -10661,7 +10751,8 @@
             (bestCb ? 0.18 + bestCb.stats.interceptions90 * 0.045 + bestCb.stats.tackles90 * 0.02 : 0.12) +
             (bestD < 11 ? 0.14 : bestD < 16 ? 0.06 : 0) +
             defU * 0.08;
-          const winP = clamp(0.4 + attAerial - defAerial + (rng() - 0.5) * 0.1, 0.16, 0.8);
+          // Noise damped 50% (0.1 -> 0.05).
+          const winP = clamp(0.4 + attAerial - defAerial + (rng() - 0.5) * 0.05, 0.16, 0.8);
           if (rng() > winP && bestCb) {
             outcome = "intercept";
             interceptor = bestCb;
@@ -10915,7 +11006,8 @@
         // lopsided toward the attacker the way the shared 0.003 left it.
         dribDefenderDuelTerm +
         dribContextPen +
-        (rng() - 0.5) * 0.08;
+        // Noise damped 50% (0.08 -> 0.04).
+        (rng() - 0.5) * 0.04;
       // Knockout-only home push (defending) — the home side is tougher to
       // dribble past. See KNOCKOUT_HOME_PUSH.
       const defenderIsHome = oppOf(carrier.side) === "home";
@@ -11132,7 +11224,10 @@
           // while the clock is already frozen) instead of snapping
           // straight to "card shown".
           const willCard = (opp._yellowCards || 0) < 1 && rng() < recklessP;
-          if (mobileBroadcast && willCard) triggerMobileHighlight();
+          if (mobileBroadcast && willCard) {
+            triggerMobileHighlight();
+            if (recordedHighlights) beginHighlightRecording(); // lead-in from the tackle, tagged once the card event itself fires
+          }
           pushMatchEvent("foul", opp.side, {
             player: opp.player,
             player_short: opp.short,
@@ -11425,7 +11520,10 @@
           droughtBoost +
           Math.max(0, ad) * 0.06 +
           (boxed ? urg * 0.025 : 0) +
-          (rng() - 0.5) * 0.1) *
+          // Noise damped 50% (0.1 -> 0.05) -- reduces how often the shooter
+          // who "deserved" to score doesn't, and vice versa, without
+          // touching any of the skill-based terms above.
+          (rng() - 0.5) * 0.05) *
         fatigue *
         form;
       // Floors drop on cold days; ceilings rise with finisher quality for ST/W/AM.
@@ -12335,7 +12433,8 @@
             gkPinQuality(keeper) * 0.14 +
             closingQuality +
             shotPressure * 0.06 +
-            (rng() - 0.5) * 0.06) *
+            // Noise damped 50% (0.06 -> 0.03), same reasoning as organicWillScore.
+            (rng() - 0.5) * 0.03) *
           saveScale;
         if (rng() < clamp(saveP, 0.04, roleFin && boxed && fq >= 0.7 ? 0.42 : 0.55)) willScore = false;
       }
@@ -13195,7 +13294,14 @@
 
     function applyBroadcastState(state) {
       if (!state || typeof state !== "object") return;
-      if (typeof state.minute === "number") {
+      // Recorded-highlight-clip playback (friendlies, recordedHighlights) --
+      // while a clip is playing, the pitch/ball/clock are being driven
+      // locally from the recorded frames (see playNextClip below), so the
+      // regular live position stream must not fight it. Score/xG/
+      // possession/commentary/mobileStats keep updating underneath as
+      // normal -- cheap, and means nothing needs to "catch up" once
+      // playback ends.
+      if (!_playingClip && typeof state.minute === "number") {
         matchMinute = state.minute;
       }
       if (state.homeGoals != null) homeScore = Number(state.homeGoals) || 0;
@@ -13209,7 +13315,7 @@
       if (state.ft90Away != null) ft90Away = state.ft90Away;
       if (state.decidedBy) decidedBy = state.decidedBy;
 
-      if (Array.isArray(state.pins)) {
+      if (!_playingClip && Array.isArray(state.pins)) {
         for (const sp of state.pins) {
           const pin = pinById.get(sp.id);
           if (!pin) continue;
@@ -13243,7 +13349,7 @@
           }
         }
       }
-      if (state.ball) {
+      if (!_playingClip && state.ball) {
         const b = state.ball;
         const bl = Number(b.left);
         const bt = Number(b.top);
@@ -13310,7 +13416,13 @@
         if (xgHEl) xgHEl.textContent = liveXg.home.toFixed(2);
         if (xgAEl) xgAEl.textContent = liveXg.away.toFixed(2);
       }
-      if (mobileBroadcast) {
+      // Friendlies with recorded highlights: pitch visibility is driven
+      // entirely by clip playback (playNextClip), not the live
+      // mobileEventLive flag -- that flag reflects the HOST's own
+      // real-time buildup/highlight state, which viewers deliberately no
+      // longer mirror live (that live sync was the bug: a poll landing
+      // outside the short buildup window meant only a glimpse, if that).
+      if (mobileBroadcast && !recordedHighlights) {
         setMobileLive(Boolean(state.mobileEventLive));
       }
       if (mobileBroadcast && mobileStatsEl) {
@@ -13353,15 +13465,23 @@
         }
       }
       if (Array.isArray(state.commentary) && feedEl) {
-        feedEl.innerHTML = state.commentary
-          .map((line) => {
-            const text = typeof line === "string" ? line : `${line.minute || ""}' ${line.text || ""}`;
-            const m = typeof line === "string" ? "" : `${line.minute || ""}'`;
-            const body = typeof line === "string" ? line : line.text || "";
-            return `<div class="tactic-commentary-item"><span class="cm-min">${escHtml(m)}</span>${escHtml(body || text)}</div>`;
-          })
-          .join("");
-        feedEl.scrollTop = feedEl.scrollHeight;
+        let appended = false;
+        for (const line of state.commentary) {
+          const m = typeof line === "string" ? "" : `${line.minute || ""}`;
+          const body = typeof line === "string" ? line : line.text || "";
+          const key = `${m}|${body}`;
+          if (viewerSeenCommentary.has(key)) continue;
+          viewerSeenCommentary.add(key);
+          const item = document.createElement("div");
+          item.className = "tactic-commentary-item";
+          item.innerHTML = `<span class="cm-min">${escHtml(m ? `${m}'` : "")}</span>${escHtml(body)}`;
+          feedEl.appendChild(item);
+          appended = true;
+        }
+        if (appended) {
+          while (feedEl.children.length > 40) feedEl.removeChild(feedEl.firstChild);
+          feedEl.scrollTop = feedEl.scrollHeight;
+        }
       }
       if (prematchOverlay) {
         prematchOverlay.hidden = state.status !== "prematch";
@@ -13390,6 +13510,72 @@
         : state.status === "pens"
           ? "Pens"
           : `${Math.floor(matchMinute)}'`;
+    }
+
+    // Recorded-highlight-clip playback (viewer side, friendlies only,
+    // recordedHighlights option). A clip is a complete, self-contained
+    // buildup-to-event recording captured on the host (see
+    // beginHighlightRecording/recordHighlightFrame/finishHighlightRecording
+    // above) -- playing it back here needs no live sync at all, which is
+    // the whole point: it can't be missed by a poll landing at the wrong
+    // moment because it isn't sampled live.
+    const CLIP_HOLD_MS = 700; // hold on the final frame, echoes MOBILE_EVENT_MS's feel
+    function enqueueHighlightClip(clip) {
+      if (!clip || !Array.isArray(clip.frames) || !clip.frames.length) return;
+      _clipQueue.push(clip);
+      if (!_playingClip) playNextClip();
+    }
+    function playNextClip() {
+      const clip = _clipQueue.shift();
+      if (!clip) {
+        _playingClip = null;
+        return;
+      }
+      _playingClip = clip;
+      matchMinute = Number.isFinite(clip.minute) ? clip.minute : matchMinute;
+      clockEl.textContent = `${Math.floor(matchMinute)}'`;
+      if (mobileBroadcast) setMobileLive(true);
+      const startedAt = performance.now();
+      const frames = clip.frames;
+      const lastT = frames[frames.length - 1].t;
+      function stepClip(ts) {
+        if (_playingClip !== clip) return; // reset()/destroy() cut in — abandon
+        const elapsed = ts - startedAt;
+        if (elapsed >= lastT + CLIP_HOLD_MS) {
+          if (mobileBroadcast) setMobileLive(false);
+          _playingClip = null;
+          playNextClip();
+          return;
+        }
+        // Find the most recent frame at-or-before `elapsed` — pin/ball
+        // targets ease toward it the same way applyBroadcastState's live
+        // frames do (tx/ty tween), so playback motion looks identical to
+        // the host's own real-time buildup, not a series of teleports.
+        let f = frames[0];
+        for (const cand of frames) {
+          if (cand.t > elapsed) break;
+          f = cand;
+        }
+        for (const sp of f.pins) {
+          const pin = pinById.get(sp.id);
+          if (!pin) continue;
+          pin.tx = sp.x;
+          pin.ty = sp.y;
+          if (sp.b) carrierId = pin.id;
+          const el = pinEls.get(pin.id);
+          if (el) el.classList.toggle("has-ball", Boolean(sp.b));
+        }
+        if (f.ball) {
+          ballFrom = { left: ball.left, top: ball.top };
+          ballTo = { left: f.ball.x, top: f.ball.y };
+          ballTween = 1;
+          ballCtrl = null;
+          ball.left = smoothDamp(ball.left, f.ball.x, 0.35);
+          ball.top = smoothDamp(ball.top, f.ball.y, 0.35);
+        }
+        _clipPlaybackRaf = requestAnimationFrame(stepClip);
+      }
+      _clipPlaybackRaf = requestAnimationFrame(stepClip);
     }
 
     function maybeBroadcast(force) {
@@ -14005,6 +14191,7 @@
         if (!mobileBuildupActive) {
           speed = MOBILE_NORMAL_SPEED;
           setMobileLive(false);
+          if (recordedHighlights) finishHighlightRecording();
         }
       }
       const dt = Math.min(0.05, ((ts - lastTs) / 1000) * speed);
@@ -14046,6 +14233,7 @@
             speed = MOBILE_EVENT_SPEED;
             setMobileLive(true);
           }
+          if (recordedHighlights) beginHighlightRecording();
         }
       }
 
@@ -14066,6 +14254,7 @@
         if (mobileEventUntilTs <= 0) {
           speed = MOBILE_NORMAL_SPEED;
           setMobileLive(false);
+          if (recordedHighlights) finishHighlightRecording();
         }
         mobileBuildupActive = false;
       }
@@ -14177,6 +14366,7 @@
         return;
       }
       maybeBroadcast(false);
+      if (recordedHighlights) recordHighlightFrame();
       raf = requestAnimationFrame(tick);
     }
 
@@ -14261,6 +14451,10 @@
       sideBigMissStreak = { home: 0, away: 0 };
       redrawFinishingForm();
       commentaryLines = [];
+      viewerSeenCommentary.clear();
+      highlightRecording = null;
+      _clipQueue.length = 0;
+      _playingClip = null;
       if (feedEl) feedEl.innerHTML = "";
       instrHome = 0;
       instrAway = 0;
@@ -14680,11 +14874,16 @@
         lastTs = 0;
         if (!raf) raf = requestAnimationFrame(tick);
       },
+      enqueueHighlightClip,
       destroy: () => {
         pause();
         clearTimers();
         if (raf) cancelAnimationFrame(raf);
         raf = 0;
+        if (_clipPlaybackRaf) cancelAnimationFrame(_clipPlaybackRaf);
+        _clipPlaybackRaf = 0;
+        _playingClip = null;
+        _clipQueue.length = 0;
         if (pitchResizeObserver) pitchResizeObserver.disconnect();
         else if (typeof global.removeEventListener === "function") global.removeEventListener("resize", refreshPitchSize);
       },
@@ -14882,6 +15081,8 @@
         onComplete: onDone,
         onScore: meta.onScore,
         mobileBroadcast: Boolean(meta.mobileBroadcast),
+        recordedHighlights: Boolean(meta.recordedHighlights),
+        onHighlightClip: meta.onHighlightClip || null,
       };
     } else {
       opts = {

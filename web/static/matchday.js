@@ -22,6 +22,14 @@ let _savingFt = false;
 let _publishQueue = null;
 let _publishBusy = false;
 let _refreshInFlight = false;
+// Recorded highlight clips (friendlies only) -- host publishes each finished
+// buildup-to-event recording as its own POST (real FIFO, unlike
+// _publishQueue's overwrite: every clip matters, none should be dropped),
+// viewer tracks the highest seq it's already picked up so it doesn't replay
+// a backlog of old goals on first connect.
+let _publishClipQueue = [];
+let _publishClipBusy = false;
+let _lastHighlightSeq = -1;
 
 function destroyLiveBoard() {
   if (_liveBoard && typeof _liveBoard.destroy === "function") {
@@ -32,6 +40,8 @@ function destroyLiveBoard() {
   _hosting = false;
   _lastFrameSeq = -1;
   _publishQueue = null;
+  _publishClipQueue = [];
+  _lastHighlightSeq = -1;
 }
 
 function wireMatchdayActions(session) {
@@ -192,6 +202,29 @@ function queueBroadcast(frame) {
   flushPublish();
 }
 
+async function flushClipPublish() {
+  const hasAdminAuth = Boolean(getAdminToken()) || isAdminUser();
+  if (_publishClipBusy || !_publishClipQueue.length || !hasAdminAuth) return;
+  _publishClipBusy = true;
+  const clip = _publishClipQueue[0];
+  try {
+    await api("/api/matchday/highlight-clip", { method: "POST", json: { clip } });
+    _publishClipQueue.shift(); // only drop it once the server actually has it
+  } catch (_) {
+    // Unlike position frames, a dropped clip is a whole missed highlight for
+    // viewers -- leave it at the front of the queue and retry it.
+  } finally {
+    _publishClipBusy = false;
+    if (_publishClipQueue.length) flushClipPublish();
+  }
+}
+
+function queueHighlightClip(clip) {
+  if (!_hosting || !clip) return;
+  _publishClipQueue.push(clip);
+  flushClipPublish();
+}
+
 async function saveFullTime(score, session) {
   // Bug fix — real user report: friendlies (and presumably every other
   // match type) got permanently stuck at "saving..." for any admin logged
@@ -293,6 +326,9 @@ async function startHostBoard(session) {
   _hosting = true;
   _savingFt = false;
   _liveBoardFixtureId = session.fixture_id;
+  // Recorded highlight replays -- friendlies only for this first pass;
+  // league/cup/knockout matches keep today's live-sync pitch view unchanged.
+  const recordedHighlights = session.stage === "friendly";
   _liveBoard = await TacticBoard.openTournamentWatch(
     mount,
     {
@@ -314,6 +350,8 @@ async function startHostBoard(session) {
       // is unaffected, so everything sent to /api/matchday/complete stays
       // exactly as accurate as before.
       mobileBroadcast: true,
+      recordedHighlights,
+      onHighlightClip: (clip) => queueHighlightClip(clip),
     },
     { apiFetch: api }
   );
@@ -341,6 +379,7 @@ async function startViewerBoard(session) {
     destroyLiveBoard();
   }
 
+  const recordedHighlights = session.stage === "friendly";
   if (!_liveBoard) {
     _liveBoard = TacticBoard.createBoard(mount, {
       home: board.home,
@@ -353,8 +392,14 @@ async function startViewerBoard(session) {
       autoplay: false,
       showPrematch: false,
       mobileBroadcast: true,
+      recordedHighlights,
     });
     _liveBoardFixtureId = session.fixture_id;
+    // First connect to this fixture: start from whatever highlight_seq the
+    // session is already at, not 0 -- a viewer joining mid-match shouldn't
+    // get a replay backlog of goals that happened before they connected,
+    // only clips published from here on.
+    _lastHighlightSeq = Number(session.highlight_seq) || 0;
   }
 
   const frame = session.frame || session.board_state;
@@ -369,6 +414,16 @@ async function startViewerBoard(session) {
       _liveBoard.applyBroadcastState(frame);
     } else if (typeof _liveBoard.applyFrame === "function") {
       _liveBoard.applyFrame(frame);
+    }
+  }
+
+  if (recordedHighlights && typeof _liveBoard.enqueueHighlightClip === "function") {
+    const clips = Array.isArray(session.highlight_clips) ? session.highlight_clips : [];
+    for (const clip of clips) {
+      if (Number(clip.seq) > _lastHighlightSeq) {
+        _lastHighlightSeq = Number(clip.seq);
+        _liveBoard.enqueueHighlightClip(clip);
+      }
     }
   }
 }

@@ -25,6 +25,12 @@ _PERSIST_MIN_INTERVAL_S = 2.0
 _lock = threading.Lock()
 _session: dict[str, Any] | None = None
 _frame_seq = 0
+# Recorded highlight-clip replays (friendly matches only) -- a bundled
+# buildup-to-event recording, published once per resolved event, kept
+# separate from _frame_seq/board_state (the continuous per-tick position
+# stream). See publish_highlight_clip().
+_highlight_seq = 0
+_MAX_HIGHLIGHT_CLIPS = 5
 _last_persist_mono = 0.0
 # Ready-to-serve GET /api/matchday payload. Updated on publish / mutations.
 _poll_cache: dict[str, Any] = {"active": False, "redirect": False, "session": None}
@@ -117,6 +123,8 @@ def _build_public_session_locked() -> dict[str, Any] | None:
         "board_state": s.get("board_state"),
         "frame": s.get("board_state"),
         "frame_seq": s.get("frame_seq", 0),
+        "highlight_clips": s.get("highlight_clips") or [],
+        "highlight_seq": s.get("highlight_seq", 0),
         "experiment_id": s.get("experiment_id"),
         "running": s.get("running", False),
         "message": s.get("message"),
@@ -270,7 +278,7 @@ def start_board_session(
     int, "enteringAggAway": int} — so the live board can trigger extra time
     off the aggregate/away-goals rule instead of this leg's own scoreline.
     """
-    global _session, _frame_seq
+    global _session, _frame_seq, _highlight_seq
     snap: dict[str, Any] | None | bool = False
     with _lock:
         if _session and _session.get("phase") in ("setup", "running", "live"):
@@ -279,6 +287,7 @@ def start_board_session(
                 "Wait for it to finish or dismiss the result first."
             )
         _frame_seq = 0
+        _highlight_seq = 0
         _session = {
             "engine": "tactic_board",
             "tournament_id": tournament_id,
@@ -297,6 +306,8 @@ def start_board_session(
             "board": copy.deepcopy(board),
             "board_state": None,
             "frame_seq": 0,
+            "highlight_clips": [],
+            "highlight_seq": 0,
             "phase": "setup",
             "running": False,
             "experiment_id": None,
@@ -399,6 +410,45 @@ def publish_board_state(state: dict[str, Any]) -> int:
     return seq
 
 
+def publish_highlight_clip(clip: dict[str, Any]) -> int:
+    """Host publishes one finished buildup-to-event recording (friendlies only).
+
+    Unlike ``publish_board_state`` (a per-tick position stream where an
+    overwrite is fine -- the newest frame always supersedes an older one),
+    every clip is a distinct event a viewer should see, so this appends
+    rather than overwrites, capped at the most recent ``_MAX_HIGHLIGHT_CLIPS``.
+    Returns the clip's assigned seq.
+    """
+    global _session, _highlight_seq
+    snap: dict[str, Any] | None | bool = False
+    seq = 0
+    with _lock:
+        if not _session:
+            return 0
+        if _session.get("phase") not in ("setup", "live"):
+            return int(_session.get("highlight_seq") or 0)
+        _highlight_seq += 1
+        stamped = {**clip, "seq": _highlight_seq}
+        clips = list(_session.get("highlight_clips") or [])
+        clips.append(stamped)
+        if len(clips) > _MAX_HIGHLIGHT_CLIPS:
+            clips = clips[-_MAX_HIGHLIGHT_CLIPS:]
+        _session["highlight_clips"] = clips
+        _session["highlight_seq"] = _highlight_seq
+        _session["updated_at"] = _now()
+        # Clip publishes are rare (a handful per match) unlike the 220ms
+        # board-state hot path, so always take the full-rebuild path rather
+        # than extending _patch_poll_cache_frame_locked's own explicit
+        # whitelist for something this infrequent.
+        _refresh_poll_cache_locked()
+        # A highlight is a meaningful moment, worth not losing on a crash/
+        # restart the same way phase transitions already force-persist.
+        snap = _persist_locked(force=True)
+        seq = _highlight_seq
+    _flush_persist(snap)
+    return seq
+
+
 def set_running(experiment_id: str, message: str = "Running simulation…") -> None:
     global _session
     snap: dict[str, Any] | None | bool = False
@@ -452,11 +502,12 @@ def set_result(result: dict[str, Any], *, experiment_id: str | None = None) -> N
 
 
 def clear_session() -> None:
-    global _session, _frame_seq
+    global _session, _frame_seq, _highlight_seq
     snap: dict[str, Any] | None | bool = False
     with _lock:
         _session = None
         _frame_seq = 0
+        _highlight_seq = 0
         _refresh_poll_cache_locked()
         snap = _persist_locked(force=True)
     _flush_persist(snap)
@@ -468,7 +519,7 @@ def clear_if_references(
     experiment_id: str | None = None,
 ) -> bool:
     """Clear active session when it points at a deleted tournament or experiment."""
-    global _session, _frame_seq
+    global _session, _frame_seq, _highlight_seq
     snap: dict[str, Any] | None | bool = False
     cleared = False
     with _lock:
@@ -477,10 +528,12 @@ def clear_if_references(
         if tournament_id and _session.get("tournament_id") == tournament_id:
             _session = None
             _frame_seq = 0
+            _highlight_seq = 0
             cleared = True
         elif experiment_id and _session.get("experiment_id") == experiment_id:
             _session = None
             _frame_seq = 0
+            _highlight_seq = 0
             cleared = True
         if cleared:
             _refresh_poll_cache_locked()
