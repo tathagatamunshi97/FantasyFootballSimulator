@@ -25,6 +25,14 @@ function setSession(token, user) {
 function clearSession() {
   localStorage.removeItem(SESSION_KEY);
   localStorage.removeItem(USER_KEY);
+  // Bug fix — real user report: an admin password was set up specifically
+  // to control admin access, but any browser that ever had the raw
+  // SIM_ADMIN_TOKEN entered (admin.js's own "Admin token" field) kept full
+  // admin rights forever afterward -- requireAuthOrAdmin() accepts EITHER
+  // credential, and this function never cleared the raw token, so "Log
+  // out" didn't actually log that device out at all for anything gated by
+  // it. Logout now clears both, so the password is the only way back in.
+  localStorage.removeItem("sim_admin_token");
 }
 
 function formatApiError(data, res) {
