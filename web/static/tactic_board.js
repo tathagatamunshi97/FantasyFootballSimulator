@@ -1818,15 +1818,12 @@
       if (extra.player_dribbles90 != null) entry.player_dribbles90 = extra.player_dribbles90;
       if (extra.player_xa90 != null) entry.player_xa90 = extra.player_xa90;
       matchLog.events.push(entry);
-      if (mobileBroadcast && isMobileKeyEvent(type, entry.detail)) {
+      // Friendlies (recordedHighlights) skip this entirely -- see
+      // triggerMobileHighlight's comment for why the buildup/highlight
+      // subsystem (and the recording it used to feed) is fully disabled
+      // for them, not just its pitch display.
+      if (mobileBroadcast && !recordedHighlights && isMobileKeyEvent(type, entry.detail)) {
         triggerMobileHighlight();
-        if (recordedHighlights) {
-          beginHighlightRecording(); // no-op if a buildup already started one
-          const who = entry.player_short || entry.player || "";
-          const label =
-            type === "goal" ? "GOAL" : type === "yellow_card" ? "Yellow card" : type === "corner" ? "Corner" : type === "free_kick" ? "Free kick" : "Shot";
-          tagHighlightRecording(type, side, who ? `${label} — ${who}` : label);
-        }
       }
       if (type === "goal") {
         bumpCount(side, "goals");
@@ -1999,6 +1996,15 @@
      */
     function triggerMobileHighlight() {
       if (!mobileBroadcast) return;
+      // Friendlies (recordedHighlights): the whole buildup/highlight
+      // subsystem is disabled, not just its pitch reveal -- leaving the
+      // slowdown (speed = MOBILE_EVENT_SPEED) and the matchMinute freeze
+      // below active with nothing ever shown for them meant the ticker
+      // itself kept silently pausing/crawling for real seconds at a time,
+      // with no explanation on screen. That's what was actually causing
+      // "the match gets stuck at times" -- not a rendering bug, an
+      // invisible one. Friendlies now just run at constant normal speed.
+      if (recordedHighlights) return;
       if (mobileEventUntilTs <= 0) {
         speed = MOBILE_EVENT_SPEED;
         setMobileLive(true);
@@ -10119,13 +10125,19 @@
       // the commentary-first design. Only a spell already short enough to
       // BE within the buildup window at kickoff triggers here; everything
       // else is caught by the tick-loop poll once it's actually close.
-      if (mobileBroadcast && willChance && dur <= MOBILE_BUILDUP_WINDOW) {
+      // Disabled outright for friendlies (recordedHighlights) -- see
+      // triggerMobileHighlight's comment: the slowdown/freeze this drives
+      // has no visible payoff anymore now that the pitch never shows, so
+      // running it just meant the ticker silently stalled for real
+      // seconds at a time. Recording is dropped along with it -- nothing
+      // consumes a clip once it's produced, so there's no reason to
+      // record one.
+      if (mobileBroadcast && !recordedHighlights && willChance && dur <= MOBILE_BUILDUP_WINDOW) {
         mobileBuildupActive = true;
         if (mobileEventUntilTs <= 0) {
           speed = MOBILE_EVENT_SPEED;
           setMobileLive(true);
         }
-        if (recordedHighlights) beginHighlightRecording();
       }
     }
 
@@ -11235,7 +11247,6 @@
           const willCard = (opp._yellowCards || 0) < 1 && rng() < recklessP;
           if (mobileBroadcast && willCard) {
             triggerMobileHighlight();
-            if (recordedHighlights) beginHighlightRecording(); // lead-in from the tackle, tagged once the card event itself fires
           }
           pushMatchEvent("foul", opp.side, {
             player: opp.player,
@@ -14227,7 +14238,7 @@
       // logic itself checks -- reaching CHANCE_CREATION/FINISH, or the
       // carrier already standing in a genuine shooting position -- so the
       // slow view arrives BEFORE the shot instead of alongside it.
-      if (mobileBroadcast && spell && spell.willAttemptChance && !mobileBuildupActive) {
+      if (mobileBroadcast && !recordedHighlights && spell && spell.willAttemptChance && !mobileBuildupActive) {
         const spellCarrier = findCarrier();
         const nearingChance =
           spell.stage === "CHANCE_CREATION" ||
@@ -14242,7 +14253,6 @@
             speed = MOBILE_EVENT_SPEED;
             setMobileLive(true);
           }
-          if (recordedHighlights) beginHighlightRecording();
         }
       }
 
