@@ -280,7 +280,7 @@ function renderTables(t) {
 
 function renderTournament(t, activeTab) {
   const settings = t.settings || {};
-  const showRun = Boolean(getAdminToken());
+  const showRun = Boolean(getAdminToken()) || isAdminUser();
   const advance = settings.advance_per_group || "?";
   const koTeams =
     settings.group_count && advance !== "?"
@@ -317,7 +317,7 @@ function renderTournament(t, activeTab) {
 }
 
 async function runFixture(matchId, isKnockout = false) {
-  if (!tournamentId || !getAdminToken()) {
+  if (!tournamentId || !(Boolean(getAdminToken()) || isAdminUser())) {
     alert("Admin token required to Run a fixture.");
     return;
   }
@@ -460,7 +460,7 @@ async function toggleAnalysis(matchId) {
 }
 
 async function generateAnalysis(matchId) {
-  if (!tournamentId || !getAdminToken()) return;
+  if (!tournamentId || !(Boolean(getAdminToken()) || isAdminUser())) return;
   openAnalysisMatchId = matchId;
   const panel = document.querySelector(`.match-analysis-panel[data-match-id="${matchId}"]`);
   const btn = document.querySelector(`.view-analysis-btn[data-match-id="${matchId}"]`);
@@ -520,6 +520,20 @@ async function loadTournament({ force = false } = {}) {
   }
   const data = await api(`/api/tournament/${tournamentId}`);
   const t = data.tournament;
+  // League+Cup tournaments (web/league_cup.py) share this same tournament
+  // store/id-space but have a completely different shape (t.league.fixtures/
+  // t.cup.rounds, no t.groups) -- rendering one with this classic
+  // group+knockout UI always shows a nonsensical "Group draw not performed
+  // yet" for a format that never has a group draw. Every entry point into
+  // this page (matchday/squad/league_cup nav links, bookmarks, the classic
+  // tournament-list fallback below) funnels through here, so redirecting at
+  // the single point the format is known fixes all of them at once instead
+  // of patching each link.
+  if (t.format === "league_cup") {
+    if (pollTimer) clearInterval(pollTimer);
+    window.location.replace(`/league-cup?id=${encodeURIComponent(tournamentId)}`);
+    return;
+  }
   currentTournament = t;
   document.getElementById("tournamentTitle").textContent = t.name || "Tournament";
   const badge = document.getElementById("statusBadge");

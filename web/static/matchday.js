@@ -165,7 +165,14 @@ function wireMatchdayActions(session) {
 }
 
 async function flushPublish() {
-  if (_publishBusy || !_publishQueue || !getAdminToken()) return;
+  // Same bug class as saveFullTime below: this gate only ever checked the
+  // raw getAdminToken(), so a host signed in as a normal session-based admin
+  // (password login, no raw token ever entered) had every single broadcast
+  // frame silently dropped here -- the host's own local board kept animating
+  // fine (it's a fully independent simulation), but the server's frame_seq
+  // never advanced, so every viewer was stuck watching kickoff (0') forever.
+  const hasAdminAuth = Boolean(getAdminToken()) || isAdminUser();
+  if (_publishBusy || !_publishQueue || !hasAdminAuth) return;
   _publishBusy = true;
   const frame = _publishQueue;
   _publishQueue = null;
