@@ -981,7 +981,75 @@ _TALLY_FIELDS = (
     "big_chances_created",
     "big_chances_missed",
     "clean_sheets",
+    # Conversion/passing stats project -- raw counters. Ratios (xg_diff,
+    # shot_conversion_pct, etc.) are derived once, post-aggregation, in
+    # _add_derived_tally_fields -- never stored as their own summed field,
+    # since a ratio can't be meaningfully summed across further aggregation
+    # (e.g. team totals, built by summing these same player rows).
+    "xg",
+    "big_chances",
+    "big_chance_goals",
+    "saves",
+    "goals_conceded",
+    "passes_attempted",
+    "passes_completed",
+    "crosses_attempted",
+    "crosses_completed",
+    "through_attempted",
+    "through_completed",
 )
+
+
+# Conversion/passing stats project -- minimum sample size (the ratio's own
+# denominator) before it qualifies for a leaderboard, same spirit as
+# real-world "qualified" stat pages (a shot accuracy stat needs more than
+# one lucky shot to mean anything). Below the minimum the derived field is
+# left as None.
+_XG_DIFF_MIN_SHOTS = 2
+_RATIO_MIN_DENOMINATOR = {
+    "shot_conversion_pct": 3,
+    "big_chance_conversion_pct": 2,
+    "pass_completion_pct": 15,
+    "cross_accuracy_pct": 5,
+    "through_ball_completion_pct": 3,
+    "save_pct": 3,
+}
+
+
+def _ratio_pct(numerator: float, denominator: float, field: str) -> float | None:
+    if denominator < _RATIO_MIN_DENOMINATOR[field]:
+        return None
+    return round(numerator / denominator * 100, 1)
+
+
+def _add_derived_tally_fields(rows) -> None:
+    """Compute ratio stats once, post-aggregation, on already-summed rows.
+
+    Sum-of-numerator / sum-of-denominator across every match a player
+    played, not an average of per-match ratios -- same reasoning as
+    goals-per-game vs. total goals (see team_ppda_board for the team-level
+    version of this same principle).
+    """
+    for row in rows:
+        shots = float(row.get("shots") or 0)
+        goals = float(row.get("goals") or 0)
+        row["xg_diff"] = round(goals - float(row.get("xg") or 0), 2) if shots >= _XG_DIFF_MIN_SHOTS else None
+        row["shot_conversion_pct"] = _ratio_pct(goals, shots, "shot_conversion_pct")
+        row["big_chance_conversion_pct"] = _ratio_pct(
+            float(row.get("big_chance_goals") or 0), float(row.get("big_chances") or 0), "big_chance_conversion_pct"
+        )
+        row["pass_completion_pct"] = _ratio_pct(
+            float(row.get("passes_completed") or 0), float(row.get("passes_attempted") or 0), "pass_completion_pct"
+        )
+        row["cross_accuracy_pct"] = _ratio_pct(
+            float(row.get("crosses_completed") or 0), float(row.get("crosses_attempted") or 0), "cross_accuracy_pct"
+        )
+        row["through_ball_completion_pct"] = _ratio_pct(
+            float(row.get("through_completed") or 0), float(row.get("through_attempted") or 0), "through_ball_completion_pct"
+        )
+        saves = float(row.get("saves") or 0)
+        conceded = float(row.get("goals_conceded") or 0)
+        row["save_pct"] = _ratio_pct(saves, saves + conceded, "save_pct")
 
 
 def _bump_player_tally(
@@ -1050,6 +1118,8 @@ def aggregate_player_tallies(t: dict[str, Any], *, competition: str | None = Non
                 player = str(ev.get("player") or "").strip()
                 if player:
                     _bump_player_tally(tallies, player=player, team=str(team), field="goals")
+                    if ev.get("big_chance"):
+                        _bump_player_tally(tallies, player=player, team=str(team), field="big_chance_goals")
                 # Assist attributed on the goal event (last passer before shot).
                 assist = str(ev.get("assist") or ev.get("assist_player") or "").strip()
                 if assist and assist != player:
@@ -1058,6 +1128,24 @@ def aggregate_player_tallies(t: dict[str, Any], *, competition: str | None = Non
                 player = str(ev.get("player") or "").strip()
                 if player:
                     _bump_player_tally(tallies, player=player, team=str(team), field="shots")
+                    if ev_type == "big_chance":
+                        _bump_player_tally(tallies, player=player, team=str(team), field="big_chances")
+                    xg_val = ev.get("xg")
+                    if isinstance(xg_val, (int, float)):
+                        _bump_player_tally(tallies, player=player, team=str(team), field="xg", amount=float(xg_val))
+            elif ev_type == "penalty" and team:
+                # Penalty xG is tracked separately from shot/big_chance (see
+                # doShot in tactic_board.js -- a penalty never also fires a
+                # "shot"/"big_chance" event), so summing it here can't double-
+                # count against the branch above.
+                player = str(ev.get("player") or "").strip()
+                xg_val = ev.get("xg")
+                if player and isinstance(xg_val, (int, float)):
+                    _bump_player_tally(tallies, player=player, team=str(team), field="xg", amount=float(xg_val))
+            elif ev_type == "save" and team:
+                player = str(ev.get("player") or "").strip()
+                if player:
+                    _bump_player_tally(tallies, player=player, team=str(team), field="saves")
             elif ev_type == "pass_broken" and team:
                 player = str(ev.get("player") or "").strip()
                 if player:
@@ -1112,9 +1200,45 @@ def aggregate_player_tallies(t: dict[str, Any], *, competition: str | None = Non
             _bump_player_tally(tallies, player=gks["home"], team=str(home), field="clean_sheets")
         if home_goals == 0 and away and gks.get("away"):
             _bump_player_tally(tallies, player=gks["away"], team=str(away), field="clean_sheets")
+        # goals_conceded -- same per-match single-GK simplification as
+        # clean_sheets above (a side that used more than one keeper in a
+        # match isn't split correctly), credited with the opponent's full
+        # goal tally for the match.
+        if home and gks.get("home") and away_goals:
+            _bump_player_tally(tallies, player=gks["home"], team=str(home), field="goals_conceded", amount=away_goals)
+        if away and gks.get("away") and home_goals:
+            _bump_player_tally(tallies, player=gks["away"], team=str(away), field="goals_conceded", amount=home_goals)
+
+        # Conversion/passing stats project -- per-player passing accuracy,
+        # stored separately from `events` (see tactic_board.js's
+        # emptyMatchLog comment on player_passing: too many pass attempts
+        # per match to log each as a discrete event). Resolve team from the
+        # stored `side` since player_passing is keyed by player name only.
+        player_passing = (result.get("match_log") or {}).get("player_passing") or {}
+        if isinstance(player_passing, dict):
+            for player, row in player_passing.items():
+                if not isinstance(row, dict):
+                    continue
+                side = row.get("side")
+                team = home if side == "home" else away if side == "away" else None
+                if not team or not player:
+                    continue
+                for field in (
+                    "passes_attempted",
+                    "passes_completed",
+                    "crosses_attempted",
+                    "crosses_completed",
+                    "through_attempted",
+                    "through_completed",
+                ):
+                    amount = row.get(field)
+                    if isinstance(amount, (int, float)) and amount:
+                        _bump_player_tally(tallies, player=player, team=str(team), field=field, amount=amount)
 
     for row in tallies.values():
         row["distance_carried"] = round(float(row.get("distance_carried") or 0), 1)
+        row["xg"] = round(float(row.get("xg") or 0), 3)
+    _add_derived_tally_fields(tallies.values())
 
     return sorted(
         tallies.values(),
@@ -1146,6 +1270,17 @@ def player_leaderboards(t: dict[str, Any], *, limit: int = 10, competition: str 
         "top_key_passers": _board("key_passes"),
         "top_big_chances_created": _board("big_chances_created"),
         "top_big_chances_missed": _board("big_chances_missed"),
+        # Conversion/passing stats project -- ratio boards. _board's own
+        # `> 0` filter already does the right thing here: a None (below the
+        # qualification minimum) or a genuine 0%/non-positive ratio is
+        # excluded from a "best at X" list either way.
+        "top_xg_overperformers": _board("xg_diff"),
+        "top_finishers": _board("shot_conversion_pct"),
+        "top_big_chance_takers": _board("big_chance_conversion_pct"),
+        "top_passers": _board("pass_completion_pct"),
+        "top_crossers": _board("cross_accuracy_pct"),
+        "top_through_ball_creators": _board("through_ball_completion_pct"),
+        "top_keepers": _board("save_pct"),
     }
 
 

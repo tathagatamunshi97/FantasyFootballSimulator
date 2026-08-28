@@ -185,7 +185,49 @@ const TALLY_FIELDS = [
   "goals", "assists", "shots", "dribbles", "distance_carried",
   "tackles", "interceptions", "key_passes", "big_chances_created",
   "big_chances_missed", "clean_sheets",
+  // Conversion/passing stats project -- raw counters only; the derived
+  // ratio fields (xg_diff, shot_conversion_pct, etc.) are computed after
+  // summing, by addDerivedTallyFields below -- never summed directly,
+  // same reasoning as tournament.py's _TALLY_FIELDS comment.
+  "xg", "big_chances", "big_chance_goals", "saves", "goals_conceded",
+  "passes_attempted", "passes_completed", "crosses_attempted",
+  "crosses_completed", "through_attempted", "through_completed",
 ];
+
+// Mirrors web/tournament.py's _add_derived_tally_fields/_ratio_pct exactly
+// (same formulas, same qualification minimums) so a team-view ratio and
+// the equivalent player-view ratio never disagree. Used here for team rows
+// (aggregateTeamTallies sums raw counts only); player rows already arrive
+// from the server with these fields pre-computed.
+const RATIO_MIN_DENOMINATOR = {
+  shot_conversion_pct: 3,
+  big_chance_conversion_pct: 2,
+  pass_completion_pct: 15,
+  cross_accuracy_pct: 5,
+  through_ball_completion_pct: 3,
+  save_pct: 3,
+};
+const XG_DIFF_MIN_SHOTS = 2;
+
+function ratioPct(numerator, denominator, field) {
+  if (denominator < RATIO_MIN_DENOMINATOR[field]) return null;
+  return Math.round((numerator / denominator) * 1000) / 10;
+}
+
+function addDerivedTallyFields(row) {
+  const shots = Number(row.shots || 0);
+  const goals = Number(row.goals || 0);
+  row.xg_diff = shots >= XG_DIFF_MIN_SHOTS ? Math.round((goals - Number(row.xg || 0)) * 100) / 100 : null;
+  row.shot_conversion_pct = ratioPct(goals, shots, "shot_conversion_pct");
+  row.big_chance_conversion_pct = ratioPct(Number(row.big_chance_goals || 0), Number(row.big_chances || 0), "big_chance_conversion_pct");
+  row.pass_completion_pct = ratioPct(Number(row.passes_completed || 0), Number(row.passes_attempted || 0), "pass_completion_pct");
+  row.cross_accuracy_pct = ratioPct(Number(row.crosses_completed || 0), Number(row.crosses_attempted || 0), "cross_accuracy_pct");
+  row.through_ball_completion_pct = ratioPct(Number(row.through_completed || 0), Number(row.through_attempted || 0), "through_ball_completion_pct");
+  const saves = Number(row.saves || 0);
+  const conceded = Number(row.goals_conceded || 0);
+  row.save_pct = ratioPct(saves, saves + conceded, "save_pct");
+  return row;
+}
 
 function aggregateTeamTallies(playerTallies) {
   const teams = {};
@@ -205,6 +247,7 @@ function aggregateTeamTallies(playerTallies) {
   // convention the backend already uses for the player-level values.
   for (const row of Object.values(teams)) {
     row.distance_carried = Math.round(row.distance_carried * 10) / 10;
+    addDerivedTallyFields(row);
   }
   return Object.values(teams);
 }
@@ -236,6 +279,14 @@ const STAT_BOARDS = [
   { key: "top_tacklers", field: "tackles", title: "Most tackles", label: "Tackles", empty: "No tackles recorded yet.", category: "defending" },
   { key: "top_interceptors", field: "interceptions", title: "Most interceptions", label: "Int", empty: "No interceptions recorded yet.", category: "defending" },
   { key: "team_ppda", field: "ppda", title: "Best pressing (PPDA)", label: "PPDA", empty: "No matches played yet.", category: "defending", teamOnly: true, sortAsc: true },
+  // Conversion/passing stats project.
+  { key: "top_xg_overperformers", field: "xg_diff", title: "Goals vs xG (overperformance)", label: "G-xG", empty: "No qualifying shot samples yet.", category: "attacking" },
+  { key: "top_finishers", field: "shot_conversion_pct", title: "Best shot conversion", label: "Conv %", empty: "No qualifying shot samples yet.", suffix: "%", category: "attacking" },
+  { key: "top_big_chance_takers", field: "big_chance_conversion_pct", title: "Best big-chance conversion", label: "BC Conv %", empty: "No qualifying big-chance samples yet.", suffix: "%", category: "attacking" },
+  { key: "top_passers", field: "pass_completion_pct", title: "Best pass completion", label: "Pass %", empty: "No qualifying pass samples yet.", suffix: "%", category: "control" },
+  { key: "top_crossers", field: "cross_accuracy_pct", title: "Best cross accuracy", label: "Cross %", empty: "No qualifying cross samples yet.", suffix: "%", category: "creation" },
+  { key: "top_through_ball_creators", field: "through_ball_completion_pct", title: "Best through-ball completion", label: "TB %", empty: "No qualifying through-ball samples yet.", suffix: "%", category: "creation" },
+  { key: "top_keepers", field: "save_pct", title: "Best save %", label: "Save %", empty: "No qualifying shots-faced samples yet.", suffix: "%", category: "defending" },
 ];
 
 // Renders one played-match analysis result into its `.match-analysis-panel`

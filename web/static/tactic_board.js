@@ -1789,6 +1789,19 @@
         // that same zone -- the denominator for THIS side's PPDA.
         ppda_passes: 0,
         ppda_actions: 0,
+        // Conversion/passing stats project -- team-level completed/attempted
+        // counters. "clear" is excluded from all three (same convention as
+        // ppda_passes -- a clearance isn't a purposeful passing attempt).
+        // big_chance_goals is the numerator for big-chance conversion (the
+        // existing big_chances counter above is the denominator); tagged
+        // onto the goal event itself, see markGoal's chanceType param.
+        passes_attempted: 0,
+        passes_completed: 0,
+        crosses_attempted: 0,
+        crosses_completed: 0,
+        through_attempted: 0,
+        through_completed: 0,
+        big_chance_goals: 0,
       });
       return {
         goals: [],
@@ -1800,6 +1813,14 @@
           home: { ...unitHome },
           away: { ...unitAway },
         },
+        // Conversion/passing stats project -- per-player passing accuracy.
+        // Kept OUT of `events` deliberately: hundreds of pass attempts per
+        // match would bloat the event log/broadcast payload for something
+        // that's just a running tally, not a discrete moment worth
+        // replaying. Keyed by player name, with `side` stored alongside so
+        // the backend can resolve which team a player belongs to for this
+        // match without re-deriving it from events.
+        player_passing: {},
       };
     }
 
@@ -1811,6 +1832,27 @@
       const bucket = matchLog.counts[side];
       if (!bucket || !(key in bucket)) return;
       bucket[key] += n;
+    }
+
+    // Conversion/passing stats project — per-player passing tallies (see
+    // emptyMatchLog's player_passing comment for why this is a plain
+    // counter map instead of per-pass events).
+    function bumpPlayerPassing(player, side, key, n = 1) {
+      if (!player) return;
+      let row = matchLog.player_passing[player];
+      if (!row) {
+        row = {
+          side,
+          passes_attempted: 0,
+          passes_completed: 0,
+          crosses_attempted: 0,
+          crosses_completed: 0,
+          through_attempted: 0,
+          through_completed: 0,
+        };
+        matchLog.player_passing[player] = row;
+      }
+      row[key] += n;
     }
 
     function pushMatchEvent(type, side, extra = {}) {
@@ -2153,6 +2195,7 @@
         },
         spells: matchLog.spells.slice(),
         unit_edges: matchLog.unit_edges,
+        player_passing: matchLog.player_passing,
         possession: { home: poss.home, away: poss.away },
         possession_pct: { home: poss.home, away: poss.away },
         xg: {
@@ -2615,7 +2658,7 @@
       }
 
       if (flight.outcome === "goal") {
-        markGoal(flight.side);
+        markGoal(flight.side, { chanceType: flight.chanceType, xg: flight.xg });
         actionTimer = 1.5;
         pendingRestart = { side: oppOf(flight.side), at: matchMinute + 1.05 };
         return;
@@ -10560,7 +10603,11 @@
       return pending.find((g) => g.minute <= minute + 2) || (minute >= 86 ? pending[0] : null);
     }
 
-    function markGoal(side) {
+    // Conversion/passing stats project -- `meta` (chanceType/xg) carries the
+    // originating shot's own values through from doShot/the penalty
+    // resolution so the goal event and big_chance_goals counter can be
+    // tagged with them, without needing to re-derive which shot scored.
+    function markGoal(side, meta) {
       const g = scheduled.find((x) => !x.scored && x.side === side);
       if (g) g.scored = true;
       if (side === "home") homeScore += 1;
@@ -10584,12 +10631,16 @@
       if (assistExtra.assist_short) goalSubParts.push(`Assist: ${assistExtra.assist_short}`);
       goalSubParts.push(`${homeScore}–${awayScore}`);
       showGoalCard(side, scorerName || "Goal!", initials(scorer?.player || scorerName || ""), goalSubParts.join(" · "));
+      const isBigChance = meta?.chanceType === "big_chance";
       pushMatchEvent("goal", side, {
         player: scorer?.player || null,
         player_short: scorer?.short || scorerName || null,
         detail: `${homeScore}–${awayScore}`,
+        xg: meta?.xg,
+        big_chance: isBigChance,
         ...assistExtra,
       });
+      if (isBigChance) bumpCount(side, "big_chance_goals");
       clearLastPasser();
       archiveSpell("goal");
       const assistNote = assistExtra.assist_short ? ` (assist ${assistExtra.assist_short})` : "";
@@ -10936,6 +10987,36 @@
           passKind,
           outcome,
         });
+      }
+
+      // Conversion/passing stats project -- attempted/completed counters,
+      // team + player, resolved here now that `outcome` reflects every
+      // branch above (interception, press-steal, offside, aerial cross
+      // duel). Clearances excluded throughout, same convention as
+      // ppda_passes -- not a purposeful passing attempt.
+      if (passKind !== "clear") {
+        const completed = outcome === "pass";
+        bumpCount(from.side, "passes_attempted");
+        bumpPlayerPassing(from.player, from.side, "passes_attempted");
+        if (completed) {
+          bumpCount(from.side, "passes_completed");
+          bumpPlayerPassing(from.player, from.side, "passes_completed");
+        }
+        if (passKind === "cross") {
+          bumpCount(from.side, "crosses_attempted");
+          bumpPlayerPassing(from.player, from.side, "crosses_attempted");
+          if (completed) {
+            bumpCount(from.side, "crosses_completed");
+            bumpPlayerPassing(from.player, from.side, "crosses_completed");
+          }
+        } else if (passKind === "through") {
+          bumpCount(from.side, "through_attempted");
+          bumpPlayerPassing(from.player, from.side, "through_attempted");
+          if (completed) {
+            bumpCount(from.side, "through_completed");
+            bumpPlayerPassing(from.player, from.side, "through_completed");
+          }
+        }
       }
 
       ballFlight = {
@@ -11776,7 +11857,7 @@
         const dur = clamp(arc.dur * 0.85, 0.3, 0.5);
         setBallTarget(netLeft, netTop, dur, false, arc.ctrl);
         actionTimer = dur + 0.4;
-        ballFlight = { outcome: "goal", side: fouledSide };
+        ballFlight = { outcome: "goal", side: fouledSide, chanceType: "penalty", xg: 0.76 };
       } else {
         const arc = passArcFor(spot.left, spot.top, keeper.left, keeper.top, "through");
         const dur = clamp(arc.dur * 0.85, 0.3, 0.5);
@@ -12588,7 +12669,7 @@
         const dur = clamp(goalArc.dur * 0.95, 0.35, 0.55);
         setBallTarget(netLeft, netTop, dur, false, flatCtrl);
         actionTimer = dur + 0.35;
-        ballFlight = { outcome: "goal", side: carrier.side };
+        ballFlight = { outcome: "goal", side: carrier.side, chanceType, xg: chanceXg };
       } else {
         // Was mislabeled: this used to route every non-scoring shot to the keeper
         // ("save") or wide, with no distinct "blocked by an outfield defender"
@@ -15294,6 +15375,13 @@
           xg: 0,
           ppda_passes: 0,
           ppda_actions: 0,
+          passes_attempted: 0,
+          passes_completed: 0,
+          crosses_attempted: 0,
+          crosses_completed: 0,
+          through_attempted: 0,
+          through_completed: 0,
+          big_chance_goals: 0,
         },
         away: {
           goals: 0,
@@ -15312,9 +15400,17 @@
           xg: 0,
           ppda_passes: 0,
           ppda_actions: 0,
+          passes_attempted: 0,
+          passes_completed: 0,
+          crosses_attempted: 0,
+          crosses_completed: 0,
+          through_attempted: 0,
+          through_completed: 0,
+          big_chance_goals: 0,
         },
       },
       spells: [],
+      player_passing: {},
       possession: { home: 50, away: 50 },
       xg: { home: 0, away: 0 },
     }),
