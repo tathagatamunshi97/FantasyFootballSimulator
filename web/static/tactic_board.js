@@ -795,6 +795,18 @@
       opts.seed ||
       hashSeed(`${homeTeam.name}-${awayTeam.name}-${live ? "live" : `${homeGoalsTarget}-${awayGoalsTarget}`}`);
     const rng = mulberry32(seed);
+    // Richer-commentary project — a SECOND, fully independent PRNG stream
+    // dedicated to picking commentary phrase variants. Deliberately never
+    // shares `rng` above: every outcome-affecting decision in the engine
+    // (passes, shots, dribbles, everything) draws from that one shared
+    // stream in sequence, so a stray rng() call at a commentary site would
+    // shift every subsequent draw and silently change the actual match
+    // result for a given seed. Nothing outcome-affecting ever reads from
+    // commentaryRng, so every call site is free to draw from it. Still a
+    // pure function of the match seed, so replaying the same seed
+    // reproduces the same commentary; different real matches (already
+    // different seeds today) get genuinely different phrasing.
+    const commentaryRng = mulberry32((seed ^ 0x9e3779b9) >>> 0);
 
     const unitHome = opts.unitHome || {};
     const unitAway = opts.unitAway || {};
@@ -2224,6 +2236,20 @@
       return payload;
     }
 
+    // Richer-commentary project — pick a phrase variant for `siteId` (a
+    // fixed string identifying the call site, not the event instance) from
+    // `variants`, drawing from commentaryRng (never the outcome-affecting
+    // rng), and avoid repeating the exact same variant twice in a row for
+    // that site so short bursts of the same event type still read varied.
+    const lastPhraseIndex = {};
+    function pickPhrase(siteId, variants) {
+      if (variants.length === 1) return variants[0];
+      let idx = Math.floor(commentaryRng() * variants.length);
+      if (idx === lastPhraseIndex[siteId]) idx = (idx + 1) % variants.length;
+      lastPhraseIndex[siteId] = idx;
+      return variants[idx];
+    }
+
     function say(text, hold = 1.6) {
       phaseEl.textContent = text;
       commentaryHold = hold;
@@ -2677,13 +2703,22 @@
         // sometimes the keeper can only push it behind. Not every save, or
         // this becomes a corner-fest, but a real fraction.
         if (rng() < 0.3) {
-          say(`${keeper.short} can only palm it behind!`, 1.3);
+          say(pickPhrase("save_corner", [
+            `${keeper.short} can only palm it behind!`,
+            `${keeper.short} beats it away — corner`,
+            `${keeper.short} tips it behind!`,
+          ]), 1.3);
           archiveSpell("save");
           spell = null;
           resolveCorner(flight.against);
           return;
         }
-        say(`${keeper.short} saves`, 1.3);
+        say(pickPhrase("save_clean", [
+          `${keeper.short} saves`,
+          `${keeper.short} makes the stop`,
+          `Great save from ${keeper.short}`,
+          `${keeper.short} keeps it out`,
+        ]), 1.3);
         archiveSpell("save");
         spell = null;
         giveBall(keeper, `${keeper.short} clears`);
@@ -2709,13 +2744,21 @@
         // Engine addition — corners. A last-ditch block is hard to control
         // the direction of; often it goes behind rather than staying in play.
         if (blocker && rng() < 0.42) {
-          say(`Blocked behind! ${blocker.short} turns it behind for a corner`, 1.3);
+          say(pickPhrase("block_corner", [
+            `Blocked behind! ${blocker.short} turns it behind for a corner`,
+            `${blocker.short} gets a touch — behind for a corner`,
+            `Deflected behind by ${blocker.short}`,
+          ]), 1.3);
           archiveSpell("blocked");
           spell = null;
           resolveCorner(flight.against);
           return;
         }
-        say(`Blocked! ${blocker?.short || "defender"} gets across`, 1.3);
+        say(pickPhrase("block_clean", [
+          `Blocked! ${blocker?.short || "defender"} gets across`,
+          `${blocker?.short || "defender"} throws himself in the way`,
+          `Blocked by ${blocker?.short || "defender"}`,
+        ]), 1.3);
         archiveSpell("blocked");
         spell = null;
         if (blocker) giveBall(blocker, `${blocker.short} clears the danger`);
@@ -2730,13 +2773,22 @@
         // goal kick, but a shot close enough to curl just past the post
         // (rather than sail well wide) can take a deflection behind too.
         if (rng() < 0.18) {
-          say(`${flight.shooterShort || "Shot"} goes wide — off the post and behind`, 1.2);
+          say(pickPhrase("wide_corner", [
+            `${flight.shooterShort || "Shot"} goes wide — off the post and behind`,
+            `${flight.shooterShort || "Shot"} clips the post — behind for a corner`,
+            `Off the woodwork and behind — ${flight.shooterShort || "Shot"}`,
+          ]), 1.2);
           archiveSpell("wide");
           spell = null;
           resolveCorner(flight.against);
           return;
         }
-        say(`${flight.shooterShort || "Shot"} goes wide`, 1.2);
+        say(pickPhrase("wide_clean", [
+          `${flight.shooterShort || "Shot"} goes wide`,
+          `${flight.shooterShort || "Shot"} drags it wide`,
+          `Wide of the mark — ${flight.shooterShort || "Shot"}`,
+          `${flight.shooterShort || "Shot"} can't keep it on target`,
+        ]), 1.2);
         archiveSpell("wide");
         spell = null;
         if (defPin) giveBall(defPin, `${defPin.short} starts again`);
@@ -10222,7 +10274,12 @@
       pushMatchEvent("possession", side, { detail: reason || "builds" });
       if (commentaryHold <= 0.4) {
         const name = side === "home" ? homeTeam.name : awayTeam.name;
-        say(`${name} in possession`, 1.4);
+        say(pickPhrase("possession_start", [
+          `${name} in possession`,
+          `${name} have it now`,
+          `Ball with ${name}`,
+          `${name} on the ball`,
+        ]), 1.4);
       }
       // FM Mobile broadcast mode -- a spell that's going to attempt a
       // chance gets the slow full-pitch view once it's actually
@@ -10378,7 +10435,11 @@
         detail: detail || "loses possession",
       });
       archiveSpell("turnover");
-      say(`${opp.short} wins it — ${detail || "turnover"}`, 1.5);
+      say(pickPhrase("turnover", [
+        `${opp.short} wins it — ${detail || "turnover"}`,
+        `${opp.short} regains possession — ${detail || "turnover"}`,
+        `Turned over — ${opp.short} — ${detail || "turnover"}`,
+      ]), 1.5);
       spell = null;
       giveBall(opp, `${opp.short} on the break`);
       actionTimer = 0.55 + rng() * 0.35;
@@ -10644,7 +10705,53 @@
       clearLastPasser();
       archiveSpell("goal");
       const assistNote = assistExtra.assist_short ? ` (assist ${assistExtra.assist_short})` : "";
-      say(`GOAL! ${scorerName}${assistNote} — ${homeScore}–${awayScore}`, 2.2);
+      // Richer-commentary project — the goal line now reflects the actual
+      // scoreline swing (pulling one back / levelling / going ahead /
+      // extending a lead), not a single flat "GOAL! X — score" template,
+      // plus an occasional chance-quality flourish keyed off the shot's
+      // own xg (already threaded through via `meta` -- see doShot/markGoal
+      // comment above). A single goal always moves the scorer's own
+      // perspective on the score by exactly 1, so these four buckets are
+      // exhaustive.
+      const beforeHome = homeScore - (side === "home" ? 1 : 0);
+      const beforeAway = awayScore - (side === "away" ? 1 : 0);
+      const beforeSideDiff = side === "home" ? beforeHome - beforeAway : beforeAway - beforeHome;
+      const scoreLabel = `${homeScore}–${awayScore}`;
+      let situational;
+      if (beforeSideDiff <= -2) {
+        situational = pickPhrase("goal_pullback", [
+          `GOAL! ${scorerName}${assistNote} pulls one back — ${scoreLabel}`,
+          `${scorerName}${assistNote} gets one back for them — ${scoreLabel}`,
+          `A goal back — ${scorerName}${assistNote} — ${scoreLabel}`,
+        ]);
+      } else if (beforeSideDiff === -1) {
+        situational = pickPhrase("goal_level", [
+          `GOAL! ${scorerName}${assistNote} levels it up — ${scoreLabel}`,
+          `${scorerName}${assistNote} draws them level — ${scoreLabel}`,
+          `Back to level terms — ${scorerName}${assistNote} — ${scoreLabel}`,
+        ]);
+      } else if (beforeSideDiff === 0) {
+        situational = pickPhrase("goal_ahead", [
+          `GOAL! ${scorerName}${assistNote} puts them in front — ${scoreLabel}`,
+          `${scorerName}${assistNote} — they lead now! — ${scoreLabel}`,
+          `${scorerName}${assistNote} nudges them ahead — ${scoreLabel}`,
+        ]);
+      } else {
+        situational = pickPhrase("goal_extend", [
+          `GOAL! ${scorerName}${assistNote} extends the lead — ${scoreLabel}`,
+          `${scorerName}${assistNote} doubles up — ${scoreLabel}`,
+          `${scorerName}${assistNote} again! — ${scoreLabel}`,
+        ]);
+      }
+      let flourish = "";
+      if (meta?.xg != null) {
+        if (meta.xg < 0.12) {
+          flourish = pickPhrase("goal_flourish_low", [" — against the run of play", " — out of nothing", " — what a strike"]);
+        } else if (meta.xg > 0.45) {
+          flourish = pickPhrase("goal_flourish_high", [" — made no mistake there", " — a big chance taken", " — clinical"]);
+        }
+      }
+      say(`${situational}${flourish}`, 2.2);
       if (onScore) onScore({ homeGoals: homeScore, awayGoals: awayScore, side, minute: matchMinute });
     }
 
@@ -10964,7 +11071,13 @@
                 ? `${from.short} cuts it back`
                 : passKind === "long"
                   ? `${from.short} goes long toward ${to.short}`
-                  : `${from.short} finds ${to.short}`;
+                  : pickPhrase("pass_normal", [
+                      `${from.short} finds ${to.short}`,
+                      `${from.short} picks out ${to.short}`,
+                      `${to.short} picked out by ${from.short}`,
+                      `${from.short} slides it to ${to.short}`,
+                      `Ball worked to ${to.short}`,
+                    ]);
       // Wide-final already announced Cross/Cutback — don't double-speak
       if ((passKind === "cross" || passKind === "cutback") && commentaryHold > 0.8) {
         /* keep prior "Cross incoming" line */
@@ -11085,7 +11198,12 @@
         dispatchBallTarget(nx, ny + attackSign * -0.5, dur, true, null, carrier.side);
         actionTimer = dur + 0.12 + spellIdlePause() * 0.3;
         carrier._dribbleStreak = 0;
-        say(`${carrier.short} carries it forward`, 1.2);
+        say(pickPhrase("carry", [
+          `${carrier.short} carries it forward`,
+          `${carrier.short} drives on with it`,
+          `${carrier.short} advances`,
+          `${carrier.short} pushes forward with the ball`,
+        ]), 1.2);
         // Engine addition — distance carried. Doesn't touch dribbles_won
         // (this is deliberately NOT a take-on stat, see above), but a
         // "most distance carried" leaderboard wants every carrying touch,
@@ -11284,7 +11402,12 @@
           detail: threat ? `past ${threat.pin.short}` : "past the press",
           distance: Math.round(pitchDistM({ left: carrier.left, top: carrier.top }, { left: nx, top: ny }) * 10) / 10,
         });
-        say(`${carrier.short} dribbles past ${threat?.pin.short || "the press"}`, 1.4);
+        say(pickPhrase("dribble", [
+          `${carrier.short} dribbles past ${threat?.pin.short || "the press"}`,
+          `${carrier.short} skips past ${threat?.pin.short || "the press"}`,
+          `Beats his man — ${carrier.short} goes past ${threat?.pin.short || "the press"}`,
+          `${carrier.short} leaves ${threat?.pin.short || "the press"} behind`,
+        ]), 1.4);
         ballFlight = { outcome: "dribble_won" };
         if (threat) {
           triggerDefensiveBreachReactions(threat.pin);
@@ -11424,7 +11547,12 @@
               against: carrier.player,
               detail: `caution on ${carrier.short}`,
             });
-            say(`Yellow card — ${opp.short}`, 1.4);
+            say(pickPhrase("yellow_card", [
+              `Yellow card — ${opp.short}`,
+              `${opp.short} is booked`,
+              `Into the book — ${opp.short}`,
+              `${opp.short} shown yellow`,
+            ]), 1.4);
           }
           // Engine addition — dangerous-restart branching. A foul inside the
           // box is a penalty. Everywhere else, Set-piece Phase 2 splits the
@@ -11590,7 +11718,14 @@
       ballAttached = true;
       dispatchBallTarget(rawNx, rawNy + attackSign * -0.8, 0.7, true, null, carrier.side);
       actionTimer = 0.55 + rng() * 0.25 + spellIdlePause() * 0.5;
-      if (commentaryHold <= 0) say(`${carrier.short} drives forward`, 1.0);
+      if (commentaryHold <= 0) {
+        say(pickPhrase("drive_forward", [
+          `${carrier.short} drives forward`,
+          `${carrier.short} surges ahead`,
+          `${carrier.short} presses on`,
+          `${carrier.short} motors forward`,
+        ]), 1.0);
+      }
     }
 
     /**
@@ -13119,7 +13254,14 @@
       const dmRecycleP =
         carrier.role === "DM" ? clamp(0.2 + (carrier.stats.tackles90 || 0) * 0.035, 0.16, 0.4) : 0.12;
       if (stage === "BOX_OCCUPATION" && rng() < dmRecycleP * clamp(1.1 - progressionUrgency(spell) * 0.55, 0.25, 1)) {
-        if (commentaryHold <= 0) say(`${carrier.short} recycles possession`, 1.1);
+        if (commentaryHold <= 0) {
+          say(pickPhrase("recycle", [
+            `${carrier.short} recycles possession`,
+            `${carrier.short} plays it back, resets`,
+            `Patient — ${carrier.short} recycles`,
+            `${carrier.short} circulates it`,
+          ]), 1.1);
+        }
         actionTimer = spellIdlePause();
         return;
       }
