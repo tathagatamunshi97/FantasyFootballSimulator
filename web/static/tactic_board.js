@@ -1056,7 +1056,10 @@
       const atkXg = Math.max(0.35, 2.05 * (0.42 + 0.88 * finishing));
       const createXg = Math.max(0, 2.05 * 0.36 * chanceCreation * 0.5);
       const effGk = 0.4 + 0.55 * (oppGk - 0.4);
-      let combined = 0.54 * oppDefence + 0.32 * oppMidDef + 0.14 * effGk;
+      // midDef weight trimmed 0.32 -> 0.15 -- per the user's own read, the
+      // opponent's midfield_defence composite was carrying too much of the
+      // pre-match target-xG suppression relative to their actual defence.
+      let combined = 0.54 * oppDefence + 0.15 * oppMidDef + 0.14 * effGk;
       combined *= Math.max(0.68, 1 - oppTransRisk * 0.32);
       const suppression = 1 / (1 + combined * 0.95);
       const midDelta = clamp(ownMid - oppMid, -0.8, 0.8);
