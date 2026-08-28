@@ -3412,9 +3412,18 @@
       if (!carrier) return false;
       const maestro = isMaestroPin(carrier);
       const shotFloor = maestro ? 0.12 : 0.18;
+      // Bug fix — this near-box branch fired at a flat ~45-62% regardless of
+      // match time, so it was the dominant reason literally every match's
+      // opening sequence cashed out into the same cheap, low-variance shot
+      // the instant a carrier first reached the edge of the box, before the
+      // team had any real box occupancy built up (see matchOpeningDamp).
+      // Only damp the coin-flip branch, not the inPenaltyBox() shot or the
+      // xg90 > shotFloor case -- a genuine box chance or an elite finisher's
+      // instinctive strike should still fire regardless of match time.
+      const nearBoxShotP = (maestro ? 0.62 : 0.45) * matchOpeningDamp();
       if (
         inPenaltyBox(carrier) ||
-        (nearPenaltyBox(carrier) && (carrier.stats.xg90 > shotFloor || rng() < (maestro ? 0.62 : 0.45)))
+        (nearPenaltyBox(carrier) && (carrier.stats.xg90 > shotFloor || rng() < nearBoxShotP))
       ) {
         doShot(carrier, false);
         return true;
@@ -10065,6 +10074,24 @@
       return mul;
     }
 
+    // Bug fix — the opening minutes of every single match were producing
+    // the same repetitive shot: nobody's had time to make a box-entry run
+    // yet right after kickoff, so boxOccupationReady() can't return true,
+    // which forces the first shot into estimateChanceXg's tight, low-
+    // variance "near"/"boxed && !ready" bands (see the near-box carveout in
+    // forwardFinalThirdAction below) -- and it fired almost immediately
+    // because neither the team-level chance gate nor that carveout knew
+    // the match had just kicked off. Ramp both back up over the first few
+    // minutes so the opening sequence gets a real chance to develop box
+    // occupancy before cashing out into a cheap shot, instead of it being
+    // mechanically inevitable every match. Full strength by minute 6 --
+    // short enough that a genuine fast start is still possible, long
+    // enough that it isn't the default outcome anymore.
+    function matchOpeningDamp() {
+      if (matchMinute >= 6) return 1;
+      return 0.55 + (matchMinute / 6) * 0.45;
+    }
+
     /** Probability this spell produces a shot attempt (~most spells; target ~10–14 shots / match). */
     function spellChanceP(side) {
       const create = sideCreate(side);
@@ -10090,7 +10117,8 @@
       const noise = (rng() - 0.5) * 0.025;
       const baseTerm = 0.42 + create * 0.24 + atk * 0.18 - def * 0.03 + noise;
       const paceMul = xgPaceMul(side, "spellChanceP");
-      const finalProb = clamp(baseTerm * vol * lerp(1, supp, 0.45) * paceMul * leadProtectMul * homePushMul, 0.32, 0.72);
+      const openingMul = matchOpeningDamp();
+      const finalProb = clamp(baseTerm * vol * lerp(1, supp, 0.45) * paceMul * leadProtectMul * homePushMul * openingMul, 0.32, 0.72);
       paceLog.push({
         minute: Math.round(matchMinute * 10) / 10,
         side,
@@ -10104,6 +10132,7 @@
         paceMul: Math.round(paceMul * 1000) / 1000,
         leadProtectMul,
         homePushMul,
+        openingMul: Math.round(openingMul * 1000) / 1000,
         finalProb: Math.round(finalProb * 1000) / 1000,
       });
       return finalProb;
