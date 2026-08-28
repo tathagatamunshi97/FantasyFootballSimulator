@@ -1059,9 +1059,18 @@
       // midDef weight trimmed 0.32 -> 0.15 -- per the user's own read, the
       // opponent's midfield_defence composite was carrying too much of the
       // pre-match target-xG suppression relative to their actual defence.
-      let combined = 0.54 * oppDefence + 0.15 * oppMidDef + 0.14 * effGk;
+      // defence/effGk renormalized to absorb the dropped 0.17 proportionally
+      // (their original 0.54:0.14 ratio preserved), so the three weights
+      // still sum to 1.0: 0.54->0.675, 0.14->0.175.
+      let combined = 0.675 * oppDefence + 0.15 * oppMidDef + 0.175 * effGk;
       combined *= Math.max(0.68, 1 - oppTransRisk * 0.32);
-      const suppression = 1 / (1 + combined * 0.95);
+      // Suppression scale (0.95 -> 0.43) -- with the same overall
+      // renormalized weights above, the old scale left target xG averaging
+      // ~1.6 across a real 10-opponent set; this brings the stronger side's
+      // average target back up to ~2.0 (measured directly via
+      // getPrematchModel() across MasterSimulator's real 10-opponent batch
+      // dataset, not just eyeballed).
+      const suppression = 1 / (1 + combined * 0.43);
       const midDelta = clamp(ownMid - oppMid, -0.8, 0.8);
       return (atkXg + createXg) * suppression * (1 + 0.1 * midDelta);
     }
