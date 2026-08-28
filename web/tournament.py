@@ -1149,10 +1149,51 @@ def player_leaderboards(t: dict[str, Any], *, limit: int = 10, competition: str 
     }
 
 
+def team_ppda_board(t: dict[str, Any], *, competition: str | None = None) -> list[dict[str, Any]]:
+    """Team-level pressing intensity (PPDA), summed across all completed matches.
+
+    Aggregated as sum-of-opponent-passes / sum-of-own-defensive-actions across
+    every match a team played, not an average of per-match ratios -- same
+    reasoning as goals-per-game vs. total goals (averaging ratios directly
+    would under-weight matches with fewer defensive-action attempts). Lower
+    PPDA means more aggressive pressing, so callers should sort ascending.
+    """
+    totals: dict[str, dict[str, float]] = {}
+    for result in (t.get("match_results") or {}).values():
+        if not isinstance(result, dict):
+            continue
+        if competition is not None and result.get("competition") != competition:
+            continue
+        ppda = result.get("ppda")
+        if not isinstance(ppda, dict):
+            continue
+        home = result.get("home")
+        away = result.get("away")
+        for team, side in ((home, "home"), (away, "away")):
+            if not team:
+                continue
+            side_ppda = ppda.get(side)
+            if not isinstance(side_ppda, dict):
+                continue
+            row = totals.setdefault(str(team), {"opp_passes": 0.0, "own_actions": 0.0})
+            row["opp_passes"] += float(side_ppda.get("opp_passes") or 0)
+            row["own_actions"] += float(side_ppda.get("own_actions") or 0)
+
+    return sorted(
+        [
+            {"team": team, "ppda": round(v["opp_passes"] / v["own_actions"], 1), **v}
+            for team, v in totals.items()
+            if v["own_actions"] > 0
+        ],
+        key=lambda r: r["ppda"],
+    )
+
+
 def _refresh_player_tallies(t: dict[str, Any]) -> None:
     """Persist leaderboard snapshot on the tournament document."""
     boards = player_leaderboards(t)
     t.update(boards)
+    t["team_ppda"] = team_ppda_board(t)
 
 
 def tournament_for_api(t: dict[str, Any]) -> dict[str, Any]:
@@ -1162,6 +1203,7 @@ def tournament_for_api(t: dict[str, Any]) -> dict[str, Any]:
         **t,
         "match_results": {k: match_result_for_api(v) for k, v in mrs.items()},
         **boards,
+        "team_ppda": team_ppda_board(t),
     }
 
 
@@ -1714,6 +1756,27 @@ def complete_from_board(
                     "home": round(float(poss.get("home") or 0), 1),
                     "away": round(float(poss.get("away") or 0), 1),
                 }
+            counts = stored_log.get("counts")
+            if isinstance(counts, dict):
+                home_counts = counts.get("home") or {}
+                away_counts = counts.get("away") or {}
+                home_actions = home_counts.get("ppda_actions") or 0
+                away_actions = away_counts.get("ppda_actions") or 0
+                home_opp_passes = away_counts.get("ppda_passes") or 0
+                away_opp_passes = home_counts.get("ppda_passes") or 0
+                if home_actions or away_actions:
+                    result["ppda"] = {
+                        "home": {
+                            "value": round(home_opp_passes / home_actions, 1) if home_actions else None,
+                            "opp_passes": home_opp_passes,
+                            "own_actions": home_actions,
+                        },
+                        "away": {
+                            "value": round(away_opp_passes / away_actions, 1) if away_actions else None,
+                            "opp_passes": away_opp_passes,
+                            "own_actions": away_actions,
+                        },
+                    }
     elif stored_events:
         result["match_log"] = {
             "events": stored_events,

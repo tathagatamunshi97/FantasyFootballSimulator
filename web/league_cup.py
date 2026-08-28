@@ -191,6 +191,8 @@ def tournament_for_api(t: dict[str, Any]) -> dict[str, Any]:
         "match_results": {k: tournament.match_result_for_api(v) for k, v in mrs.items()},
         "league_boards": tournament.player_leaderboards(t, competition="league"),
         "cup_boards": tournament.player_leaderboards(t, competition="cup"),
+        "league_team_ppda": tournament.team_ppda_board(t, competition="league"),
+        "cup_team_ppda": tournament.team_ppda_board(t, competition="cup"),
     }
 
 
@@ -723,6 +725,28 @@ def complete_from_board(
         result["board_events"] = stored_events
     if stored_log is not None:
         result["match_log"] = stored_log
+        if isinstance(stored_log, dict):
+            counts = stored_log.get("counts")
+            if isinstance(counts, dict):
+                home_counts = counts.get("home") or {}
+                away_counts = counts.get("away") or {}
+                home_actions = home_counts.get("ppda_actions") or 0
+                away_actions = away_counts.get("ppda_actions") or 0
+                home_opp_passes = away_counts.get("ppda_passes") or 0
+                away_opp_passes = home_counts.get("ppda_passes") or 0
+                if home_actions or away_actions:
+                    result["ppda"] = {
+                        "home": {
+                            "value": round(home_opp_passes / home_actions, 1) if home_actions else None,
+                            "opp_passes": home_opp_passes,
+                            "own_actions": home_actions,
+                        },
+                        "away": {
+                            "value": round(away_opp_passes / away_actions, 1) if away_actions else None,
+                            "opp_passes": away_opp_passes,
+                            "own_actions": away_actions,
+                        },
+                    }
     elif stored_events:
         result["match_log"] = {"events": stored_events, "goals": [e for e in stored_events if e.get("type") == "goal"]}
 

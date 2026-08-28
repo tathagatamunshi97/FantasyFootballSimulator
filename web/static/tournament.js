@@ -49,8 +49,9 @@ function renderStats(t) {
   const teamTallies = statView === "team" ? aggregateTeamTallies(t.player_tallies) : null;
   const cards = boards
     .map((b) => {
-      const table =
-        statView === "team"
+      const table = b.teamOnly
+        ? renderTeamOnlyBoard(t[b.key] || [], b)
+        : statView === "team"
           ? renderTeamLeaderboardTable(teamBoard(teamTallies, b.field), b.field, b.label, b.empty, { suffix: b.suffix || "" })
           : renderLeaderboardTable(t[b.key] || [], b.field, b.label, b.empty, { suffix: b.suffix || "" });
       return `<div class="card">

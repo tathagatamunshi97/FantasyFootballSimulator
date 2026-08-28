@@ -1160,6 +1160,7 @@
             <div class="mobile-stat-row"><span class="ms-val home" data-ms="sot-home">0</span><span class="ms-label">Shots on target</span><span class="ms-val away" data-ms="sot-away">0</span></div>
             <div class="mobile-stat-row"><span class="ms-val home" data-ms="fouls-home">0</span><span class="ms-label">Fouls</span><span class="ms-val away" data-ms="fouls-away">0</span></div>
             <div class="mobile-stat-row"><span class="ms-val home" data-ms="corners-home">0</span><span class="ms-label">Corners</span><span class="ms-val away" data-ms="corners-away">0</span></div>
+            <div class="mobile-stat-row"><span class="ms-val home" data-ms="ppda-home">–</span><span class="ms-label">PPDA</span><span class="ms-val away" data-ms="ppda-away">–</span></div>
           </div>
           <div class="tactic-mobile-zone" data-tb-mobile-zone>
             <div class="mz-track"><span class="mz-marker" data-mz-marker></span></div>
@@ -1779,6 +1780,15 @@
         turnovers: 0,
         chances_created: 0,
         xg: 0,
+        // PPDA (Passes Per Defensive Action) -- pressing-intensity proxy.
+        // ppda_passes: this side's own pass attempts in the eligible zone
+        // (middle+attacking two-thirds, excludes clearances) -- the
+        // OPPONENT's ppda_passes is the numerator when computing THIS
+        // side's PPDA. ppda_actions: this side's own defensive actions
+        // (interception/tackle/foul-equivalent) against an opponent in
+        // that same zone -- the denominator for THIS side's PPDA.
+        ppda_passes: 0,
+        ppda_actions: 0,
       });
       return {
         goals: [],
@@ -1917,7 +1927,12 @@
         events.filter((e) => e.type === "save" && e.against === side).length;
       const corners = events.filter((e) => e.type === "corner" && e.side === side).length;
       const fouls = events.filter((e) => e.type === "foul" && e.side === side).length;
-      return { shots: counts.shots, shotsOnTarget, bigChances: counts.big_chances, corners, fouls };
+      // PPDA -- opponent's zone-eligible pass attempts over this side's own
+      // zone-eligible defensive actions. null until the first defensive
+      // action of the match (nothing meaningful to divide by yet).
+      const oppCounts = matchLog.counts[oppOf(side)];
+      const ppda = counts.ppda_actions > 0 ? oppCounts.ppda_passes / counts.ppda_actions : null;
+      return { shots: counts.shots, shotsOnTarget, bigChances: counts.big_chances, corners, fouls, ppda };
     }
     function updateMobileStats(poss) {
       if (!mobileStatsEl) return;
@@ -1941,6 +1956,8 @@
       set("fouls-away", a.fouls);
       set("corners-home", h.corners);
       set("corners-away", a.corners);
+      set("ppda-home", h.ppda == null ? "–" : h.ppda.toFixed(1));
+      set("ppda-away", a.ppda == null ? "–" : a.ppda.toFixed(1));
     }
 
     /** FM Mobile broadcast mode — goal/card strip beneath the score, like the reference screenshot. */
@@ -6127,6 +6144,7 @@
               by: opp.player,
               detail: `stopped by ${opp.short}`,
             });
+            if (inPpdaZone(carrier)) bumpCount(opp.side, "ppda_actions");
             say(`${opp.short} stops ${carrier.short}`, 1.35);
             ballAttached = false;
             // Land the ball at the point of the challenge, near the carrier
@@ -7375,6 +7393,14 @@
       if (!carrier) return 0.4;
       const rel = fromPitchPct(carrier.side, carrier.left, carrier.top);
       return clamp(rel.depth, 0, 1);
+    }
+
+    // PPDA zone gate -- excludes a side's own defensive third (depth < 1/3)
+    // from both the pass-attempt count and any resulting defensive-action
+    // count, matching real-world PPDA convention: a team circulating the
+    // ball among its own centre-backs isn't meaningfully "under press."
+    function inPpdaZone(pin) {
+      return possessionDepth(pin) >= 1 / 3;
     }
 
     function updatePhaseFromBall() {
@@ -10549,6 +10575,15 @@
       const isLong = passKind === "long" || (passKind !== "clear" && isLongSkip(from, to) && dist(from, to) > 18);
       if (isLong && passKind !== "long") passKind = "long";
 
+      // PPDA numerator -- every pass ATTEMPT (not just completions) in the
+      // eligible zone counts, matching real PPDA convention; clearances are
+      // excluded (not a purposeful buildup pass a press is being tested
+      // against), same special-casing this function already gives them
+      // a few lines below for the offside check.
+      if (passKind !== "clear" && inPpdaZone(from)) {
+        bumpCount(from.side, "ppda_passes");
+      }
+
       // Decide intercept / steal / offside BEFORE any animation
       const passWasOffside = passKind !== "clear" && wouldPassBeOffside(from, to, to.left, to.top);
       const threat = nearestOpponent(to, 12);
@@ -10675,6 +10710,7 @@
             by: def.player,
             detail: passKind === "long" ? `cuts out the long ball` : `broke ${from.short}'s pass`,
           });
+          if (inPpdaZone(from)) bumpCount(def.side, "ppda_actions");
         }
       }
       if (outcome === "pass" && pressers[0] && fieldPressure > 0.3 && passKind !== "clear") {
@@ -10702,6 +10738,7 @@
             by: p.player,
             detail: `presses ${from.short}`,
           });
+          if (inPpdaZone(from)) bumpCount(p.side, "ppda_actions");
         }
       }
       if (outcome === "pass" && passWasOffside) {
@@ -10807,6 +10844,7 @@
               by: bestCb.player,
               detail: `clears ${from.short}'s cross`,
             });
+            if (inPpdaZone(from)) bumpCount(bestCb.side, "ppda_actions");
           }
         }
       } else if (passKind === "cutback") {
@@ -11266,6 +11304,7 @@
             against: carrier.player,
             detail: `on ${carrier.short}`,
           });
+          if (inPpdaZone(carrier)) bumpCount(opp.side, "ppda_actions");
           say(`Foul! ${opp.short} on ${carrier.short}`, 1.3);
           if (willCard) {
             opp._yellowCards = (opp._yellowCards || 0) + 1;
@@ -11319,6 +11358,10 @@
           detail: opp ? `stopped by ${opp.short}` : "loses possession",
           distance: Math.round(pitchDistM({ left: carrier.left, top: carrier.top }, { left: nx, top: ny }) * 10) / 10,
         });
+        // PPDA -- only a genuine defender-credited stop counts as a
+        // defensive action; a plain unforced loss of possession (no opp)
+        // isn't a tackle/interception/foul equivalent.
+        if (opp && inPpdaZone(carrier)) bumpCount(opp.side, "ppda_actions");
         say(opp ? `${opp.short} stops ${carrier.short}` : `${carrier.short} loses it`, 1.4);
         // Ball ends at the point of the challenge — path decided now.
         // Bug fix — same class as driveIntoBox: land near the carrier
@@ -11403,6 +11446,7 @@
             by: opp.player,
             detail: `dispossessed by ${opp.short}`,
           });
+          if (inPpdaZone(carrier)) bumpCount(opp.side, "ppda_actions");
           say(`${opp.short} dispossesses ${carrier.short}`, 1.3);
           ballAttached = false;
           const arc = passArcFor(carrier.left, carrier.top, opp.left, opp.top, "pass");
@@ -13492,6 +13536,8 @@
           set("fouls-away", ms.away.fouls);
           set("corners-home", ms.home.corners);
           set("corners-away", ms.away.corners);
+          set("ppda-home", ms.home.ppda == null ? "–" : Number(ms.home.ppda).toFixed(1));
+          set("ppda-away", ms.away.ppda == null ? "–" : Number(ms.away.ppda).toFixed(1));
           if (mobileScorersHomeEl && mobileScorersAwayEl) {
             const rowsFor = (side) => {
               const goalRows = ms.goals
@@ -15217,6 +15263,8 @@
           turnovers: 0,
           chances_created: 0,
           xg: 0,
+          ppda_passes: 0,
+          ppda_actions: 0,
         },
         away: {
           goals: 0,
@@ -15233,6 +15281,8 @@
           turnovers: 0,
           chances_created: 0,
           xg: 0,
+          ppda_passes: 0,
+          ppda_actions: 0,
         },
       },
       spells: [],

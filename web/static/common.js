@@ -168,6 +168,13 @@ function renderTeamLeaderboardTable(rows, countKey, countLabel, emptyMsg, { suff
   return `<div class="report-table-wrap rank-table emphasize-top"><table><thead><tr><th>#</th><th>Team</th><th>${esc(countLabel)}</th></tr></thead><tbody>${body}</tbody></table></div>`;
 }
 
+// Team-only boards (e.g. team_ppda) are already server-sorted -- this is a
+// thin wrapper so the same renderTeamLeaderboardTable can render them
+// without going through teamBoard()/aggregateTeamTallies at all.
+function renderTeamOnlyBoard(rows, board) {
+  return renderTeamLeaderboardTable(rows, board.field, board.label, board.empty, { suffix: board.suffix || "" });
+}
+
 // Mirrors web/tournament.py's _TALLY_FIELDS exactly -- every field a
 // player_tallies row carries, so a team total is a plain per-field sum
 // across every player who's ever turned out for that team. clean_sheets
@@ -228,6 +235,7 @@ const STAT_BOARDS = [
   { key: "top_clean_sheets", field: "clean_sheets", title: "Most clean sheets", label: "CS", empty: "No clean sheets recorded yet.", category: "defending" },
   { key: "top_tacklers", field: "tackles", title: "Most tackles", label: "Tackles", empty: "No tackles recorded yet.", category: "defending" },
   { key: "top_interceptors", field: "interceptions", title: "Most interceptions", label: "Int", empty: "No interceptions recorded yet.", category: "defending" },
+  { key: "team_ppda", field: "ppda", title: "Best pressing (PPDA)", label: "PPDA", empty: "No matches played yet.", category: "defending", teamOnly: true, sortAsc: true },
 ];
 
 // Renders one played-match analysis result into its `.match-analysis-panel`

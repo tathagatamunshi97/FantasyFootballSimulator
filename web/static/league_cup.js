@@ -357,6 +357,7 @@ function lcRenderCup() {
 // gap was purely this file never rendering it.
 function lcRenderStats() {
   const boards = lcStatsCompetition === "league" ? lcTournament.league_boards : lcTournament.cup_boards;
+  const teamPpda = lcStatsCompetition === "league" ? lcTournament.league_team_ppda : lcTournament.cup_team_ppda;
   const compToggle = `
     <div style="display:flex;gap:0.5rem;margin-bottom:1rem">
       <button type="button" class="tab-btn${lcStatsCompetition === "league" ? " active" : ""}" data-lc-stats="league">League</button>
@@ -376,8 +377,9 @@ function lcRenderStats() {
   const teamTallies = lcStatView === "team" ? aggregateTeamTallies(boards?.player_tallies) : null;
   const cards = categoryBoards
     .map((b) => {
-      const table =
-        lcStatView === "team"
+      const table = b.teamOnly
+        ? renderTeamOnlyBoard(teamPpda || [], b)
+        : lcStatView === "team"
           ? renderTeamLeaderboardTable(teamBoard(teamTallies, b.field), b.field, b.label, b.empty, { suffix: b.suffix || "" })
           : renderLeaderboardTable((boards && boards[b.key]) || [], b.field, b.label, b.empty, { suffix: b.suffix || "" });
       return `<div class="card"><h3>${esc(b.title)}</h3>${table}</div>`;

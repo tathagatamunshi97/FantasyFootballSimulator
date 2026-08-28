@@ -1755,4 +1755,28 @@ def enrich_analysis_with_board_result(
                 "away": board_xg["away"],
             },
         )
+    if isinstance(ml, dict) and isinstance(out.get("key_factors"), list):
+        counts = ml.get("counts")
+        if isinstance(counts, dict):
+            home_counts = counts.get("home") or {}
+            away_counts = counts.get("away") or {}
+            home_actions = home_counts.get("ppda_actions") or 0
+            away_actions = away_counts.get("ppda_actions") or 0
+            home_opp_passes = away_counts.get("ppda_passes") or 0
+            away_opp_passes = home_counts.get("ppda_passes") or 0
+            if home_actions and away_actions:
+                home_ppda = round(home_opp_passes / home_actions, 1)
+                away_ppda = round(away_opp_passes / away_actions, 1)
+                out["key_factors"].append(
+                    {
+                        "factor": "Pressing intensity (PPDA)",
+                        "explanation": (
+                            f"Passes per defensive action in the middle and attacking thirds — "
+                            f"{home_name} {home_ppda} vs {away_name} {away_ppda}. Lower means more "
+                            "aggressive, higher pressing."
+                        ),
+                        "home": home_ppda,
+                        "away": away_ppda,
+                    }
+                )
     return out
