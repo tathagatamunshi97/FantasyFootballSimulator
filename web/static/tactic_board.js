@@ -1814,6 +1814,11 @@
         through_attempted: 0,
         through_completed: 0,
         big_chance_goals: 0,
+        // Discipline/progression stats project.
+        fouls: 0,
+        cards: 0,
+        penalty_goals: 0,
+        progressive_passes: 0,
       });
       return {
         goals: [],
@@ -1861,6 +1866,7 @@
           crosses_completed: 0,
           through_attempted: 0,
           through_completed: 0,
+          progressive_passes: 0,
         };
         matchLog.player_passing[player] = row;
       }
@@ -1883,6 +1889,7 @@
       if (extra.assist_short) entry.assist_short = extra.assist_short;
       if (extra.distance != null && Number.isFinite(Number(extra.distance))) entry.distance = Number(extra.distance);
       if (extra.big_chance != null) entry.big_chance = Boolean(extra.big_chance);
+      if (extra.penalty != null) entry.penalty = Boolean(extra.penalty);
       if (extra.in_box != null) entry.in_box = Boolean(extra.in_box);
       // DIAGNOSTIC (coinflip-vs-lopsided-batch investigation) — shot supply
       // mechanism + time-since-possession-won, read off doShot below.
@@ -1934,6 +1941,8 @@
       else if (type === "blocked_shot") bumpCount(side, "blocked_shots");
       else if (type === "possession") bumpCount(side, "possessions");
       else if (type === "turnover") bumpCount(side, "turnovers");
+      else if (type === "foul") bumpCount(side, "fouls");
+      else if (type === "yellow_card") bumpCount(side, "cards");
     }
 
     function possessionPct() {
@@ -10757,15 +10766,18 @@
       goalSubParts.push(`${homeScore}–${awayScore}`);
       showGoalCard(side, scorerName || "Goal!", initials(scorer?.player || scorerName || ""), goalSubParts.join(" · "));
       const isBigChance = meta?.chanceType === "big_chance";
+      const isPenalty = meta?.chanceType === "penalty";
       pushMatchEvent("goal", side, {
         player: scorer?.player || null,
         player_short: scorer?.short || scorerName || null,
         detail: `${homeScore}–${awayScore}`,
         xg: meta?.xg,
         big_chance: isBigChance,
+        penalty: isPenalty,
         ...assistExtra,
       });
       if (isBigChance) bumpCount(side, "big_chance_goals");
+      if (isPenalty) bumpCount(side, "penalty_goals");
       clearLastPasser();
       archiveSpell("goal");
       const assistNote = assistExtra.assist_short ? ` (assist ${assistExtra.assist_short})` : "";
@@ -11178,6 +11190,17 @@
         if (completed) {
           bumpCount(from.side, "passes_completed");
           bumpPlayerPassing(from.player, from.side, "passes_completed");
+          // Discipline/progression stats project -- same depthDelta
+          // classification the pendingDecisionSnapshot diagnostic already
+          // uses (a few lines below) for "progressive_pass"/"recycle"/
+          // "normal_pass", just made an always-on counter instead of only
+          // firing when a decision snapshot happens to be active. Only
+          // counts completed passes -- an intercepted pass didn't actually
+          // progress anything, same real-world stat-provider convention.
+          if (possessionDepth(to) - possessionDepth(from) > 0.08) {
+            bumpCount(from.side, "progressive_passes");
+            bumpPlayerPassing(from.player, from.side, "progressive_passes");
+          }
         }
         if (passKind === "cross") {
           bumpCount(from.side, "crosses_attempted");
@@ -15606,6 +15629,10 @@
           through_attempted: 0,
           through_completed: 0,
           big_chance_goals: 0,
+          fouls: 0,
+          cards: 0,
+          penalty_goals: 0,
+          progressive_passes: 0,
         },
         away: {
           goals: 0,
@@ -15631,6 +15658,10 @@
           through_attempted: 0,
           through_completed: 0,
           big_chance_goals: 0,
+          fouls: 0,
+          cards: 0,
+          penalty_goals: 0,
+          progressive_passes: 0,
         },
       },
       spells: [],

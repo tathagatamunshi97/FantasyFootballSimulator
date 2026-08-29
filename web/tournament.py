@@ -1298,6 +1298,11 @@ _TALLY_FIELDS = (
     "crosses_completed",
     "through_attempted",
     "through_completed",
+    # Discipline/progression stats project.
+    "fouls",
+    "cards",
+    "penalty_goals",
+    "progressive_passes",
 )
 
 
@@ -1421,6 +1426,8 @@ def aggregate_player_tallies(t: dict[str, Any], *, competition: str | None = Non
                     _bump_player_tally(tallies, player=player, team=str(team), field="goals")
                     if ev.get("big_chance"):
                         _bump_player_tally(tallies, player=player, team=str(team), field="big_chance_goals")
+                    if ev.get("penalty"):
+                        _bump_player_tally(tallies, player=player, team=str(team), field="penalty_goals")
                 # Assist attributed on the goal event (last passer before shot).
                 assist = str(ev.get("assist") or ev.get("assist_player") or "").strip()
                 if assist and assist != player:
@@ -1447,6 +1454,14 @@ def aggregate_player_tallies(t: dict[str, Any], *, competition: str | None = Non
                 player = str(ev.get("player") or "").strip()
                 if player:
                     _bump_player_tally(tallies, player=player, team=str(team), field="saves")
+            elif ev_type == "foul" and team:
+                player = str(ev.get("player") or "").strip()
+                if player:
+                    _bump_player_tally(tallies, player=player, team=str(team), field="fouls")
+            elif ev_type == "yellow_card" and team:
+                player = str(ev.get("player") or "").strip()
+                if player:
+                    _bump_player_tally(tallies, player=player, team=str(team), field="cards")
             elif ev_type == "pass_broken" and team:
                 player = str(ev.get("player") or "").strip()
                 if player:
@@ -1531,6 +1546,7 @@ def aggregate_player_tallies(t: dict[str, Any], *, competition: str | None = Non
                     "crosses_completed",
                     "through_attempted",
                     "through_completed",
+                    "progressive_passes",
                 ):
                     amount = row.get(field)
                     if isinstance(amount, (int, float)) and amount:
@@ -1582,6 +1598,11 @@ def player_leaderboards(t: dict[str, Any], *, limit: int = 10, competition: str 
         "top_crossers": _board("cross_accuracy_pct"),
         "top_through_ball_creators": _board("through_ball_completion_pct"),
         "top_keepers": _board("save_pct"),
+        # Discipline/progression stats project.
+        "top_cards": _board("cards"),
+        "top_fouls": _board("fouls"),
+        "top_penalty_scorers": _board("penalty_goals"),
+        "top_progressive_passers": _board("progressive_passes"),
     }
 
 

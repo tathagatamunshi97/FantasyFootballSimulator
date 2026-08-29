@@ -901,6 +901,7 @@ const STATS_TABLE_GROUPS = [
       ["big_chances", "BC"],
       ["big_chance_goals", "BC Goals"],
       ["big_chance_conversion_pct", "BC Conv %", "pct"],
+      ["penalty_goals", "Pens"],
       ["dribbles", "Dribbles"],
       ["distance_carried", "Dist (m)"],
     ],
@@ -910,6 +911,7 @@ const STATS_TABLE_GROUPS = [
     columns: [
       ["key_passes", "KP"],
       ["big_chances_created", "BC Created"],
+      ["progressive_passes", "Prog Passes"],
       ["passes_attempted", "Pass Att"],
       ["passes_completed", "Pass Comp"],
       ["pass_completion_pct", "Pass %", "pct"],
@@ -929,6 +931,8 @@ const STATS_TABLE_GROUPS = [
       ["goals_conceded", "Conceded"],
       ["save_pct", "Save %", "pct"],
       ["big_chances_missed", "BC Missed"],
+      ["fouls", "Fouls"],
+      ["cards", "Cards"],
     ],
   },
 ];

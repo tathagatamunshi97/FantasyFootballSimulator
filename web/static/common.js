@@ -192,6 +192,8 @@ const TALLY_FIELDS = [
   "xg", "big_chances", "big_chance_goals", "saves", "goals_conceded",
   "passes_attempted", "passes_completed", "crosses_attempted",
   "crosses_completed", "through_attempted", "through_completed",
+  // Discipline/progression stats project.
+  "fouls", "cards", "penalty_goals", "progressive_passes",
 ];
 
 // Mirrors web/tournament.py's _add_derived_tally_fields/_ratio_pct exactly
@@ -287,6 +289,11 @@ const STAT_BOARDS = [
   { key: "top_crossers", field: "cross_accuracy_pct", title: "Best cross accuracy", label: "Cross %", empty: "No qualifying cross samples yet.", suffix: "%", category: "creation" },
   { key: "top_through_ball_creators", field: "through_ball_completion_pct", title: "Best through-ball completion", label: "TB %", empty: "No qualifying through-ball samples yet.", suffix: "%", category: "creation" },
   { key: "top_keepers", field: "save_pct", title: "Best save %", label: "Save %", empty: "No qualifying shots-faced samples yet.", suffix: "%", category: "defending" },
+  // Discipline/progression stats project.
+  { key: "top_cards", field: "cards", title: "Most cards", label: "Cards", empty: "No cards shown yet.", category: "defending" },
+  { key: "top_fouls", field: "fouls", title: "Most fouls committed", label: "Fouls", empty: "No fouls recorded yet.", category: "defending" },
+  { key: "top_penalty_scorers", field: "penalty_goals", title: "Most penalties scored", label: "Pens", empty: "No penalties scored yet.", category: "attacking" },
+  { key: "top_progressive_passers", field: "progressive_passes", title: "Most progressive passes", label: "Prog Passes", empty: "No progressive passes recorded yet.", category: "creation" },
 ];
 
 // Renders one played-match analysis result into its `.match-analysis-panel`
