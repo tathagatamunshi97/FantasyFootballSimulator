@@ -466,6 +466,19 @@ def build_key_battles(
     mine = _side_players(my_resolved, my_name_map, my_stats_map)
     theirs = _side_players(opponent_team_dict, opp_name_map, opp_stats_map)
 
+    # Bug fix — a centre-back has no side (_wide_side only assigns L/R to
+    # fullback/winger slots), so its candidate list was never side-filtered
+    # and could claim a winger via plain role-eligibility alone. Processed
+    # in raw lineup order, a centre-back listed before the properly-
+    # mirrored fullback could steal that winger first (e.g. a RCB grabbing
+    # the opponent's RW, when that RW's real mirrored opponent is your LB)
+    # — used_opp then blocked the fullback from ever getting its own,
+    # correct mirrored match. Side-aware players (fullback/winger) get
+    # first pick at their mirrored opponent; centre-backs and other central
+    # roles (side=None) only draw from whatever's left afterward. Stable
+    # sort preserves original lineup order within each group.
+    mine = sorted(mine, key=lambda m: m["side"] is None)
+
     used_opp: set[str] = set()
     battles: list[dict[str, Any]] = []
     for m in mine:
