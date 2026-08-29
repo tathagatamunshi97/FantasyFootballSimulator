@@ -2250,10 +2250,22 @@
       return variants[idx];
     }
 
-    function say(text, hold = 1.6) {
-      phaseEl.textContent = text;
-      commentaryHold = hold;
-      const min = Math.max(0, Math.floor(matchMinute));
+    // Commentary density project — the feed used to get one discrete line
+    // per individual event (a busy minute could post 3+ separate lines all
+    // stamped with the same minute), reading as a raw event log rather
+    // than something engaging to follow. Routine buildup narration (passes,
+    // carries, dribbles, possession changes, movement off the ball) now
+    // buffers per match-minute and posts as ONE consolidated line when the
+    // minute closes, via noteMoment() below. Marquee moments (goals, cards,
+    // shot outcomes, dead-ball events, HT/FT) still post immediately via
+    // say() itself, unchanged in spirit from before — and say() flushes any
+    // pending buffered minute first, so a goal never gets buried behind
+    // stale buildup chatter or appears before the play that led to it.
+    let minuteBuffer = [];
+    let bufferedMinute = -1;
+
+    function postCommentaryLine(text, minuteOverride) {
+      const min = minuteOverride != null ? minuteOverride : Math.max(0, Math.floor(matchMinute));
       commentaryLines.push({ minute: min, text: String(text || "") });
       if (commentaryLines.length > 12) commentaryLines.shift();
       if (feedEl) {
@@ -2264,6 +2276,58 @@
         while (feedEl.children.length > 40) feedEl.removeChild(feedEl.firstChild);
         feedEl.scrollTop = feedEl.scrollHeight;
       }
+    }
+
+    // Combine a minute's buffered fragments (each already a short, complete
+    // clause) into one line. 1 fragment: used as-is. 2: joined into a short
+    // two-clause sentence. 3+: only the first and last are kept (the
+    // opening and the eventual outcome of that minute), joined by a
+    // varied connector, so a busy minute still reads as one compact
+    // sentence instead of a run-on list of everything that happened.
+    function composeMinuteLine(fragments) {
+      if (fragments.length === 1) return fragments[0];
+      if (fragments.length === 2) {
+        return pickPhrase("minute_join_2", [
+          `${fragments[0]} — then ${fragments[1]}`,
+          `${fragments[0]}, before ${fragments[1]}`,
+          `${fragments[0]}; ${fragments[1]}`,
+        ]);
+      }
+      const connector = pickPhrase("minute_join_busy", [
+        "before, after some back-and-forth,",
+        "and, after a scrappy exchange,",
+        "then, following a flurry of play,",
+      ]);
+      return `${fragments[0]} ${connector} ${fragments[fragments.length - 1]}`;
+    }
+
+    function flushMinuteBuffer() {
+      if (!minuteBuffer.length) return;
+      postCommentaryLine(composeMinuteLine(minuteBuffer), bufferedMinute);
+      minuteBuffer = [];
+    }
+
+    function say(text, hold = 1.6) {
+      flushMinuteBuffer();
+      phaseEl.textContent = text;
+      commentaryHold = hold;
+      postCommentaryLine(text);
+    }
+
+    // Routine/buildup narration — updates the live phase indicator
+    // immediately (same as say()) but the FEED line is buffered and only
+    // posted, consolidated with the rest of the minute's fragments, once
+    // the match-minute closes (see flushMinuteBuffer). Use for anything
+    // that isn't itself a discrete, noteworthy moment.
+    function noteMoment(text, hold = 1.0) {
+      phaseEl.textContent = text;
+      commentaryHold = hold;
+      const min = Math.max(0, Math.floor(matchMinute));
+      if (min !== bufferedMinute) {
+        flushMinuteBuffer();
+        bufferedMinute = min;
+      }
+      minuteBuffer.push(text);
     }
 
     /** Hide OFFSIDE! overlay (display:grid otherwise beats [hidden]). */
@@ -6100,7 +6164,7 @@
           fb.lockUntil = matchMinute + 1.05;
           fb._running = true;
           fb._overlapRun = true;
-          say(`Decoy run — ${carrier.short}; ${fb.short} free`, 1.3);
+          noteMoment(`Decoy run — ${carrier.short}; ${fb.short} free`, 1.3);
           doPass(carrier, fb, "pass");
           return true;
         }
@@ -6122,11 +6186,11 @@
           ballAttached = true;
           setBallTarget(pct.left, pct.top, 0.78, true);
           actionTimer = 0.85 + spellIdlePause() * 0.3;
-          say(`Overlap — ${carrier.short}`, 1.25);
+          noteMoment(`Overlap — ${carrier.short}`, 1.25);
           ballFlight = { outcome: "dribble_won" };
           return true;
         }
-        say(`Overlap — ${runner.short}`, 1.2);
+        noteMoment(`Overlap — ${runner.short}`, 1.2);
         doPass(carrier, runner, "pass");
         return true;
       }
@@ -6143,11 +6207,11 @@
           ballAttached = true;
           setBallTarget(pct.left, pct.top, 0.72, true);
           actionTimer = 0.8 + spellIdlePause() * 0.25;
-          say(`Underlap — ${carrier.short}`, 1.2);
+          noteMoment(`Underlap — ${carrier.short}`, 1.2);
           ballFlight = { outcome: "dribble_won" };
           return true;
         }
-        say(`Underlap — ${runner.short}`, 1.15);
+        noteMoment(`Underlap — ${runner.short}`, 1.15);
         doPass(carrier, runner, "pass");
         return true;
       }
@@ -6160,20 +6224,20 @@
         partner.ty = pct.top;
         partner.lockUntil = matchMinute + 0.95;
         partner._running = true;
-        say(`One-two — ${carrier.short} & ${partner.short}`, 1.25);
+        noteMoment(`One-two — ${carrier.short} & ${partner.short}`, 1.25);
         doPass(carrier, partner, "pass");
         return true;
       }
 
       if (isW) {
-        say(`Into the fullback — ${partner.short}`, 1.1);
+        noteMoment(`Into the fullback — ${partner.short}`, 1.1);
         doPass(carrier, partner, "pass");
         if (spell) spell.patternHint = "fb_to_w";
         return true;
       }
       const wing = sameFlankPartners(carrier, "W")[0];
       if (wing) {
-        say(`Fullback to winger — ${wing.short}`, 1.2);
+        noteMoment(`Fullback to winger — ${wing.short}`, 1.2);
         doPass(carrier, wing, throughBallLegal(carrier, wing) ? "through" : "pass");
         return true;
       }
@@ -6249,7 +6313,7 @@
               detail: `stopped by ${opp.short}`,
             });
             if (inPpdaZone(carrier)) bumpCount(opp.side, "ppda_actions");
-            say(`${opp.short} stops ${carrier.short}`, 1.35);
+            noteMoment(`${opp.short} stops ${carrier.short}`, 1.35);
             ballAttached = false;
             // Land the ball at the point of the challenge, near the carrier
             // — not warped across to wherever opp was standing — and give
@@ -6291,7 +6355,7 @@
       ballAttached = true;
       setBallTarget(pct.left, pct.top, 0.88, true);
       actionTimer = 0.95 + spellIdlePause() * 0.25;
-      say(`${carrier.short} into the box`, 1.25);
+      noteMoment(`${carrier.short} into the box`, 1.25);
       ballFlight = { outcome: "dribble_won" };
       carrier._boxDriveDone = true;
       if (spell) {
@@ -6901,7 +6965,7 @@
           // ceiling longBallTarget holds every long pass to, regardless of
           // carrier role or how the lane/space checks came out.
           if (far && isJustifiedSwitch(carrier, far) && longBallDifficulty(carrier, far) <= 2.3) {
-            say(`Switch — ${far.short}`, 1.2);
+            noteMoment(`Switch — ${far.short}`, 1.2);
             doPass(carrier, far, "switch");
             return true;
           }
@@ -7042,7 +7106,7 @@
             }
             let kind = Math.abs(pick.left - carrier.left) > 26 ? "switch" : "pass";
             if (kind === "switch" && !isJustifiedSwitch(carrier, pick)) kind = "pass";
-            if (kind === "switch") say(`Switch — ${pick.short}`, 1.15);
+            if (kind === "switch") noteMoment(`Switch — ${pick.short}`, 1.15);
             doPass(carrier, pick, kind);
             return true;
           }
@@ -7134,7 +7198,7 @@
               ballAttached = true;
               setBallTarget(nx, ny + attackSign * -0.4, 0.7, true);
               actionTimer = 0.82 + spellIdlePause() * 0.3;
-              say(`${carrier.short} cuts inside`, 1.25);
+              noteMoment(`${carrier.short} cuts inside`, 1.25);
               ballFlight = { outcome: "dribble_won" };
               return true;
             }
@@ -7310,7 +7374,7 @@
       const pick = weightedPick(options);
 
       if (pick === "shoot") {
-        say(`${carrier.short} goes himself — shoots!`, 1.35);
+        noteMoment(`${carrier.short} goes himself — shoots!`, 1.35);
         doShot(carrier, false);
         return true;
       }
@@ -10274,7 +10338,7 @@
       pushMatchEvent("possession", side, { detail: reason || "builds" });
       if (commentaryHold <= 0.4) {
         const name = side === "home" ? homeTeam.name : awayTeam.name;
-        say(pickPhrase("possession_start", [
+        noteMoment(pickPhrase("possession_start", [
           `${name} in possession`,
           `${name} have it now`,
           `Ball with ${name}`,
@@ -10435,7 +10499,7 @@
         detail: detail || "loses possession",
       });
       archiveSpell("turnover");
-      say(pickPhrase("turnover", [
+      noteMoment(pickPhrase("turnover", [
         `${opp.short} wins it — ${detail || "turnover"}`,
         `${opp.short} regains possession — ${detail || "turnover"}`,
         `Turned over — ${opp.short} — ${detail || "turnover"}`,
@@ -10470,7 +10534,7 @@
       if (!spell) return;
       spell.stage = "CHANCE_CREATION";
       phase = "CHANCE_CREATION";
-      say(`Chance brewing — ${carrier.short}`, 1.25);
+      noteMoment(`Chance brewing — ${carrier.short}`, 1.25);
       const pattern = refreshSpellPattern(carrier) || spell.pattern;
       const create = sideCreate(carrier.side);
       const ready = boxOccupationReady(carrier.side);
@@ -11081,8 +11145,8 @@
       // Wide-final already announced Cross/Cutback — don't double-speak
       if ((passKind === "cross" || passKind === "cutback") && commentaryHold > 0.8) {
         /* keep prior "Cross incoming" line */
-      } else if (outcome === "pass" || outcome === "offside") say(label, 1.3);
-      else if (commentaryHold <= 0.5) say(label, 1.0);
+      } else if (outcome === "pass" || outcome === "offside") noteMoment(label, 1.3);
+      else if (commentaryHold <= 0.5) noteMoment(label, 1.0);
 
       if (pendingDecisionSnapshot && pendingDecisionSnapshot.carrierId === from.id) {
         let cls;
@@ -11198,7 +11262,7 @@
         dispatchBallTarget(nx, ny + attackSign * -0.5, dur, true, null, carrier.side);
         actionTimer = dur + 0.12 + spellIdlePause() * 0.3;
         carrier._dribbleStreak = 0;
-        say(pickPhrase("carry", [
+        noteMoment(pickPhrase("carry", [
           `${carrier.short} carries it forward`,
           `${carrier.short} drives on with it`,
           `${carrier.short} advances`,
@@ -11402,7 +11466,7 @@
           detail: threat ? `past ${threat.pin.short}` : "past the press",
           distance: Math.round(pitchDistM({ left: carrier.left, top: carrier.top }, { left: nx, top: ny }) * 10) / 10,
         });
-        say(pickPhrase("dribble", [
+        noteMoment(pickPhrase("dribble", [
           `${carrier.short} dribbles past ${threat?.pin.short || "the press"}`,
           `${carrier.short} skips past ${threat?.pin.short || "the press"}`,
           `Beats his man — ${carrier.short} goes past ${threat?.pin.short || "the press"}`,
@@ -11685,7 +11749,7 @@
             detail: `dispossessed by ${opp.short}`,
           });
           if (inPpdaZone(carrier)) bumpCount(opp.side, "ppda_actions");
-          say(`${opp.short} dispossesses ${carrier.short}`, 1.3);
+          noteMoment(`${opp.short} dispossesses ${carrier.short}`, 1.3);
           ballAttached = false;
           const arc = passArcFor(carrier.left, carrier.top, opp.left, opp.top, "pass");
           const dur = clamp(arc.dur, 0.2, 0.4);
@@ -11719,7 +11783,7 @@
       dispatchBallTarget(rawNx, rawNy + attackSign * -0.8, 0.7, true, null, carrier.side);
       actionTimer = 0.55 + rng() * 0.25 + spellIdlePause() * 0.5;
       if (commentaryHold <= 0) {
-        say(pickPhrase("drive_forward", [
+        noteMoment(pickPhrase("drive_forward", [
           `${carrier.short} drives forward`,
           `${carrier.short} surges ahead`,
           `${carrier.short} presses on`,
@@ -13255,7 +13319,7 @@
         carrier.role === "DM" ? clamp(0.2 + (carrier.stats.tackles90 || 0) * 0.035, 0.16, 0.4) : 0.12;
       if (stage === "BOX_OCCUPATION" && rng() < dmRecycleP * clamp(1.1 - progressionUrgency(spell) * 0.55, 0.25, 1)) {
         if (commentaryHold <= 0) {
-          say(pickPhrase("recycle", [
+          noteMoment(pickPhrase("recycle", [
             `${carrier.short} recycles possession`,
             `${carrier.short} plays it back, resets`,
             `Patient — ${carrier.short} recycles`,
@@ -14232,6 +14296,7 @@
     }
 
     function finishMatch() {
+      flushMinuteBuffer(); // commentary density project -- never lose the closing minute's narration
       finished = true;
       playing = false;
       pensActive = false;
@@ -14633,6 +14698,14 @@
       }
       if (Math.floor(matchMinute * 2) !== Math.floor(prevMinute * 2)) {
         updateHud();
+      }
+      // Commentary density project -- safety-net flush for a quiet minute
+      // with zero buildup narration (noteMoment's own rollover check never
+      // fires if nothing calls it). Rare, but without this a buffered
+      // minute could sit unposted until whenever the next noteMoment call
+      // happens to land, arbitrarily later.
+      if (Math.floor(matchMinute) !== Math.floor(prevMinute) && minuteBuffer.length) {
+        flushMinuteBuffer();
       }
 
       if (!halfTimeShown && prevMinute < 45 && matchMinute >= 45) {
