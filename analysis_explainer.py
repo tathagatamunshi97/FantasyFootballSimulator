@@ -41,6 +41,39 @@ def _edge_phrase(side: str | None, home: str, away: str) -> str:
     return away if side == "away" else home
 
 
+def _safe_pct(numerator: Any, denominator: Any) -> float | None:
+    """A single match's own ratio (e.g. shot conversion), not gated by a
+    minimum sample -- unlike tournament.py's leaderboard version, reporting
+    "1 goal from 2 shots" for the match that actually happened is normal;
+    a qualification minimum only matters when ranking across many matches.
+    """
+    try:
+        num = float(numerator or 0)
+        den = float(denominator or 0)
+    except (TypeError, ValueError):
+        return None
+    if den <= 0:
+        return None
+    return round(num / den * 100, 1)
+
+
+def _compute_ppda(match_log: dict[str, Any] | None) -> tuple[float | None, float | None]:
+    """Same formula as tournament.py's team_ppda_board / web/tournament.py's
+    complete_from_board -- opponent's zone-eligible pass attempts over this
+    side's own zone-eligible defensive actions. None until a side has made
+    at least one qualifying defensive action.
+    """
+    ml = match_log if isinstance(match_log, dict) else {}
+    counts = ml.get("counts") if isinstance(ml.get("counts"), dict) else {}
+    hc = counts.get("home") if isinstance(counts.get("home"), dict) else {}
+    ac = counts.get("away") if isinstance(counts.get("away"), dict) else {}
+    home_actions = float(hc.get("ppda_actions") or 0)
+    away_actions = float(ac.get("ppda_actions") or 0)
+    home_ppda = round(float(ac.get("ppda_passes") or 0) / home_actions, 1) if home_actions else None
+    away_ppda = round(float(hc.get("ppda_passes") or 0) / away_actions, 1) if away_actions else None
+    return home_ppda, away_ppda
+
+
 def _rank_factors(factors: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return sorted(factors, key=lambda f: abs(f.get("impact", 0)), reverse=True)
 
@@ -1136,6 +1169,7 @@ def _what_worked_section(
         counts = match_log.get("counts") or {}
     hc = counts.get("home") if isinstance(counts.get("home"), dict) else {}
     ac = counts.get("away") if isinstance(counts.get("away"), dict) else {}
+    home_ppda, away_ppda = _compute_ppda(match_log)
 
     def _n(bucket: dict, key: str) -> int:
         try:
@@ -1143,7 +1177,7 @@ def _what_worked_section(
         except (TypeError, ValueError):
             return 0
 
-    def _side_bullets(name: str, side: str, u: dict, c: dict, goals: int, conceded: int) -> list[str]:
+    def _side_bullets(name: str, side: str, u: dict, c: dict, goals: int, conceded: int, side_ppda: float | None) -> list[str]:
         out: list[str] = []
         shots = _n(c, "shots")
         big = _n(c, "big_chances")
@@ -1178,15 +1212,41 @@ def _what_worked_section(
             out.append(f"Worked: finishing moments — {name} scored {goals} and came out ahead.")
         elif goals and goals == conceded:
             out.append(f"Worked in spells: {name} found the net ({goals}) but could not separate.")
-        elif big >= 2 and goals == 0:
-            out.append(f"Didn't work: big chances ({big}) without a goal — finishing deserted {name}.")
-        elif goals == 0 and conceded:
+        elif goals == 0 and conceded and big < 2:
             out.append(f"Didn't work: {name} were blanked while conceding {conceded}.")
 
         if side_xg >= 0.8 and goals == 0:
             out.append(f"Didn't work: ~{side_xg:.2f} xG without converting.")
         elif side_xg >= 1.0 and goals > 0:
             out.append(f"Worked: chance volume (~{side_xg:.2f} xG) backed the attack.")
+
+        # Conversion/passing stats project -- straight off the board counts
+        # this session added (shots/big_chances/big_chance_goals/passes).
+        shot_conv = _safe_pct(goals, shots)
+        if shot_conv is not None and shots >= 3:
+            if shot_conv <= 20:
+                out.append(f"Didn't work: wasteful in front of goal — {_pct_str(shot_conv)} shot conversion from {shots} shots.")
+            elif shot_conv >= 50:
+                out.append(f"Worked: clinical finishing — {_pct_str(shot_conv)} shot conversion from {shots} shots.")
+        bc_goals = _n(c, "big_chance_goals")
+        if big >= 2:
+            bc_conv = _safe_pct(bc_goals, big)
+            if bc_goals == 0:
+                out.append(f"Didn't work: {big} big chances, zero scored — the clearest chances went begging for {name}.")
+            elif bc_conv is not None and bc_conv < 40:
+                out.append(f"Didn't work: only {_pct_str(bc_conv)} of {big} big chances converted.")
+        pass_att = _n(c, "passes_attempted")
+        pass_pct = _safe_pct(_n(c, "passes_completed"), pass_att)
+        if pass_pct is not None and pass_att >= 20:
+            if pass_pct < 70:
+                out.append(f"Didn't work: sloppy on the ball — {_pct_str(pass_pct)} pass completion.")
+            elif pass_pct >= 88:
+                out.append(f"Worked: composed in possession — {_pct_str(pass_pct)} pass completion.")
+        if side_ppda is not None:
+            if side_ppda <= 8:
+                out.append(f"Worked: relentless press — PPDA {side_ppda}, barely let the opponent settle.")
+            elif side_ppda >= 15:
+                out.append(f"Didn't work: passive press — PPDA {side_ppda}, opponent had time on the ball.")
 
         if side_poss_pct is not None and side_poss_pct >= 56:
             out.append(f"Worked: possession control ({side_poss_pct:.0f}%).")
@@ -1213,9 +1273,9 @@ def _what_worked_section(
 
     bullets = (
         [f"— {home_name} —"]
-        + _side_bullets(home_name, "home", hu, hc, home_goals, away_goals)
+        + _side_bullets(home_name, "home", hu, hc, home_goals, away_goals, home_ppda)
         + [f"— {away_name} —"]
-        + _side_bullets(away_name, "away", au, ac, away_goals, home_goals)
+        + _side_bullets(away_name, "away", au, ac, away_goals, home_goals, away_ppda)
     )
     return {
         "title": "What worked / didn't",
@@ -1275,6 +1335,13 @@ def _how_it_unfolded_section(
                 f"press/resist, box occupation, and spell variance drive volume. "
                 f"{trailer}'s lower live xG is the board story, not a scripted score."
             )
+
+    home_ppda, away_ppda = _compute_ppda(ml)
+    if home_ppda is not None and away_ppda is not None:
+        paragraphs.append(
+            f"Pressing intensity (PPDA, lower = more aggressive): {home_name} {home_ppda} – "
+            f"{away_ppda} {away_name}."
+        )
 
     goals = [e for e in events if e.get("type") in ("goal", "score")]
     if goals:
@@ -1506,6 +1573,7 @@ def _edges_exploited_section(
     home_goals: int,
     away_goals: int,
     events: list[dict[str, Any]],
+    match_log: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     home_p = report["profiles"]["home"]
     away_p = report["profiles"]["away"]
@@ -1583,6 +1651,44 @@ def _edges_exploited_section(
         bullets.append(
             f"{away_name}'s press ({a_press:.2f}) overmatched {home_name}'s resistance ({h_resist:.2f})."
         )
+
+    # Real observed pressing (PPDA) from the board -- confirms or
+    # contradicts the rating-based press projection above rather than
+    # replacing it; the rating is a pre-match proxy, PPDA is what actually
+    # happened. Fires independently of whether the rating comparison above
+    # triggered, since a close pre-match rating can still diverge sharply
+    # from how a match actually played out.
+    home_ppda, away_ppda = _compute_ppda(match_log)
+    if home_ppda is not None and away_ppda is not None and abs(home_ppda - away_ppda) >= 2.5:
+        harder = home_name if home_ppda < away_ppda else away_name
+        softer = away_name if home_ppda < away_ppda else home_name
+        harder_ppda = min(home_ppda, away_ppda)
+        softer_ppda = max(home_ppda, away_ppda)
+        rating_agrees = (harder == home_name and h_press >= a_press) or (harder == away_name and a_press >= h_press)
+        bullets.append(
+            f"On the board, {harder} actually pressed harder (PPDA {harder_ppda} vs {softer}'s {softer_ppda})"
+            + (", matching the pre-match press rating." if rating_agrees else " — despite a closer pre-match press rating.")
+        )
+
+    # Finishing quality actually observed -- straight off the board counts
+    # (see the conversion/passing stats project), not just goals scored.
+    counts = match_log.get("counts") if isinstance(match_log, dict) else None
+    if isinstance(counts, dict):
+        hc2 = counts.get("home") if isinstance(counts.get("home"), dict) else {}
+        ac2 = counts.get("away") if isinstance(counts.get("away"), dict) else {}
+        h_conv = _safe_pct(home_goals, hc2.get("shots"))
+        a_conv = _safe_pct(away_goals, ac2.get("shots"))
+        if (
+            h_conv is not None
+            and a_conv is not None
+            and (hc2.get("shots") or 0) >= 2
+            and (ac2.get("shots") or 0) >= 2
+            and abs(h_conv - a_conv) >= 20
+        ):
+            if h_conv > a_conv:
+                bullets.append(f"{home_name} finished sharper — {_pct_str(h_conv)} shot conversion vs {away_name}'s {_pct_str(a_conv)}.")
+            else:
+                bullets.append(f"{away_name} finished sharper — {_pct_str(a_conv)} shot conversion vs {home_name}'s {_pct_str(h_conv)}.")
 
     # Dribbles / beat the press
     drib_ok = sum(
@@ -1687,7 +1793,7 @@ def enrich_analysis_with_board_result(
         home_name, away_name, home_goals, away_goals, events, ml
     )
     exploited = _edges_exploited_section(
-        report, home_name, away_name, home_goals, away_goals, events
+        report, home_name, away_name, home_goals, away_goals, events, ml
     )
 
     # Insert after Verdict (index 0) when present
@@ -1756,27 +1862,18 @@ def enrich_analysis_with_board_result(
             },
         )
     if isinstance(ml, dict) and isinstance(out.get("key_factors"), list):
-        counts = ml.get("counts")
-        if isinstance(counts, dict):
-            home_counts = counts.get("home") or {}
-            away_counts = counts.get("away") or {}
-            home_actions = home_counts.get("ppda_actions") or 0
-            away_actions = away_counts.get("ppda_actions") or 0
-            home_opp_passes = away_counts.get("ppda_passes") or 0
-            away_opp_passes = home_counts.get("ppda_passes") or 0
-            if home_actions and away_actions:
-                home_ppda = round(home_opp_passes / home_actions, 1)
-                away_ppda = round(away_opp_passes / away_actions, 1)
-                out["key_factors"].append(
-                    {
-                        "factor": "Pressing intensity (PPDA)",
-                        "explanation": (
-                            f"Passes per defensive action in the middle and attacking thirds — "
-                            f"{home_name} {home_ppda} vs {away_name} {away_ppda}. Lower means more "
-                            "aggressive, higher pressing."
-                        ),
-                        "home": home_ppda,
-                        "away": away_ppda,
-                    }
-                )
+        home_ppda, away_ppda = _compute_ppda(ml)
+        if home_ppda is not None and away_ppda is not None:
+            out["key_factors"].append(
+                {
+                    "factor": "Pressing intensity (PPDA)",
+                    "explanation": (
+                        f"Passes per defensive action in the middle and attacking thirds — "
+                        f"{home_name} {home_ppda} vs {away_name} {away_ppda}. Lower means more "
+                        "aggressive, higher pressing."
+                    ),
+                    "home": home_ppda,
+                    "away": away_ppda,
+                }
+            )
     return out
