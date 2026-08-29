@@ -13742,7 +13742,10 @@
           if (sp.role && sp.role !== pin.role) pin.role = sp.role;
           if (el && identityChanged) {
             el.title = `${pin.player} (${pin.slot}) — click to favor`;
-            const labelEl = el.querySelector(".pin-label");
+            // Bug fix — same wrong class name as applyAdjustTeam's identical
+            // update (pins use "pin-dot", not "pin-label"); the viewer side
+            // had the exact same stale-label bug on a host-side substitution.
+            const labelEl = el.querySelector(".pin-dot");
             if (labelEl) labelEl.textContent = pin.label;
           }
           if (el) {
@@ -15144,7 +15147,13 @@
           const el = pinEls.get(pin.id);
           if (el) {
             el.title = `${pin.player} (${row.slot}) — click to favor`;
-            const labelEl = el.querySelector(".pin-label");
+            // Bug fix — pins are built with class "pin-dot" (see buildPins,
+            // ~line 1354), never "pin-label" -- that class doesn't exist
+            // anywhere in this file. This selector always missed, so a
+            // substitution's title tooltip updated correctly but the
+            // visible initials on the pin itself silently stayed on the
+            // outgoing player forever.
+            const labelEl = el.querySelector(".pin-dot");
             if (labelEl) labelEl.textContent = pin.label;
           }
         }
