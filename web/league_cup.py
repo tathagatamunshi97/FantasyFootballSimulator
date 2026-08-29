@@ -726,6 +726,25 @@ def complete_from_board(
     if stored_log is not None:
         result["match_log"] = stored_log
         if isinstance(stored_log, dict):
+            # Season-diagnostics project -- league_cup.py never had
+            # tournament.py's expected_xg/possession_pct promotion at all
+            # (confirmed: only ppda was here before), which would have left
+            # League+Cup teams' season stats missing xG for/against and
+            # possession entirely. Added alongside team_stats below.
+            live_xg = stored_log.get("xg") or stored_log.get("live_xg")
+            if isinstance(live_xg, dict) and (
+                live_xg.get("home") is not None or live_xg.get("away") is not None
+            ):
+                result["expected_xg"] = {
+                    "home": round(float(live_xg.get("home") or 0), 2),
+                    "away": round(float(live_xg.get("away") or 0), 2),
+                }
+            poss = stored_log.get("possession_pct") or stored_log.get("possession")
+            if isinstance(poss, dict):
+                result["possession_pct"] = {
+                    "home": round(float(poss.get("home") or 0), 1),
+                    "away": round(float(poss.get("away") or 0), 1),
+                }
             counts = stored_log.get("counts")
             if isinstance(counts, dict):
                 home_counts = counts.get("home") or {}
@@ -747,6 +766,18 @@ def complete_from_board(
                             "own_actions": away_actions,
                         },
                     }
+                # Season-diagnostics project -- same team_stats promotion
+                # as tournament.py's complete_from_board.
+                result["team_stats"] = {
+                    side: {
+                        "shots": bucket.get("shots") or 0,
+                        "big_chances": bucket.get("big_chances") or 0,
+                        "big_chance_goals": bucket.get("big_chance_goals") or 0,
+                        "passes_attempted": bucket.get("passes_attempted") or 0,
+                        "passes_completed": bucket.get("passes_completed") or 0,
+                    }
+                    for side, bucket in (("home", home_counts), ("away", away_counts))
+                }
     elif stored_events:
         result["match_log"] = {"events": stored_events, "goals": [e for e in stored_events if e.get("type") == "goal"]}
 

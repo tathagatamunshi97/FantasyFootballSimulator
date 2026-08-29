@@ -782,6 +782,48 @@ function formResultChip(r) {
   return `<span class="form-chip ${cls}">${esc(r)}</span>`;
 }
 
+// Season diagnostics card -- aggregated PPDA/conversion/passing numbers
+// across every match the team has played this tournament, from
+// tournament.py's team_analysis_summary. Reuses common.js's pctPill/
+// pctTierClass (the same percentile-badge visual language the ratings-based
+// percentiles use elsewhere in Squad Hub) rather than inventing a new one --
+// pctPill expects a flat {key: percentile} object, not the unit-rating
+// shape it's normally called with, so build that mapping here.
+function seasonMetricTile(label, value, pillHtml, trendHtml) {
+  return `<div class="metric"><div class="label">${esc(label)}</div><div class="value">${esc(value)}${pillHtml || ""}${trendHtml || ""}</div></div>`;
+}
+
+function seasonTrendBadge(trend) {
+  if (!trend || trend === "steady") return "";
+  const cls = trend === "improving" ? "pct-strength" : "pct-weakness";
+  return ` <span class="pct-pill ${cls}">${esc(trend)}</span>`;
+}
+
+function renderSeasonDiagnosticsCard(season) {
+  if (!season) {
+    return `<div class="card" style="margin-top:1rem">
+      <div class="report-eyebrow">Season diagnostics</div>
+      <p class="muted" style="margin:0.35rem 0 0">No matches played yet this tournament — diagnostics will show up here once you have results.</p>
+    </div>`;
+  }
+  const percentiles = { ppda: season.ppda_percentile, shot_conversion: season.shot_conversion_percentile };
+  const leagueSize = season.league_size;
+  return `
+    <div class="card" style="margin-top:1rem">
+      <div class="report-eyebrow">Season diagnostics</div>
+      <p style="margin:0.35rem 0 0.85rem">${esc(season.summary || "")}</p>
+      <div class="metric-grid">
+        ${seasonMetricTile("PPDA", num(season.ppda, 1), pctPill("ppda", percentiles, leagueSize), seasonTrendBadge(season.ppda_trend))}
+        ${seasonMetricTile("Shot conv %", pct(season.shot_conversion_pct), pctPill("shot_conversion", percentiles, leagueSize))}
+        ${seasonMetricTile("Pass %", pct(season.pass_completion_pct))}
+        ${seasonMetricTile("Possession %", season.possession_pct == null ? "—" : `${num(season.possession_pct, 0)}%`)}
+        ${seasonMetricTile("xG for", num(season.xg_for))}
+        ${seasonMetricTile("xG against", num(season.xg_against), "", seasonTrendBadge(season.xg_against_trend))}
+      </div>
+      <p class="muted" style="margin:0.6rem 0 0;font-size:0.78rem">Across ${season.matches} match${season.matches === 1 ? "" : "es"} played this tournament${leagueSize >= 4 ? ` · percentile vs. the other ${leagueSize - 1} teams` : ""}.</p>
+    </div>`;
+}
+
 function renderAnalysisTab(analysis) {
   if (!analysis || !analysis.tournament_id) {
     return `<div class="card"><h2>Analysis</h2><p class="muted">No active tournament for this team right now.</p></div>`;
@@ -834,7 +876,9 @@ function renderAnalysisTab(analysis) {
       }
     </div>`;
 
-  return `${tableCard}${nextCard}${formCard}`;
+  const diagnosticsCard = renderSeasonDiagnosticsCard(analysis.season_stats);
+
+  return `${tableCard}${diagnosticsCard}${nextCard}${formCard}`;
 }
 
 // Statistics tab -- full per-player stats for this team's own roster, from

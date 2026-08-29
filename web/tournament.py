@@ -545,6 +545,181 @@ def get_team_immediate_round(team_name: str, tournament: dict[str, Any] | None =
         return dict(_READY_ROUND)
 
 
+def _team_played_fixtures(t: dict[str, Any], name: str) -> tuple[dict[str, Any] | None, str | None, list[dict[str, Any]]]:
+    """(table_row, group_key, played_fixtures) for a team, format-agnostic.
+
+    played_fixtures is normalized to {home, away, home_goals, away_goals,
+    result_id, round, _sort} regardless of source (group fixtures, or
+    League+Cup's league fixtures + cup tie legs) so every caller downstream
+    (recent_form, season stat aggregation) can stay format-unaware.
+    """
+    table_row: dict[str, Any] | None = None
+    group_key_for_team: str | None = None
+    played_fixtures: list[dict[str, Any]] = []
+
+    if t.get("format") == "league_cup":
+        from web import league_cup
+
+        table = t.get("league", {}).get("table") or {}
+        if name in table:
+            table_row = dict(table[name])
+        for fx in t.get("league", {}).get("fixtures") or []:
+            if name not in (fx.get("home"), fx.get("away")):
+                continue
+            if fx.get("played"):
+                played_fixtures.append(
+                    {
+                        "home": fx.get("home"),
+                        "away": fx.get("away"),
+                        "home_goals": fx.get("home_goals"),
+                        "away_goals": fx.get("away_goals"),
+                        "result_id": fx.get("result_id"),
+                        "round": f"GW{fx.get('scheduled_gw')}" if fx.get("scheduled_gw") is not None else None,
+                        "_sort": fx.get("scheduled_gw") or 0,
+                    }
+                )
+        for ti in league_cup._all_ties(t):
+            for leg in ti.get("legs") or []:
+                if name not in (leg.get("home"), leg.get("away")):
+                    continue
+                if leg.get("played"):
+                    gw = ti.get("gw_leg1") if leg.get("leg") == 1 else ti.get("gw_leg2")
+                    played_fixtures.append(
+                        {
+                            "home": leg.get("home"),
+                            "away": leg.get("away"),
+                            "home_goals": leg.get("home_goals"),
+                            "away_goals": leg.get("away_goals"),
+                            "result_id": leg.get("result_id"),
+                            "round": "Cup",
+                            "_sort": gw if gw is not None else 10**6,
+                        }
+                    )
+    else:
+        for gkey, group in (t.get("groups") or {}).items():
+            table = group.get("table") or {}
+            if name in table:
+                table_row = dict(table[name])
+                group_key_for_team = gkey
+            for fx in group.get("fixtures") or []:
+                if name not in (fx.get("home"), fx.get("away")):
+                    continue
+                if fx.get("played"):
+                    played_fixtures.append(
+                        {
+                            "home": fx.get("home"),
+                            "away": fx.get("away"),
+                            "home_goals": fx.get("home_goals"),
+                            "away_goals": fx.get("away_goals"),
+                            "result_id": fx.get("result_id"),
+                            "round": fx.get("round"),
+                            "_sort": int(fx.get("round") or 0),
+                        }
+                    )
+
+    played_fixtures.sort(key=lambda fx: fx["_sort"])
+    return table_row, group_key_for_team, played_fixtures
+
+
+def _sum_ratio(pairs: list[tuple[float, float]]) -> float | None:
+    """Sum-of-numerator / sum-of-denominator, None if nothing to divide by --
+    same convention as team_ppda_board / _add_derived_tally_fields (never an
+    average of per-match ratios)."""
+    num = sum(p[0] for p in pairs)
+    den = sum(p[1] for p in pairs)
+    return round(num / den * 100 if den else 0, 1) if den else None
+
+
+def _team_season_aggregate(t: dict[str, Any], name: str, played_fixtures: list[dict[str, Any]]) -> dict[str, Any]:
+    """Season-wide sums for one team from its played fixtures' match_results.
+    Returns raw components too (not just the final ratios) so callers can
+    combine across teams for percentile ranking without re-deriving them.
+    """
+    match_results = t.get("match_results") or {}
+    ppda_pairs: list[tuple[float, float]] = []
+    conv_pairs: list[tuple[float, float]] = []
+    pass_pairs: list[tuple[float, float]] = []
+    poss_vals: list[float] = []
+    xg_for_vals: list[float] = []
+    xg_against_vals: list[float] = []
+    ppda_series: list[float] = []  # chronological, for the trend signal
+    xg_against_series: list[float] = []
+
+    for fx in played_fixtures:
+        rid = fx.get("result_id")
+        result = match_results.get(rid) if rid else None
+        if not isinstance(result, dict):
+            continue
+        side = "home" if fx.get("home") == name else "away"
+        opp_side = "away" if side == "home" else "home"
+
+        ppda = result.get("ppda")
+        if isinstance(ppda, dict) and isinstance(ppda.get(side), dict):
+            row = ppda[side]
+            if row.get("own_actions"):
+                ppda_pairs.append((float(row.get("opp_passes") or 0), float(row["own_actions"])))
+                ppda_series.append(float(row.get("opp_passes") or 0) / float(row["own_actions"]))
+
+        ts = result.get("team_stats")
+        if isinstance(ts, dict) and isinstance(ts.get(side), dict):
+            row = ts[side]
+            gf = fx.get("home_goals") if side == "home" else fx.get("away_goals")
+            if gf is not None and (row.get("shots") or 0) > 0:
+                conv_pairs.append((float(gf), float(row["shots"])))
+            if (row.get("passes_attempted") or 0) > 0:
+                pass_pairs.append((float(row.get("passes_completed") or 0), float(row["passes_attempted"])))
+
+        poss = result.get("possession_pct")
+        if isinstance(poss, dict) and poss.get(side) is not None:
+            poss_vals.append(float(poss[side]))
+
+        exp = result.get("expected_xg")
+        if isinstance(exp, dict):
+            if exp.get(side) is not None:
+                xg_for_vals.append(float(exp[side]))
+            if exp.get(opp_side) is not None:
+                v = float(exp[opp_side])
+                xg_against_vals.append(v)
+                xg_against_series.append(v)
+
+    def _avg(vals: list[float]) -> float | None:
+        return round(sum(vals) / len(vals), 2) if vals else None
+
+    ppda_value = round(sum(p[0] for p in ppda_pairs) / sum(p[1] for p in ppda_pairs), 1) if ppda_pairs and sum(p[1] for p in ppda_pairs) else None
+
+    return {
+        "matches": len(played_fixtures),
+        "ppda": ppda_value,
+        "shot_conversion_pct": _sum_ratio(conv_pairs),
+        "pass_completion_pct": _sum_ratio(pass_pairs),
+        "possession_pct": _avg(poss_vals),
+        "xg_for": _avg(xg_for_vals),
+        "xg_against": _avg(xg_against_vals),
+        "ppda_series": ppda_series,
+        "xg_against_series": xg_against_series,
+    }
+
+
+def _trend_label(series: list[float], *, lower_is_better: bool, threshold: float) -> str | None:
+    """'improving' / 'worsening' / 'steady', comparing the second half of a
+    chronological series to the first (last-3-vs-prior-3 when there's
+    enough history for a more responsive recent-form read). None if there
+    isn't enough history to say anything meaningful.
+    """
+    if len(series) < 4:
+        return None
+    split = 3 if len(series) > 6 else len(series) // 2
+    earlier = series[:-split]
+    later = series[-split:]
+    if not earlier or not later:
+        return None
+    delta = (sum(later) / len(later)) - (sum(earlier) / len(earlier))
+    if abs(delta) < threshold:
+        return "steady"
+    got_better = delta < 0 if lower_is_better else delta > 0
+    return "improving" if got_better else "worsening"
+
+
 def team_analysis_summary(team_name: str, *, form_limit: int = 5) -> dict[str, Any]:
     """Recent tournament form + next fixture for a team, for the Squad Hub
     Analysis tab. Best-effort like get_team_immediate_round: a team with no
@@ -563,28 +738,14 @@ def team_analysis_summary(team_name: str, *, form_limit: int = 5) -> dict[str, A
         "table_row": None,
         "recent_form": [],
         "next_match": None,
+        "season_stats": None,
     }
     if not t:
         return empty
 
     try:
         match_results = t.get("match_results") or {}
-        played_fixtures: list[dict[str, Any]] = []
-        table_row: dict[str, Any] | None = None
-        group_key_for_team: str | None = None
-
-        for gkey, group in (t.get("groups") or {}).items():
-            table = group.get("table") or {}
-            if name in table:
-                table_row = dict(table[name])
-                group_key_for_team = gkey
-            for fx in group.get("fixtures") or []:
-                if name not in (fx.get("home"), fx.get("away")):
-                    continue
-                if fx.get("played"):
-                    played_fixtures.append(fx)
-
-        played_fixtures.sort(key=lambda fx: int(fx.get("round") or 0))
+        table_row, group_key_for_team, played_fixtures = _team_played_fixtures(t, name)
         recent_form: list[dict[str, Any]] = []
         for fx in played_fixtures[-form_limit:]:
             is_home = fx.get("home") == name
@@ -648,6 +809,8 @@ def team_analysis_summary(team_name: str, *, form_limit: int = 5) -> dict[str, A
                 if next_match:
                     break
 
+        season_stats = _build_season_stats(t, name, played_fixtures)
+
         return {
             "tournament_id": t.get("id"),
             "tournament_name": t.get("name"),
@@ -655,10 +818,116 @@ def team_analysis_summary(team_name: str, *, form_limit: int = 5) -> dict[str, A
             "table_row": table_row,
             "recent_form": recent_form,
             "next_match": next_match,
+            "season_stats": season_stats,
         }
     except Exception as exc:
         print(f"Tournament: team_analysis_summary({team_name!r}) failed, defaulting to empty: {exc}")
         return empty
+
+
+_MIN_LEAGUE_SIZE_FOR_PERCENTILE = 4  # mirrors common.js's MIN_LEAGUE_SIZE_FOR_PERCENTILE
+
+
+def _build_season_stats(t: dict[str, Any], name: str, played_fixtures: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """Season-aggregate diagnostics + league percentile + trend + a short
+    deterministic summary, for the Squad Hub Analysis tab. None (not an
+    empty dict) when the team hasn't played anything yet -- lets the
+    frontend show a clean "no matches yet" state instead of a table of
+    dashes.
+    """
+    season = _team_season_aggregate(t, name, played_fixtures)
+    if not season["matches"]:
+        return None
+
+    ppda_percentile: float | None = None
+    shot_conv_percentile: float | None = None
+    other_names = [n for n in (t.get("team_names") or []) if n and n != name]
+    if other_names and (season["ppda"] is not None or season["shot_conversion_pct"] is not None):
+        from squad_intel import _percentile_rank
+
+        ppda_pool = [season["ppda"]] if season["ppda"] is not None else []
+        conv_pool = [season["shot_conversion_pct"]] if season["shot_conversion_pct"] is not None else []
+        for other in other_names:
+            _, _, other_fixtures = _team_played_fixtures(t, other)
+            other_season = _team_season_aggregate(t, other, other_fixtures)
+            if other_season["ppda"] is not None:
+                ppda_pool.append(other_season["ppda"])
+            if other_season["shot_conversion_pct"] is not None:
+                conv_pool.append(other_season["shot_conversion_pct"])
+        if season["ppda"] is not None and len(ppda_pool) >= _MIN_LEAGUE_SIZE_FOR_PERCENTILE:
+            ppda_percentile = _percentile_rank(season["ppda"], ppda_pool, higher_better=False)
+        if season["shot_conversion_pct"] is not None and len(conv_pool) >= _MIN_LEAGUE_SIZE_FOR_PERCENTILE:
+            shot_conv_percentile = _percentile_rank(season["shot_conversion_pct"], conv_pool, higher_better=True)
+
+    ppda_trend = _trend_label(season["ppda_series"], lower_is_better=True, threshold=1.5)
+    xg_against_trend = _trend_label(season["xg_against_series"], lower_is_better=True, threshold=0.2)
+
+    return {
+        "matches": season["matches"],
+        "ppda": season["ppda"],
+        "ppda_percentile": ppda_percentile,
+        "ppda_trend": ppda_trend,
+        "shot_conversion_pct": season["shot_conversion_pct"],
+        "shot_conversion_percentile": shot_conv_percentile,
+        "pass_completion_pct": season["pass_completion_pct"],
+        "possession_pct": season["possession_pct"],
+        "xg_for": season["xg_for"],
+        "xg_against": season["xg_against"],
+        "xg_against_trend": xg_against_trend,
+        "league_size": len(other_names) + 1,
+        "summary": _season_diagnostic_summary(season, ppda_percentile, shot_conv_percentile, ppda_trend, xg_against_trend),
+    }
+
+
+def _season_diagnostic_summary(
+    season: dict[str, Any],
+    ppda_percentile: float | None,
+    shot_conv_percentile: float | None,
+    ppda_trend: str | None,
+    xg_against_trend: str | None,
+) -> str:
+    """A short (2-3 sentence) deterministic read on the season's numbers --
+    only surfaces a signal when it actually clears a real threshold, same
+    "don't manufacture a complaint" discipline the post-match analysis
+    report's sections already follow.
+    """
+    notes: list[str] = []
+    if season["ppda"] is not None:
+        # "worsening" for PPDA always means "grown more passive" (higher
+        # PPDA), regardless of where the season average itself sits -- so a
+        # strong season average with a bad recent trend gets its own
+        # sentence, not a same-clause contradiction like "sharp... trending
+        # worsening".
+        trend_clause = None
+        if ppda_trend == "worsening":
+            trend_clause = "but pressing has grown more passive over the last few matches."
+        elif ppda_trend == "improving":
+            trend_clause = "and pressing has sharpened up over the last few matches."
+        if ppda_percentile is not None and ppda_percentile >= 70:
+            rank_txt = f" (top {100 - ppda_percentile:.0f}% for pressing)" if ppda_percentile < 100 else " (best pressing side)"
+            notes.append(f"Pressing has been sharp this season — PPDA {season['ppda']}{rank_txt}" + (f", {trend_clause}" if trend_clause else "."))
+        elif ppda_percentile is not None and ppda_percentile <= 30:
+            notes.append(f"Pressing has been passive this season — PPDA {season['ppda']} (bottom {ppda_percentile:.0f}% for pressing)" + (f", {trend_clause}" if trend_clause else "."))
+        elif trend_clause:
+            notes.append(f"PPDA sits at {season['ppda']} {trend_clause}")
+
+    if season["shot_conversion_pct"] is not None:
+        if shot_conv_percentile is not None and shot_conv_percentile >= 70:
+            notes.append(f"Finishing has been clinical — {season['shot_conversion_pct']}% shot conversion.")
+        elif shot_conv_percentile is not None and shot_conv_percentile <= 30:
+            notes.append(f"Finishing has been wasteful — only {season['shot_conversion_pct']}% shot conversion.")
+
+    if xg_against_trend == "worsening":
+        notes.append("Defensive solidity is trending the wrong way — xG conceded has risen over recent matches.")
+    elif xg_against_trend == "improving":
+        notes.append("Defence has tightened up — xG conceded has fallen over recent matches.")
+
+    if season.get("pass_completion_pct") is not None and season["pass_completion_pct"] < 70:
+        notes.append(f"Possession has been shaky — {season['pass_completion_pct']}% pass completion.")
+
+    if not notes:
+        return "No standout trends yet — form has been fairly balanced across the numbers tracked."
+    return " ".join(notes[:3])
 
 
 def team_player_stats(team_name: str) -> dict[str, Any]:
@@ -1944,6 +2213,21 @@ def complete_from_board(
                             "own_actions": away_actions,
                         },
                     }
+                # Season-diagnostics project -- promoted the same way ppda
+                # is above, for the same reason: match_log/counts isn't
+                # guaranteed present on every stored result (see the
+                # elif stored_events branch below), so season-aggregation
+                # needs these at the top level, not buried in match_log.
+                result["team_stats"] = {
+                    side: {
+                        "shots": bucket.get("shots") or 0,
+                        "big_chances": bucket.get("big_chances") or 0,
+                        "big_chance_goals": bucket.get("big_chance_goals") or 0,
+                        "passes_attempted": bucket.get("passes_attempted") or 0,
+                        "passes_completed": bucket.get("passes_completed") or 0,
+                    }
+                    for side, bucket in (("home", home_counts), ("away", away_counts))
+                }
     elif stored_events:
         result["match_log"] = {
             "events": stored_events,
