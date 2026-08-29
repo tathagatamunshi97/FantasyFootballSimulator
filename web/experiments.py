@@ -410,6 +410,7 @@ def start_experiment_live_match(exp_id: str) -> dict[str, Any]:
         board=board,
         seed=seed,
         is_knockout=False,
+        is_league=False,
         is_experiment=True,
     )
     return {

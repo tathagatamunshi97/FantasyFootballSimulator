@@ -1913,6 +1913,7 @@ def prepare_board_match(tournament_id: str, match_id: str) -> dict[str, Any]:
         board=board,
         seed=seed,
         is_knockout=stage_key == "knockout",
+        is_league=stage_key != "knockout",
         is_final=is_final,
         agg_context=leg_context,
     )

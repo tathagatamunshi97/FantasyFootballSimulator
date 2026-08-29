@@ -341,6 +341,7 @@ async function startHostBoard(session) {
       autoplay: true,
       hostMode: true,
       isKnockout: Boolean(session.is_knockout),
+      isLeague: Boolean(session.is_league),
       isFinal: Boolean(session.is_final),
       aggContext: session.agg_context || null,
       broadcastIntervalMs: 220,

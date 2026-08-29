@@ -220,8 +220,13 @@
    * Sim-seconds for a full 90' at 1× speed.
    * Default board speed is 0.5× → wall-clock ≈ 2 × MATCH_WATCH_SECONDS ≈ 6 minutes
    * (two 3-minute halves).
+   * 200 (was 180) -- a deliberate 10% pace reduction (180/200 = 0.9), pure
+   * real-time playback speed. Every other timer in the file (lockUntil,
+   * spell/decision windows, etc.) is expressed in match-minute units, not
+   * real seconds, so this changes nothing about how the match plays out --
+   * only how long it takes to watch.
    */
-  const MATCH_WATCH_SECONDS = 180;
+  const MATCH_WATCH_SECONDS = 200;
 
   /** Role stagger within a team block (offsets from defence / mid / attack line depths). */
   const LINE_ROLE = {
@@ -277,12 +282,16 @@
    */
   const DECISION_INTERVAL_MIN = 0.22;
   const DECISION_INTERVAL_MAX = 0.48;
-  /** Small home-side push in knockout fixtures only (chance creation,
-   * finishing, defending, shot quality) — see isKnockout in createBoard.
-   * Mirrors the Monte-Carlo engine's own (1 + home_adv) multiplicative
-   * pattern; that engine's home_advantage stays at 0 by design, this is
+  /** Small home-side push in real competitive fixtures — league/group
+   * table matches and knockout ties (excluding a neutral-venue Final),
+   * never friendlies/Team Lab one-offs (chance creation, finishing,
+   * defending, shot quality) — see homeAdvActive in createBoard. Kept
+   * deliberately small: a nudge, not something that should let a weaker
+   * team beat a genuinely stronger one on home advantage alone. Mirrors
+   * the Monte-Carlo engine's own (1 + home_adv) multiplicative pattern;
+   * that engine's home_advantage stays at 0 by design, this is
    * live-engine-only. */
-  const KNOCKOUT_HOME_PUSH = 0.025;
+  const HOME_ADV_PUSH = 0.025;
   /** @deprecated alias — shape retargets with the decision tick */
   const SHAPE_RETARGET_EVERY = 0.28;
 
@@ -769,9 +778,17 @@
     /** Knockout ties: level after 90 → ET (2×15) → pens if still level. Group matches ignore this. */
     const isKnockout = Boolean(opts.isKnockout || opts.knockout) && live && !viewerMode;
     // Final: still a knockout tie (ET/pens rules apply the same), but
-    // conventionally a neutral-venue match — excluded from KNOCKOUT_HOME_PUSH
-    // specifically (see the four isKnockout && !isFinalRound sites below).
+    // conventionally a neutral-venue match — excluded from HOME_ADV_PUSH
+    // specifically (see the four homeAdvActive sites below).
     const isFinalRound = Boolean(opts.isFinal);
+    // Real league/group-table fixtures (round-robin, not a one-off Team
+    // Lab/friendly matchup) — gets the same small home push as knockout
+    // ties. See isKnockout just above for the identical opts/live/viewer
+    // gating pattern.
+    const isLeague = Boolean(opts.isLeague || opts.league) && live && !viewerMode;
+    // Unified gate for HOME_ADV_PUSH: any real competitive fixture (league
+    // table or knockout tie) except a neutral-venue Final.
+    const homeAdvActive = (isKnockout && !isFinalRound) || isLeague;
     // Two-legged tie context (leg 2 only — see prepare_board_match in
     // tournament.py): { leg, twoLegged, enteringAggHome, enteringAggAway }.
     // Leg 1 of a two-legged tie gets { leg: 1, twoLegged: true } with no
@@ -2197,8 +2214,8 @@
         xg *= clamp(1 + (fq - 0.5) * 0.12, 0.94, 1.14);
         ceil = Math.min(0.75, ceil + (fq >= 0.7 ? 0.04 : 0));
       }
-      // Knockout-only home push (shot quality) — see KNOCKOUT_HOME_PUSH.
-      if (isKnockout && !isFinalRound && carrier.side === "home") xg *= 1 + KNOCKOUT_HOME_PUSH;
+      // Home-side push in real competitive fixtures (shot quality) — see HOME_ADV_PUSH.
+      if (homeAdvActive && carrier.side === "home") xg *= 1 + HOME_ADV_PUSH;
       return clamp(xg, Math.min(floor, 0.02), ceil);
     }
 
@@ -10276,8 +10293,8 @@
       // attempts for a few minutes right after scoring, same spirit as the
       // pattern-weight shift in pickAttackPattern.
       const leadProtectMul = (leadProtectUntil[side] || 0) > matchMinute ? 0.72 : 1;
-      // Knockout-only home push (chance creation) — see KNOCKOUT_HOME_PUSH.
-      const homePushMul = isKnockout && !isFinalRound && side === "home" ? 1 + KNOCKOUT_HOME_PUSH : 1;
+      // Home-side push in real competitive fixtures (chance creation) — see HOME_ADV_PUSH.
+      const homePushMul = homeAdvActive && side === "home" ? 1 + HOME_ADV_PUSH : 1;
       // DIAGNOSTIC (coinflip-vs-lopsided-batch investigation) — same rng()
       // draw, same order, same formula; just captured into a local before
       // the clamp/return so it can be logged without changing the result.
@@ -11394,10 +11411,10 @@
         dribContextPen +
         // Noise damped 50% (0.08 -> 0.04).
         (rng() - 0.5) * 0.04;
-      // Knockout-only home push (defending) — the home side is tougher to
-      // dribble past. See KNOCKOUT_HOME_PUSH.
+      // Home-side push in real competitive fixtures (defending) — the home
+      // side is tougher to dribble past. See HOME_ADV_PUSH.
       const defenderIsHome = oppOf(carrier.side) === "home";
-      const pushedSuccessP = isKnockout && !isFinalRound && defenderIsHome ? successP * (1 - KNOCKOUT_HOME_PUSH) : successP;
+      const pushedSuccessP = homeAdvActive && defenderIsHome ? successP * (1 - HOME_ADV_PUSH) : successP;
 
       const won = rng() < clamp(pushedSuccessP, 0.1, 0.72);
       // DIAGNOSTIC (coinflip-vs-lopsided-batch investigation) — every
@@ -11971,8 +11988,8 @@
         missBoost = clamp(missBoost, 0, 0.4);
       }
       const boostedHi = clamp(hi + missBoost, hi, 0.85);
-      // Knockout-only home push (finishing) — see KNOCKOUT_HOME_PUSH.
-      const homePush = isKnockout && !isFinalRound && carrier.side === "home" ? 1 + KNOCKOUT_HOME_PUSH : 1;
+      // Home-side push in real competitive fixtures (finishing) — see HOME_ADV_PUSH.
+      const homePush = homeAdvActive && carrier.side === "home" ? 1 + HOME_ADV_PUSH : 1;
       return rng() < clamp((p + missBoost) * homePush, lo, boostedHi);
     }
 
@@ -12724,6 +12741,47 @@
         spell.awaitingBoxShot = false;
       }
       const boxed = inPenaltyBox(carrier);
+      // Penalty-frequency project — measured empirically that box fouls
+      // were near-nonexistent (0 in 13 real matches): the doDribble-stopped
+      // foul check above almost never actually fires while inPenaltyBox,
+      // because a carrier who reaches the box overwhelmingly shoots
+      // immediately (see forwardFinalThirdAction) rather than staying in a
+      // contested dribble long enough to reach that check. A defender
+      // closing down the shot itself is the far more realistic real-world
+      // source of box penalties (a mistimed lunge/trip/handball during the
+      // attempt), so this is an independent foul roll, not a bigger version
+      // of the dribble-duel one -- fires before the shot event/outcome
+      // resolves at all, diverting straight to a penalty when it does.
+      // Excluded during a scripted/replay finish (mustScore/replayScore) --
+      // a scripted goal shouldn't get intercepted by a random foul roll.
+      if (boxed && closingDefender && !replayScore && !mustScore) {
+        const closingDuelQuality = clamp(
+          (closingDefender.stats.tackles90 / 3.5) * 0.7 + (closingDefender.stats.interceptions90 / 2.5) * 0.3,
+          0,
+          1
+        );
+        // Calibrated empirically across four iterations (see commit
+        // message): base 0.045 -> 2/25 matches (~1-in-12.5, undershoot);
+        // base 0.07 -> 15/60 (~1-in-4, overshoot); base 0.035 -> 1/50
+        // (~1-in-50, undershoot again -- this constant is *below* the
+        // first try, not between it and the second, so log-linear
+        // interpolation across all three real data points (not a naive
+        // linear scale) was needed to land on the 1-in-8 target: solving
+        // ln(1-rate) vs. base gives base ~0.051 from both neighboring
+        // anchors independently, confirming the fit.
+        const shotFoulP = clamp(0.05 + (1 - closingDuelQuality) * 0.05, 0.03, 0.14);
+        if (rng() < shotFoulP) {
+          pushMatchEvent("foul", closingDefender.side, {
+            player: closingDefender.player,
+            player_short: closingDefender.short,
+            against: carrier.player,
+            detail: `on ${carrier.short} in the box`,
+          });
+          say(`Foul! ${closingDefender.short} brings down ${carrier.short} in the box`, 1.6);
+          resolveInPlayPenalty(carrier.side);
+          return;
+        }
+      }
       // Bug fix — labeling only checked `boxed`, so a legitimate, correctly-
       // gated near-box effort (edge of the D — a real, fair shooting
       // position, not a bug) still got tagged "long_shot"/"from range" in
@@ -13589,6 +13647,7 @@
         finished: Boolean(finished),
         halfTime: Boolean(halfTimePaused || breakKind === "ht"),
         knockout: Boolean(isKnockout),
+        league: Boolean(isLeague),
         // FM Mobile broadcast mode — matchLog itself (counts/events/goals)
         // is never sent frame-by-frame to viewers, only this compact
         // summary, so a spectator's stats panel/scorer strip stay accurate
@@ -15519,6 +15578,7 @@
         viewerMode: Boolean(meta.viewerMode),
         hideControls: Boolean(meta.hideControls) || Boolean(meta.viewerMode),
         isKnockout: Boolean(meta.isKnockout || meta.knockout),
+        isLeague: Boolean(meta.isLeague || meta.league),
         isFinal: Boolean(meta.isFinal),
         aggContext: meta.aggContext || null,
         onBroadcast: meta.onBroadcast || null,
