@@ -17,11 +17,13 @@ let currentTeam = null;
 let activeSquadTab = "lineup";
 let scoutTabLoaded = false;
 let analysisTabLoaded = false;
+let statsTabLoaded = false;
 
 const SQUAD_TABS = [
   ["lineup", "Lineup Builder"],
   ["scout", "Scout Opponent"],
   ["analysis", "Analysis"],
+  ["stats", "Statistics"],
 ];
 
 function renderSquadTabBar() {
@@ -36,7 +38,7 @@ function switchSquadTab(tab) {
   document.querySelectorAll(".tab-btn[data-squad-tab]").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.squadTab === tab);
   });
-  const panels = { lineup: "tabPanelLineup", scout: "tabPanelScout", analysis: "tabPanelAnalysis" };
+  const panels = { lineup: "tabPanelLineup", scout: "tabPanelScout", analysis: "tabPanelAnalysis", stats: "tabPanelStats" };
   for (const [id, elId] of Object.entries(panels)) {
     const el = document.getElementById(elId);
     if (el) el.hidden = id !== tab;
@@ -48,6 +50,10 @@ function switchSquadTab(tab) {
   if (tab === "analysis" && !analysisTabLoaded) {
     analysisTabLoaded = true;
     loadAnalysisTab();
+  }
+  if (tab === "stats" && !statsTabLoaded) {
+    statsTabLoaded = true;
+    loadStatsTab();
   }
 }
 
@@ -831,6 +837,108 @@ function renderAnalysisTab(analysis) {
   return `${tableCard}${nextCard}${formCard}`;
 }
 
+// Statistics tab -- full per-player stats for this team's own roster, from
+// tournament.py's team_player_stats (reuses the exact same
+// aggregate_player_tallies pipeline the tournament-wide Stats tab uses,
+// filtered to this team). Grouped into a few readable tables instead of one
+// very wide one; each column pulls straight off the player_tallies row
+// shape (raw counts + the derived ratio fields tournament.py already
+// computed, e.g. shot_conversion_pct, pass_completion_pct).
+const STATS_TABLE_GROUPS = [
+  {
+    title: "Attacking",
+    columns: [
+      ["goals", "G"],
+      ["assists", "A"],
+      ["shots", "Shots"],
+      ["shot_conversion_pct", "Conv %", "pct"],
+      ["xg", "xG", "num1"],
+      ["xg_diff", "G-xG", "num1"],
+      ["big_chances", "BC"],
+      ["big_chance_goals", "BC Goals"],
+      ["big_chance_conversion_pct", "BC Conv %", "pct"],
+      ["dribbles", "Dribbles"],
+      ["distance_carried", "Dist (m)"],
+    ],
+  },
+  {
+    title: "Creation & Passing",
+    columns: [
+      ["key_passes", "KP"],
+      ["big_chances_created", "BC Created"],
+      ["passes_attempted", "Pass Att"],
+      ["passes_completed", "Pass Comp"],
+      ["pass_completion_pct", "Pass %", "pct"],
+      ["crosses_attempted", "Cross Att"],
+      ["cross_accuracy_pct", "Cross %", "pct"],
+      ["through_attempted", "TB Att"],
+      ["through_ball_completion_pct", "TB %", "pct"],
+    ],
+  },
+  {
+    title: "Defending & Goalkeeping",
+    columns: [
+      ["tackles", "Tackles"],
+      ["interceptions", "Int"],
+      ["clean_sheets", "CS"],
+      ["saves", "Saves"],
+      ["goals_conceded", "Conceded"],
+      ["save_pct", "Save %", "pct"],
+      ["big_chances_missed", "BC Missed"],
+    ],
+  },
+];
+
+function statsCell(row, field, kind) {
+  const v = row[field];
+  if (kind === "pct") return pct(v);
+  if (kind === "num1") return num(v, 1);
+  return v == null ? "—" : String(v);
+}
+
+function renderStatsTable(players, group) {
+  const rows = players
+    .map(
+      (row) =>
+        `<tr><td style="white-space:nowrap">${esc(row.player)}</td>${group.columns
+          .map(([field, , kind]) => `<td class="num">${statsCell(row, field, kind)}</td>`)
+          .join("")}</tr>`
+    )
+    .join("");
+  const headCells = group.columns.map(([, label]) => `<th style="white-space:nowrap">${esc(label)}</th>`).join("");
+  // Deliberately bare .report-table-wrap, not .rank-table -- that modifier's
+  // fixed-width first-column treatment (9%) was tuned for a 3-4 column
+  // leaderboard and squeezes/wraps player names badly on a table this wide
+  // (up to 12 columns). overflow-x:auto scrolls the wide table horizontally
+  // instead, same principle as every other wide-content container.
+  return `<div class="card" style="margin-bottom:1rem">
+    <h3 style="font-size:0.95rem;margin:0 0 0.5rem">${esc(group.title)}</h3>
+    <div class="report-table-wrap" style="overflow-x:auto"><table><thead><tr><th style="white-space:nowrap">Player</th>${headCells}</tr></thead><tbody>${rows}</tbody></table></div>
+  </div>`;
+}
+
+function renderStatsTab(data) {
+  const players = data?.players || [];
+  if (!players.length) {
+    return `<div class="card"><p class="muted" style="margin:0">No stats yet — play some matches in your active tournament and player stats will show up here.</p></div>`;
+  }
+  const header = `<p class="muted" style="margin:0 0 1rem">${esc(data.tournament_name || "Active tournament")} — every player who has featured for your team, across all played matches.</p>`;
+  return header + STATS_TABLE_GROUPS.map((group) => renderStatsTable(players, group)).join("");
+}
+
+async function loadStatsTab() {
+  const panel = document.getElementById("tabPanelStats");
+  if (!panel) return;
+  panel.innerHTML = '<div class="empty">Loading player statistics…</div>';
+  try {
+    const q = currentTeam ? `?team=${encodeURIComponent(currentTeam)}` : "";
+    const data = await api(`/api/my-team/stats${q}`);
+    panel.innerHTML = renderStatsTab(data);
+  } catch (e) {
+    panel.innerHTML = `<div class="empty"><span class="badge error">Error</span><p>${esc(e.message)}</p></div>`;
+  }
+}
+
 async function loadAnalysisTab() {
   const panel = document.getElementById("tabPanelAnalysis");
   if (!panel) return;
@@ -873,10 +981,13 @@ function wireAdminPicker(allTeams, teamName) {
     // stale content for whoever's now selected.
     scoutTabLoaded = false;
     analysisTabLoaded = false;
+    statsTabLoaded = false;
     const scoutPanel = document.getElementById("tabPanelScout");
     if (scoutPanel) scoutPanel.innerHTML = "";
     const analysisPanel = document.getElementById("tabPanelAnalysis");
     if (analysisPanel) analysisPanel.innerHTML = "";
+    const statsPanel = document.getElementById("tabPanelStats");
+    if (statsPanel) statsPanel.innerHTML = "";
     reloadTeam(select.value);
   });
 }
@@ -954,6 +1065,7 @@ async function init() {
       </div>
       <div id="tabPanelScout" hidden></div>
       <div id="tabPanelAnalysis" hidden></div>
+      <div id="tabPanelStats" hidden></div>
     `;
     wireSquadTabBar();
 

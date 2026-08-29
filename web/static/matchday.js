@@ -326,9 +326,10 @@ async function startHostBoard(session) {
   _hosting = true;
   _savingFt = false;
   _liveBoardFixtureId = session.fixture_id;
-  // Recorded highlight replays -- friendlies only for this first pass;
-  // league/cup/knockout matches keep today's live-sync pitch view unchanged.
-  const recordedHighlights = session.stage === "friendly";
+  // Every match now shows commentary + statboard only, no live pitch --
+  // originally friendlies-only, extended to league/cup/knockout too per
+  // the user's own request. See startViewerBoard for the matching flag.
+  const recordedHighlights = true;
   _liveBoard = await TacticBoard.openTournamentWatch(
     mount,
     {
@@ -379,7 +380,8 @@ async function startViewerBoard(session) {
     destroyLiveBoard();
   }
 
-  const recordedHighlights = session.stage === "friendly";
+  // See startHostBoard's matching comment -- applies to every match now.
+  const recordedHighlights = true;
   if (!_liveBoard) {
     _liveBoard = TacticBoard.createBoard(mount, {
       home: board.home,

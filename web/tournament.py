@@ -661,6 +661,38 @@ def team_analysis_summary(team_name: str, *, form_limit: int = 5) -> dict[str, A
         return empty
 
 
+def team_player_stats(team_name: str) -> dict[str, Any]:
+    """Full per-player statistics for this team's active tournament, for the
+    Squad Hub Stats tab. Reuses player_leaderboards' aggregation (goals,
+    assists, shots, xg, conversion/passing ratios, defensive/goalkeeping
+    tallies -- everything aggregate_player_tallies tracks) filtered down to
+    this team's own roster, rather than a separate per-team query path --
+    format-agnostic (works for both groups+knockout and league_cup
+    tournaments, since aggregate_player_tallies already reads match_results
+    the same way regardless of format). Best-effort like
+    team_analysis_summary: a team with no active tournament gets an
+    empty-but-valid shape, never an exception.
+    """
+    name = team_name.strip()
+    empty: dict[str, Any] = {"tournament_id": None, "tournament_name": None, "players": []}
+    try:
+        t = find_active_tournament_for_team(name)
+    except Exception:
+        t = None
+    if not t:
+        return empty
+    try:
+        tallies = player_leaderboards(t)["player_tallies"]
+        players = [row for row in tallies if row.get("team") == name]
+        players.sort(
+            key=lambda r: (-int(r.get("goals") or 0), -int(r.get("assists") or 0), str(r.get("player") or "").lower())
+        )
+        return {"tournament_id": t.get("id"), "tournament_name": t.get("name"), "players": players}
+    except Exception as exc:
+        print(f"Tournament: team_player_stats({team_name!r}) failed, defaulting to empty: {exc}")
+        return empty
+
+
 def resolve_fixture_round_key(
     tournament_id: str | None,
     match_id: str | None,

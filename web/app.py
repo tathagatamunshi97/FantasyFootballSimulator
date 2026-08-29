@@ -806,6 +806,25 @@ def my_team_analysis_api(
     return {"analysis": tournament.team_analysis_summary(team_name)}
 
 
+@app.get("/api/my-team/stats")
+def my_team_stats_api(
+    team: str | None = None,
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Full per-player statistics for the Squad Hub Statistics tab."""
+    user = _session_user(x_session_token)
+    is_admin = _is_admin(x_admin_token)
+    if not (auth.is_team_user(user) or _is_admin_session(user) or is_admin):
+        raise HTTPException(status_code=403, detail="Stats require team or admin login.")
+
+    team_name = _resolve_squad_team_name(user, team=team, is_admin_token=is_admin)
+    if auth.is_team_user(user) and team_name.lower() != user.lower():
+        raise HTTPException(status_code=403, detail="You can only view your own team's stats.")
+
+    return tournament.team_player_stats(team_name)
+
+
 @app.put("/api/my-lineup")
 def put_my_lineup(
     body: LineupSaveRequest,
