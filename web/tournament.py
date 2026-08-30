@@ -808,6 +808,45 @@ def team_analysis_summary(team_name: str, *, form_limit: int = 5) -> dict[str, A
                     break
                 if next_match:
                     break
+        elif t.get("format") == "league_cup":
+            # Bug fix -- league_cup.get_team_immediate_round's round_ctx has
+            # no "stage" key at all (its return shape only ever carries
+            # round_key/label/tournament_id/tournament_name), so neither
+            # branch above ever fired for a League+Cup team and next_match
+            # silently stayed None even with a real next fixture sitting
+            # right there. round_key encodes the exact fixture/leg id
+            # ("league_cup:<id>") -- look it up directly across
+            # friendlies, league fixtures, and cup tie legs (in that same
+            # priority order get_team_immediate_round itself searches).
+            from web import league_cup as lc_mod
+
+            raw_id = (round_ctx.get("round_key") or "").split(":", 1)
+            raw_id = raw_id[1] if len(raw_id) == 2 else None
+            candidate = None
+            if raw_id:
+                for fx in (t.get("friendlies") or {}).get("fixtures") or []:
+                    if fx.get("id") == raw_id and not fx.get("played"):
+                        candidate = fx
+                        break
+                if candidate is None:
+                    for fx in (t.get("league") or {}).get("fixtures") or []:
+                        if fx.get("id") == raw_id and not fx.get("played"):
+                            candidate = fx
+                            break
+                if candidate is None:
+                    for ti in lc_mod._all_ties(t):
+                        for leg in ti.get("legs") or []:
+                            if leg.get("id") == raw_id and not leg.get("played"):
+                                candidate = leg
+                                break
+                        if candidate:
+                            break
+            if candidate and name in (candidate.get("home"), candidate.get("away")):
+                next_match = {
+                    "opponent": candidate.get("away") if candidate.get("home") == name else candidate.get("home"),
+                    "round_label": round_ctx.get("label"),
+                    "home": candidate.get("home") == name,
+                }
 
         season_stats = _build_season_stats(t, name, played_fixtures)
 
