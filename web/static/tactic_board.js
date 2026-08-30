@@ -220,13 +220,14 @@
    * Sim-seconds for a full 90' at 1× speed.
    * Default board speed is 0.5× → wall-clock ≈ 2 × MATCH_WATCH_SECONDS ≈ 6 minutes
    * (two 3-minute halves).
-   * 200 (was 180) -- a deliberate 10% pace reduction (180/200 = 0.9), pure
-   * real-time playback speed. Every other timer in the file (lockUntil,
-   * spell/decision windows, etc.) is expressed in match-minute units, not
-   * real seconds, so this changes nothing about how the match plays out --
-   * only how long it takes to watch.
+   * 300 (was 180, then 200, then 266.67) -- explicit round-number pace
+   * setting (180/300 = 0.6, i.e. 40% slower than the original baseline).
+   * Every other timer in the file (lockUntil, spell/decision windows, etc.)
+   * is expressed in match-minute units, not real seconds, so this changes
+   * nothing about how the match plays out -- only how long it takes to
+   * watch.
    */
-  const MATCH_WATCH_SECONDS = 200;
+  const MATCH_WATCH_SECONDS = 300;
 
   /** Role stagger within a team block (offsets from defence / mid / attack line depths). */
   const LINE_ROLE = {

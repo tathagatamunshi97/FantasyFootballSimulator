@@ -154,6 +154,14 @@ def lineup_status(team_name: str, *, immediate_round_key: str | None = None) -> 
         and immediate_round_key
         and finalized_round == immediate_round_key
     )
+    try:
+        from web import team_discipline
+
+        suspended_players = sorted(team_discipline.get_suspended_players(team_name))
+    except Exception:
+        # Same fail-open contract as the round lookup above -- a discipline
+        # check hiccup must never block the lineup editor from loading.
+        suspended_players = []
     return {
         "finalized": finalized,
         "finalized_at": (saved or {}).get("finalized_at"),
@@ -161,7 +169,34 @@ def lineup_status(team_name: str, *, immediate_round_key: str | None = None) -> 
         "immediate_round_key": immediate_round_key,
         "locked": locked,
         "can_edit": not locked,
+        "suspended_players": suspended_players,
     }
+
+
+def _check_lineup_suspensions(name: str, lineup: list[dict[str, Any]]) -> None:
+    """Reject a starting XI containing a card-accumulation-suspended player.
+
+    Starting XI only (v1 scope cut) -- this codebase has no existing
+    matchday-squad/bench eligibility concept to extend, so bench selection
+    is left unchecked.
+    """
+    from web import team_discipline
+
+    suspended = team_discipline.get_suspended_players(name)
+    if not suspended:
+        return
+    offenders = sorted({
+        (row.get("player") or "").strip()
+        for row in lineup
+        if (row.get("player") or "").strip() in suspended
+    })
+    if offenders:
+        names = ", ".join(offenders)
+        verb = "is" if len(offenders) == 1 else "are"
+        raise ValueError(
+            f"{names} {verb} suspended for the next match (card accumulation) "
+            "and cannot be named in the starting lineup."
+        )
 
 
 def save_team_lineup(team_name: str, config: dict[str, Any], *, allow_locked: bool = False) -> dict[str, Any]:
@@ -179,6 +214,7 @@ def save_team_lineup(team_name: str, config: dict[str, Any], *, allow_locked: bo
             )
 
     record = _build_record_payload(name, config)
+    _check_lineup_suspensions(name, record["lineup"])
     record["updated_at"] = _now()
 
     with _lock:
@@ -218,6 +254,10 @@ def finalize_team_lineup(
         record = get_team_lineup(name)
         if not record:
             raise ValueError("Save your lineup before finalizing.")
+        # save_team_lineup already ran this check in the branch above --
+        # only needed here for the "finalize the already-saved lineup"
+        # path, in case a suspension was newly recorded since it was saved.
+        _check_lineup_suspensions(name, record.get("lineup") or [])
 
     snapshot = _lineup_config_from_record(record)
     record = {
