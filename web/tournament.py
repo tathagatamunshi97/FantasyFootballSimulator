@@ -644,6 +644,17 @@ def _team_season_aggregate(t: dict[str, Any], name: str, played_fixtures: list[d
     xg_against_vals: list[float] = []
     ppda_series: list[float] = []  # chronological, for the trend signal
     xg_against_series: list[float] = []
+    xg_for_series: list[float] = []  # chronological, for the season-trend chart
+
+    # Analysis-dashboard project -- raw season totals (not just ratios),
+    # for Attacking/Defensive Analysis and the zone-breakdown bar. Summed
+    # the same way every other season stat here is: across played_fixtures'
+    # stored results, never re-derived from raw events per-request.
+    shots_for = shots_on_target_for = big_chances_for = big_chance_goals_for = 0
+    shots_against = big_chances_against = 0
+    goals_for = goals_against = 0
+    progressive_passes_for = passes_completed_for = 0
+    zone_for = {"left": 0, "central": 0, "right": 0}
 
     for fx in played_fixtures:
         rid = fx.get("result_id")
@@ -652,6 +663,13 @@ def _team_season_aggregate(t: dict[str, Any], name: str, played_fixtures: list[d
             continue
         side = "home" if fx.get("home") == name else "away"
         opp_side = "away" if side == "home" else "home"
+
+        gf = fx.get("home_goals") if side == "home" else fx.get("away_goals")
+        ga = fx.get("away_goals") if side == "home" else fx.get("home_goals")
+        if gf is not None:
+            goals_for += int(gf)
+        if ga is not None:
+            goals_against += int(ga)
 
         ppda = result.get("ppda")
         if isinstance(ppda, dict) and isinstance(ppda.get(side), dict):
@@ -663,11 +681,25 @@ def _team_season_aggregate(t: dict[str, Any], name: str, played_fixtures: list[d
         ts = result.get("team_stats")
         if isinstance(ts, dict) and isinstance(ts.get(side), dict):
             row = ts[side]
-            gf = fx.get("home_goals") if side == "home" else fx.get("away_goals")
             if gf is not None and (row.get("shots") or 0) > 0:
                 conv_pairs.append((float(gf), float(row["shots"])))
             if (row.get("passes_attempted") or 0) > 0:
                 pass_pairs.append((float(row.get("passes_completed") or 0), float(row["passes_attempted"])))
+            shots_for += int(row.get("shots") or 0)
+            shots_on_target_for += int(row.get("shots_on_target") or 0)
+            big_chances_for += int(row.get("big_chances") or 0)
+            big_chance_goals_for += int(row.get("big_chance_goals") or 0)
+            progressive_passes_for += int(row.get("progressive_passes") or 0)
+            passes_completed_for += int(row.get("passes_completed") or 0)
+        if isinstance(ts, dict) and isinstance(ts.get(opp_side), dict):
+            opp_row = ts[opp_side]
+            shots_against += int(opp_row.get("shots") or 0)
+            big_chances_against += int(opp_row.get("big_chances") or 0)
+
+        zb = result.get("zone_breakdown")
+        if isinstance(zb, dict) and isinstance(zb.get(side), dict):
+            for z in ("left", "central", "right"):
+                zone_for[z] += int(zb[side].get(z) or 0)
 
         poss = result.get("possession_pct")
         if isinstance(poss, dict) and poss.get(side) is not None:
@@ -676,7 +708,9 @@ def _team_season_aggregate(t: dict[str, Any], name: str, played_fixtures: list[d
         exp = result.get("expected_xg")
         if isinstance(exp, dict):
             if exp.get(side) is not None:
-                xg_for_vals.append(float(exp[side]))
+                v = float(exp[side])
+                xg_for_vals.append(v)
+                xg_for_series.append(v)
             if exp.get(opp_side) is not None:
                 v = float(exp[opp_side])
                 xg_against_vals.append(v)
@@ -697,6 +731,17 @@ def _team_season_aggregate(t: dict[str, Any], name: str, played_fixtures: list[d
         "xg_against": _avg(xg_against_vals),
         "ppda_series": ppda_series,
         "xg_against_series": xg_against_series,
+        "xg_for_series": xg_for_series,
+        "goals_for": goals_for,
+        "goals_against": goals_against,
+        "shots_for": shots_for,
+        "shots_on_target_for": shots_on_target_for,
+        "big_chances_for": big_chances_for,
+        "big_chance_goals_for": big_chance_goals_for,
+        "shots_against": shots_against,
+        "big_chances_against": big_chances_against,
+        "directness_pct": _ratio_pct(progressive_passes_for, passes_completed_for, "directness_pct"),
+        "zone_breakdown": zone_for,
     }
 
 
@@ -738,6 +783,7 @@ def team_analysis_summary(team_name: str, *, form_limit: int = 5) -> dict[str, A
         "table_row": None,
         "recent_form": [],
         "next_match": None,
+        "next_match_game_plan": None,
         "season_stats": None,
     }
     if not t:
@@ -849,6 +895,7 @@ def team_analysis_summary(team_name: str, *, form_limit: int = 5) -> dict[str, A
                 }
 
         season_stats = _build_season_stats(t, name, played_fixtures)
+        next_match_game_plan = _next_match_game_plan(name, next_match)
 
         return {
             "tournament_id": t.get("id"),
@@ -857,6 +904,7 @@ def team_analysis_summary(team_name: str, *, form_limit: int = 5) -> dict[str, A
             "table_row": table_row,
             "recent_form": recent_form,
             "next_match": next_match,
+            "next_match_game_plan": next_match_game_plan,
             "season_stats": season_stats,
         }
     except Exception as exc:
@@ -901,6 +949,12 @@ def _build_season_stats(t: dict[str, Any], name: str, played_fixtures: list[dict
     ppda_trend = _trend_label(season["ppda_series"], lower_is_better=True, threshold=1.5)
     xg_against_trend = _trend_label(season["xg_against_series"], lower_is_better=True, threshold=0.2)
 
+    # Manager-dashboard project -- the new sections all build on the same
+    # `season` aggregate above, never re-deriving anything from scratch.
+    identity = _tactical_identity(season, ppda_percentile, shot_conv_percentile)
+    attacking = _attacking_analysis(season)
+    defensive = _defensive_analysis(season)
+
     return {
         "matches": season["matches"],
         "ppda": season["ppda"],
@@ -915,6 +969,17 @@ def _build_season_stats(t: dict[str, Any], name: str, played_fixtures: list[dict
         "xg_against_trend": xg_against_trend,
         "league_size": len(other_names) + 1,
         "summary": _season_diagnostic_summary(season, ppda_percentile, shot_conv_percentile, ppda_trend, xg_against_trend),
+        "confidence": {"matches": season["matches"], "label": _confidence_label(season["matches"])},
+        "tactical_identity": identity,
+        "attacking_analysis": attacking,
+        "defensive_analysis": defensive,
+        "player_impact": _player_impact(t, name),
+        "manager_insight": _manager_insight(season, identity, attacking, defensive, xg_against_trend),
+        "trend_series": {
+            "xg_for": season.get("xg_for_series") or [],
+            "xg_against": season.get("xg_against_series") or [],
+            "ppda": season.get("ppda_series") or [],
+        },
     }
 
 
@@ -967,6 +1032,200 @@ def _season_diagnostic_summary(
     if not notes:
         return "No standout trends yet — form has been fairly balanced across the numbers tracked."
     return " ".join(notes[:3])
+
+
+def _confidence_label(matches: int) -> str:
+    if matches < 3:
+        return "Early signal"
+    if matches < 6:
+        return "Building signal"
+    return "Established"
+
+
+def _tactical_identity(season: dict[str, Any], ppda_percentile: float | None, shot_conv_percentile: float | None) -> dict[str, Any]:
+    possession = season.get("possession_pct")
+    directness = season.get("directness_pct")
+    labels: list[str] = []
+    if possession is not None and possession >= 55:
+        labels.append("Possession-dominant")
+    elif possession is not None and possession <= 45:
+        labels.append("Counter-reliant")
+    if ppda_percentile is not None and ppda_percentile >= 75:
+        labels.append("High press")
+    elif ppda_percentile is not None and ppda_percentile <= 25:
+        labels.append("Low block")
+    if directness is not None and directness >= 20:
+        labels.append("Vertical attacks")
+    elif directness is not None and directness < 10:
+        labels.append("Patient build-up")
+    return {
+        "labels": labels or ["Balanced"],
+        "possession_pct": possession,
+        "ppda": season.get("ppda"),
+        "ppda_percentile": ppda_percentile,
+        "pass_completion_pct": season.get("pass_completion_pct"),
+        # directness_pct: share of completed passes that were progressive
+        # (tactic_board.js's own >0.08 pitch-depth-gain threshold) -- a
+        # proxy for "how direct is the build-up," not a real average-pass-
+        # distance-toward-goal metric, which this engine doesn't track.
+        "directness_pct": directness,
+        "shot_conversion_pct": season.get("shot_conversion_pct"),
+        "shot_conversion_percentile": shot_conv_percentile,
+    }
+
+
+def _attacking_analysis(season: dict[str, Any]) -> dict[str, Any] | None:
+    shots = season.get("shots_for") or 0
+    if not shots:
+        return None
+    xg = season.get("xg_for")
+    xg_per_shot = round(xg / shots, 2) if xg is not None else None
+    zone = season.get("zone_breakdown") or {}
+    zone_total = sum(zone.values())
+    zone_pct = {k: round(v / zone_total * 100) for k, v in zone.items()} if zone_total else None
+    diagnosis = None
+    diagnosis_positive = None
+    matches = season.get("matches") or 1
+    if xg_per_shot is not None and shots >= 3:
+        if xg_per_shot >= 0.14 and shots / matches <= 12:
+            diagnosis = f"Generating high-quality chances rather than relying on shot volume — {xg_per_shot} xG per shot."
+            diagnosis_positive = True
+        elif xg_per_shot < 0.09:
+            diagnosis = f"Chance quality has been low — only {xg_per_shot} xG per shot across {shots} shots."
+            diagnosis_positive = False
+    return {
+        "xg_for": xg,
+        "shots": shots,
+        "shots_on_target": season.get("shots_on_target_for"),
+        "big_chances": season.get("big_chances_for"),
+        "big_chance_goals": season.get("big_chance_goals_for"),
+        "goals": season.get("goals_for"),
+        "xg_per_shot": xg_per_shot,
+        "zone_breakdown_pct": zone_pct,
+        "diagnosis": diagnosis,
+        "diagnosis_positive": diagnosis_positive,
+    }
+
+
+def _defensive_analysis(season: dict[str, Any]) -> dict[str, Any] | None:
+    if not season.get("matches"):
+        return None
+    xga = season.get("xg_against")
+    shots_against = season.get("shots_against") or 0
+    diagnosis = None
+    diagnosis_positive = None
+    if xga is not None and shots_against >= 3:
+        if xga <= 1.0:
+            diagnosis = f"Preventing high-quality chances well — {xga} xG conceded."
+            diagnosis_positive = True
+        elif xga >= 1.8:
+            diagnosis = f"Conceding meaningful chance quality — {xga} xG allowed."
+            diagnosis_positive = False
+    return {
+        "xg_against": xga,
+        "shots_against": season.get("shots_against"),
+        "big_chances_against": season.get("big_chances_against"),
+        "goals_against": season.get("goals_against"),
+        "ppda": season.get("ppda"),
+        "diagnosis": diagnosis,
+        "diagnosis_positive": diagnosis_positive,
+    }
+
+
+def _player_impact(t: dict[str, Any], name: str, *, limit: int = 8) -> list[dict[str, Any]]:
+    tallies = aggregate_player_tallies(t)
+    rows = [r for r in tallies if r.get("team") == name]
+    rows.sort(key=lambda r: -(r.get("xg_plus_assists") or 0))
+    out = []
+    for r in rows:
+        defensive_actions = int(r.get("tackles") or 0) + int(r.get("interceptions") or 0)
+        if (r.get("xg_plus_assists") or 0) <= 0 and not defensive_actions:
+            continue
+        out.append({
+            "player": r.get("player"),
+            "xg_plus_assists": r.get("xg_plus_assists"),
+            "goals": r.get("goals"),
+            "assists": r.get("assists"),
+            "key_passes": r.get("key_passes"),
+            # Labeled honestly as a defensive-activity proxy (tackles +
+            # interceptions), not "pressures" -- no per-player pressing
+            # event exists in this engine today.
+            "defensive_actions": defensive_actions,
+        })
+        if len(out) >= limit:
+            break
+    return out
+
+
+def _manager_insight(
+    season: dict[str, Any],
+    identity: dict[str, Any],
+    attacking: dict[str, Any] | None,
+    defensive: dict[str, Any] | None,
+    xg_against_trend: str | None,
+) -> dict[str, Any]:
+    keep: list[str] = []
+    consider: list[str] = []
+    watch: list[str] = []
+
+    if identity.get("ppda_percentile") is not None:
+        if identity["ppda_percentile"] >= 70:
+            keep.append("High pressing intensity — it's working (top tier PPDA for the league).")
+        elif identity["ppda_percentile"] <= 30:
+            consider.append("Pressing intensity is off the pace of the league — consider pushing the defensive line higher.")
+
+    if attacking and attacking.get("zone_breakdown_pct"):
+        zp = attacking["zone_breakdown_pct"]
+        heaviest = max(zp, key=zp.get)
+        if zp.get(heaviest, 0) >= 45:
+            consider.append(f"Attacks have been {heaviest}-heavy ({zp[heaviest]}% of chances) — look to involve the other side more.")
+
+    if attacking and attacking.get("diagnosis"):
+        (keep if attacking["diagnosis_positive"] else consider).append(attacking["diagnosis"])
+
+    if defensive and defensive.get("diagnosis"):
+        (keep if defensive["diagnosis_positive"] else consider).append(defensive["diagnosis"])
+
+    if xg_against_trend == "worsening":
+        watch.append("Defensive solidity is trending the wrong way — xG conceded has risen over recent matches.")
+    elif xg_against_trend == "improving":
+        keep.append("Defensive solidity is improving — xG conceded has fallen over recent matches.")
+
+    if not (keep or consider or watch):
+        return {
+            "headline": "Not enough signal yet to draw real conclusions — check back after a few more matches.",
+            "keep": [],
+            "consider": [],
+            "watch": [],
+        }
+    headline = keep[0] if keep else consider[0] if consider else watch[0]
+    return {"headline": headline, "keep": keep[:3], "consider": consider[:3], "watch": watch[:3]}
+
+
+def _next_match_game_plan(name: str, next_match: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Auto-resolves the next opponent (already known from next_match) into
+    a real scouting comparison -- this wiring doesn't exist anywhere else;
+    Scout Opponent today is always manually invoked. Fails open to an
+    empty-but-valid shape on any lookup problem (missing roster data, no
+    saved lineup, etc.) rather than breaking the whole Analysis response.
+    """
+    if not next_match or not next_match.get("opponent"):
+        return None
+    opponent = next_match["opponent"]
+    base = {"opponent": opponent, "home": next_match.get("home"), "round_label": next_match.get("round_label")}
+    try:
+        import squad_intel
+        from web.state import get_stats_store
+
+        my_team_dict, opp_team_dict = _load_teams_for_match(name, opponent)
+        store = get_stats_store()
+        report = squad_intel.build_opponent_scout(my_team_dict, opp_team_dict, store)
+        battles = report.get("key_battles") or []
+        advantages = [b for b in battles if b.get("verdict") == "advantage"]
+        return {**base, "key_battles": battles[:6], "advantages": advantages[:3]}
+    except Exception as exc:
+        print(f"Tournament: _next_match_game_plan failed for {name!r} vs {opponent!r}: {exc}")
+        return {**base, "key_battles": [], "advantages": []}
 
 
 def team_player_stats(team_name: str) -> dict[str, Any]:
@@ -1358,6 +1617,10 @@ _RATIO_MIN_DENOMINATOR = {
     "cross_accuracy_pct": 5,
     "through_ball_completion_pct": 3,
     "save_pct": 3,
+    # Analysis-dashboard project -- same qualification bar as
+    # pass_completion_pct, since directness's denominator is the same
+    # passes_completed count.
+    "directness_pct": 15,
 }
 
 
@@ -1395,6 +1658,12 @@ def _add_derived_tally_fields(rows) -> None:
         saves = float(row.get("saves") or 0)
         conceded = float(row.get("goals_conceded") or 0)
         row["save_pct"] = _ratio_pct(saves, saves + conceded, "save_pct")
+        # Analysis-dashboard project -- combined goal contribution, for the
+        # Player Impact table. Named xg_plus_assists (not xg_plus_xa) on
+        # purpose -- this engine tracks actual assists, not an expected-
+        # assists (xA) model, so labeling it "xG+xA" would overclaim
+        # precision that doesn't exist. Frontend should render it "xG+A".
+        row["xg_plus_assists"] = round(float(row.get("xg") or 0) + float(row.get("assists") or 0), 2)
 
 
 def _bump_player_tally(
@@ -2282,13 +2551,32 @@ def complete_from_board(
                 result["team_stats"] = {
                     side: {
                         "shots": bucket.get("shots") or 0,
+                        "shots_on_target": bucket.get("shots_on_target") or 0,
                         "big_chances": bucket.get("big_chances") or 0,
                         "big_chance_goals": bucket.get("big_chance_goals") or 0,
                         "passes_attempted": bucket.get("passes_attempted") or 0,
                         "passes_completed": bucket.get("passes_completed") or 0,
+                        "progressive_passes": bucket.get("progressive_passes") or 0,
                     }
                     for side, bucket in (("home", home_counts), ("away", away_counts))
                 }
+                # Analysis-dashboard project -- attack-zone breakdown, summed
+                # once at completion time from the raw event list (matching
+                # team_stats's own philosophy: computed here, not re-derived
+                # per-request) rather than tallied live like the counts
+                # above, since "zone" is per-event, not a running counter.
+                zone_totals = {
+                    "home": {"left": 0, "central": 0, "right": 0},
+                    "away": {"left": 0, "central": 0, "right": 0},
+                }
+                for ev in stored_log.get("events") or []:
+                    if not isinstance(ev, dict) or ev.get("type") not in ("shot", "big_chance"):
+                        continue
+                    ev_side = ev.get("side")
+                    ev_zone = ev.get("zone")
+                    if ev_side in zone_totals and ev_zone in zone_totals[ev_side]:
+                        zone_totals[ev_side][ev_zone] += 1
+                result["zone_breakdown"] = zone_totals
     elif stored_events:
         result["match_log"] = {
             "events": stored_events,

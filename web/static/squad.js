@@ -824,6 +824,187 @@ function renderSeasonDiagnosticsCard(season) {
     </div>`;
 }
 
+// Manager-dashboard project -- Manager Insight card: the "Keep / Consider
+// / Watch" synthesis from tournament.py's _manager_insight, built last
+// server-side since it reads every other section's own conclusions.
+function renderManagerInsightCard(season) {
+  const insight = season && season.manager_insight;
+  if (!insight) return "";
+  const conf = season.confidence;
+  const confBadge = conf
+    ? ` <span class="pct-pill" style="margin-left:0.4rem">${esc(conf.label)} · ${conf.matches} match${conf.matches === 1 ? "" : "es"}</span>`
+    : "";
+  const list = (title, items) =>
+    items && items.length
+      ? `<div style="margin-top:0.6rem"><div class="muted" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.03em">${esc(title)}</div>
+         <ul style="margin:0.3rem 0 0;padding-left:1.1rem">${items.map((i) => `<li style="margin:0.15rem 0">${esc(i)}</li>`).join("")}</ul></div>`
+      : "";
+  return `
+    <div class="card">
+      <div class="report-eyebrow">🧠 Manager insight${confBadge}</div>
+      <p style="margin:0.5rem 0 0;font-weight:600">${esc(insight.headline || "")}</p>
+      ${list("Keep", insight.keep)}
+      ${list("Consider", insight.consider)}
+      ${list("Watch", insight.watch)}
+    </div>`;
+}
+
+// Tactical Identity card -- possession/press/pass/directness with league
+// percentile pills, reusing common.js's pctPill exactly as the existing
+// Season diagnostics card already does.
+function renderTacticalIdentityCard(season) {
+  const identity = season && season.tactical_identity;
+  if (!identity) return "";
+  const percentiles = { ppda: identity.ppda_percentile, shot_conversion: identity.shot_conversion_percentile };
+  const leagueSize = season.league_size;
+  return `
+    <div class="card" style="margin-top:1rem">
+      <div class="report-eyebrow">⚽ How we play</div>
+      <p style="margin:0.35rem 0 0.85rem;font-weight:600">${(identity.labels || []).map(esc).join(" · ")}</p>
+      <div class="metric-grid">
+        ${seasonMetricTile("Possession", identity.possession_pct == null ? "—" : `${num(identity.possession_pct, 0)}%`)}
+        ${seasonMetricTile("PPDA", num(identity.ppda, 1), pctPill("ppda", percentiles, leagueSize))}
+        ${seasonMetricTile("Pass %", pct(identity.pass_completion_pct))}
+        ${seasonMetricTile("Directness", identity.directness_pct == null ? "—" : `${num(identity.directness_pct, 0)}%`)}
+        ${seasonMetricTile("Shot conv %", pct(identity.shot_conversion_pct), pctPill("shot_conversion", percentiles, leagueSize))}
+      </div>
+    </div>`;
+}
+
+function zoneBar(zonePct) {
+  if (!zonePct) return `<p class="muted" style="margin:0.5rem 0 0;font-size:0.82rem">No zone data yet for matches played before this feature shipped.</p>`;
+  const row = (label, v) => `
+    <div style="display:flex;align-items:center;gap:0.5rem;margin:0.25rem 0">
+      <div style="width:4.5rem;font-size:0.78rem" class="muted">${esc(label)}</div>
+      <div style="flex:1;background:var(--bg-2,#1a1a22);border-radius:4px;overflow:hidden;height:0.6rem">
+        <div style="width:${v}%;height:100%;background:var(--accent,#7c8cff)"></div>
+      </div>
+      <div style="width:2.5rem;text-align:right;font-size:0.78rem">${v}%</div>
+    </div>`;
+  return `<div style="margin-top:0.6rem">${row("Left", zonePct.left || 0)}${row("Central", zonePct.central || 0)}${row("Right", zonePct.right || 0)}</div>`;
+}
+
+function renderAttackingAnalysisCard(season) {
+  const att = season && season.attacking_analysis;
+  if (!att) return `<div class="card" style="margin-top:1rem"><div class="report-eyebrow">🔥 Attacking analysis</div><p class="muted" style="margin:0.35rem 0 0">No shots recorded yet this tournament.</p></div>`;
+  return `
+    <div class="card" style="margin-top:1rem">
+      <div class="report-eyebrow">🔥 Attacking analysis</div>
+      ${att.diagnosis ? `<p style="margin:0.35rem 0 0.6rem">${att.diagnosis_positive ? "🟢" : "🟡"} ${esc(att.diagnosis)}</p>` : ""}
+      <div class="metric-grid">
+        ${seasonMetricTile("xG", num(att.xg_for))}
+        ${seasonMetricTile("Shots", String(att.shots ?? "—"))}
+        ${seasonMetricTile("On target", String(att.shots_on_target ?? "—"))}
+        ${seasonMetricTile("Big chances", String(att.big_chances ?? "—"))}
+        ${seasonMetricTile("Goals", String(att.goals ?? "—"))}
+        ${seasonMetricTile("xG/shot", num(att.xg_per_shot))}
+      </div>
+      <div class="muted" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.03em;margin-top:0.7rem">Where chances came from</div>
+      ${zoneBar(att.zone_breakdown_pct)}
+    </div>`;
+}
+
+function renderDefensiveAnalysisCard(season) {
+  const def = season && season.defensive_analysis;
+  if (!def) return "";
+  return `
+    <div class="card" style="margin-top:1rem">
+      <div class="report-eyebrow">🛡 Defensive analysis</div>
+      ${def.diagnosis ? `<p style="margin:0.35rem 0 0.6rem">${def.diagnosis_positive ? "🟢" : "🟡"} ${esc(def.diagnosis)}</p>` : ""}
+      <div class="metric-grid">
+        ${seasonMetricTile("xG against", num(def.xg_against))}
+        ${seasonMetricTile("Shots conceded", String(def.shots_against ?? "—"))}
+        ${seasonMetricTile("Big chances conceded", String(def.big_chances_against ?? "—"))}
+        ${seasonMetricTile("Goals conceded", String(def.goals_against ?? "—"))}
+        ${seasonMetricTile("PPDA", num(def.ppda, 1))}
+      </div>
+    </div>`;
+}
+
+function renderPlayerImpactCard(season) {
+  const rows = (season && season.player_impact) || [];
+  if (!rows.length) return "";
+  return `
+    <div class="card" style="margin-top:1rem">
+      <div class="report-eyebrow">👥 Player impact</div>
+      <div class="report-table-wrap" style="margin-top:0.5rem"><table>
+        <thead><tr><th>Player</th><th>xG+A</th><th>Goals</th><th>Assists</th><th>Key passes</th><th>Defensive actions</th></tr></thead>
+        <tbody>${rows
+          .map(
+            (r) =>
+              `<tr><td>${esc(r.player || "—")}</td><td>${num(r.xg_plus_assists)}</td><td>${r.goals ?? 0}</td><td>${r.assists ?? 0}</td><td>${r.key_passes ?? 0}</td><td>${r.defensive_actions ?? 0}</td></tr>`
+          )
+          .join("")}</tbody>
+      </table></div>
+      <p class="muted" style="margin:0.5rem 0 0;font-size:0.75rem">"Defensive actions" = tackles + interceptions, a proxy for defensive activity — this engine doesn't track per-player pressing events.</p>
+    </div>`;
+}
+
+function renderNextMatchGamePlanCard(analysis) {
+  const next = analysis.next_match;
+  const plan = analysis.next_match_game_plan;
+  const form = analysis.recent_form || [];
+  const formStrip = form.length ? `<div class="form-strip" style="margin:0.5rem 0 0.6rem">${form.map((f) => formResultChip(f.result)).join("")}</div>` : "";
+  if (!next) {
+    return `<div class="card" style="margin-top:1rem"><div class="report-eyebrow">🎯 Next match</div>${formStrip}<p class="muted" style="margin:0.35rem 0 0">No fixture scheduled yet.</p></div>`;
+  }
+  const advantages = (plan && plan.advantages) || [];
+  const advHtml = advantages.length
+    ? `<div style="margin-top:0.6rem">
+        <div class="muted" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.03em">Where we can hurt them</div>
+        <ul style="margin:0.3rem 0 0;padding-left:1.1rem">${advantages
+          .map((a) => `<li style="margin:0.15rem 0">🟢 <strong>${esc(a.my_player || "")}</strong> (${esc(a.my_slot || "")}) vs ${esc(a.opp_player || "")} (${esc(a.opp_slot || "")}) — edge +${num(a.edge, 2)}</li>`)
+          .join("")}</ul>
+      </div>`
+    : plan
+      ? `<p class="muted" style="margin:0.5rem 0 0;font-size:0.82rem">No standout individual matchup edges found yet for this opponent.</p>`
+      : "";
+  return `
+    <div class="card" style="margin-top:1rem">
+      <div class="report-eyebrow">🎯 Next match: ${esc((next.opponent || "TBD").toUpperCase())}</div>
+      ${formStrip}
+      <p style="margin:0.35rem 0 0"><strong>${esc(next.opponent || "TBD")}</strong> <span class="muted">${next.home ? "(home)" : "(away)"} · ${esc(next.round_label || "")}</span></p>
+      ${advHtml}
+    </div>`;
+}
+
+// Season Trends -- the one new visual primitive in this project. No chart
+// library exists anywhere in this codebase, so this is a small,
+// dependency-free inline SVG polyline, not a library integration.
+function renderTrendChart(label, series, color) {
+  if (!series || series.length < 2) return "";
+  const w = 520, h = 90, pad = 8;
+  const max = Math.max(...series, 0.01);
+  const min = Math.min(...series, 0);
+  const range = max - min || 1;
+  const pts = series.map((v, i) => {
+    const x = pad + (i / (series.length - 1)) * (w - pad * 2);
+    const y = h - pad - ((v - min) / range) * (h - pad * 2);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+  return `
+    <div style="margin-top:0.6rem">
+      <div class="muted" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.03em">${esc(label)} (${num(series[0])} → ${num(series[series.length - 1])})</div>
+      <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:${h}px;margin-top:0.25rem" preserveAspectRatio="none">
+        <polyline points="${pts.join(" ")}" fill="none" stroke="${color}" stroke-width="2" />
+      </svg>
+    </div>`;
+}
+
+function renderSeasonTrendsCard(season) {
+  const ts = season && season.trend_series;
+  if (!ts || (ts.xg_for || []).length < 2) {
+    return `<div class="card" style="margin-top:1rem"><div class="report-eyebrow">📊 Season trends</div><p class="muted" style="margin:0.35rem 0 0">Needs a few more matches before a trend is meaningful.</p></div>`;
+  }
+  return `
+    <div class="card" style="margin-top:1rem">
+      <div class="report-eyebrow">📊 Season trends</div>
+      ${renderTrendChart("xG for", ts.xg_for, "#5ad17a")}
+      ${renderTrendChart("xG against", ts.xg_against, "#e0607a")}
+      ${renderTrendChart("PPDA (lower = more pressing)", ts.ppda, "#7c8cff")}
+    </div>`;
+}
+
 function renderAnalysisTab(analysis) {
   if (!analysis || !analysis.tournament_id) {
     return `<div class="card"><h2>Analysis</h2><p class="muted">No active tournament for this team right now.</p></div>`;
@@ -844,41 +1025,17 @@ function renderAnalysisTab(analysis) {
     </div>`
     : "";
 
-  const form = analysis.recent_form || [];
-  const formCard = form.length
-    ? `
-    <div class="card" style="margin-top:1rem">
-      <div class="report-eyebrow">Recent results</div>
-      <div class="form-strip" style="margin:0.5rem 0 0.85rem">${form.map((f) => formResultChip(f.result)).join("")}</div>
-      <div class="report-table-wrap"><table>
-        <thead><tr><th>Rnd</th><th>Opponent</th><th>Score</th><th>Result</th>${form.some((f) => f.xg) ? "<th>xG</th>" : ""}</tr></thead>
-        <tbody>${form
-          .slice()
-          .reverse()
-          .map((f) => {
-            const score = `${f.goals_for}–${f.goals_against}`;
-            const xgCell = f.xg ? `<td>${num(f.xg.for)} – ${num(f.xg.against)}</td>` : form.some((g) => g.xg) ? "<td>—</td>" : "";
-            return `<tr><td>${esc(String(f.round ?? "—"))}</td><td>${esc(f.opponent || "—")}${f.home ? "" : ' <span class="muted">(a)</span>'}</td><td>${esc(score)}</td><td>${formResultChip(f.result)}</td>${xgCell}</tr>`;
-          })
-          .join("")}</tbody>
-      </table></div>
-    </div>`
-    : "";
+  const season = analysis.season_stats;
+  const insightCard = renderManagerInsightCard(season);
+  const identityCard = renderTacticalIdentityCard(season);
+  const diagnosticsCard = renderSeasonDiagnosticsCard(season);
+  const attackingCard = renderAttackingAnalysisCard(season);
+  const defensiveCard = renderDefensiveAnalysisCard(season);
+  const playerImpactCard = renderPlayerImpactCard(season);
+  const nextCard = renderNextMatchGamePlanCard(analysis);
+  const trendsCard = renderSeasonTrendsCard(season);
 
-  const next = analysis.next_match;
-  const nextCard = `
-    <div class="card" style="margin-top:1rem">
-      <div class="report-eyebrow">Next match</div>
-      ${
-        next
-          ? `<p style="margin:0.35rem 0 0"><strong>${esc(next.opponent || "TBD")}</strong> <span class="muted">${next.home ? "(home)" : "(away)"} · ${esc(next.round_label || "")}</span></p>`
-          : `<p class="muted" style="margin:0.35rem 0 0">No fixture scheduled yet.</p>`
-      }
-    </div>`;
-
-  const diagnosticsCard = renderSeasonDiagnosticsCard(analysis.season_stats);
-
-  return `${tableCard}${diagnosticsCard}${nextCard}${formCard}`;
+  return `${insightCard}${identityCard}${tableCard}${diagnosticsCard}${attackingCard}${defensiveCard}${playerImpactCard}${nextCard}${trendsCard}`;
 }
 
 // Statistics tab -- full per-player stats for this team's own roster, from

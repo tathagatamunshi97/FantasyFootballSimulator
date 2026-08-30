@@ -775,13 +775,29 @@ def complete_from_board(
                 result["team_stats"] = {
                     side: {
                         "shots": bucket.get("shots") or 0,
+                        "shots_on_target": bucket.get("shots_on_target") or 0,
                         "big_chances": bucket.get("big_chances") or 0,
                         "big_chance_goals": bucket.get("big_chance_goals") or 0,
                         "passes_attempted": bucket.get("passes_attempted") or 0,
                         "passes_completed": bucket.get("passes_completed") or 0,
+                        "progressive_passes": bucket.get("progressive_passes") or 0,
                     }
                     for side, bucket in (("home", home_counts), ("away", away_counts))
                 }
+                # Analysis-dashboard project -- same zone_breakdown
+                # promotion as tournament.py's complete_from_board.
+                zone_totals = {
+                    "home": {"left": 0, "central": 0, "right": 0},
+                    "away": {"left": 0, "central": 0, "right": 0},
+                }
+                for ev in stored_log.get("events") or []:
+                    if not isinstance(ev, dict) or ev.get("type") not in ("shot", "big_chance"):
+                        continue
+                    ev_side = ev.get("side")
+                    ev_zone = ev.get("zone")
+                    if ev_side in zone_totals and ev_zone in zone_totals[ev_side]:
+                        zone_totals[ev_side][ev_zone] += 1
+                result["zone_breakdown"] = zone_totals
     elif stored_events:
         result["match_log"] = {"events": stored_events, "goals": [e for e in stored_events if e.get("type") == "goal"]}
 

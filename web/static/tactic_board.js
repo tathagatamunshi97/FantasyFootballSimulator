@@ -220,14 +220,14 @@
    * Sim-seconds for a full 90' at 1× speed.
    * Default board speed is 0.5× → wall-clock ≈ 2 × MATCH_WATCH_SECONDS ≈ 6 minutes
    * (two 3-minute halves).
-   * 300 (was 180, then 200, then 266.67) -- explicit round-number pace
-   * setting (180/300 = 0.6, i.e. 40% slower than the original baseline).
-   * Every other timer in the file (lockUntil, spell/decision windows, etc.)
-   * is expressed in match-minute units, not real seconds, so this changes
-   * nothing about how the match plays out -- only how long it takes to
-   * watch.
+   * 400 (was 180, then 200, then 266.67, then 300) -- explicit round-number
+   * pace setting (180/400 = 0.45, i.e. 55% slower than the original
+   * baseline). Every other timer in the file (lockUntil, spell/decision
+   * windows, etc.) is expressed in match-minute units, not real seconds,
+   * so this changes nothing about how the match plays out -- only how
+   * long it takes to watch.
    */
-  const MATCH_WATCH_SECONDS = 300;
+  const MATCH_WATCH_SECONDS = 400;
 
   /** Role stagger within a team block (offsets from defence / mid / attack line depths). */
   const LINE_ROLE = {
@@ -1799,6 +1799,7 @@
         goals: 0,
         assists: 0,
         shots: 0,
+        shots_on_target: 0,
         big_chances: 0,
         offsides: 0,
         passes_broken: 0,
@@ -1909,6 +1910,7 @@
       if (extra.big_chance != null) entry.big_chance = Boolean(extra.big_chance);
       if (extra.penalty != null) entry.penalty = Boolean(extra.penalty);
       if (extra.in_box != null) entry.in_box = Boolean(extra.in_box);
+      if (extra.zone) entry.zone = extra.zone;
       // DIAGNOSTIC (coinflip-vs-lopsided-batch investigation) — shot supply
       // mechanism + time-since-possession-won, read off doShot below.
       if (extra.source) entry.source = extra.source;
@@ -12837,12 +12839,20 @@
             : spell && spell.willAttemptChance
               ? "will_attempt_spell"
               : "ungated";
+      // Analysis-dashboard project -- attack-zone breakdown. flankOfPin
+      // already exists (pitch-fixed L/R/C off baseX, consistent for both
+      // sides since a top-down 2D pitch never rotates left-right between
+      // attacking directions), reused as-is rather than inlining a
+      // second copy of the same thresholds.
+      const shotFlank = flankOfPin(carrier);
+      const shotZone = shotFlank === "R" ? "right" : shotFlank === "L" ? "left" : "central";
       pushMatchEvent(chanceType, carrier.side, {
         player: carrier.player,
         player_short: carrier.short,
         detail: boxed || nearBox ? "shot" : "long_shot",
         xg: Math.round(chanceXg * 1000) / 1000,
         in_box: boxed,
+        zone: shotZone,
         source: shotSource,
         buildup: shotBuildup,
         source_path: sourcePath,
@@ -12951,6 +12961,10 @@
         setBallTarget(netLeft, netTop, dur, false, flatCtrl);
         actionTimer = dur + 0.35;
         ballFlight = { outcome: "goal", side: carrier.side, chanceType, xg: chanceXg };
+        // Analysis-dashboard project -- shots on target = would have gone
+        // in without an intervening save (goal or save outcome), not
+        // blocked/wide. See the matching bump on the "save" branch below.
+        bumpCount(carrier.side, "shots_on_target");
       } else {
         // Was mislabeled: this used to route every non-scoring shot to the keeper
         // ("save") or wide, with no distinct "blocked by an outfield defender"
@@ -13004,6 +13018,7 @@
             against: carrier.side,
             shooterShort: carrier.short,
           };
+          bumpCount(carrier.side, "shots_on_target");
         } else {
           const wideLeft = clamp(50 + (rng() - 0.5) * 28, 18, 82);
           const wideTop = carrier.side === "home" ? 2 : 98;
@@ -15670,6 +15685,7 @@
           goals: 0,
           assists: 0,
           shots: 0,
+          shots_on_target: 0,
           big_chances: 0,
           offsides: 0,
           passes_broken: 0,
@@ -15699,6 +15715,7 @@
           goals: 0,
           assists: 0,
           shots: 0,
+          shots_on_target: 0,
           big_chances: 0,
           offsides: 0,
           passes_broken: 0,
