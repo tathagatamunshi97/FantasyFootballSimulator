@@ -194,6 +194,8 @@ const TALLY_FIELDS = [
   "crosses_completed", "through_attempted", "through_completed",
   // Discipline/progression stats project.
   "fouls", "cards", "penalty_goals", "progressive_passes",
+  // Red-card project.
+  "red_cards",
 ];
 
 // Mirrors web/tournament.py's _add_derived_tally_fields/_ratio_pct exactly
@@ -294,6 +296,8 @@ const STAT_BOARDS = [
   { key: "top_fouls", field: "fouls", title: "Most fouls committed", label: "Fouls", empty: "No fouls recorded yet.", category: "defending" },
   { key: "top_penalty_scorers", field: "penalty_goals", title: "Most penalties scored", label: "Pens", empty: "No penalties scored yet.", category: "attacking" },
   { key: "top_progressive_passers", field: "progressive_passes", title: "Most progressive passes", label: "Prog Passes", empty: "No progressive passes recorded yet.", category: "creation" },
+  // Red-card project.
+  { key: "top_red_cards", field: "red_cards", title: "Most red cards", label: "Red", empty: "No red cards shown yet.", category: "defending" },
 ];
 
 // Renders one played-match analysis result into its `.match-analysis-panel`

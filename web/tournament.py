@@ -1521,7 +1521,7 @@ def _board_events_from_result(result: dict[str, Any]) -> list[dict[str, Any]]:
     return []
 
 
-_COMMENTARY_EVENT_TYPES = frozenset({"goal", "big_chance_missed", "yellow_card"})
+_COMMENTARY_EVENT_TYPES = frozenset({"goal", "big_chance_missed", "yellow_card", "red_card"})
 
 
 def _attach_ai_commentary(result: dict[str, Any]) -> None:
@@ -1601,6 +1601,8 @@ _TALLY_FIELDS = (
     "cards",
     "penalty_goals",
     "progressive_passes",
+    # Red-card project.
+    "red_cards",
 )
 
 
@@ -1770,6 +1772,10 @@ def aggregate_player_tallies(t: dict[str, Any], *, competition: str | None = Non
                 player = str(ev.get("player") or "").strip()
                 if player:
                     _bump_player_tally(tallies, player=player, team=str(team), field="cards")
+            elif ev_type == "red_card" and team:
+                player = str(ev.get("player") or "").strip()
+                if player:
+                    _bump_player_tally(tallies, player=player, team=str(team), field="red_cards")
             elif ev_type == "pass_broken" and team:
                 player = str(ev.get("player") or "").strip()
                 if player:
@@ -1911,6 +1917,8 @@ def player_leaderboards(t: dict[str, Any], *, limit: int = 10, competition: str 
         "top_fouls": _board("fouls"),
         "top_penalty_scorers": _board("penalty_goals"),
         "top_progressive_passers": _board("progressive_passes"),
+        # Red-card project.
+        "top_red_cards": _board("red_cards"),
     }
 
 

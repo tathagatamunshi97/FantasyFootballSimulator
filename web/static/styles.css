@@ -1458,6 +1458,14 @@ tr.matchday-live { background: var(--success-soft); }
   border-color: rgba(120, 220, 160, 0.95);
   transform: scale(1.08);
 }
+.tactic-pin.sent-off .pin-dot {
+  opacity: 0.35;
+  border-color: rgba(220, 60, 60, 0.9);
+  filter: grayscale(0.6);
+}
+.tactic-pin.sent-off {
+  pointer-events: none;
+}
 .tactic-ball {
   /* Perf fix (PIN_RENDER_SMOOTHNESS_PLAN.md) — same compositor-only
      transform positioning as .tactic-pin above; the old margin-based

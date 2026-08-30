@@ -1,14 +1,20 @@
-"""Season-long yellow-card accumulation -> 1-match suspension.
+"""Season-long discipline -> 1-match suspension.
 
-Deliberately JIT (just-in-time), not event-driven: every check recomputes a
-team's card totals fresh from the tournament's full match history (via
-tournament.aggregate_player_tallies) rather than trusting an incrementally
-maintained counter. This makes the system self-healing against admin result
-corrections, and — just as importantly — correct from the very first check
-even for matches played before this feature existed, with no backfill
-migration required: the first time a team's lineup is saved/finalized after
-this ships, a player who already had 5+ cards from history is caught
-immediately, exactly as if the threshold had just been crossed.
+Two independent triggers, both JIT (just-in-time), not event-driven: every
+check recomputes a team's card totals fresh from the tournament's full match
+history (via tournament.aggregate_player_tallies) rather than trusting an
+incrementally maintained counter. This makes the system self-healing against
+admin result corrections, and — just as importantly — correct from the very
+first check even for matches played before this feature existed, with no
+backfill migration required: the first time a team's lineup is saved/
+finalized after this ships, a player who already crossed a threshold from
+history is caught immediately, exactly as if it had just happened.
+
+  1. Yellow-card accumulation: every 5th yellow (career-in-tournament, not
+     per-match) earns a 1-match ban.
+  2. Red card: every single red card (straight or second-yellow) earns its
+     own immediate 1-match ban, independent of the yellow count -- a red
+     card doesn't also need to cross a yellow tier to matter.
 
 Only outfield/roster-level bookkeeping: this module knows nothing about the
 live match engine (no dependency on tactic_board.js's card events) — it
@@ -64,12 +70,18 @@ def _player_key(team: str, player: str) -> str:
 
 def _sync_and_get_suspended(t: dict[str, Any], team_name: str, round_key: str | None) -> set[str]:
     """Recompute `team_name`'s card totals from `t`'s full match history,
-    record any newly-crossed 5-card tier as a suspension pinned to
-    `round_key` (the round currently being checked -- always the team's
-    actual current immediate round in normal use), lazily clear any
-    previously-recorded suspension whose round has since been played (its
-    stored round_key no longer equals the current one), and return the set
-    of player names still suspended for `round_key`.
+    record any newly-crossed 5-yellow tier AND any new red card as a
+    suspension pinned to `round_key` (the round currently being checked --
+    always the team's actual current immediate round in normal use), lazily
+    clear any previously-recorded suspension whose round has since been
+    played (its stored round_key no longer equals the current one), and
+    return the set of player names still suspended for `round_key`.
+
+    The two triggers are tracked as separate running counts on the same
+    per-player record (`tiers_served` for yellow tiers, `red_cards_served`
+    for red cards) so a player who both crosses a yellow tier and picks up
+    a red card in the same match correctly earns two independent bans, not
+    one double-counted as the other.
 
     Deliberately doesn't retract an already-recorded suspension if a result
     correction lowers a player's total back down -- a v1 simplification,
@@ -84,13 +96,16 @@ def _sync_and_get_suspended(t: dict[str, Any], team_name: str, round_key: str | 
 
     from web.tournament import aggregate_player_tallies
 
-    totals: dict[str, int] = {}
+    totals: dict[str, dict[str, int]] = {}
     for row in aggregate_player_tallies(t):
         if str(row.get("team") or "") != team_name:
             continue
         player = str(row.get("player") or "").strip()
         if player:
-            totals[player] = int(row.get("cards") or 0)
+            totals[player] = {
+                "cards": int(row.get("cards") or 0),
+                "red_cards": int(row.get("red_cards") or 0),
+            }
 
     with _lock:
         store = _load_all()
@@ -98,21 +113,42 @@ def _sync_and_get_suspended(t: dict[str, Any], team_name: str, round_key: str | 
         changed = False
         suspended: set[str] = set()
 
-        for player, total in totals.items():
+        for player, counts in totals.items():
             key = _player_key(team_name, player)
-            record = bucket.get(key) or {"tiers_served": 0, "suspensions": []}
+            record = bucket.get(key) or {"tiers_served": 0, "red_cards_served": 0, "suspensions": []}
             tiers_served = int(record.get("tiers_served") or 0)
-            current_tier = total // SUSPENSION_THRESHOLD
+            red_cards_served = int(record.get("red_cards_served") or 0)
+            current_tier = counts["cards"] // SUSPENSION_THRESHOLD
+            current_reds = counts["red_cards"]
 
-            pending = [s for s in record["suspensions"] if not s.get("served")]
-            recorded_tiers = tiers_served + len(pending)
+            def _pending(reason: str) -> list[dict[str, Any]]:
+                return [
+                    s
+                    for s in record["suspensions"]
+                    if not s.get("served") and s.get("reason", "yellow_accumulation") == reason
+                ]
+
+            pending_yellow = _pending("yellow_accumulation")
+            recorded_tiers = tiers_served + len(pending_yellow)
             if current_tier > recorded_tiers:
                 for _ in range(current_tier - recorded_tiers):
-                    record["suspensions"].append({"round_key": round_key, "served": False})
+                    record["suspensions"].append(
+                        {"round_key": round_key, "served": False, "reason": "yellow_accumulation"}
+                    )
                 changed = True
-                pending = [s for s in record["suspensions"] if not s.get("served")]
+                pending_yellow = _pending("yellow_accumulation")
 
-            for susp in pending:
+            pending_red = _pending("red_card")
+            recorded_reds = red_cards_served + len(pending_red)
+            if current_reds > recorded_reds:
+                for _ in range(current_reds - recorded_reds):
+                    record["suspensions"].append(
+                        {"round_key": round_key, "served": False, "reason": "red_card"}
+                    )
+                changed = True
+                pending_red = _pending("red_card")
+
+            for susp in pending_yellow:
                 if susp.get("round_key") == round_key:
                     suspended.add(player)
                 else:
@@ -122,6 +158,16 @@ def _sync_and_get_suspended(t: dict[str, Any], team_name: str, round_key: str | 
                     # so the suspension has been served.
                     susp["served"] = True
                     record["tiers_served"] = tiers_served + 1
+                    tiers_served += 1
+                    changed = True
+
+            for susp in pending_red:
+                if susp.get("round_key") == round_key:
+                    suspended.add(player)
+                else:
+                    susp["served"] = True
+                    record["red_cards_served"] = red_cards_served + 1
+                    red_cards_served += 1
                     changed = True
 
             bucket[key] = record

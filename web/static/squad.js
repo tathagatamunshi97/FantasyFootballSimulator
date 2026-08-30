@@ -1090,6 +1090,7 @@ const STATS_TABLE_GROUPS = [
       ["big_chances_missed", "BC Missed"],
       ["fouls", "Fouls"],
       ["cards", "Cards"],
+      ["red_cards", "Red"],
     ],
   },
 ];

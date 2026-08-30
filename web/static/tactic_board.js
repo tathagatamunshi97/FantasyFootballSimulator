@@ -293,6 +293,14 @@
    * that engine's home_advantage stays at 0 by design, this is
    * live-engine-only. */
   const HOME_ADV_PUSH = 0.025;
+  /** Man-down push — a side attacking a shorthanded (red-carded) opponent
+   * gets the same 4-site multiplicative nudge HOME_ADV_PUSH uses (xg,
+   * chance creation, dribble defending, finishing), just favoring whoever
+   * has the extra man instead of the home side. Flat for the rest of the
+   * match once applied (no time-decay curve — HOME_ADV_PUSH itself has
+   * none either, no existing precedent for one in this file). See
+   * sentOffCount in createBoard. */
+  const MAN_DOWN_PUSH = 0.07;
   /** @deprecated alias — shape retargets with the decision tick */
   const SHAPE_RETARGET_EVERY = 0.28;
 
@@ -1604,6 +1612,10 @@
     // organicWillScore to raise the odds on the next big chance, not to
     // guarantee one — see isClinicalFinisher/sideForwardLineClinical below.
     let sideBigMissStreak = { home: 0, away: 0 };
+    // Red-card project -- how many players each side has had sent off this
+    // match, read by the 4 MAN_DOWN_PUSH sites (mirrors homeAdvActive's own
+    // sites exactly). Reset in reset(); incremented alongside _sentOff.
+    let sentOffCount = { home: 0, away: 0 };
     let commentaryLines = [];
     // Viewer-side only: applyBroadcastState() used to blindly overwrite the
     // feed with whatever last-5-lines snapshot the current frame carried --
@@ -1838,6 +1850,8 @@
         cards: 0,
         penalty_goals: 0,
         progressive_passes: 0,
+        // Red-card project.
+        red_cards: 0,
       });
       return {
         goals: [],
@@ -1963,6 +1977,7 @@
       else if (type === "turnover") bumpCount(side, "turnovers");
       else if (type === "foul") bumpCount(side, "fouls");
       else if (type === "yellow_card") bumpCount(side, "cards");
+      else if (type === "red_card") bumpCount(side, "red_cards");
     }
 
     function possessionPct() {
@@ -2046,14 +2061,14 @@
     /** FM Mobile broadcast mode — goal/card strip beneath the score, like the reference screenshot. */
     function updateMobileScorers() {
       if (!mobileScorersHomeEl || !mobileScorersAwayEl) return;
-      const cards = matchLog.events.filter((e) => e.type === "yellow_card");
+      const cards = matchLog.events.filter((e) => e.type === "yellow_card" || e.type === "red_card");
       const rowsFor = (side) => {
         const goalRows = matchLog.goals
           .filter((g) => g.side === side)
           .map((g) => `<div class="ms-scorer">⚽ ${escHtml(g.player_short || g.player)} ${g.minute}'</div>`);
         const cardRows = cards
           .filter((e) => e.side === side)
-          .map((e) => `<div class="ms-scorer ms-card">\u{1F7E8} ${escHtml(e.player_short || e.player)} ${e.minute}'</div>`);
+          .map((e) => `<div class="ms-scorer ms-card">${e.type === "red_card" ? "\u{1F7E5}" : "\u{1F7E8}"} ${escHtml(e.player_short || e.player)} ${e.minute}'</div>`);
         return goalRows.concat(cardRows).join("");
       };
       mobileScorersHomeEl.innerHTML = rowsFor("home");
@@ -2124,7 +2139,7 @@
       mobileEventUntilTs = performance.now() + MOBILE_EVENT_MS;
     }
     function isMobileKeyEvent(type, detail) {
-      if (type === "shot" || type === "goal" || type === "corner" || type === "yellow_card") return true;
+      if (type === "shot" || type === "goal" || type === "corner" || type === "yellow_card" || type === "red_card") return true;
       if (type === "free_kick" && detail === "direct free kick") return true;
       return false;
     }
@@ -2219,6 +2234,8 @@
       }
       // Home-side push in real competitive fixtures (shot quality) — see HOME_ADV_PUSH.
       if (homeAdvActive && carrier.side === "home") xg *= 1 + HOME_ADV_PUSH;
+      // Red-card project — man-down push (shot quality). See MAN_DOWN_PUSH.
+      if ((sentOffCount[oppOf(carrier.side)] || 0) > 0) xg *= 1 + MAN_DOWN_PUSH;
       return clamp(xg, Math.min(floor, 0.02), ceil);
     }
 
@@ -3015,8 +3032,16 @@
       }
     }
 
+    // Red-card project -- single choke point. A sent-off pin stays a real
+    // object in homePins/awayPins (never spliced out -- too many other
+    // parts of this file assume a fixed 11-per-side length) but is
+    // filtered out of every read that matters for gameplay: movement
+    // targets, defender/passer selection, positional fallbacks. Every
+    // risky unguarded .find()/.filter() in this file resolves through
+    // pinsOf(), so this one filter covers all of them (verified during
+    // the original red-card scoping pass).
     function pinsOf(side) {
-      return side === "home" ? homePins : awayPins;
+      return (side === "home" ? homePins : awayPins).filter((p) => !p._sentOff);
     }
 
     function oppOf(side) {
@@ -10298,6 +10323,8 @@
       const leadProtectMul = (leadProtectUntil[side] || 0) > matchMinute ? 0.72 : 1;
       // Home-side push in real competitive fixtures (chance creation) — see HOME_ADV_PUSH.
       const homePushMul = homeAdvActive && side === "home" ? 1 + HOME_ADV_PUSH : 1;
+      // Red-card project — man-down push (chance creation). See MAN_DOWN_PUSH.
+      const manDownMul = (sentOffCount[oppOf(side)] || 0) > 0 ? 1 + MAN_DOWN_PUSH : 1;
       // DIAGNOSTIC (coinflip-vs-lopsided-batch investigation) — same rng()
       // draw, same order, same formula; just captured into a local before
       // the clamp/return so it can be logged without changing the result.
@@ -10306,7 +10333,7 @@
       const baseTerm = 0.42 + create * 0.24 + atk * 0.18 - def * 0.03 + noise;
       const paceMul = xgPaceMul(side, "spellChanceP");
       const openingMul = matchOpeningDamp();
-      const finalProb = clamp(baseTerm * vol * lerp(1, supp, 0.45) * paceMul * leadProtectMul * homePushMul * openingMul, 0.32, 0.72);
+      const finalProb = clamp(baseTerm * vol * lerp(1, supp, 0.45) * paceMul * leadProtectMul * homePushMul * manDownMul * openingMul, 0.32, 0.72);
       paceLog.push({
         minute: Math.round(matchMinute * 10) / 10,
         side,
@@ -11417,7 +11444,10 @@
       // Home-side push in real competitive fixtures (defending) — the home
       // side is tougher to dribble past. See HOME_ADV_PUSH.
       const defenderIsHome = oppOf(carrier.side) === "home";
-      const pushedSuccessP = homeAdvActive && defenderIsHome ? successP * (1 - HOME_ADV_PUSH) : successP;
+      let pushedSuccessP = homeAdvActive && defenderIsHome ? successP * (1 - HOME_ADV_PUSH) : successP;
+      // Red-card project — man-down push (defending is weaker when the
+      // DEFENDING side is shorthanded). See MAN_DOWN_PUSH.
+      if ((sentOffCount[oppOf(carrier.side)] || 0) > 0) pushedSuccessP *= 1 + MAN_DOWN_PUSH;
 
       const won = rng() < clamp(pushedSuccessP, 0.1, 0.72);
       // DIAGNOSTIC (coinflip-vs-lopsided-batch investigation) — every
@@ -11609,20 +11639,43 @@
 
         const foulP = (0.32 - duelQuality * 0.16) + (inPenaltyBox(carrier) ? 0.12 : 0) + cardNudge + tacticalFoulBoost;
         if (opp && rng() < foulP) {
-          // Bad-foul (yellow card) tier — IFAB Law 12's careless/reckless/
-          // excessive-force split: most fouls are merely careless (free
-          // kick only, no card); a reckless one earns a caution; excessive
-          // force (send-off) is explicitly out of scope for now. Reuses
-          // duelQuality — a poorer defender's fouls skew more reckless, not
-          // just more frequent. Gate: no second yellow yet (send-off/
-          // 10-v-11 isn't built) — a player already on a caution this match
-          // just can't pick up another one for the moment.
+          // Bad-foul tier — IFAB Law 12's careless/reckless/excessive-force
+          // split: most fouls are merely careless (free kick only, no
+          // card); a reckless one earns a caution, or a red if this
+          // player's already on one this match (second yellow). A much
+          // rarer straight-red roll on a FIRST bookable offense covers the
+          // "excessive force" case directly, kept deliberately small --
+          // the black-swan framing this was scoped with, not a common
+          // occurrence. Reuses duelQuality — a poorer defender's fouls
+          // skew more reckless, not just more frequent. GK excluded from
+          // both red paths (emergency outfield keeper is out of scope,
+          // see the red-card plan's decision #2) -- a GK keeps the exact
+          // old behavior, at most one caution per match, never a card
+          // again after that.
           const recklessCardNudge = clamp(
             (opp.stats.yellow_cards90 || 0) * 0.1 + (opp.stats.red_cards90 || 0) * 0.2,
             0,
             0.05
           );
           const recklessP = 0.35 - duelQuality * 0.25 + recklessCardNudge;
+          const isGk = opp.role === "GK";
+          const alreadyBooked = (opp._yellowCards || 0) >= 1;
+          // Red-card project — a booked player plays it noticeably safer
+          // for the rest of the match (self-preservation, exactly like a
+          // real player one card away from a red), not just as an ad-hoc
+          // tuning knob. Cuts second-yellow risk sharply at the source
+          // without touching recklessP itself, which stays the already-
+          // calibrated/verified rate for a player's FIRST caution -- a
+          // shared cut there would have quietly thinned out plain yellow
+          // cards too, an unrelated, already-shipped, already-verified
+          // stat. Tuned down hard after live batch testing showed the
+          // naive "same recklessP either way" version put a red card in
+          // most matches (a second card-worthy foul colliding with an
+          // already-booked player across ~20 outfield players turned out
+          // to be a lot likelier than it looks) -- nowhere near the
+          // "rare, memorable" target of roughly 1 red card every 12-13
+          // matches.
+          const bookedCautionMul = alreadyBooked && !isGk ? 0.08 : 1;
           // Bug fix -- decide the card outcome BEFORE logging the foul
           // (was rolled after) so a card-bound foul can trigger FM Mobile
           // highlight mode right at the tackle instead of only once the
@@ -11634,8 +11687,21 @@
           // (the tackle animation keeps playing at the new slow speed
           // while the clock is already frozen) instead of snapping
           // straight to "card shown".
-          const willCard = (opp._yellowCards || 0) < 1 && rng() < recklessP;
-          if (mobileBroadcast && willCard) {
+          const cardWorthy = rng() < recklessP * bookedCautionMul;
+          let cardOutcome = "none";
+          if (cardWorthy) {
+            if (alreadyBooked) {
+              cardOutcome = isGk ? "none" : "red_second_yellow";
+            } else {
+              // Red-card project — the other, much smaller, contributor:
+              // a straight red on a player's FIRST bookable offense
+              // ("excessive force"). Tuned down alongside bookedCautionMul
+              // for the same 1-in-12-13 target.
+              const straightRedShare = 0.01;
+              cardOutcome = !isGk && rng() < straightRedShare ? "red_straight" : "yellow";
+            }
+          }
+          if (mobileBroadcast && cardOutcome !== "none") {
             triggerMobileHighlight();
           }
           pushMatchEvent("foul", opp.side, {
@@ -11646,7 +11712,7 @@
           });
           if (inPpdaZone(carrier)) bumpCount(opp.side, "ppda_actions");
           say(`Foul! ${opp.short} on ${carrier.short}`, 1.3);
-          if (willCard) {
+          if (cardOutcome === "yellow") {
             opp._yellowCards = (opp._yellowCards || 0) + 1;
             pushMatchEvent("yellow_card", opp.side, {
               player: opp.player,
@@ -11660,6 +11726,43 @@
               `Into the book — ${opp.short}`,
               `${opp.short} shown yellow`,
             ]), 1.4);
+          } else if (cardOutcome === "red_second_yellow" || cardOutcome === "red_straight") {
+            if (cardOutcome === "red_second_yellow") {
+              opp._yellowCards = (opp._yellowCards || 0) + 1;
+            }
+            opp._sentOff = true;
+            sentOffCount[opp.side] = (sentOffCount[opp.side] || 0) + 1;
+            pushMatchEvent("red_card", opp.side, {
+              player: opp.player,
+              player_short: opp.short,
+              against: carrier.player,
+              detail: cardOutcome === "red_second_yellow" ? "second yellow" : "straight red",
+            });
+            say(pickPhrase("red_card", [
+              `RED CARD — ${opp.short} is off!`,
+              `${opp.short} is sent off!`,
+              `Off you go — ${opp.short} sees red`,
+              `${opp.short} shown a straight red card`,
+            ]), 2.2);
+            parkSentOffPin(opp);
+            // Red card overrides the normal dangerous-restart branching
+            // below -- the match stops here (see triggerRedCardStoppage,
+            // "the game should immediately stop when that happens" was
+            // the explicit ask), so a same-tick pause can't leave a
+            // multi-tick penalty/direct-FK sequence half finished. The
+            // fouled side just gets the ball back at the spot once play
+            // resumes, same "simplified restart" convention the
+            // indirect-free-kick fallback below already uses. Deliberate
+            // v1 scope cut: a box foul that's ALSO a red card doesn't also
+            // award a penalty here, unlike real football's "professional
+            // foul" combo -- reconciling this pause with the penalty
+            // sequence's own multi-tick state is real added complexity
+            // for a case that's already rare on top of rare.
+            clearLastPasser();
+            spell = null;
+            giveBall(carrier, `${carrier.short} will restart it`);
+            triggerRedCardStoppage(opp.side, opp.player);
+            return;
           }
           // Engine addition — dangerous-restart branching. A foul inside the
           // box is a penalty. Everywhere else, Set-piece Phase 2 splits the
@@ -11993,7 +12096,9 @@
       const boostedHi = clamp(hi + missBoost, hi, 0.85);
       // Home-side push in real competitive fixtures (finishing) — see HOME_ADV_PUSH.
       const homePush = homeAdvActive && carrier.side === "home" ? 1 + HOME_ADV_PUSH : 1;
-      return rng() < clamp((p + missBoost) * homePush, lo, boostedHi);
+      // Red-card project — man-down push (finishing). See MAN_DOWN_PUSH.
+      const manDownPush = (sentOffCount[oppOf(carrier.side)] || 0) > 0 ? 1 + MAN_DOWN_PUSH : 1;
+      return rng() < clamp((p + missBoost) * homePush * manDownPush, lo, boostedHi);
     }
 
     /**
@@ -14198,6 +14303,60 @@
       if (breakKind === "ht" || halfTimePaused) resumeFromBreak();
     }
 
+    // Red-card project -- sends the dismissed player's marker to a fixed
+    // spot off the side of the pitch (near the touchline, at halfway
+    // depth) and dims it. pinsOf() already excludes them from every
+    // gameplay decision the moment _sentOff is set; this is purely visual
+    // so a viewer doesn't see them still standing in their old defensive
+    // slot for the rest of the match. Reuses the same tx/ty "walk to a
+    // target" mechanism the rest of the file already uses for
+    // repositioning (e.g. the corner-delivery landing spot), so the walk
+    // off is a normal smoothed movement, not a teleport.
+    function parkSentOffPin(pin) {
+      const pct = toPitchPct(pin.side, 0.02, 0.5);
+      pin.tx = pct.left;
+      pin.ty = pct.top;
+      const el = pinEls.get(pin.id);
+      if (el) el.classList.add("sent-off");
+    }
+
+    // Red-card project -- "the game should immediately stop when that
+    // happens" (user's own framing): a red card pauses play right away,
+    // same break-pause mechanics pauseForBreak uses (cancel the tick loop,
+    // clear any in-flight flash/goal card), but WITHOUT that function's
+    // HT/ET overlay -- the Adjust Team modal below IS the overlay here,
+    // forcing the affected side's host to reshape before the match can
+    // continue. hostMode is required for every real production match
+    // (matchday.js always passes hostMode: true) so a live host is always
+    // present to respond; a non-hostMode caller (headless/batch
+    // simulation, a plain viewer) has nobody to force a reshape onto, so
+    // it just relies on pinsOf()'s filtering safety net and never pauses
+    // at all -- otherwise every unattended match would deadlock forever.
+    function triggerRedCardStoppage(side, playerName) {
+      // Bug fix -- this used to pause unconditionally and only gate the
+      // MODAL behind hostMode, so a non-hostMode match (headless/batch
+      // simulation, a plain viewer) paused forever with nobody able to
+      // ever call play()/resumeFromBreak() again -- a real deadlock,
+      // caught live by a stalled diagnostic batch. The comment above this
+      // function always said the no-host case "just relies on pinsOf()'s
+      // filtering safety net and never pauses at all" -- now it actually
+      // does that instead of only claiming to.
+      if (!hostMode) return;
+      breakKind = "red_card";
+      breakPaused = true;
+      playing = false;
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+      lastTs = 0;
+      clearFlash();
+      clearGoalCard();
+      const playBtn = container.querySelector("[data-tb-play]");
+      if (playBtn) playBtn.textContent = "Play";
+      updateHud();
+      maybeBroadcast(true);
+      openAdjustTeam(side, { forced: true, excludePlayer: playerName });
+    }
+
     function pickPenaltyOrder(side) {
       const pins = pinsOf(side).filter((p) => p.role !== "GK");
       const rank = (p) =>
@@ -14963,6 +15122,7 @@
       };
       leadProtectUntil = { home: 0, away: 0 };
       sideBigMissStreak = { home: 0, away: 0 };
+      sentOffCount = { home: 0, away: 0 };
       redrawFinishingForm();
       commentaryLines = [];
       viewerSeenCommentary.clear();
@@ -15041,9 +15201,10 @@
         p.favorUntil = 0;
         p._bigMissStreak = 0;
         p._yellowCards = 0;
+        p._sentOff = false;
         const el = pinEls.get(p.id);
         if (el) {
-          el.classList.remove("has-ball", "pressing", "favored");
+          el.classList.remove("has-ball", "pressing", "favored", "sent-off");
         }
       });
       applyRenderPos(ballEl, 50, 50);
@@ -15080,7 +15241,14 @@
       const sidePins = side === "home" ? homePins : awayPins;
       const bench = benchBySide[side] || [];
       const pool = new Map();
-      for (const p of sidePins) pool.set(p.player, p.stats);
+      // Red-card project -- a sent-off player is permanently unavailable
+      // for the rest of the match, unlike a benched player; never offer
+      // them here, whether this modal opened because of their own red
+      // card or for any later, unrelated adjustment.
+      for (const p of sidePins) {
+        if (p._sentOff) continue;
+        pool.set(p.player, p.stats);
+      }
       for (const b of bench) pool.set(b.player, b.stats);
       return pool;
     }
@@ -15140,13 +15308,28 @@
       renderAdjustModal();
     }
 
-    function openAdjustTeam(side) {
+    // Red-card project -- `forced` mode is how a red card gets its
+    // "proper formation change" requirement: opened already-paused (see
+    // triggerRedCardStoppage), Cancel hidden, formation dropdown hidden
+    // (reshaping within the CURRENT formation's remaining slots -- see
+    // renderAdjustModal -- not a full formation-family change, a deliberate
+    // v1 scope cut), and the dismissed player's own slot dropped from the
+    // list by default rather than shown as an 11th, permanently-unfillable
+    // row. The host can still freely reassign any of the remaining 10
+    // slots among the remaining 10 pitch players + bench -- that reshuffle
+    // IS the real tactical response to going down a man.
+    function openAdjustTeam(side, opts = {}) {
       if (!hostMode) return;
+      const forced = Boolean(opts.forced);
+      const sidePins = (side === "home" ? homePins : awayPins).filter(
+        (p) => !p._sentOff && p.player !== opts.excludePlayer
+      );
       adjustState = {
         side,
-        wasPlaying: playing,
+        wasPlaying: forced ? true : playing,
+        forced,
         formation: side === "home" ? homeTeam.formation : awayTeam.formation,
-        slots: (side === "home" ? homePins : awayPins).map((p) => ({ slot: p.slot, player: p.player })),
+        slots: sidePins.map((p) => ({ slot: p.slot, player: p.player })),
       };
       if (playing) pause();
       renderAdjustModal();
@@ -15162,7 +15345,7 @@
 
     function renderAdjustModal() {
       if (!adjustState) return;
-      const { side, formation, slots } = adjustState;
+      const { side, formation, slots, forced } = adjustState;
       const label = side === "home" ? homeTeam.name : awayTeam.name;
       const pool = adjustPoolStats(side);
       const allNames = Array.from(pool.keys());
@@ -15182,25 +15365,42 @@
           </div>`;
         })
         .join("");
+      // Red-card project -- forced mode drops the formation-family dropdown
+      // (reshaping stays within the current formation's remaining slots,
+      // see openAdjustTeam) and hides Cancel (the reshape is mandatory --
+      // going out with 11 named slots and one permanently empty isn't a
+      // real option). Confirming with the SAME slot-for-slot layout the
+      // default already staged is still a legitimate response -- OK never
+      // requires an actual change.
+      const formationBlock = forced
+        ? ""
+        : `<label class="muted" style="font-size:0.78rem;display:block;margin-bottom:0.25rem">Formation</label>
+        <select data-tb-adjust-formation style="margin-bottom:0.75rem">${formOptions}</select>`;
+      const introText = forced
+        ? `Red card! ${escHtml(label)} are down to 10 men. Reassign the remaining shape, then click OK to resume.`
+        : "Match is paused. Set formation and any player changes, then click OK to resume.";
       adjustBody.innerHTML = `
         <h3 style="margin:0 0 0.25rem">Adjust ${escHtml(label)}</h3>
-        <p class="muted" style="margin:0 0 0.75rem;font-size:0.85rem">Match is paused. Set formation and any player changes, then click OK to resume.</p>
-        <label class="muted" style="font-size:0.78rem;display:block;margin-bottom:0.25rem">Formation</label>
-        <select data-tb-adjust-formation style="margin-bottom:0.75rem">${formOptions}</select>
+        <p class="muted" style="margin:0 0 0.75rem;font-size:0.85rem">${introText}</p>
+        ${formationBlock}
         <div class="adjust-team-rows">${slotRows}</div>
         <p class="muted" style="font-size:0.78rem;margin:0.5rem 0 0">Bench: ${benchNames.length ? benchNames.map(escHtml).join(", ") : "—"}</p>
         <div style="display:flex;gap:0.5rem;justify-content:flex-end;margin-top:1rem">
-          <button type="button" class="btn-ghost" data-tb-adjust-cancel>Cancel</button>
+          ${forced ? "" : '<button type="button" class="btn-ghost" data-tb-adjust-cancel>Cancel</button>'}
           <button type="button" class="btn-primary" data-tb-adjust-ok>OK</button>
         </div>`;
-      adjustBody.querySelector("[data-tb-adjust-formation]").addEventListener("change", (e) => {
-        adjustRemapFormation(e.target.value);
-        renderAdjustModal();
-      });
+      const formationSel = adjustBody.querySelector("[data-tb-adjust-formation]");
+      if (formationSel) {
+        formationSel.addEventListener("change", (e) => {
+          adjustRemapFormation(e.target.value);
+          renderAdjustModal();
+        });
+      }
       adjustBody.querySelectorAll("[data-tb-adjust-slot]").forEach((sel) => {
         sel.addEventListener("change", (e) => adjustSetSlot(e.target.dataset.tbAdjustSlot, e.target.value));
       });
-      adjustBody.querySelector("[data-tb-adjust-cancel]").addEventListener("click", () => closeAdjustTeam());
+      const cancelBtn = adjustBody.querySelector("[data-tb-adjust-cancel]");
+      if (cancelBtn) cancelBtn.addEventListener("click", () => closeAdjustTeam());
       adjustBody.querySelector("[data-tb-adjust-ok]").addEventListener("click", () => {
         applyAdjustTeam(adjustState.side, adjustState.formation, adjustState.slots);
         closeAdjustTeam();
@@ -15710,6 +15910,7 @@
           cards: 0,
           penalty_goals: 0,
           progressive_passes: 0,
+          red_cards: 0,
         },
         away: {
           goals: 0,
@@ -15740,6 +15941,7 @@
           cards: 0,
           penalty_goals: 0,
           progressive_passes: 0,
+          red_cards: 0,
         },
       },
       spells: [],
