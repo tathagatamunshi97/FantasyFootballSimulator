@@ -54,11 +54,17 @@ TEAM_NAME_ALIASES: dict[str, str] = {
 # TeamSheet layout: team display name on row 0, a "PlayerName"/"Amount"
 # header pair on row 1 marking each team's two-column block (with a blank
 # spacer column between blocks), players from row 2 down until the first
-# blank cell.
+# blank cell. Below the player rows, column 0 carries a few summary-row
+# labels (TOTAL SPENT / BUDGET LEFT / Players Bought / MAX BID for a
+# player) whose values sit in each team's own Amount column at that same
+# row -- found by label text, not a fixed row offset, same philosophy as
+# _PLAYER_HEADER_TEXT below, so an extra/removed summary row doesn't need
+# a code change.
 _TEAM_NAME_ROW = 0
 _HEADER_ROW = 1
 _PLAYER_START_ROW = 2
 _PLAYER_HEADER_TEXT = "playername"
+_BUDGET_LEFT_LABEL = "budget left"
 
 
 @dataclass(frozen=True)
@@ -66,6 +72,7 @@ class SheetRoster:
     name: str
     players: list[str]
     budgets: list[float | None]
+    budget_left: float | None = None
 
     @property
     def player_count(self) -> int:
@@ -143,6 +150,15 @@ def _parse_budget(value: str) -> float | None:
         return None
 
 
+def _find_label_row(df: pd.DataFrame, label: str, *, col: int = 0) -> int | None:
+    """Row index of the first cell in `col` whose text matches `label`
+    case-insensitively, or None if not found."""
+    for row in range(df.shape[0]):
+        if _cell_str(df, row, col).strip().lower() == label:
+            return row
+    return None
+
+
 def parse_teams_from_dataframe(df: pd.DataFrame) -> dict[str, SheetRoster]:
     """Parse team blocks: each team owns a (PlayerName, Amount) column pair,
     detected by the "PlayerName" header on row 1 rather than a fixed column
@@ -150,6 +166,7 @@ def parse_teams_from_dataframe(df: pd.DataFrame) -> dict[str, SheetRoster]:
     code change. Team display name sits directly above its header, on row 0.
     """
     teams: dict[str, SheetRoster] = {}
+    budget_left_row = _find_label_row(df, _BUDGET_LEFT_LABEL)
     for col in range(df.shape[1]):
         header = _cell_str(df, _HEADER_ROW, col)
         if header.strip().lower() != _PLAYER_HEADER_TEXT:
@@ -168,8 +185,13 @@ def parse_teams_from_dataframe(df: pd.DataFrame) -> dict[str, SheetRoster]:
             budgets.append(_parse_budget(_cell_str(df, row, amount_col)))
         if not players:
             continue
+        budget_left = (
+            _parse_budget(_cell_str(df, budget_left_row, amount_col))
+            if budget_left_row is not None
+            else None
+        )
         key = _canonical_team_key(name)
-        teams[key] = SheetRoster(name=name, players=players, budgets=budgets)
+        teams[key] = SheetRoster(name=name, players=players, budgets=budgets, budget_left=budget_left)
     return teams
 
 
@@ -329,6 +351,18 @@ def resolve_sheet_team_name(team_name: str) -> str | None:
         return None
     roster = _find_roster(team_name, rosters)
     return roster.name if roster else None
+
+
+def get_team_budget_left(team_name: str) -> float | None:
+    """This team's 'BUDGET LEFT' value from the roster workbook (purse
+    system's starting purse), or None if the team/value isn't found."""
+    try:
+        df = fetch_teams_dataframe()
+        rosters = parse_teams_from_dataframe(df)
+    except Exception:
+        return None
+    roster = _find_roster(team_name, rosters)
+    return roster.budget_left if roster else None
 
 
 def is_sheet_team_payload(team: dict[str, Any]) -> bool:

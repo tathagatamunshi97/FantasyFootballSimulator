@@ -142,6 +142,7 @@ const LC_TABS = [
   ["fixtures", "Fixtures"],
   ["table", "Table"],
   ["cup", "Cup"],
+  ["purse", "Purse"],
   ["stats", "Stats"],
   ["analysis", "Analysis"],
 ];
@@ -155,6 +156,7 @@ function lcRenderApp() {
   else if (lcActiveTab === "fixtures") body = lcRenderFixtures();
   else if (lcActiveTab === "table") body = lcRenderTable();
   else if (lcActiveTab === "cup") body = lcRenderCup();
+  else if (lcActiveTab === "purse") body = lcRenderPurse();
   else if (lcActiveTab === "stats") body = lcRenderStats();
   else if (lcActiveTab === "analysis") body = lcRenderAnalysisTab();
   return `${tabs}<div style="margin-top:1rem">${body}</div>`;
@@ -294,6 +296,41 @@ function lcRenderTable() {
       <h2>League table</h2>
       <p class="muted">Top 6 auto-qualify for the cup; 7th–10th play a two-legged playoff.</p>
       <div class="report-table-wrap"><table><thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>
+    </div>`;
+}
+
+// ---------------------------------------------------------------------------
+// Purse
+// ---------------------------------------------------------------------------
+
+function lcRenderPurse() {
+  const teams = (lcTournament.purse && lcTournament.purse.teams) || [];
+  if (!teams.length) {
+    return `<div class="empty"><p>No purse data yet.</p></div>`;
+  }
+  const rows = teams
+    .map(
+      (r, i) => `<tr>
+        <td>${i + 1}</td>
+        <td>${esc(r.team)}</td>
+        <td>${r.starting_purse}</td>
+        <td>${r.league_bonus}</td>
+        <td>${r.qualification_bonus}</td>
+        <td>${r.playoff_bonus}</td>
+        <td>${r.cup_bonus}</td>
+        <td>${r.prior_tournaments_total}</td>
+        <td><strong>${r.total_purse}</strong></td>
+      </tr>`
+    )
+    .join("");
+  return `
+    <div class="card">
+      <h2>Purse</h2>
+      <p class="muted">Starting purse is each team's BUDGET LEFT from the roster sheet, frozen once and carried across tournament renewals. League: win +100, draw +50. Qualification: top 6 after GW9 +50. Playoff: qualifying for the cup from 7th–10th +25. Cup: tie winner +50, loser −25.</p>
+      <div class="report-table-wrap"><table><thead><tr>
+        <th>#</th><th>Team</th><th>Starting</th><th>League</th><th>Qualification</th><th>Playoff</th><th>Cup</th><th>Prior seasons</th><th>Total</th>
+      </tr></thead>
       <tbody>${rows}</tbody></table></div>
     </div>`;
 }

@@ -185,6 +185,8 @@ def _require_league_cup(tournament_id: str) -> dict[str, Any]:
 
 
 def tournament_for_api(t: dict[str, Any]) -> dict[str, Any]:
+    from web import team_purse
+
     mrs = t.get("match_results") or {}
     return {
         **t,
@@ -193,6 +195,7 @@ def tournament_for_api(t: dict[str, Any]) -> dict[str, Any]:
         "cup_boards": tournament.player_leaderboards(t, competition="cup"),
         "league_team_ppda": tournament.team_ppda_board(t, competition="league"),
         "cup_team_ppda": tournament.team_ppda_board(t, competition="cup"),
+        "purse": team_purse.purse_table_for_tournament(t),
     }
 
 
