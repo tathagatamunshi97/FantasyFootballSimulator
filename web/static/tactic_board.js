@@ -283,16 +283,18 @@
    */
   const DECISION_INTERVAL_MIN = 0.22;
   const DECISION_INTERVAL_MAX = 0.48;
-  /** Small home-side push in real competitive fixtures — league/group
-   * table matches and knockout ties (excluding a neutral-venue Final),
-   * never friendlies/Team Lab one-offs (chance creation, finishing,
-   * defending, shot quality) — see homeAdvActive in createBoard. Kept
-   * deliberately small: a nudge, not something that should let a weaker
-   * team beat a genuinely stronger one on home advantage alone. Mirrors
-   * the Monte-Carlo engine's own (1 + home_adv) multiplicative pattern;
-   * that engine's home_advantage stays at 0 by design, this is
+  /** Home-side push in real competitive fixtures — league/group table
+   * matches and knockout ties (excluding a neutral-venue Final), never
+   * friendlies/Team Lab one-offs (chance creation, finishing, defending,
+   * shot quality) — see homeAdvActive in createBoard. Raised from 0.025
+   * to 0.10 per explicit user request (2026-08-31): the 2.5% nudge wasn't
+   * producing a noticeable home advantage. Still not something that
+   * should let a much weaker team beat a much stronger one on home
+   * advantage alone, but now a real factor rather than a rounding error.
+   * Mirrors the Monte-Carlo engine's own (1 + home_adv) multiplicative
+   * pattern; that engine's home_advantage stays at 0 by design, this is
    * live-engine-only. */
-  const HOME_ADV_PUSH = 0.025;
+  const HOME_ADV_PUSH = 0.1;
   /** Man-down push — a side attacking a shorthanded (red-carded) opponent
    * gets the same 4-site multiplicative nudge HOME_ADV_PUSH uses (xg,
    * chance creation, dribble defending, finishing), just favoring whoever
