@@ -15290,6 +15290,28 @@
       leftoverSlots.forEach((slot, i) => {
         if (leftoverPlayers[i]) next.push({ slot, player: leftoverPlayers[i].player });
       });
+      // Bug fix — real user report: a team down a man (red card sent a pin
+      // off, so prevSlots has one fewer row than a normal XI) always has one
+      // more leftoverSlot than leftoverPlayer once the role-match pass above
+      // runs out of same-role candidates (e.g. 4-3-3's lone remaining winger
+      // has no "W"-role slot to match in 4-3-1-2, so it gets bumped to AM as
+      // the only leftover player, leaving LCF as a leftover slot with no
+      // leftoverPlayers[i] to pair it with). That excess slot used to never
+      // get pushed to `next` at all -- not shown as an empty row, just gone
+      // from the modal entirely ("the LCF position went missing").
+      //
+      // Pulling a bench player in to fill it (an earlier version of this
+      // fix) was wrong the other way -- a red card is a permanent 10-men
+      // penalty, never undoable by a substitute, so that silently put an
+      // 11th player back out. The slot has to stay visible AND stay empty:
+      // push it with player: null. renderAdjustModal gives a null row a
+      // restricted dropdown (swap with another on-pitch slot, or explicit
+      // "Empty") so the admin can pick which slot goes short, but can never
+      // select a bench name there and cross back to 11. Same-length arrays
+      // (11 vs 11) on a full-strength swap mean this is a no-op there.
+      leftoverSlots.slice(leftoverPlayers.length).forEach((slot) => {
+        next.push({ slot, player: null });
+      });
       adjustState.formation = newFormation;
       adjustState.slots = next;
     }
@@ -15297,16 +15319,29 @@
     // Assigning a player already on another staged slot swaps the two
     // slots' players (the bumped player lands where the incoming one came
     // from) rather than silently duplicating or dropping anyone — keeps
-    // the staged list a valid 11-player permutation of the side's full
-    // pool at every step, whether the source is a pitch swap or a bench sub.
+    // the staged list a valid permutation of the side's full pool at every
+    // step, whether the source is a pitch swap or a bench sub.
+    //
+    // Red-card project — playerName === "" is the explicit "Empty" option a
+    // down-a-man row's restricted dropdown offers (see renderAdjustModal):
+    // just clears that slot rather than looking for an "other" row to swap
+    // with (nothing actually has player === "", so that lookup would always
+    // miss anyway) — never adds a player, only ever removes one.
     function adjustSetSlot(slotName, playerName) {
       const rows = adjustState.slots;
       const target = rows.find((r) => r.slot === slotName);
-      if (!target || target.player === playerName) return;
+      if (!target) return;
+      const nextPlayer = playerName === "" ? null : playerName;
+      if (target.player === nextPlayer) return;
+      if (nextPlayer === null) {
+        target.player = null;
+        renderAdjustModal();
+        return;
+      }
       const prevPlayer = target.player;
-      const other = rows.find((r) => r.slot !== slotName && r.player === playerName);
+      const other = rows.find((r) => r.slot !== slotName && r.player === nextPlayer);
       if (other) other.player = prevPlayer;
-      target.player = playerName;
+      target.player = nextPlayer;
       renderAdjustModal();
     }
 
@@ -15358,6 +15393,27 @@
         .join("");
       const slotRows = slots
         .map((row) => {
+          // Red-card project -- a row with no player (see adjustRemapFormation:
+          // switching formation family while down a man always leaves exactly
+          // one slot short) gets a DELIBERATELY restricted option list: an
+          // explicit "Empty" plus only players already staged on some OTHER
+          // slot. Selecting one of those is a same-count swap (adjustSetSlot
+          // moves the vacancy to whichever row got picked from). It must never
+          // offer real bench names here -- picking one wouldn't swap anything
+          // (nothing there to swap back), it would just add an 11th man back
+          // out, which a red card never allows for the rest of the match.
+          if (row.player == null) {
+            const swapCandidates = slots.filter((r) => r.player && r.slot !== row.slot);
+            const opts =
+              `<option value="" selected>— Empty —</option>` +
+              swapCandidates
+                .map((r) => `<option value="${escHtml(r.player)}">${escHtml(r.player)} (${escHtml(r.slot)})</option>`)
+                .join("");
+            return `<div class="adjust-team-row">
+              <span class="adjust-team-slot">${escHtml(row.slot)}</span>
+              <select data-tb-adjust-slot="${escHtml(row.slot)}">${opts}</select>
+            </div>`;
+          }
           const opts = allNames
             .map((n) => `<option value="${escHtml(n)}"${n === row.player ? " selected" : ""}>${escHtml(n)}${assignedNames.has(n) || n === row.player ? "" : " (bench)"}</option>`)
             .join("");
@@ -15423,7 +15479,11 @@
       if (!layout) return false;
       const sidePins = side === "home" ? homePins : awayPins;
       const pool = adjustPoolStats(side);
-      const newOnPitch = new Set(slotAssignments.map((r) => r.player));
+      // Red-card project -- a row can now carry player: null (a slot
+      // deliberately left empty because the side is down a man, see
+      // adjustRemapFormation/renderAdjustModal). Filtered out of the pitch
+      // set here so it never counts as an occupied name.
+      const newOnPitch = new Set(slotAssignments.filter((r) => r.player).map((r) => r.player));
 
       const freePins = [];
       const keepPins = new Map();
@@ -15434,6 +15494,7 @@
 
       let freeIdx = 0;
       for (const row of slotAssignments) {
+        if (!row.player) continue; // slot deliberately left empty -- no pin here
         const coord = layout[row.slot];
         if (!coord) continue;
         let pin = keepPins.get(row.player);
