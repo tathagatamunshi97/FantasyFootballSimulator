@@ -41,6 +41,141 @@ def _tournament_path(tournament_id: str) -> Path:
     return TOURNAMENTS_DIR / f"{tournament_id}.json"
 
 
+# ---------------------------------------------------------------------------
+# In-process tournament cache + per-match trace storage
+#
+# Render OOM/502/429 investigation -- load_tournament() used to hit R2/disk
+# and json.loads() the WHOLE tournament document (every match ever played,
+# each carrying its full match_log/board_events event trace, tens of KB
+# apiece) on every single request that touches a tournament -- not just
+# writes. Right after a live match finishes, several things re-fetch it in
+# the same couple of seconds (the completion write itself, the admin's own
+# refresh, every viewer's poll picking up the phase change), so this was the
+# worst possible moment: a burst of near-simultaneous full-document
+# reloads on a single 512MB process. Caching the parsed document per
+# process (safe -- this app runs a single uvicorn worker, see run_web.py)
+# turns every read after the first into a dict lookup.
+#
+# That still leaves the WRITE side: save_tournament() re-serialized and
+# re-uploaded every previous match's full trace on every single new
+# completion, so the write only got heavier as a season went on. Match
+# traces are now written to their own blob once (immutable afterwards --
+# a genuine append, never rewritten) and stripped from the document that
+# gets rewritten each save; the in-memory cached copy keeps the full data
+# merged in the whole time, so no reader (aggregate_player_tallies, AI
+# commentary, season stat aggregation) had to change at all. A fresh
+# process hydrates each tournament's traces back in once, on first load.
+_tournament_cache: dict[str, dict[str, Any]] = {}
+_tournament_cache_lock = threading.Lock()
+# Match ids whose trace blob is already known to exist in durable storage
+# (written this process, or discovered via hydration on load) -- lets
+# save_tournament skip re-writing a trace that hasn't changed.
+_persisted_trace_ids: set[tuple[str, str]] = set()
+
+_TRACES_DIR = TOURNAMENTS_DIR / "traces"
+
+
+def _trace_path(tournament_id: str, match_id: str) -> Path:
+    return _TRACES_DIR / tournament_id / f"{match_id}.json"
+
+
+def _save_match_trace(tournament_id: str, match_id: str, trace: dict[str, Any]) -> None:
+    try:
+        import r2_storage
+        if r2_storage.is_r2_enabled():
+            r2_storage.save_json_blob(f"tournaments/{tournament_id}/traces/{match_id}.json", trace)
+    except (ImportError, Exception):
+        pass
+    try:
+        path = _trace_path(tournament_id, match_id)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(trace, ensure_ascii=False), encoding="utf-8")
+    except OSError:
+        pass
+
+
+def _load_match_trace(tournament_id: str, match_id: str) -> dict[str, Any] | None:
+    try:
+        import r2_storage
+        if r2_storage.is_r2_enabled():
+            data = r2_storage.load_json_blob(f"tournaments/{tournament_id}/traces/{match_id}.json")
+            if isinstance(data, dict):
+                return data
+    except (ImportError, Exception):
+        pass
+    path = _trace_path(tournament_id, match_id)
+    if not path.exists():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else None
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
+def _hydrate_match_traces(t: dict[str, Any]) -> None:
+    """Merge any separately-stored match trace back into its result in-memory.
+
+    Only matches saved with the new ``board_trace_stored`` marker need this
+    -- older results still carry match_log/board_events inline (untouched,
+    fully backward compatible, nothing to migrate).
+    """
+    tid = t.get("id")
+    if not tid:
+        return
+    for match_id, result in (t.get("match_results") or {}).items():
+        if not isinstance(result, dict):
+            continue
+        if not result.get("board_trace_stored"):
+            continue
+        _persisted_trace_ids.add((tid, match_id))
+        if "match_log" in result or "board_events" in result:
+            continue  # already inline somehow -- don't overwrite
+        trace = _load_match_trace(tid, match_id)
+        if trace is not None:
+            result["match_log"] = trace
+            if isinstance(trace.get("events"), list):
+                result["board_events"] = trace["events"]
+
+
+def _persist_new_match_traces(t: dict[str, Any]) -> dict[str, Any]:
+    """Return a slim copy of ``t`` for serialization: strips match_log/
+    board_events out of each result (writing any not-yet-persisted one to
+    its own trace blob first) so the document rewritten on every save stays
+    small regardless of how many matches the season has accumulated.
+    """
+    tid = t.get("id")
+    match_results = t.get("match_results")
+    if not tid or not isinstance(match_results, dict):
+        return t
+    slim_results: dict[str, Any] = {}
+    changed = False
+    for match_id, result in match_results.items():
+        if not isinstance(result, dict):
+            slim_results[match_id] = result
+            continue
+        has_trace_data = "match_log" in result or "board_events" in result
+        if not has_trace_data:
+            slim_results[match_id] = result
+            continue
+        key = (tid, match_id)
+        if key not in _persisted_trace_ids:
+            trace = result.get("match_log")
+            if not isinstance(trace, dict):
+                trace = {"events": result.get("board_events")}
+            elif "events" not in trace and isinstance(result.get("board_events"), list):
+                trace = {**trace, "events": result["board_events"]}
+            _save_match_trace(tid, match_id, trace)
+            _persisted_trace_ids.add(key)
+            result["board_trace_stored"] = True
+        slim = {k: v for k, v in result.items() if k not in ("match_log", "board_events")}
+        slim_results[match_id] = slim
+        changed = True
+    if not changed:
+        return t
+    return {**t, "match_results": slim_results}
+
+
 def _empty_table(teams: list[str]) -> dict[str, dict[str, int]]:
     return {
         t: {"played": 0, "w": 0, "d": 0, "l": 0, "gf": 0, "ga": 0, "gd": 0, "pts": 0}
@@ -246,6 +381,17 @@ def save_tournament(t: dict[str, Any]) -> None:
     TOURNAMENTS_DIR.mkdir(parents=True, exist_ok=True)
     t["updated_at"] = _now()
 
+    # Write-through: keep the in-process cache authoritative and fully
+    # hydrated (every reader keeps working off the complete in-memory copy
+    # regardless of what gets slimmed down for the file on disk/R2 below).
+    with _tournament_cache_lock:
+        _tournament_cache[t["id"]] = t
+
+    # Strip each match's heavy event trace out to its own blob (written once,
+    # never rewritten again) before serializing -- see _persist_new_match_traces
+    # docstring. storage_view may just be `t` itself if nothing needed slimming.
+    storage_view = _persist_new_match_traces(t)
+
     # Save to R2 if enabled (primary storage on Render). load_tournament()
     # always prefers R2 when it's enabled, so a failed R2 write must not be
     # swallowed here — that would silently make this change vanish on the
@@ -255,13 +401,13 @@ def save_tournament(t: dict[str, Any]) -> None:
     try:
         import r2_storage
         if r2_storage.is_r2_enabled():
-            r2_write_failed = not r2_storage.save_tournament_metadata(t["id"], t)
+            r2_write_failed = not r2_storage.save_tournament_metadata(t["id"], storage_view)
     except ImportError:
         pass
 
     # Always save to JSON (local fallback / dev without R2).
     _tournament_path(t["id"]).write_text(
-        json.dumps(t, indent=2, ensure_ascii=False), encoding="utf-8"
+        json.dumps(storage_view, indent=2, ensure_ascii=False), encoding="utf-8"
     )
 
     if r2_write_failed:
@@ -272,7 +418,7 @@ def save_tournament(t: dict[str, Any]) -> None:
         )
 
 
-def load_tournament(tournament_id: str) -> dict[str, Any] | None:
+def _load_tournament_uncached(tournament_id: str) -> dict[str, Any] | None:
     # Try R2 first (if enabled)
     try:
         import r2_storage
@@ -291,6 +437,23 @@ def load_tournament(tournament_id: str) -> dict[str, Any] | None:
         return json.loads(path.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError):
         return None
+
+
+def load_tournament(tournament_id: str) -> dict[str, Any] | None:
+    with _tournament_cache_lock:
+        cached = _tournament_cache.get(tournament_id)
+        if cached is not None:
+            return cached
+
+    t = _load_tournament_uncached(tournament_id)
+    if t is None:
+        return None
+    _hydrate_match_traces(t)
+    with _tournament_cache_lock:
+        # Another thread may have loaded/cached this first -- prefer whichever
+        # landed in the cache first rather than clobbering possibly-newer state.
+        cached = _tournament_cache.setdefault(tournament_id, t)
+    return cached
 
 
 def _summary(t: dict[str, Any]) -> dict[str, Any]:
@@ -3632,10 +3795,19 @@ def delete_tournament(tournament_id: str) -> dict[str, Any]:
         import r2_storage
         if r2_storage.is_r2_enabled():
             r2_storage.delete_tournament_metadata(tournament_id)
+            for key in r2_storage.list_blobs(f"tournaments/{tournament_id}/traces"):
+                r2_storage.delete_json_blob(key)
     except (ImportError, Exception):
         pass
 
     # Delete from JSON
     _tournament_path(tournament_id).unlink(missing_ok=True)
+    import shutil
+    shutil.rmtree(_TRACES_DIR / tournament_id, ignore_errors=True)
+    with _tournament_cache_lock:
+        _tournament_cache.pop(tournament_id, None)
+    _persisted_trace_ids.difference_update(
+        {key for key in _persisted_trace_ids if key[0] == tournament_id}
+    )
     matchday_session.clear_if_references(tournament_id=tournament_id)
     return {"id": tournament_id, "name": t.get("name")}

@@ -37,7 +37,18 @@ async function lcFindActiveTournament() {
   return null;
 }
 
-async function lcLoad() {
+async function lcLoad({ force = false } = {}) {
+  // A background poll (setInterval below) used to unconditionally rebuild
+  // #app, which wiped an open "See analysis" panel back to hidden every
+  // ~15s even though nothing failed -- the panel has no open/closed state
+  // of its own once re-rendered. Mirrors tournament.js's loadTournament
+  // guard: skip the poll entirely while the user is reading an open panel.
+  const analysisOpen = Boolean(
+    lcOpenAnalysisMatchId &&
+      document.querySelector(`.match-analysis-panel[data-match-id="${lcOpenAnalysisMatchId}"]:not([hidden])`)
+  );
+  if (!force && analysisOpen) return;
+
   const app = document.getElementById("app");
   try {
     if (lcTournamentId) {
@@ -630,7 +641,7 @@ function lcWire() {
   lcWireAnalysisButtons();
 }
 
-document.getElementById("refreshBtn").addEventListener("click", lcLoad);
+document.getElementById("refreshBtn").addEventListener("click", () => lcLoad({ force: true }));
 lcLoad();
 setInterval(() => {
   if (lcTournamentId) lcLoad();
