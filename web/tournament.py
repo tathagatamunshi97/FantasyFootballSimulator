@@ -2874,6 +2874,12 @@ def complete_from_board(
 
     # Analysis is deferred — built on first "See analysis" / Generate click, not at FT.
     _refresh_player_tallies(t)
+
+    from web import team_discipline
+
+    team_discipline.sync_after_match(t, home)
+    team_discipline.sync_after_match(t, away)
+
     save_tournament(t)
 
     md_result: dict[str, Any] = {

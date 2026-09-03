@@ -835,6 +835,12 @@ def complete_from_board(
         _advance_cup_stage(t, tie, tie_winner)
 
     _maybe_complete_tournament(t)
+
+    from web import team_discipline
+
+    team_discipline.sync_after_match(t, home)
+    team_discipline.sync_after_match(t, away)
+
     tournament.save_tournament(t)
     matchday_session.set_result(result)
     return {"tournament": t, "result": result}

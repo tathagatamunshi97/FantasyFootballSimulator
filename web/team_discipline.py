@@ -179,6 +179,34 @@ def _sync_and_get_suspended(t: dict[str, Any], team_name: str, round_key: str | 
     return suspended
 
 
+def sync_after_match(t: dict[str, Any], team_name: str) -> None:
+    """Force the discipline check to run for `team_name` right after one of
+    their matches completes, instead of only ever discovering a trigger the
+    next time someone happens to save/finalize a lineup.
+
+    The JIT design in get_suspended_players() is otherwise blind to timing:
+    it only updates state when called, so if nobody saves a lineup during
+    the round immediately after a card trigger (e.g. that round's lineup
+    was already locked in advance of the match that produced the card),
+    the trigger goes undiscovered until whatever later round the team next
+    happens to save a lineup for -- banning them a round or more late
+    instead of the one that should have been affected. Calling this right
+    after complete_from_board stores a result means get_team_immediate_round
+    already reflects that match as played, so a newly-crossed threshold
+    always gets pinned to the correct next fixture, independent of when the
+    team next touches their lineup. Fail-open, matching every other
+    function in this module -- a sync hiccup must never break match
+    completion.
+    """
+    try:
+        from web.tournament import get_team_immediate_round
+
+        round_key = get_team_immediate_round(team_name, tournament=t).get("round_key")
+        _sync_and_get_suspended(t, team_name, round_key)
+    except Exception as exc:
+        print(f"team_discipline: sync_after_match({team_name!r}) failed: {exc}")
+
+
 def get_suspended_players(team_name: str) -> set[str]:
     """Players on `team_name` currently suspended (card accumulation) for
     their team's next fixture. Fail-open: any lookup error returns an empty
