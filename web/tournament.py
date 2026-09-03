@@ -1242,7 +1242,13 @@ def _attacking_analysis(season: dict[str, Any]) -> dict[str, Any] | None:
     if not shots:
         return None
     xg = season.get("xg_for")
-    xg_per_shot = round(xg / shots, 2) if xg is not None else None
+    # xg_for is a per-match AVERAGE (_avg(xg_for_vals) in _team_season_aggregate)
+    # while shots_for is a season TOTAL -- dividing them mismatches units and
+    # silently deflates xg_per_shot by roughly the match count. Use the season
+    # total (summing the per-match series already carried for the trend chart)
+    # so both sides of the ratio are totals.
+    xg_total = sum(season.get("xg_for_series") or [])
+    xg_per_shot = round(xg_total / shots, 2) if xg_total else None
     zone = season.get("zone_breakdown") or {}
     zone_total = sum(zone.values())
     zone_pct = {k: round(v / zone_total * 100) for k, v in zone.items()} if zone_total else None
