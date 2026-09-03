@@ -2131,11 +2131,74 @@ def team_ppda_board(t: dict[str, Any], *, competition: str | None = None) -> lis
     )
 
 
+def team_defence_board(t: dict[str, Any], *, competition: str | None = None) -> dict[str, list[dict[str, Any]]]:
+    """Team-level defensive record (goals conceded, xG conceded), summed
+    across all completed LEAGUE fixtures (not every match_results entry --
+    that would also pull in friendlies against non-competitive opponents
+    like Organ's XI, which have no fixture/scoreline of their own and would
+    silently show a perfect but meaningless 0-conceded record). Iterating
+    league.fixtures directly, same source _team_season_aggregate uses, keeps
+    "matches played" and "goals/xG conceded" counted from the exact same
+    rows so a team can't be credited for matches it has no scoreline for.
+
+    Ranked by per-match average, not the raw season total -- teams have
+    played different numbers of matches, so a total alone would unfairly
+    favour whoever has played fewer games (same total-vs-average unit-
+    consistency care as the xg_per_shot fix). Lower goals/xG conceded per
+    match is a better defence, so both returned lists are sorted ascending.
+    Two separate views are returned because a team's ranking can differ
+    between them (over/under-performing its own defensive process).
+    """
+    match_results = t.get("match_results") or {}
+    totals: dict[str, dict[str, float]] = {}
+    for fx in (t.get("league", {}).get("fixtures") or []):
+        home, away = fx.get("home"), fx.get("away")
+        if not fx.get("played") or not home or not away:
+            continue
+        hg, ag = fx.get("home_goals"), fx.get("away_goals")
+        if hg is None or ag is None:
+            continue
+        rid = fx.get("result_id")
+        result = match_results.get(rid) if rid else None
+        if competition is not None and (not isinstance(result, dict) or result.get("competition") != competition):
+            continue
+        exp = result.get("expected_xg") if isinstance(result, dict) else None
+        for team, ga, opp_side in ((home, ag, "away"), (away, hg, "home")):
+            row = totals.setdefault(str(team), {"matches": 0.0, "goals_against": 0.0, "xg_against": 0.0, "xg_matches": 0.0})
+            row["matches"] += 1
+            row["goals_against"] += float(ga)
+            if isinstance(exp, dict) and exp.get(opp_side) is not None:
+                row["xg_against"] += float(exp[opp_side])
+                row["xg_matches"] += 1
+
+    rows = []
+    for team, v in totals.items():
+        if v["matches"] <= 0:
+            continue
+        rows.append({
+            "team": team,
+            "matches": int(v["matches"]),
+            "goals_against": round(v["goals_against"], 0),
+            "goals_against_per_match": round(v["goals_against"] / v["matches"], 2),
+            "xg_against": round(v["xg_against"], 2),
+            "xg_against_per_match": round(v["xg_against"] / v["xg_matches"], 2) if v["xg_matches"] else None,
+        })
+
+    return {
+        "least_goals_conceded": sorted(rows, key=lambda r: r["goals_against_per_match"]),
+        "least_xg_conceded": sorted(
+            [r for r in rows if r["xg_against_per_match"] is not None],
+            key=lambda r: r["xg_against_per_match"],
+        ),
+    }
+
+
 def _refresh_player_tallies(t: dict[str, Any]) -> None:
     """Persist leaderboard snapshot on the tournament document."""
     boards = player_leaderboards(t)
     t.update(boards)
     t["team_ppda"] = team_ppda_board(t)
+    t["team_defence"] = team_defence_board(t)
 
 
 def tournament_for_api(t: dict[str, Any]) -> dict[str, Any]:

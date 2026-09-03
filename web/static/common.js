@@ -283,6 +283,11 @@ const STAT_BOARDS = [
   { key: "top_tacklers", field: "tackles", title: "Most tackles", label: "Tackles", empty: "No tackles recorded yet.", category: "defending" },
   { key: "top_interceptors", field: "interceptions", title: "Most interceptions", label: "Int", empty: "No interceptions recorded yet.", category: "defending" },
   { key: "team_ppda", field: "ppda", title: "Best pressing (PPDA)", label: "PPDA", empty: "No matches played yet.", category: "defending", teamOnly: true, sortAsc: true },
+  // Least-conceded team boards -- server-sorted ascending (fewest conceded
+  // first), per-match average not season total so teams with different
+  // match counts stay comparable.
+  { key: "team_least_goals_conceded", field: "goals_against_per_match", title: "Fewest goals conceded", label: "GA/match", empty: "No matches played yet.", category: "defending", teamOnly: true, sortAsc: true },
+  { key: "team_least_xg_conceded", field: "xg_against_per_match", title: "Fewest xG conceded", label: "xGA/match", empty: "No matches played yet.", category: "defending", teamOnly: true, sortAsc: true },
   // Conversion/passing stats project.
   { key: "top_xg_overperformers", field: "xg_diff", title: "Goals vs xG (overperformance)", label: "G-xG", empty: "No qualifying shot samples yet.", category: "attacking" },
   { key: "top_finishers", field: "shot_conversion_pct", title: "Best shot conversion", label: "Conv %", empty: "No qualifying shot samples yet.", suffix: "%", category: "attacking" },

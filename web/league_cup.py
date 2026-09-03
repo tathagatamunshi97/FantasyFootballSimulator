@@ -188,6 +188,8 @@ def tournament_for_api(t: dict[str, Any]) -> dict[str, Any]:
     from web import team_purse
 
     mrs = t.get("match_results") or {}
+    league_defence = tournament.team_defence_board(t, competition="league")
+    cup_defence = tournament.team_defence_board(t, competition="cup")
     return {
         **t,
         "match_results": {k: tournament.match_result_for_api(v) for k, v in mrs.items()},
@@ -195,6 +197,10 @@ def tournament_for_api(t: dict[str, Any]) -> dict[str, Any]:
         "cup_boards": tournament.player_leaderboards(t, competition="cup"),
         "league_team_ppda": tournament.team_ppda_board(t, competition="league"),
         "cup_team_ppda": tournament.team_ppda_board(t, competition="cup"),
+        "league_team_least_goals_conceded": league_defence["least_goals_conceded"],
+        "cup_team_least_goals_conceded": cup_defence["least_goals_conceded"],
+        "league_team_least_xg_conceded": league_defence["least_xg_conceded"],
+        "cup_team_least_xg_conceded": cup_defence["least_xg_conceded"],
         "purse": team_purse.purse_table_for_tournament(t),
     }
 

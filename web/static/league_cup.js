@@ -403,9 +403,27 @@ function lcRenderCup() {
 // player_leaderboards() shape (including player_tallies, needed for the
 // team-aggregate view) from web/league_cup.py's tournament_for_api -- the
 // gap was purely this file never rendering it.
+// teamOnly boards each read from their own pre-sorted top-level tournament
+// field (server-computed, see web/league_cup.py's tournament_for_api) --
+// this maps a STAT_BOARDS key to the {league, cup} field-name pair so
+// lcRenderStats can look up the right one per board instead of assuming a
+// single shared source (team_ppda used to be the only teamOnly board, so
+// one variable was enough; least-goals/xG-conceded need their own).
+const LC_TEAM_ONLY_SOURCES = {
+  team_ppda: ["league_team_ppda", "cup_team_ppda"],
+  team_least_goals_conceded: ["league_team_least_goals_conceded", "cup_team_least_goals_conceded"],
+  team_least_xg_conceded: ["league_team_least_xg_conceded", "cup_team_least_xg_conceded"],
+};
+
+function lcTeamOnlyRows(boardKey) {
+  const pair = LC_TEAM_ONLY_SOURCES[boardKey];
+  if (!pair) return [];
+  const field = lcStatsCompetition === "league" ? pair[0] : pair[1];
+  return lcTournament[field] || [];
+}
+
 function lcRenderStats() {
   const boards = lcStatsCompetition === "league" ? lcTournament.league_boards : lcTournament.cup_boards;
-  const teamPpda = lcStatsCompetition === "league" ? lcTournament.league_team_ppda : lcTournament.cup_team_ppda;
   const compToggle = `
     <div style="display:flex;gap:0.5rem;margin-bottom:1rem">
       <button type="button" class="tab-btn${lcStatsCompetition === "league" ? " active" : ""}" data-lc-stats="league">League</button>
@@ -426,7 +444,7 @@ function lcRenderStats() {
   const cards = categoryBoards
     .map((b) => {
       const table = b.teamOnly
-        ? renderTeamOnlyBoard(teamPpda || [], b)
+        ? renderTeamOnlyBoard(lcTeamOnlyRows(b.key), b)
         : lcStatView === "team"
           ? renderTeamLeaderboardTable(teamBoard(teamTallies, b.field), b.field, b.label, b.empty, { suffix: b.suffix || "" })
           : renderLeaderboardTable((boards && boards[b.key]) || [], b.field, b.label, b.empty, { suffix: b.suffix || "" });
