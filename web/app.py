@@ -41,6 +41,11 @@ class TeamPasswordResetRequest(BaseModel):
     team_name: str
 
 
+class DisciplineClearRequest(BaseModel):
+    team_name: str
+    player_name: str
+
+
 class ExperimentRequest(BaseModel):
     team_a: dict[str, Any]
     team_b: dict[str, Any]
@@ -1411,6 +1416,28 @@ def admin_team_passwords(
 ) -> dict:
     _require_admin(x_admin_token, x_session_token)
     return {"teams": auth.list_team_password_status()}
+
+
+@app.post("/api/admin/league-cup/{tournament_id}/discipline/clear")
+def admin_clear_discipline_suspension(
+    tournament_id: str,
+    body: DisciplineClearRequest,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+) -> dict:
+    """Manually mark a player's pending suspension(s) as served.
+
+    For the case sync_after_match's fix can't retroactively repair: a
+    suspension already recorded before the fix shipped, pinned to a round
+    later than the one it should have blocked (its correct round already
+    passed unenforced). Continuing to block a later round would extend the
+    punishment past what the 1-match rule calls for.
+    """
+    _require_admin_session_or_token(x_session_token, x_admin_token)
+    from web import team_discipline
+
+    cleared = team_discipline.clear_pending_suspensions(tournament_id, body.team_name, body.player_name)
+    return {"ok": True, "cleared": cleared, "team_name": body.team_name, "player_name": body.player_name}
 
 
 @app.post("/api/admin/team-passwords/reset")

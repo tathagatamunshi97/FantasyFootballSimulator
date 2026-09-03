@@ -228,6 +228,51 @@ def get_suspended_players(team_name: str) -> set[str]:
         return set()
 
 
+def clear_pending_suspensions(tournament_id: str, team_name: str, player_name: str) -> int:
+    """Admin correction: mark every currently-unserved suspension for this
+    player as served, without requiring the round it's pinned to be played.
+
+    Exists for exactly the case sync_after_match's fix can't retroactively
+    repair: a suspension recorded before the fix shipped, already pinned to
+    the wrong (too-late) round because its correct round already passed
+    unenforced. Continuing to enforce it against a later round extends the
+    punishment past what the 1-match rule actually calls for, so this lets
+    an admin clear it explicitly rather than leaving it to self-heal into
+    the wrong outcome. Not needed for anything sync_after_match itself
+    creates going forward -- those are pinned correctly at the moment they're
+    recorded, with no reason to ever need a manual clear.
+    """
+    with _lock:
+        store = _load_all()
+        bucket = store.get(tournament_id) or {}
+        key = _player_key(team_name, player_name)
+        record = bucket.get(key)
+        if not record:
+            return 0
+        cleared = 0
+        for susp in record.get("suspensions") or []:
+            if not susp.get("served"):
+                susp["served"] = True
+                susp["cleared_by_admin"] = True
+                cleared += 1
+                # Must bump the same served-counter _sync_and_get_suspended
+                # itself would have bumped -- otherwise the next sync sees
+                # current_tier/current_reds (computed fresh from the card
+                # totals, unaffected by this admin action) still ahead of
+                # tiers_served/red_cards_served and creates a *new*
+                # suspension to make up the apparent gap, re-triggering the
+                # very ban this call just cleared.
+                reason = susp.get("reason", "yellow_accumulation")
+                if reason == "red_card":
+                    record["red_cards_served"] = int(record.get("red_cards_served") or 0) + 1
+                else:
+                    record["tiers_served"] = int(record.get("tiers_served") or 0) + 1
+        if cleared:
+            store[tournament_id] = bucket
+            _save_all(store)
+        return cleared
+
+
 def team_discipline_snapshot(tournament_id: str, team_name: str) -> list[dict[str, Any]]:
     """Read-only: this team's suspension history in this tournament (for a
     future Squad Hub UI surface -- not wired into any endpoint yet)."""
