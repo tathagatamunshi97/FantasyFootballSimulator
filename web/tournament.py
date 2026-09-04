@@ -1759,6 +1759,10 @@ _TALLY_FIELDS = (
     "big_chance_goals",
     "saves",
     "goals_conceded",
+    # GK xG-prevented project -- opponent's total match xG, credited to
+    # the defending side's identified GK (see the goals_conceded bump
+    # block for the matching per-match single-GK simplification).
+    "xg_faced",
     "passes_attempted",
     "passes_completed",
     "crosses_attempted",
@@ -1829,6 +1833,14 @@ def _add_derived_tally_fields(rows) -> None:
         saves = float(row.get("saves") or 0)
         conceded = float(row.get("goals_conceded") or 0)
         row["save_pct"] = _ratio_pct(saves, saves + conceded, "save_pct")
+        # GK xG-prevented project -- xg_faced only ever gets bumped for a
+        # match with a live event trace (see the bump site), so a nonzero
+        # value here is real evidence of at least one such match; gated
+        # the same way save_pct is gated on having faced a shot at all,
+        # rather than a fixed minimum-sample bar (goalkeeper-tracked
+        # matches are rare enough that a fixed bar would empty the board).
+        xg_faced = row.get("xg_faced")
+        row["xg_prevented"] = round(float(xg_faced) - conceded, 2) if xg_faced else None
         # Analysis-dashboard project -- combined goal contribution, for the
         # Player Impact table. Named xg_plus_assists (not xg_plus_xa) on
         # purpose -- this engine tracks actual assists, not an expected-
@@ -2007,6 +2019,23 @@ def aggregate_player_tallies(t: dict[str, Any], *, competition: str | None = Non
             _bump_player_tally(tallies, player=gks["home"], team=str(home), field="goals_conceded", amount=away_goals)
         if away and gks.get("away") and home_goals:
             _bump_player_tally(tallies, player=gks["away"], team=str(away), field="goals_conceded", amount=home_goals)
+        # GK xG-prevented project -- xg_faced is the same per-match
+        # single-GK simplification as goals_conceded above, but credited
+        # with the OPPONENT's total match xG (already computed and stored
+        # on the result at completion time -- see expected_xg promotion in
+        # complete_from_board) rather than their goal count. Only present
+        # when the match had a live event trace (organic xG computed);
+        # admin score-only entries have no expected_xg and are skipped,
+        # same gap goals_conceded already tolerates via the truthy checks
+        # above. xg_prevented itself (xg_faced - goals_conceded) is
+        # derived once in _add_derived_tally_fields.
+        expected_xg = result.get("expected_xg") or {}
+        away_xg = expected_xg.get("away")
+        home_xg = expected_xg.get("home")
+        if home and gks.get("home") and isinstance(away_xg, (int, float)):
+            _bump_player_tally(tallies, player=gks["home"], team=str(home), field="xg_faced", amount=float(away_xg))
+        if away and gks.get("away") and isinstance(home_xg, (int, float)):
+            _bump_player_tally(tallies, player=gks["away"], team=str(away), field="xg_faced", amount=float(home_xg))
 
         # Conversion/passing stats project -- per-player passing accuracy,
         # stored separately from `events` (see tactic_board.js's
@@ -2076,6 +2105,8 @@ def player_leaderboards(t: dict[str, Any], *, limit: int = 10, competition: str 
         # excluded from a "best at X" list either way.
         "top_xg_overperformers": _board("xg_diff"),
         "top_finishers": _board("shot_conversion_pct"),
+        # GK xG-prevented project.
+        "top_xg_prevented": _board("xg_prevented"),
         "top_big_chance_takers": _board("big_chance_conversion_pct"),
         "top_passers": _board("pass_completion_pct"),
         "top_crossers": _board("cross_accuracy_pct"),

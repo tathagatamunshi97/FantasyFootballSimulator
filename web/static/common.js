@@ -268,6 +268,7 @@ const STAT_CATEGORIES = [
   ["creation", "Creation"],
   ["control", "Control"],
   ["defending", "Defending"],
+  ["goalkeeping", "Goalkeeping"],
 ];
 
 const STAT_BOARDS = [
@@ -279,7 +280,7 @@ const STAT_BOARDS = [
   { key: "top_big_chances_created", field: "big_chances_created", title: "Most big chances created", label: "BCC", empty: "No big chances created yet.", category: "creation" },
   { key: "top_dribblers", field: "dribbles", title: "Most dribbles", label: "Dribbles", empty: "No completed take-ons recorded yet.", category: "control" },
   { key: "top_distance_carried", field: "distance_carried", title: "Most distance carried", label: "Metres", empty: "No carries recorded yet.", suffix: "m", category: "control" },
-  { key: "top_clean_sheets", field: "clean_sheets", title: "Most clean sheets", label: "CS", empty: "No clean sheets recorded yet.", category: "defending" },
+  { key: "top_clean_sheets", field: "clean_sheets", title: "Most clean sheets", label: "CS", empty: "No clean sheets recorded yet.", category: "goalkeeping" },
   { key: "top_tacklers", field: "tackles", title: "Most tackles", label: "Tackles", empty: "No tackles recorded yet.", category: "defending" },
   { key: "top_interceptors", field: "interceptions", title: "Most interceptions", label: "Int", empty: "No interceptions recorded yet.", category: "defending" },
   { key: "team_ppda", field: "ppda", title: "Best pressing (PPDA)", label: "PPDA", empty: "No matches played yet.", category: "defending", teamOnly: true, sortAsc: true },
@@ -295,7 +296,8 @@ const STAT_BOARDS = [
   { key: "top_passers", field: "pass_completion_pct", title: "Best pass completion", label: "Pass %", empty: "No qualifying pass samples yet.", suffix: "%", category: "control" },
   { key: "top_crossers", field: "cross_accuracy_pct", title: "Best cross accuracy", label: "Cross %", empty: "No qualifying cross samples yet.", suffix: "%", category: "creation" },
   { key: "top_through_ball_creators", field: "through_ball_completion_pct", title: "Best through-ball completion", label: "TB %", empty: "No qualifying through-ball samples yet.", suffix: "%", category: "creation" },
-  { key: "top_keepers", field: "save_pct", title: "Best save %", label: "Save %", empty: "No qualifying shots-faced samples yet.", suffix: "%", category: "defending" },
+  { key: "top_keepers", field: "save_pct", title: "Best save %", label: "Save %", empty: "No qualifying shots-faced samples yet.", suffix: "%", category: "goalkeeping" },
+  { key: "top_xg_prevented", field: "xg_prevented", title: "Most xG prevented", label: "xG Prevented", empty: "No qualifying shots-faced samples yet.", category: "goalkeeping" },
   // Discipline/progression stats project.
   { key: "top_cards", field: "cards", title: "Most cards", label: "Cards", empty: "No cards shown yet.", category: "defending" },
   { key: "top_fouls", field: "fouls", title: "Most fouls committed", label: "Fouls", empty: "No fouls recorded yet.", category: "defending" },
