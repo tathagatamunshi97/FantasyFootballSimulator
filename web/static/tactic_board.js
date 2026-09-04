@@ -283,23 +283,25 @@
    */
   const DECISION_INTERVAL_MIN = 0.22;
   const DECISION_INTERVAL_MAX = 0.48;
-  /** Small home-side push in real competitive fixtures — league/group
-   * table matches and knockout ties (excluding a neutral-venue Final),
-   * never friendlies/Team Lab one-offs (chance creation, finishing,
-   * defending, shot quality) — see homeAdvActive in createBoard. Kept
-   * deliberately small: a nudge, not something that should let a weaker
-   * team beat a genuinely stronger one on home advantage alone. Briefly
-   * raised to 0.10 (2026-08-31), verified via batch as a real but too-big
-   * swing (xG diff nearly tripled), reverted back to 0.025 same day.
-   * Mirrors the Monte-Carlo engine's own (1 + home_adv) multiplicative
-   * pattern; that engine's home_advantage stays at 0 by design, this is
-   * live-engine-only. */
-  const HOME_ADV_PUSH = 0.025;
+  /** Away-side push in real competitive fixtures — league/group table
+   * matches and knockout ties (excluding a neutral-venue Final), never
+   * friendlies/Team Lab one-offs (chance creation, finishing, defending,
+   * shot quality) — see homeAdvActive in createBoard. Replaces the old
+   * home-side HOME_ADV_PUSH (was 0.025) per explicit request: home
+   * advantage removed entirely, a flat push given to the away side
+   * instead across the same 4 sites. Raised 0.2 -> 0.3 same session;
+   * even at 0.3 a 50-match batch showed it doesn't guarantee an away
+   * win against a genuinely stronger home side (Mikel Carrick FC away
+   * at +30% won only 25.5% of 47 played; the stronger home side still
+   * took it 59.6%) — the push nudges outcomes, it doesn't override a
+   * real quality gap. Verify against real matches before raising
+   * further. */
+  const AWAY_ADV_PUSH = 0.3;
   /** Man-down push — a side attacking a shorthanded (red-carded) opponent
-   * gets the same 4-site multiplicative nudge HOME_ADV_PUSH uses (xg,
+   * gets the same 4-site multiplicative nudge AWAY_ADV_PUSH uses (xg,
    * chance creation, dribble defending, finishing), just favoring whoever
-   * has the extra man instead of the home side. Flat for the rest of the
-   * match once applied (no time-decay curve — HOME_ADV_PUSH itself has
+   * has the extra man instead of the away side. Flat for the rest of the
+   * match once applied (no time-decay curve — AWAY_ADV_PUSH itself has
    * none either, no existing precedent for one in this file). See
    * sentOffCount in createBoard. */
   const MAN_DOWN_PUSH = 0.07;
@@ -789,15 +791,15 @@
     /** Knockout ties: level after 90 → ET (2×15) → pens if still level. Group matches ignore this. */
     const isKnockout = Boolean(opts.isKnockout || opts.knockout) && live && !viewerMode;
     // Final: still a knockout tie (ET/pens rules apply the same), but
-    // conventionally a neutral-venue match — excluded from HOME_ADV_PUSH
+    // conventionally a neutral-venue match — excluded from AWAY_ADV_PUSH
     // specifically (see the four homeAdvActive sites below).
     const isFinalRound = Boolean(opts.isFinal);
     // Real league/group-table fixtures (round-robin, not a one-off Team
-    // Lab/friendly matchup) — gets the same small home push as knockout
+    // Lab/friendly matchup) — gets the same 20% away push as knockout
     // ties. See isKnockout just above for the identical opts/live/viewer
     // gating pattern.
     const isLeague = Boolean(opts.isLeague || opts.league) && live && !viewerMode;
-    // Unified gate for HOME_ADV_PUSH: any real competitive fixture (league
+    // Unified gate for AWAY_ADV_PUSH: any real competitive fixture (league
     // table or knockout tie) except a neutral-venue Final.
     const homeAdvActive = (isKnockout && !isFinalRound) || isLeague;
     // Two-legged tie context (leg 2 only — see prepare_board_match in
@@ -2234,8 +2236,8 @@
         xg *= clamp(1 + (fq - 0.5) * 0.12, 0.94, 1.14);
         ceil = Math.min(0.75, ceil + (fq >= 0.7 ? 0.04 : 0));
       }
-      // Home-side push in real competitive fixtures (shot quality) — see HOME_ADV_PUSH.
-      if (homeAdvActive && carrier.side === "home") xg *= 1 + HOME_ADV_PUSH;
+      // Away-side push in real competitive fixtures (shot quality) — see AWAY_ADV_PUSH.
+      if (homeAdvActive && carrier.side === "away") xg *= 1 + AWAY_ADV_PUSH;
       // Red-card project — man-down push (shot quality). See MAN_DOWN_PUSH.
       if ((sentOffCount[oppOf(carrier.side)] || 0) > 0) xg *= 1 + MAN_DOWN_PUSH;
       return clamp(xg, Math.min(floor, 0.02), ceil);
@@ -10323,8 +10325,8 @@
       // attempts for a few minutes right after scoring, same spirit as the
       // pattern-weight shift in pickAttackPattern.
       const leadProtectMul = (leadProtectUntil[side] || 0) > matchMinute ? 0.72 : 1;
-      // Home-side push in real competitive fixtures (chance creation) — see HOME_ADV_PUSH.
-      const homePushMul = homeAdvActive && side === "home" ? 1 + HOME_ADV_PUSH : 1;
+      // Away-side push in real competitive fixtures (chance creation) — see AWAY_ADV_PUSH.
+      const awayPushMul = homeAdvActive && side === "away" ? 1 + AWAY_ADV_PUSH : 1;
       // Red-card project — man-down push (chance creation). See MAN_DOWN_PUSH.
       const manDownMul = (sentOffCount[oppOf(side)] || 0) > 0 ? 1 + MAN_DOWN_PUSH : 1;
       // DIAGNOSTIC (coinflip-vs-lopsided-batch investigation) — same rng()
@@ -10335,7 +10337,7 @@
       const baseTerm = 0.42 + create * 0.24 + atk * 0.18 - def * 0.03 + noise;
       const paceMul = xgPaceMul(side, "spellChanceP");
       const openingMul = matchOpeningDamp();
-      const finalProb = clamp(baseTerm * vol * lerp(1, supp, 0.45) * paceMul * leadProtectMul * homePushMul * manDownMul * openingMul, 0.32, 0.72);
+      const finalProb = clamp(baseTerm * vol * lerp(1, supp, 0.45) * paceMul * leadProtectMul * awayPushMul * manDownMul * openingMul, 0.32, 0.72);
       paceLog.push({
         minute: Math.round(matchMinute * 10) / 10,
         side,
@@ -10348,7 +10350,7 @@
         supp: Math.round(supp * 1000) / 1000,
         paceMul: Math.round(paceMul * 1000) / 1000,
         leadProtectMul,
-        homePushMul,
+        awayPushMul,
         openingMul: Math.round(openingMul * 1000) / 1000,
         finalProb: Math.round(finalProb * 1000) / 1000,
       });
@@ -11443,10 +11445,10 @@
         dribContextPen +
         // Noise damped 50% (0.08 -> 0.04).
         (rng() - 0.5) * 0.04;
-      // Home-side push in real competitive fixtures (defending) — the home
-      // side is tougher to dribble past. See HOME_ADV_PUSH.
-      const defenderIsHome = oppOf(carrier.side) === "home";
-      let pushedSuccessP = homeAdvActive && defenderIsHome ? successP * (1 - HOME_ADV_PUSH) : successP;
+      // Away-side push in real competitive fixtures (defending) — the away
+      // side is tougher to dribble past. See AWAY_ADV_PUSH.
+      const defenderIsAway = oppOf(carrier.side) === "away";
+      let pushedSuccessP = homeAdvActive && defenderIsAway ? successP * (1 - AWAY_ADV_PUSH) : successP;
       // Red-card project — man-down push (defending is weaker when the
       // DEFENDING side is shorthanded). See MAN_DOWN_PUSH.
       if ((sentOffCount[oppOf(carrier.side)] || 0) > 0) pushedSuccessP *= 1 + MAN_DOWN_PUSH;
@@ -12096,11 +12098,11 @@
         missBoost = clamp(missBoost, 0, 0.4);
       }
       const boostedHi = clamp(hi + missBoost, hi, 0.85);
-      // Home-side push in real competitive fixtures (finishing) — see HOME_ADV_PUSH.
-      const homePush = homeAdvActive && carrier.side === "home" ? 1 + HOME_ADV_PUSH : 1;
+      // Away-side push in real competitive fixtures (finishing) — see AWAY_ADV_PUSH.
+      const awayPush = homeAdvActive && carrier.side === "away" ? 1 + AWAY_ADV_PUSH : 1;
       // Red-card project — man-down push (finishing). See MAN_DOWN_PUSH.
       const manDownPush = (sentOffCount[oppOf(carrier.side)] || 0) > 0 ? 1 + MAN_DOWN_PUSH : 1;
-      return rng() < clamp((p + missBoost) * homePush * manDownPush, lo, boostedHi);
+      return rng() < clamp((p + missBoost) * awayPush * manDownPush, lo, boostedHi);
     }
 
     /**
