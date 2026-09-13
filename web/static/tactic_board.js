@@ -280,9 +280,20 @@
   /**
    * Decision layer cadence (wall-seconds at 1×). Shape targets refresh here —
    * animation never invents new targets mid-frame.
+   * Halved (2026-09-07, "double the match time" request) — a live match was
+   * only generating ~100 pass attempts per side (real matches run 400+),
+   * which is what made PPDA (see PRESS_LOOSEN) so noisy and low: too few
+   * discrete events for a handful of defensive stops to average out over.
+   * Twice the decision density means twice the passes/dribbles/carries
+   * resolved within the same nominal 90 match-minutes, independent of
+   * MATCH_WATCH_SECONDS (which only controls live-viewer playback speed —
+   * deliberately left untouched so watching a real match doesn't take
+   * twice as long). Pulled back 20% same day (explicit request) — density
+   * ×1.25 the interval, i.e. 80% of the doubled density, still well above
+   * the pre-fix baseline (0.22/0.48).
    */
-  const DECISION_INTERVAL_MIN = 0.22;
-  const DECISION_INTERVAL_MAX = 0.48;
+  const DECISION_INTERVAL_MIN = 0.1375;
+  const DECISION_INTERVAL_MAX = 0.3;
   /** Small home-side push in real competitive fixtures — league/group
    * table matches and knockout ties (excluding a neutral-venue Final),
    * never friendlies/Team Lab one-offs (chance creation, finishing,
@@ -291,10 +302,13 @@
    * team beat a genuinely stronger one on home advantage alone. Briefly
    * raised to 0.10 (2026-08-31), verified via batch as a real but too-big
    * swing (xG diff nearly tripled), reverted back to 0.025 same day.
+   * Raised to 0.04 per explicit request (2026-09-07), after a 30%
+   * away-advantage experiment was reverted back to a home push the same
+   * session. Raised again to 0.05 same session, per explicit request.
    * Mirrors the Monte-Carlo engine's own (1 + home_adv) multiplicative
    * pattern; that engine's home_advantage stays at 0 by design, this is
    * live-engine-only. */
-  const HOME_ADV_PUSH = 0.025;
+  const HOME_ADV_PUSH = 0.05;
   /** Man-down push — a side attacking a shorthanded (red-carded) opponent
    * gets the same 4-site multiplicative nudge HOME_ADV_PUSH uses (xg,
    * chance creation, dribble defending, finishing), just favoring whoever
@@ -305,6 +319,29 @@
   const MAN_DOWN_PUSH = 0.07;
   /** @deprecated alias — shape retargets with the decision tick */
   const SHAPE_RETARGET_EVERY = 0.28;
+  /** PPDA realism calibration (2026-09-07, explicit request) — diagnosed via
+   * a live match's raw counts: ppda_actions was landing at ~35-45% of the
+   * opponent's own zone pass attempts (PPDA ~2.2-2.3), because every
+   * simulated pass/dribble/carry in the PPDA zone (depth >= 1/3, see
+   * inPpdaZone) is already a *contested* event by construction — unlike
+   * real football, where most build-up passing is uncontested and PPDA
+   * only counts genuine ball-winning actions, landing top pressing sides
+   * around 7-9 and passive ones around 12-15. Real matches also complete
+   * 400+ passes per team; this engine was generating ~100, so a defensive
+   * stop was a much larger share of a much smaller sample.
+   * PRESS_LOOSEN scales down the four PPDA-zone stop probabilities (pass
+   * interception, press-steal, dribble-lost, carry-dispossess) uniformly,
+   * applied at the final clamped probability so each contest's own
+   * skill-differentiation terms (interceptions90, tackles90, duel%, etc.)
+   * stay fully intact — only the absolute stop rate drops. Chosen via live
+   * test matches: 0.3 only reached PPDA ~3.5-6.5 (still too aggressive);
+   * 0.15 landed a 4-match sample at 6.8/7.3/7.9/10.9/11.4/12.2/12.8/18.3 —
+   * squarely in the 7-9 (best pressing sides) to 12-15 (worst) target
+   * band. Raised again same day (explicit "more pressing, decrease PPDA"
+   * correction reversing an earlier "increase PPDA" ask) — higher
+   * PRESS_LOOSEN = more stops = lower PPDA, the opposite direction from
+   * the 0.15 -> 0.13 change this reverts. */
+  const PRESS_LOOSEN = 0.19;
 
   const ROLE_GENERIC = {
     GK: { dribbles90: 0.1, dribble_pct: 40, key_passes90: 0.2, xa90: 0.02, xg90: 0.01, shots90: 0.05, tackles90: 0.2, interceptions90: 0.3, pass_pct: 70 },
@@ -10977,7 +11014,8 @@
           passContextTerm;
         const cap = passKind === "long" ? 0.48 : passKind === "through" ? 0.4 : 0.3;
         const interceptRoll = rng();
-        const intercepted = interceptRoll < clamp(pIntercept, 0.025, cap);
+        // PPDA realism — see PRESS_LOOSEN.
+        const intercepted = interceptRoll < clamp(pIntercept, 0.025, cap) * PRESS_LOOSEN;
         // DIAGNOSTIC (coinflip-vs-lopsided-batch investigation) — every
         // contested pass (a real defender was in range to threaten it),
         // tagged to its spell.
@@ -11039,7 +11077,8 @@
           p.stats.tackles90 * 0.035 -
           from.stats.dribble_pct * 0.0012 +
           (pressAnticipating ? 0.03 : 0);
-        if (rng() < clamp(stealP, 0.015, 0.22)) {
+        // PPDA realism — see PRESS_LOOSEN.
+        if (rng() < clamp(stealP, 0.015, 0.22) * PRESS_LOOSEN) {
           outcome = "steal";
           interceptor = p;
           comment = `${p.short} wins it in the press`;
@@ -11451,7 +11490,10 @@
       // DEFENDING side is shorthanded). See MAN_DOWN_PUSH.
       if ((sentOffCount[oppOf(carrier.side)] || 0) > 0) pushedSuccessP *= 1 + MAN_DOWN_PUSH;
 
-      const won = rng() < clamp(pushedSuccessP, 0.1, 0.72);
+      // PPDA realism — see PRESS_LOOSEN. Here the *stop* is 1-successP, so
+      // scale that complement down instead of successP itself.
+      const dribbleWinP = 1 - (1 - clamp(pushedSuccessP, 0.1, 0.72)) * PRESS_LOOSEN;
+      const won = rng() < dribbleWinP;
       // DIAGNOSTIC (coinflip-vs-lopsided-batch investigation) — every
       // contested dribble, tagged to its spell so it can be filtered to
       // committed-spell contests specifically.
@@ -11886,7 +11928,8 @@
             (backToGoal ? 0.06 : 0) +
             (rng() - 0.5) * 0.04) *
           closeMul;
-        if (rng() < clamp(dispossessP, 0.03, 0.26)) {
+        // PPDA realism — see PRESS_LOOSEN.
+        if (rng() < clamp(dispossessP, 0.03, 0.26) * PRESS_LOOSEN) {
           // threat, or (when fieldPressure alone triggered the gate) the
           // nearest opponent within the pressure radius — always non-null.
           const opp = threat?.pin || nearestOpponent(carrier, 14)?.pin;
