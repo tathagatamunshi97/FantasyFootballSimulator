@@ -341,6 +341,21 @@ def apply_team_lineup(
     )
     cfg = _lineup_config_from_record(saved, snapshot=use_snapshot)
 
+    meta = team_dict.get("sheet_meta") or {}
+    current_roster = set(meta.get("full_roster") or meta.get("roster_players") or [])
+    saved_players = {
+        (r.get("player") or "").strip() for r in (cfg.get("lineup") or []) if (r.get("player") or "").strip()
+    }
+    if current_roster and saved_players and not saved_players.issubset(current_roster):
+        # A player in the saved XI has since left this team (a mid-season
+        # roster/trade refresh moved them elsewhere) -- the saved lineup is
+        # stale and would show this team fielding someone who isn't on
+        # their squad anymore (surfaced by users as "teams are not updated"
+        # in Scout Opponent). Fall back to team_dict's freshly-computed
+        # default XI, which is already a valid best-XI from the current
+        # roster, rather than surface a phantom player.
+        return team_dict
+
     out = copy.deepcopy(team_dict)
     out["formation"] = cfg.get("formation") or out.get("formation")
     out["lineup"] = copy.deepcopy(cfg.get("lineup") or out.get("lineup"))
