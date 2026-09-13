@@ -88,6 +88,22 @@ def get_starting_purse(team_name: str) -> float:
         return float(store[team_name].get("starting_purse") or 0.0)
 
 
+def get_team_trades(team_name: str) -> float:
+    """This team's 'Trades' value from the roster workbook -- unlike
+    get_starting_purse, never frozen: the sheet owner updates this cell by
+    hand as real trades happen mid-season, so every purse-table request
+    should reflect the workbook's current value, not whatever it was the
+    first time this team's purse was checked."""
+    try:
+        import google_sheets_teams
+
+        value = google_sheets_teams.get_team_trades(team_name)
+    except Exception as exc:
+        print(f"team_purse: get_team_trades({team_name!r}) failed: {exc}")
+        value = None
+    return float(value) if value is not None else 0.0
+
+
 def _league_contribution(t: dict[str, Any], team: str) -> int:
     total = 0
     for fx in (t.get("league") or {}).get("fixtures") or []:
@@ -189,12 +205,14 @@ def purse_table_for_tournament(t: dict[str, Any]) -> dict[str, Any]:
     rows = []
     for name in team_names:
         starting = get_starting_purse(name)
+        trades = get_team_trades(name)
         prior = prior_totals.get(name, 0)
         this_tournament = tournament_contribution(t, name)
-        total = starting + prior + this_tournament["subtotal"]
+        total = starting + trades + prior + this_tournament["subtotal"]
         rows.append({
             "team": name,
             "starting_purse": starting,
+            "trades": trades,
             "league_bonus": this_tournament["league_bonus"],
             "qualification_bonus": this_tournament["qualification_bonus"],
             "playoff_bonus": this_tournament["playoff_bonus"],

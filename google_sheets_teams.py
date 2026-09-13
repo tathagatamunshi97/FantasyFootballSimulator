@@ -65,6 +65,7 @@ _HEADER_ROW = 1
 _PLAYER_START_ROW = 2
 _PLAYER_HEADER_TEXT = "playername"
 _BUDGET_LEFT_LABEL = "budget left"
+_TRADES_LABEL = "trades"
 
 
 @dataclass(frozen=True)
@@ -73,6 +74,7 @@ class SheetRoster:
     players: list[str]
     budgets: list[float | None]
     budget_left: float | None = None
+    trades: float | None = None
 
     @property
     def player_count(self) -> int:
@@ -167,6 +169,7 @@ def parse_teams_from_dataframe(df: pd.DataFrame) -> dict[str, SheetRoster]:
     """
     teams: dict[str, SheetRoster] = {}
     budget_left_row = _find_label_row(df, _BUDGET_LEFT_LABEL)
+    trades_row = _find_label_row(df, _TRADES_LABEL)
     for col in range(df.shape[1]):
         header = _cell_str(df, _HEADER_ROW, col)
         if header.strip().lower() != _PLAYER_HEADER_TEXT:
@@ -190,8 +193,15 @@ def parse_teams_from_dataframe(df: pd.DataFrame) -> dict[str, SheetRoster]:
             if budget_left_row is not None
             else None
         )
+        trades = (
+            _parse_budget(_cell_str(df, trades_row, amount_col))
+            if trades_row is not None
+            else None
+        )
         key = _canonical_team_key(name)
-        teams[key] = SheetRoster(name=name, players=players, budgets=budgets, budget_left=budget_left)
+        teams[key] = SheetRoster(
+            name=name, players=players, budgets=budgets, budget_left=budget_left, trades=trades
+        )
     return teams
 
 
@@ -363,6 +373,23 @@ def get_team_budget_left(team_name: str) -> float | None:
         return None
     roster = _find_roster(team_name, rosters)
     return roster.budget_left if roster else None
+
+
+def get_team_trades(team_name: str) -> float | None:
+    """This team's 'Trades' value from the roster workbook, or None if the
+    team/row isn't found. Unlike get_team_budget_left (frozen once into
+    the purse ledger as the season's starting point -- see
+    team_purse.get_starting_purse), this is read fresh on every call: the
+    sheet owner updates this cell by hand as real trades happen mid-season,
+    so a workbook refresh should show up immediately, not get locked to
+    whatever value existed the first time a purse table was requested."""
+    try:
+        df = fetch_teams_dataframe()
+        rosters = parse_teams_from_dataframe(df)
+    except Exception:
+        return None
+    roster = _find_roster(team_name, rosters)
+    return roster.trades if roster else None
 
 
 def is_sheet_team_payload(team: dict[str, Any]) -> bool:

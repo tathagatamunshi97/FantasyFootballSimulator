@@ -326,6 +326,7 @@ function lcRenderPurse() {
         <td>${i + 1}</td>
         <td>${esc(r.team)}</td>
         <td>${r.starting_purse}</td>
+        <td>${r.trades}</td>
         <td>${r.league_bonus}</td>
         <td>${r.qualification_bonus}</td>
         <td>${r.playoff_bonus}</td>
@@ -338,9 +339,9 @@ function lcRenderPurse() {
   return `
     <div class="card">
       <h2>Purse</h2>
-      <p class="muted">Starting purse is each team's BUDGET LEFT from the roster sheet, frozen once and carried across tournament renewals. League: win +100, draw +50. Qualification: top 6 after GW9 +50. Playoff: qualifying for the cup from 7th–10th +25. Cup: tie winner +50, loser −25.</p>
+      <p class="muted">Starting purse is each team's BUDGET LEFT from the roster sheet, frozen once and carried across tournament renewals. Trades is read live from the roster sheet's Trades row, so it updates as soon as the sheet does. League: win +100, draw +50. Qualification: top 6 after GW9 +50. Playoff: qualifying for the cup from 7th–10th +25. Cup: tie winner +50, loser −25.</p>
       <div class="report-table-wrap"><table><thead><tr>
-        <th>#</th><th>Team</th><th>Starting</th><th>League</th><th>Qualification</th><th>Playoff</th><th>Cup</th><th>Prior seasons</th><th>Total</th>
+        <th>#</th><th>Team</th><th>Starting</th><th>Trades</th><th>League</th><th>Qualification</th><th>Playoff</th><th>Cup</th><th>Prior seasons</th><th>Total</th>
       </tr></thead>
       <tbody>${rows}</tbody></table></div>
     </div>`;
