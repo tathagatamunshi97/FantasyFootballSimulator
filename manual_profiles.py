@@ -20,7 +20,7 @@ MANUAL_PROFILES_XLSX = DATA_DIR / "manual_profiles.xlsx"
 # source for these 25 names -- read live from the "Converted Per-90 Preview"
 # tab on every reload (matching the file's mtime, same as the JSON/XLSX
 # sources above), so replacing the file is all a future revision needs.
-LEGEND_ATTRIBUTES_XLSX = DATA_DIR / "legend_player_attributes.xlsx"
+LEGEND_ATTRIBUTES_XLSX = DATA_DIR / "legend_player_attributes_v2.xlsx"
 _LEGEND_PREVIEW_SHEET = "Converted Per-90 Preview"
 
 # Position code (from the workbook) -> (primary_position, fpl_position),
@@ -53,36 +53,52 @@ _LEGEND_SEASON_SUFFIX: dict[str, str] = {
     "Steven Gerrard": "13/14",
     "Andrea Pirlo": "13/14",
     "Yaya Touré": "13/14",
-    "Cesc Fàbregas": "14/15",
     "Mesut Özil": "15/16",
     "Philipp Lahm": "13/14",
     "Ashley Cole": "13/14",
     "Gerard Piqué": "14/15",
     "John Terry": "14/15",
     "Nemanja Vidić": "13/14",
-    "Thiago Silva": "13/14",
-    "Gianluigi Buffon": "15/16",
-    "Iker Casillas": "13/14",
-    "Petr Čech": "14/15",
     "Didier Drogba": "14/15",
     "Lionel Messi": "14/15",
     "Cristiano Ronaldo": "14/15",
+    # Round-2 "underpowered legends" pack (12 names, same workbook, rows
+    # 27-38 of "Legend Attributes") -- one drafted per team, real-name
+    # collisions apply here too (Giroud, Azpilicueta, Müller, Adams are all
+    # still-active or recently-active real players with their own live
+    # cache entries).
+    "Pedro Rodríguez": "14/15",
+    "Ramires": "13/14",
+    "Fernando Redondo": "99/00",
+    "Olivier Giroud": "12/13",
+    "César Azpilicueta": "16/17",
+    "Thomas Müller": "13/14",
+    "Tony Adams": "97/98",
+    "Patrice Evra": "10/11",
+    "Fernando Morientes": "00/01",
+    "Robert Pirès": "01/02",
+    "Guti": "99/00",
+    "James Milner": "13/14",
 }
 
-# Normalized-key lookup for "is this one of the 25 auction legends" --
-# checked BEFORE the live stats cache (see sofascore_client.StatsStore.
-# cached_stats_map), not just as a last-resort fallback. Several of these
-# 25 are still-active current players (Ronaldo, Messi, and -- the bug this
-# guards against -- Luis Suárez, whose real 2025 Inter Miami CF numbers
-# were silently winning over his auction-legend peak profile purely
-# because *something* existed in the live cache under the exact same
-# name, so the old "only fall back when nothing is cached" fallback never
-# even triggered for them).
+# Normalized-key lookup for "is this one of the 32 auction legends" (20
+# original + 12 round-2, matching the real "Legends List" sheet in the
+# league's own auction workbook exactly -- 5 names from an earlier, wider
+# attribute-pack draft (Fàbregas, Thiago Silva, Buffon, Casillas, Čech)
+# were never part of the real draftable pool and are deliberately excluded
+# here, 2026-09-13) -- checked BEFORE the live stats cache (see
+# sofascore_client.StatsStore.cached_stats_map), not just as a last-resort
+# fallback. Several of these are still-active or recently-active real
+# players (Ronaldo, Messi, and -- the bug this guards against -- Luis
+# Suárez, whose real 2025 Inter Miami CF numbers were silently winning
+# over his auction-legend peak profile purely because *something* existed
+# in the live cache under the exact same name, so the old "only fall back
+# when nothing is cached" fallback never even triggered for them).
 _LEGEND_NAME_KEYS = frozenset(normalize_key(name) for name in _LEGEND_SEASON_SUFFIX)
 
 
 def is_legend_name(raw: str) -> bool:
-    """True if `raw` is one of the 25 auction-legend names (accent/case-insensitive)."""
+    """True if `raw` is one of the 32 auction-legend names (accent/case-insensitive)."""
     return normalize_key(str(raw or "").strip()) in _LEGEND_NAME_KEYS
 
 
