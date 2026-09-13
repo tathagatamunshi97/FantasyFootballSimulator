@@ -2075,13 +2075,118 @@ def aggregate_player_tallies(t: dict[str, Any], *, competition: str | None = Non
     )
 
 
+def _player_current_teams(t: dict[str, Any], *, competition: str | None = None) -> dict[str, str]:
+    """Player name -> the team they represented in their most recently played match.
+
+    Used to relabel cross-team player leaderboards (see
+    merge_player_tallies_by_player) after a mid-season transfer: a
+    player's historical stats stay correctly split per team in
+    aggregate_player_tallies (team = whoever they played for in that
+    specific match, never re-derived from a roster that may have since
+    changed), but a *league-wide* "who's the best dribbler" board should
+    show a transferred player once, under whichever club they most
+    recently turned out for -- not fragmented across two rows under two
+    different club labels.
+
+    Presence is read from the same two sources aggregate_player_tallies
+    itself bumps from (per-event player/assist/by fields, and the
+    player_passing match log) so a player is never missed here just
+    because this pass doesn't also replicate every stat-specific branch.
+    """
+    latest_played_at: dict[str, str] = {}
+    current_team: dict[str, str] = {}
+
+    def _consider(player: Any, team: Any, played_at: str) -> None:
+        player = str(player or "").strip()
+        if not player or not team:
+            return
+        if played_at > latest_played_at.get(player, ""):
+            latest_played_at[player] = played_at
+            current_team[player] = str(team)
+
+    for result in (t.get("match_results") or {}).values():
+        if not isinstance(result, dict):
+            continue
+        if competition is not None and result.get("competition") != competition:
+            continue
+        home = result.get("home")
+        away = result.get("away")
+        played_at = str(result.get("played_at") or "")
+        events = _board_events_from_result(result)
+
+        for ev in events:
+            side = ev.get("side")
+            team = home if side == "home" else away if side == "away" else None
+            _consider(ev.get("player"), team, played_at)
+            _consider(ev.get("assist") or ev.get("assist_player"), team, played_at)
+            if ev.get("type") == "dribble_lost":
+                def_team = away if side == "home" else home if side == "away" else None
+                _consider(ev.get("by"), def_team, played_at)
+
+        player_passing = (result.get("match_log") or {}).get("player_passing") or {}
+        if isinstance(player_passing, dict):
+            for player, row in player_passing.items():
+                if not isinstance(row, dict):
+                    continue
+                side = row.get("side")
+                team = home if side == "home" else away if side == "away" else None
+                _consider(player, team, played_at)
+
+    return current_team
+
+
+def merge_player_tallies_by_player(
+    tallies: list[dict[str, Any]], current_teams: dict[str, str]
+) -> list[dict[str, Any]]:
+    """Collapse aggregate_player_tallies' per-(team, player) rows into one
+    row per player, relabeled with their current club -- for player-facing
+    leaderboards only (see player_leaderboards). Team-facing views (squad
+    reports, Statistics tab) keep reading aggregate_player_tallies' own
+    per-team rows directly; this merge is additive, never a replacement.
+
+    Every _TALLY_FIELDS entry is a raw, additive counter, never a stored
+    ratio (see that tuple's own comment) -- summing across a player's
+    team-rows first and re-deriving ratios afterward is correct, the same
+    "sum, don't average" principle team_ppda_board already uses, not the
+    average-of-percentages bug a naive merge of two rows' pct fields
+    would produce.
+    """
+    merged: dict[str, dict[str, Any]] = {}
+    for row in tallies:
+        player = row["player"]
+        target = merged.get(player)
+        if not target:
+            target = {
+                "player": player,
+                "team": current_teams.get(player, row["team"]),
+                **{f: 0 for f in _TALLY_FIELDS},
+            }
+            merged[player] = target
+        for field in _TALLY_FIELDS:
+            current = target.get(field) or 0
+            amount = row.get(field) or 0
+            target[field] = (current + amount) if isinstance(amount, float) else int(current) + int(amount)
+
+    for row in merged.values():
+        row["distance_carried"] = round(float(row.get("distance_carried") or 0), 1)
+        row["xg"] = round(float(row.get("xg") or 0), 3)
+    _add_derived_tally_fields(merged.values())
+
+    return sorted(
+        merged.values(),
+        key=lambda r: (-int(r["goals"]), -int(r["assists"]), str(r["player"]).lower()),
+    )
+
+
 def player_leaderboards(t: dict[str, Any], *, limit: int = 10, competition: str | None = None) -> dict[str, Any]:
     """Top goalscorers / assisters / shooters / defenders / creators for tournament API + persisted state."""
     tallies = aggregate_player_tallies(t, competition=competition)
+    current_teams = _player_current_teams(t, competition=competition)
+    merged = merge_player_tallies_by_player(tallies, current_teams)
 
     def _board(field: str) -> list[dict[str, Any]]:
         rows = sorted(
-            [r for r in tallies if float(r.get(field) or 0) > 0],
+            [r for r in merged if float(r.get(field) or 0) > 0],
             key=lambda r: (-float(r[field]), str(r["player"]).lower()),
         )
         return rows[:limit]
