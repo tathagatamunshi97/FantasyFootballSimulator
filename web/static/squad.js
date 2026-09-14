@@ -1005,6 +1005,90 @@ function renderSeasonTrendsCard(season) {
     </div>`;
 }
 
+// Shot map -- dot-per-shot pitch diagram for the Analysis tab. Shots are
+// pre-normalized server-side (tournament.team_shot_map) onto one attacking
+// direction (low y = this team's attacking end) regardless of which side
+// they played each match, so the frontend just plots x/y as given.
+const SHOT_OUTCOME_STYLE = {
+  goal: { color: "#f5c542", label: "Goal" },
+  save: { color: "#7c8cff", label: "Saved" },
+  blocked: { color: "#e0a355", label: "Blocked" },
+  wide: { color: "#9099a8", label: "Off target" },
+};
+
+function shotMapDot(shot) {
+  const style = SHOT_OUTCOME_STYLE[shot.outcome] || SHOT_OUTCOME_STYLE.wide;
+  const r = Math.max(1.3, Math.min(4.5, 1.3 + (shot.xg || 0) * 6));
+  const cx = Math.min(100, Math.max(0, shot.x ?? 50));
+  const cy = Math.min(58, Math.max(0, shot.y ?? 0));
+  const detail = shot.penalty ? "Penalty" : shot.big_chance ? "Big chance" : "Shot";
+  const title = `${shot.player || "Unknown"} — ${style.label} (xG ${num(shot.xg || 0, 2)}) · ${detail}${shot.minute != null ? ` · ${shot.minute}'` : ""}${shot.opponent ? ` vs ${shot.opponent}` : ""}`;
+  return `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="${style.color}" fill-opacity="0.88" stroke="#ffffff" stroke-width="0.4"><title>${esc(title)}</title></circle>`;
+}
+
+function renderShotMapPitchSvg(shots) {
+  const dots = shots.map(shotMapDot).join("");
+  return `
+    <svg viewBox="0 0 100 60" style="width:100%;height:auto;display:block;background:#1e4d33;border-radius:8px" preserveAspectRatio="xMidYMin meet">
+      <rect x="17.65" y="0" width="64.7" height="17.1" fill="none" stroke="#ffffff80" stroke-width="0.3" />
+      <rect x="35.3" y="0" width="29.4" height="5.7" fill="none" stroke="#ffffff80" stroke-width="0.3" />
+      <line x1="42" y1="0" x2="58" y2="0" stroke="#ffffffcc" stroke-width="1" />
+      <circle cx="50" cy="11.4" r="0.5" fill="#ffffff80" />
+      <path d="M 39.5 17.1 A 9.15 9.15 0 0 0 60.5 17.1" fill="none" stroke="#ffffff80" stroke-width="0.3" />
+      <line x1="0" y1="59.6" x2="100" y2="59.6" stroke="#ffffff55" stroke-width="0.3" stroke-dasharray="2,1" />
+      ${dots}
+    </svg>`;
+}
+
+function renderShotMapLegend() {
+  const items = Object.values(SHOT_OUTCOME_STYLE)
+    .map(
+      (v) =>
+        `<span style="display:inline-flex;align-items:center;gap:0.3rem"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${v.color}"></span>${esc(v.label)}</span>`
+    )
+    .join("");
+  return `<div class="muted" style="display:flex;gap:0.9rem;flex-wrap:wrap;margin-top:0.5rem;font-size:0.75rem">${items}<span>Dot size = xG</span></div>`;
+}
+
+function renderShotMapCard(shotMap, selectedPlayer) {
+  if (!shotMap || !shotMap.tournament_id) {
+    return `<div class="card" id="shotMapCard" style="margin-top:1rem"><div class="report-eyebrow">🎯 Shot map</div><p class="muted" style="margin:0.35rem 0 0">No active tournament for this team right now.</p></div>`;
+  }
+  const shots = shotMap.shots || [];
+  const players = shotMap.players || [];
+  const playerOpts =
+    `<option value="">All players</option>` +
+    players.map((p) => `<option value="${esc(p)}" ${p === selectedPlayer ? "selected" : ""}>${esc(p)}</option>`).join("");
+  const goals = shots.filter((s) => s.outcome === "goal").length;
+  const totalXg = shots.reduce((a, s) => a + (s.xg || 0), 0);
+  const body = shots.length
+    ? `${shots.length ? `<div class="metric-grid" style="margin:0.6rem 0">${metric("Shots", String(shots.length))}${metric("Goals", String(goals))}${metric("Total xG", num(totalXg, 2))}</div>` : ""}${renderShotMapPitchSvg(shots)}${renderShotMapLegend()}`
+    : `<p class="muted" style="margin:0.5rem 0 0">No shots recorded yet${selectedPlayer ? ` for ${esc(selectedPlayer)}` : ""} — the shot map only covers matches played since this feature shipped.</p>`;
+  return `
+    <div class="card" id="shotMapCard" style="margin-top:1rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem">
+        <div class="report-eyebrow">🎯 Shot map</div>
+        <select id="shotMapPlayerSelect" onchange="loadShotMapCard(this.value)">${playerOpts}</select>
+      </div>
+      ${body}
+    </div>`;
+}
+
+async function loadShotMapCard(selectedPlayer = "") {
+  const container = document.getElementById("shotMapCard");
+  if (!container) return;
+  try {
+    const params = new URLSearchParams();
+    if (currentTeam) params.set("team", currentTeam);
+    if (selectedPlayer) params.set("player", selectedPlayer);
+    const q = params.toString() ? `?${params.toString()}` : "";
+    const data = await api(`/api/my-team/shot-map${q}`);
+    container.outerHTML = renderShotMapCard(data.shot_map, selectedPlayer);
+  } catch (e) {
+    container.outerHTML = `<div class="card" id="shotMapCard" style="margin-top:1rem"><div class="report-eyebrow">🎯 Shot map</div><span class="badge error">Error</span><p>${esc(e.message)}</p></div>`;
+  }
+}
+
 function renderAnalysisTab(analysis) {
   if (!analysis || !analysis.tournament_id) {
     return `<div class="card"><h2>Analysis</h2><p class="muted">No active tournament for this team right now.</p></div>`;
@@ -1034,8 +1118,9 @@ function renderAnalysisTab(analysis) {
   const playerImpactCard = renderPlayerImpactCard(season);
   const nextCard = renderNextMatchGamePlanCard(analysis);
   const trendsCard = renderSeasonTrendsCard(season);
+  const shotMapPlaceholder = `<div class="card" id="shotMapCard" style="margin-top:1rem"><div class="report-eyebrow">🎯 Shot map</div><p class="muted" style="margin:0.35rem 0 0">Loading shot map…</p></div>`;
 
-  return `${insightCard}${identityCard}${tableCard}${diagnosticsCard}${attackingCard}${defensiveCard}${playerImpactCard}${nextCard}${trendsCard}`;
+  return `${insightCard}${identityCard}${tableCard}${diagnosticsCard}${attackingCard}${defensiveCard}${playerImpactCard}${shotMapPlaceholder}${nextCard}${trendsCard}`;
 }
 
 // Statistics tab -- full per-player stats for this team's own roster, from
@@ -1153,6 +1238,7 @@ async function loadAnalysisTab() {
     const q = currentTeam ? `?team=${encodeURIComponent(currentTeam)}` : "";
     const data = await api(`/api/my-team/analysis${q}`);
     panel.innerHTML = renderAnalysisTab(data.analysis);
+    if (data.analysis && data.analysis.tournament_id) loadShotMapCard();
   } catch (e) {
     panel.innerHTML = `<div class="empty"><span class="badge error">Error</span><p>${esc(e.message)}</p></div>`;
   }

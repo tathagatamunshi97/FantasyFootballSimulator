@@ -928,6 +928,65 @@ def _trend_label(series: list[float], *, lower_is_better: bool, threshold: float
     return "improving" if got_better else "worsening"
 
 
+def team_shot_map(team_name: str, *, player: str | None = None) -> dict[str, Any]:
+    """Every shot/big_chance/penalty this team has taken in its active
+    tournament, with pitch position + outcome, for the Squad Hub Analysis
+    tab's shot map. Reads the `shots` field complete_from_board promotes
+    onto each result (see zone_breakdown's identical pattern) -- matches
+    played before that shipped simply contribute nothing, same graceful
+    gap every other season stat here already tolerates.
+
+    Optional `player` filters to one player's shots only. Best-effort like
+    team_analysis_summary: no active tournament (or a malformed one) gets
+    an empty-but-valid shape, never an exception.
+    """
+    name = team_name.strip()
+    empty: dict[str, Any] = {"tournament_id": None, "players": [], "shots": []}
+    try:
+        t = find_active_tournament_for_team(name)
+    except Exception:
+        t = None
+    if not t:
+        return empty
+
+    try:
+        match_results = t.get("match_results") or {}
+        _, _, played_fixtures = _team_played_fixtures(t, name)
+        shots: list[dict[str, Any]] = []
+        players_seen: set[str] = set()
+        for fx in played_fixtures:
+            rid = fx.get("result_id")
+            result = match_results.get(rid) if rid else None
+            if not isinstance(result, dict):
+                continue
+            side = "home" if fx.get("home") == name else "away"
+            opponent = fx.get("away") if side == "home" else fx.get("home")
+            for s in (result.get("shots") or {}).get(side) or []:
+                if not isinstance(s, dict) or not s.get("player"):
+                    continue
+                players_seen.add(s["player"])
+                if player and s["player"] != player:
+                    continue
+                # Engine convention (attackGoalTop): home always attacks
+                # low y, away always attacks high y -- but which side THIS
+                # team played varies match to match, so its own shots would
+                # land on opposite ends of the pitch depending on the
+                # fixture. Normalize every shot onto one attacking
+                # direction (low y = this team's attacking end) here, once,
+                # so the frontend can draw a single consistent shot map
+                # without knowing anything about home/away.
+                y = s.get("y")
+                norm_y = round(100 - y, 1) if side == "away" and y is not None else y
+                shots.append({**s, "y": norm_y, "opponent": opponent, "round": fx.get("round")})
+        return {
+            "tournament_id": t.get("id"),
+            "players": sorted(players_seen, key=str.lower),
+            "shots": shots,
+        }
+    except Exception:
+        return empty
+
+
 def team_analysis_summary(team_name: str, *, form_limit: int = 5) -> dict[str, Any]:
     """Recent tournament form + next fixture for a team, for the Squad Hub
     Analysis tab. Best-effort like get_team_immediate_round: a team with no
@@ -2953,6 +3012,35 @@ def complete_from_board(
                     if ev_side in zone_totals and ev_zone in zone_totals[ev_side]:
                         zone_totals[ev_side][ev_zone] += 1
                 result["zone_breakdown"] = zone_totals
+                # Shot-map project -- every shot/big_chance/penalty's exact
+                # pitch position + resolved outcome, promoted once here
+                # (same philosophy as zone_breakdown/team_stats above) so a
+                # shot map never needs to re-open the full event trace.
+                # x/y/outcome only exist on events recorded after this
+                # shipped -- older matches simply contribute no shots here,
+                # same graceful gap zone_breakdown already has.
+                shots_detail: dict[str, list[dict[str, Any]]] = {"home": [], "away": []}
+                for ev in stored_log.get("events") or []:
+                    if not isinstance(ev, dict) or ev.get("type") not in ("shot", "big_chance", "penalty"):
+                        continue
+                    ev_side = ev.get("side")
+                    if ev_side not in shots_detail or ev.get("x") is None or ev.get("y") is None:
+                        continue
+                    shots_detail[ev_side].append(
+                        {
+                            "player": ev.get("player"),
+                            "minute": ev.get("minute"),
+                            "x": ev.get("x"),
+                            "y": ev.get("y"),
+                            "xg": ev.get("xg"),
+                            "outcome": ev.get("outcome"),
+                            "zone": ev.get("zone"),
+                            "in_box": ev.get("in_box"),
+                            "big_chance": ev.get("type") == "big_chance",
+                            "penalty": ev.get("type") == "penalty",
+                        }
+                    )
+                result["shots"] = shots_detail
     elif stored_events:
         result["match_log"] = {
             "events": stored_events,

@@ -1964,6 +1964,15 @@
       if (extra.penalty != null) entry.penalty = Boolean(extra.penalty);
       if (extra.in_box != null) entry.in_box = Boolean(extra.in_box);
       if (extra.zone) entry.zone = extra.zone;
+      // Shot-map project -- exact pitch coordinates + resolved outcome for
+      // shot/big_chance/penalty events. x/y are set at push time (the
+      // shooter's position when the shot is taken); outcome isn't known
+      // yet at that point (block/save/wide/goal resolves a few lines later
+      // in the same synchronous call), so callers capture this function's
+      // return value and set `.outcome` on it once resolved, rather than
+      // this function trying to accept it up front.
+      if (extra.x != null && Number.isFinite(Number(extra.x))) entry.x = Math.round(Number(extra.x) * 10) / 10;
+      if (extra.y != null && Number.isFinite(Number(extra.y))) entry.y = Math.round(Number(extra.y) * 10) / 10;
       // DIAGNOSTIC (coinflip-vs-lopsided-batch investigation) — shot supply
       // mechanism + time-since-possession-won, read off doShot below.
       if (extra.source) entry.source = extra.source;
@@ -2017,6 +2026,7 @@
       else if (type === "foul") bumpCount(side, "fouls");
       else if (type === "yellow_card") bumpCount(side, "cards");
       else if (type === "red_card") bumpCount(side, "red_cards");
+      return entry;
     }
 
     function possessionPct() {
@@ -12222,11 +12232,13 @@
 
       clearLastPasser();
       spell = null;
-      pushMatchEvent("penalty", fouledSide, {
+      const penEvent = pushMatchEvent("penalty", fouledSide, {
         player: taker.player,
         player_short: taker.short,
         detail: "penalty awarded",
         xg: 0.76,
+        x: spot.left,
+        y: spot.top,
       });
       say(`Penalty! ${taker.short} steps up`, 1.5);
       updateHud();
@@ -12250,12 +12262,14 @@
         setBallTarget(netLeft, netTop, dur, false, arc.ctrl);
         actionTimer = dur + 0.4;
         ballFlight = { outcome: "goal", side: fouledSide, chanceType: "penalty", xg: 0.76 };
+        if (penEvent) penEvent.outcome = "goal";
       } else {
         const arc = passArcFor(spot.left, spot.top, keeper.left, keeper.top, "through");
         const dur = clamp(arc.dur * 0.85, 0.3, 0.5);
         setBallTarget(keeper.left, keeper.top, dur, false, arc.ctrl);
         actionTimer = dur + 0.4;
         ballFlight = { outcome: "save", interceptor: keeper, against: fouledSide, shooterShort: taker.short };
+        if (penEvent) penEvent.outcome = "save";
       }
     }
 
@@ -12996,7 +13010,7 @@
       // second copy of the same thresholds.
       const shotFlank = flankOfPin(carrier);
       const shotZone = shotFlank === "R" ? "right" : shotFlank === "L" ? "left" : "central";
-      pushMatchEvent(chanceType, carrier.side, {
+      const shotEvent = pushMatchEvent(chanceType, carrier.side, {
         player: carrier.player,
         player_short: carrier.short,
         detail: boxed || nearBox ? "shot" : "long_shot",
@@ -13010,6 +13024,8 @@
         player_xg90: carrier.stats ? Math.round((carrier.stats.xg90 || 0) * 1000) / 1000 : null,
         player_dribbles90: carrier.stats ? Math.round((carrier.stats.dribbles90 || 0) * 1000) / 1000 : null,
         player_xa90: carrier.stats ? Math.round((carrier.stats.xa90 || 0) * 1000) / 1000 : null,
+        x: carrier.left,
+        y: carrier.top,
       });
       // Engine addition — key passes / big chances created. lastPasser is
       // already tracked (assist attribution reuses it too); a pass that
@@ -13111,6 +13127,7 @@
         setBallTarget(netLeft, netTop, dur, false, flatCtrl);
         actionTimer = dur + 0.35;
         ballFlight = { outcome: "goal", side: carrier.side, chanceType, xg: chanceXg };
+        if (shotEvent) shotEvent.outcome = "goal";
         // Analysis-dashboard project -- shots on target = would have gone
         // in without an intervening save (goal or save outcome), not
         // blocked/wide. See the matching bump on the "save" branch below.
@@ -13157,6 +13174,7 @@
             against: carrier.side,
             shooterShort: carrier.short,
           };
+          if (shotEvent) shotEvent.outcome = "blocked";
         } else if (rng() < clamp(0.58 + atk * 0.15, 0.35, 0.78)) {
           // Reaches the keeper — saved.
           const saveArc = passArcFor(carrier.left, carrier.top, keeper.left, keeper.top, "through");
@@ -13168,6 +13186,7 @@
             against: carrier.side,
             shooterShort: carrier.short,
           };
+          if (shotEvent) shotEvent.outcome = "save";
           bumpCount(carrier.side, "shots_on_target");
         } else {
           const wideLeft = clamp(50 + (rng() - 0.5) * 28, 18, 82);
@@ -13182,6 +13201,7 @@
             against: carrier.side,
             shooterShort: carrier.short,
           };
+          if (shotEvent) shotEvent.outcome = "wide";
         }
       }
     }

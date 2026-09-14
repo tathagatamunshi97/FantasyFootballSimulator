@@ -811,6 +811,28 @@ def my_team_analysis_api(
     return {"analysis": tournament.team_analysis_summary(team_name)}
 
 
+@app.get("/api/my-team/shot-map")
+def my_team_shot_map_api(
+    team: str | None = None,
+    player: str | None = None,
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Every shot this team (optionally one player) has taken this season,
+    with pitch position + outcome, for the Squad Hub Analysis tab's shot
+    map. Same auth/ownership rules as /api/my-team/analysis."""
+    user = _session_user(x_session_token)
+    is_admin = _is_admin(x_admin_token)
+    if not (auth.is_team_user(user) or _is_admin_session(user) or is_admin):
+        raise HTTPException(status_code=403, detail="Analysis requires team or admin login.")
+
+    team_name = _resolve_squad_team_name(user, team=team, is_admin_token=is_admin)
+    if auth.is_team_user(user) and team_name.lower() != user.lower():
+        raise HTTPException(status_code=403, detail="You can only view your own team's analysis.")
+
+    return {"shot_map": tournament.team_shot_map(team_name, player=player)}
+
+
 @app.get("/api/my-team/stats")
 def my_team_stats_api(
     team: str | None = None,

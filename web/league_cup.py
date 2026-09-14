@@ -804,6 +804,30 @@ def complete_from_board(
                     if ev_side in zone_totals and ev_zone in zone_totals[ev_side]:
                         zone_totals[ev_side][ev_zone] += 1
                 result["zone_breakdown"] = zone_totals
+                # Shot-map project -- same promotion as tournament.py's
+                # complete_from_board.
+                shots_detail: dict[str, list[dict[str, Any]]] = {"home": [], "away": []}
+                for ev in stored_log.get("events") or []:
+                    if not isinstance(ev, dict) or ev.get("type") not in ("shot", "big_chance", "penalty"):
+                        continue
+                    ev_side = ev.get("side")
+                    if ev_side not in shots_detail or ev.get("x") is None or ev.get("y") is None:
+                        continue
+                    shots_detail[ev_side].append(
+                        {
+                            "player": ev.get("player"),
+                            "minute": ev.get("minute"),
+                            "x": ev.get("x"),
+                            "y": ev.get("y"),
+                            "xg": ev.get("xg"),
+                            "outcome": ev.get("outcome"),
+                            "zone": ev.get("zone"),
+                            "in_box": ev.get("in_box"),
+                            "big_chance": ev.get("type") == "big_chance",
+                            "penalty": ev.get("type") == "penalty",
+                        }
+                    )
+                result["shots"] = shots_detail
     elif stored_events:
         result["match_log"] = {"events": stored_events, "goals": [e for e in stored_events if e.get("type") == "goal"]}
 
