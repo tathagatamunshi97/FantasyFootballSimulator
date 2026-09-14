@@ -111,6 +111,18 @@ class LeagueCupCreateRequest(BaseModel):
     settings: dict[str, Any] | None = None
 
 
+class AdvanceSeasonRequest(BaseModel):
+    name: str = "League + Cup"
+    continuing_teams: list[str] = Field(default_factory=list)
+    new_teams: list[str] = Field(default_factory=list)
+    friendly_opponent: str = "Organ's XI"
+    settings: dict[str, Any] | None = None
+
+
+class ReleasePlayerRequest(BaseModel):
+    player: str
+
+
 class TournamentDrawRequest(BaseModel):
     seed: int | None = None
 
@@ -716,7 +728,7 @@ def get_my_lineup(
     if auth.is_team_user(user) and team_name.lower() != user.lower():
         raise HTTPException(status_code=403, detail="You can only edit your own lineup.")
 
-    sheet_payload = _load_sheet_team_payload(team_name)
+    sheet_payload = _load_sheet_team_payload(team_name, tournament_id=_active_tournament_id_for_team(team_name))
     meta = sheet_payload.get("sheet_meta") or {}
     roster = meta.get("full_roster") or meta.get("roster_players") or []
     saved = team_lineups.get_team_lineup(team_name)
@@ -809,6 +821,40 @@ def my_team_analysis_api(
         raise HTTPException(status_code=403, detail="You can only view your own team's analysis.")
 
     return {"analysis": tournament.team_analysis_summary(team_name)}
+
+
+@app.post("/api/my-team/release-player")
+def release_my_team_player_api(
+    body: ReleasePlayerRequest,
+    team: str | None = None,
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+) -> dict:
+    """Multi-season project -- release a player from this team's Season-2+
+    roster into that tournament's transfer pool. Only meaningful for a
+    team whose active tournament is season-store-backed (advance_to_next_
+    season); a Season-1/legacy team has no season roster to release from
+    and gets a 400, same as any other validation failure here."""
+    user = _session_user(x_session_token)
+    is_admin = _is_admin(x_admin_token)
+    if not (auth.is_team_user(user) or _is_admin_session(user) or is_admin):
+        raise HTTPException(status_code=403, detail="Releasing a player requires team or admin login.")
+
+    team_name = _resolve_squad_team_name(user, team=team, is_admin_token=is_admin)
+    if auth.is_team_user(user) and team_name.lower() != user.lower():
+        raise HTTPException(status_code=403, detail="You can only release your own team's players.")
+
+    from web import season_roster, transfer_pool
+
+    t = tournament.find_active_tournament_for_team(team_name)
+    if not t:
+        raise HTTPException(status_code=400, detail="No active tournament for this team.")
+    try:
+        season_roster.release_player(t["id"], team_name, body.player)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    transfer_pool.add_to_pool(t["id"], body.player, team_name, "released")
+    return {"ok": True, "tournament_id": t["id"], "player": body.player}
 
 
 @app.get("/api/my-team/shot-map")
@@ -1168,16 +1214,29 @@ def _format_squad_eval_error(exc: Exception) -> str:
     return msg
 
 
-def _load_sheet_team_payload(team_name: str) -> dict[str, Any]:
+def _load_sheet_team_payload(team_name: str, *, tournament_id: str | None = None) -> dict[str, Any]:
     from google_sheets_teams import load_team_by_name
 
     store = sim_state.get_stats_store()
     try:
-        return load_team_by_name(team_name, store=store)
+        return load_team_by_name(team_name, store=store, tournament_id=tournament_id)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+
+def _active_tournament_id_for_team(team_name: str) -> str | None:
+    """Multi-season project -- this team's current active tournament id, if
+    any (used to resolve a Season-2+ season-store roster instead of the
+    xlsx). Best-effort: any lookup failure just falls back to the xlsx
+    path, same fail-open convention every other tournament lookup here
+    already uses."""
+    try:
+        t = tournament.find_active_tournament_for_team(team_name)
+        return t.get("id") if t else None
+    except Exception:
+        return None
 
 
 def _resolve_squad_team_name(
@@ -1983,6 +2042,44 @@ def create_league_cup_api(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return {"tournament": t}
+
+
+@app.post("/api/league-cup/{tournament_id}/advance-season")
+def advance_league_cup_season_api(
+    tournament_id: str,
+    body: AdvanceSeasonRequest,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+) -> dict:
+    """Multi-season project -- create the next season's tournament from a
+    completed one: continuing teams carry their roster forward, removed
+    teams' rosters drop into the new tournament's transfer pool, new teams
+    start empty (see web/league_cup.py's advance_to_next_season)."""
+    _require_admin(x_admin_token, x_session_token)
+    try:
+        t = league_cup.advance_to_next_season(
+            tournament_id,
+            name=body.name,
+            continuing_teams=body.continuing_teams,
+            new_teams=body.new_teams,
+            friendly_opponent=body.friendly_opponent,
+            settings=body.settings,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"tournament": t}
+
+
+@app.get("/api/league-cup/{tournament_id}/pool")
+def league_cup_pool_api(tournament_id: str) -> dict:
+    """Multi-season project -- the Season-2+ transfer pool for this
+    tournament (released + removed-team players, with enriched stats for
+    auction evaluation). Public read, same convention as the Purse tab."""
+    from web import transfer_pool
+
+    return {"pool": transfer_pool.list_pool(tournament_id)}
 
 
 @app.post("/api/league-cup/{tournament_id}/matches/{match_id}/run")

@@ -111,7 +111,13 @@ def _generate_league_fixtures(teams: list[str]) -> list[dict[str, Any]]:
 
 
 def _default_league_cup_tournament(
-    name: str, team_names: list[str], friendly_opponent: str, settings: dict[str, Any] | None
+    name: str,
+    team_names: list[str],
+    friendly_opponent: str,
+    settings: dict[str, Any] | None,
+    *,
+    season: int = 1,
+    prior_tournament_id: str | None = None,
 ) -> dict[str, Any]:
     tid = uuid.uuid4().hex[:12]
     teams = [t.strip() for t in team_names if t and t.strip()]
@@ -122,6 +128,13 @@ def _default_league_cup_tournament(
         "format": "league_cup",
         "created_at": _now(),
         "updated_at": _now(),
+        # Multi-season project -- explicit season linkage, replacing the
+        # implicit "any two league_cup tournaments sharing a team name"
+        # matching team_purse.py relies on. `season` starts at 1 for every
+        # brand-new tournament; `prior_tournament_id` is set only when this
+        # tournament was created via advance_to_next_season below.
+        "season": season,
+        "prior_tournament_id": prior_tournament_id,
         "team_names": teams,
         "friendly_opponent": friendly_opponent,
         "friendlies": {"fixtures": _generate_friendlies(teams, friendly_opponent)},
@@ -145,6 +158,8 @@ def create_tournament(
     *,
     friendly_opponent: str = "Organ's XI",
     settings: dict[str, Any] | None = None,
+    season: int = 1,
+    prior_tournament_id: str | None = None,
 ) -> dict[str, Any]:
     teams = [x.strip() for x in (team_names or []) if x and x.strip()]
     if len(teams) != 10:
@@ -156,7 +171,9 @@ def create_tournament(
         raise ValueError(
             f"Admin-only team(s) cannot compete in the league/cup: {', '.join(sorted(clash))}"
         )
-    t = _default_league_cup_tournament(name, teams, friendly_opponent.strip(), settings)
+    t = _default_league_cup_tournament(
+        name, teams, friendly_opponent.strip(), settings, season=season, prior_tournament_id=prior_tournament_id
+    )
     tournament.save_tournament(t)
     # Round keys reuse league_cup:<fixture-id> across tournaments -- clear old
     # finalize locks so squads are editable for the new competition.
@@ -166,6 +183,88 @@ def create_tournament(
 
 def delete_tournament(tournament_id: str) -> dict[str, Any]:
     return tournament.delete_tournament(tournament_id)
+
+
+def _current_roster_for_team(source_tournament: dict[str, Any], team_name: str) -> list[str]:
+    """This team's current full player list -- from the source tournament's
+    own season-store roster if it has one (a chained Season 3+ advance),
+    else the live xlsx (Season 1, or any pre-season-store tournament)."""
+    from web import season_roster
+
+    seeded = season_roster.get_season_roster(source_tournament["id"], team_name)
+    if seeded is not None:
+        return seeded
+    import google_sheets_teams
+
+    df = google_sheets_teams.fetch_teams_dataframe()
+    rosters = google_sheets_teams.parse_teams_from_dataframe(df)
+    roster = google_sheets_teams._find_roster(team_name, rosters)
+    return list(roster.players) if roster else []
+
+
+def advance_to_next_season(
+    source_tournament_id: str,
+    *,
+    name: str,
+    continuing_teams: list[str],
+    new_teams: list[str],
+    friendly_opponent: str = "Organ's XI",
+    settings: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Create the next season's tournament from a completed one: continuing
+    teams carry their current roster forward into the new season-store
+    (web/season_roster.py); any team from the source tournament NOT listed
+    in continuing_teams has its entire roster dropped into the new
+    tournament's transfer pool (web/transfer_pool.py, reason
+    "team_removed"); teams in new_teams start with no seeded roster at all
+    (empty until the auction, a later phase, fills them in).
+    """
+    from web import season_roster, transfer_pool
+
+    source = tournament.load_tournament(source_tournament_id)
+    if not source:
+        raise KeyError("Tournament not found")
+    if source.get("format") != "league_cup":
+        raise KeyError("Not a League + Cup tournament")
+    if source.get("status") != "complete":
+        raise ValueError("Season 2 can only be started once this tournament is complete.")
+
+    continuing = [t.strip() for t in continuing_teams if t and t.strip()]
+    fresh = [t.strip() for t in new_teams if t and t.strip()]
+    source_teams = list(source.get("team_names") or [])
+    unknown = [t for t in continuing if t not in source_teams]
+    if unknown:
+        raise ValueError(f"Not part of the source tournament: {', '.join(unknown)}")
+
+    all_teams = continuing + fresh
+    new_t = create_tournament(
+        name,
+        all_teams,
+        friendly_opponent=friendly_opponent,
+        settings=settings,
+        season=int(source.get("season") or 1) + 1,
+        prior_tournament_id=source_tournament_id,
+    )
+    new_id = new_t["id"]
+
+    for team_name in continuing:
+        roster = _current_roster_for_team(source, team_name)
+        season_roster.seed_season_roster(new_id, team_name, roster)
+    # New teams get an explicit EMPTY seed too, not left unseeded -- this is
+    # what makes "get_season_roster returns None" an unambiguous "this
+    # tournament isn't season-store-backed at all" signal everywhere else
+    # (load_team_by_name's fallback-to-xlsx check in particular), rather
+    # than being confusable with "this team just has zero players."
+    for team_name in fresh:
+        season_roster.seed_season_roster(new_id, team_name, [])
+
+    removed = [t for t in source_teams if t not in continuing]
+    for team_name in removed:
+        roster = _current_roster_for_team(source, team_name)
+        for player in roster:
+            transfer_pool.add_to_pool(new_id, player, team_name, "team_removed")
+
+    return new_t
 
 
 def get_tournament(tournament_id: str) -> dict[str, Any] | None:
@@ -185,7 +284,7 @@ def _require_league_cup(tournament_id: str) -> dict[str, Any]:
 
 
 def tournament_for_api(t: dict[str, Any]) -> dict[str, Any]:
-    from web import team_purse
+    from web import team_purse, transfer_pool
 
     mrs = t.get("match_results") or {}
     league_defence = tournament.team_defence_board(t, competition="league")
@@ -202,6 +301,7 @@ def tournament_for_api(t: dict[str, Any]) -> dict[str, Any]:
         "league_team_least_xg_conceded": league_defence["least_xg_conceded"],
         "cup_team_least_xg_conceded": cup_defence["least_xg_conceded"],
         "purse": team_purse.purse_table_for_tournament(t),
+        "pool": transfer_pool.list_pool(t["id"]),
     }
 
 

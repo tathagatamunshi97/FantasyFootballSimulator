@@ -342,7 +342,22 @@ def load_team_by_name(
     store: Any = None,
     spreadsheet_id: str | None = None,
     gid: str | None = None,
+    tournament_id: str | None = None,
 ) -> dict[str, Any]:
+    """Multi-season project -- when tournament_id names a season-store
+    tournament (web/season_roster.py has ANY seeded roster under that id --
+    advance_to_next_season seeds every team, continuing or brand-new, so
+    this is unambiguous), the team's roster comes from that store instead
+    of the live xlsx. Every legacy/Season-1 call site (tournament_id=None,
+    the default) is completely unaffected."""
+    if tournament_id is not None:
+        from web import season_roster
+
+        seeded = season_roster.get_season_roster(tournament_id, team_name)
+        if seeded is not None:
+            roster = SheetRoster(name=team_name, players=seeded, budgets=[None] * len(seeded))
+            return team_payload_from_roster(roster, formation=formation, store=store)
+
     df = fetch_teams_dataframe(spreadsheet_id, gid)
     rosters = parse_teams_from_dataframe(df)
     roster = _find_roster(team_name, rosters)

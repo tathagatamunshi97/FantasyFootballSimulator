@@ -126,7 +126,48 @@ function renderLineupBuilder(data) {
         }
       </div>
       <p id="lineupStatus" class="muted" style="margin-top:0.5rem"></p>
+    </div>
+    ${renderReleasePlayerSection(roster)}`;
+}
+
+// Multi-season project -- release a player into the current tournament's
+// transfer pool (web/transfer_pool.py). Only does anything meaningful for a
+// team whose active tournament is season-store-backed (Season 2+, created
+// via Advance Season); releasing on a Season-1/legacy team fails with a
+// clear 400 from the backend, surfaced here rather than hidden away.
+function renderReleasePlayerSection(roster) {
+  if (!roster.length) return "";
+  const rows = roster
+    .map(
+      (p) => `<div class="slot-row">
+        <span>${esc(p)}</span>
+        <button type="button" class="btn-ghost release-player-btn" data-player="${esc(p)}">Release</button>
+      </div>`
+    )
+    .join("");
+  return `
+    <div class="card" style="margin-top:1rem">
+      <h3 style="font-size:0.95rem;margin:0 0 0.35rem">Release a player</h3>
+      <p class="muted" style="margin:0 0 0.5rem">Sends a player to the current tournament's transfer pool for a future season. Only works once your team is playing in a Season 2+ tournament (created via Advance Season) — a Season 1 team has nothing to release from yet.</p>
+      <div class="report-table-wrap" style="max-height:260px;overflow-y:auto">${rows}</div>
+      <p id="releasePlayerStatus" class="muted" style="margin-top:0.5rem"></p>
     </div>`;
+}
+
+async function releasePlayer(player) {
+  const statusEl = document.getElementById("releasePlayerStatus");
+  if (!confirm(`Release ${player} to the transfer pool? This cannot be undone from here.`)) return;
+  try {
+    const q = currentTeam ? `?team=${encodeURIComponent(currentTeam)}` : "";
+    await api(`/api/my-team/release-player${q}`, { method: "POST", json: { player } });
+    lineupData = await loadLineup(currentTeam);
+    document.getElementById("lineupSection").innerHTML = renderLineupBuilder(lineupData);
+    wireLineupBuilder();
+    const newStatusEl = document.getElementById("releasePlayerStatus");
+    if (newStatusEl) newStatusEl.textContent = `${player} released.`;
+  } catch (e) {
+    if (statusEl) statusEl.textContent = e.message || "Release failed";
+  }
 }
 
 function slotPlayerControl(slot, val, roster, locked = false) {
@@ -1309,6 +1350,9 @@ function wireLineupBuilder() {
   document.getElementById("testSquadBtn")?.addEventListener("click", testSquad);
   document.getElementById("finalizeSquadBtn")?.addEventListener("click", finalizeSquad);
   document.getElementById("unfinalizeSquadBtn")?.addEventListener("click", unfinalizeSquad);
+  document.querySelectorAll(".release-player-btn").forEach((btn) => {
+    btn.addEventListener("click", () => releasePlayer(btn.dataset.player));
+  });
   if (!_benchDelegationWired) {
     document.addEventListener("change", (e) => {
       if (e.target.matches && e.target.matches("select[data-slot]")) updateBenchList();

@@ -154,6 +154,7 @@ const LC_TABS = [
   ["table", "Table"],
   ["cup", "Cup"],
   ["purse", "Purse"],
+  ["pool", "Pool"],
   ["stats", "Stats"],
   ["analysis", "Analysis"],
 ];
@@ -168,9 +169,10 @@ function lcRenderApp() {
   else if (lcActiveTab === "table") body = lcRenderTable();
   else if (lcActiveTab === "cup") body = lcRenderCup();
   else if (lcActiveTab === "purse") body = lcRenderPurse();
+  else if (lcActiveTab === "pool") body = lcRenderPool();
   else if (lcActiveTab === "stats") body = lcRenderStats();
   else if (lcActiveTab === "analysis") body = lcRenderAnalysisTab();
-  return `${tabs}<div style="margin-top:1rem">${body}</div>`;
+  return `${lcRenderAdvanceSeasonCard()}${tabs}<div style="margin-top:1rem">${body}</div>`;
 }
 
 function lcSwitchTab(tab) {
@@ -345,6 +347,106 @@ function lcRenderPurse() {
       </tr></thead>
       <tbody>${rows}</tbody></table></div>
     </div>`;
+}
+
+// ---------------------------------------------------------------------------
+// Pool (multi-season project -- released/removed-team players available
+// for the next season's auction/transfer market, not built yet)
+// ---------------------------------------------------------------------------
+
+function lcRenderPool() {
+  const rows = lcTournament.pool || [];
+  if (!rows.length) {
+    return `<div class="empty"><p>No players in the pool yet.</p><p class="muted">Players land here when a team owner releases them, or when a team is dropped advancing into a new season.</p></div>`;
+  }
+  const body = rows
+    .map((r) => {
+      const s = r.stats_summary;
+      const statsCells = s
+        ? `<td>${esc(s.primary_position || "—")}</td><td>${s.minutes ?? "—"}</td><td>${s.goals90 ?? "—"}</td><td>${s.xg90 ?? "—"}</td><td>${s.xa90 ?? "—"}</td>`
+        : `<td class="muted" colspan="5">No cached stats</td>`;
+      const reasonLabel = r.reason === "team_removed" ? "Team removed" : "Released";
+      return `<tr>
+        <td>${esc(r.player)}</td>
+        <td>${esc(r.source_team)}</td>
+        <td><span class="badge ${r.reason === "team_removed" ? "muted" : "live"}">${esc(reasonLabel)}</span></td>
+        ${statsCells}
+      </tr>`;
+    })
+    .join("");
+  return `
+    <div class="card">
+      <h2>Pool</h2>
+      <p class="muted">Every player released by an owner, or carried over from a team dropped in the last season-advance. Prior-season stats shown for reference — the in-app auction that turns this pool into new squads hasn't shipped yet.</p>
+      <div class="report-table-wrap"><table><thead><tr>
+        <th>Player</th><th>From</th><th>Reason</th><th>Pos</th><th>Mins</th><th>G/90</th><th>xG/90</th><th>xA/90</th>
+      </tr></thead>
+      <tbody>${body}</tbody></table></div>
+    </div>`;
+}
+
+// ---------------------------------------------------------------------------
+// Advance to next season (admin-only, shown once the tournament is complete)
+// ---------------------------------------------------------------------------
+
+let lcAdvanceOpen = false;
+
+function lcRenderAdvanceSeasonCard() {
+  if (!lcIsAdmin() || !lcTournament || lcTournament.status !== "complete") return "";
+  if (!lcAdvanceOpen) {
+    return `<div class="card" style="margin-bottom:1rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;flex-wrap:wrap">
+        <div><strong>Season ${lcTournament.season || 1} complete.</strong> <span class="muted">Ready to advance to Season ${(lcTournament.season || 1) + 1}?</span></div>
+        <button type="button" id="lcAdvanceOpenBtn" class="btn-ghost">Advance Season</button>
+      </div>
+    </div>`;
+  }
+  const teamRows = (lcTournament.team_names || [])
+    .map(
+      (name) => `<label class="slot-row" style="cursor:pointer">
+        <span><input type="checkbox" class="lc-continue-check" value="${esc(name)}" checked /> ${esc(name)}</span>
+      </label>`
+    )
+    .join("");
+  return `
+    <div class="card" style="margin-bottom:1rem">
+      <h2>Advance to Season ${(lcTournament.season || 1) + 1}</h2>
+      <p class="muted">Uncheck a team to remove it — their whole current roster drops into the new season's pool. Continuing teams (checked) carry their roster forward as-is. Add new team names below to fill the remaining slots; they start with an empty squad until the auction fills them.</p>
+      <div style="margin:0.75rem 0">
+        <label for="lcAdvanceName">New tournament name</label>
+        <input type="text" id="lcAdvanceName" value="${esc(lcTournament.name)} — Season ${(lcTournament.season || 1) + 1}" />
+      </div>
+      <div class="grid grid-2" style="gap:0.4rem">${teamRows}</div>
+      <div style="margin:0.75rem 0">
+        <label for="lcAdvanceNewTeams">New team names (comma-separated)</label>
+        <input type="text" id="lcAdvanceNewTeams" placeholder="e.g. Newcomers FC, Rovers United" />
+      </div>
+      <button type="button" id="lcAdvanceSubmitBtn" class="btn-primary">Create Season ${(lcTournament.season || 1) + 1}</button>
+      <button type="button" id="lcAdvanceCancelBtn" class="btn-ghost">Cancel</button>
+      <div id="lcAdvanceError" class="muted" style="margin-top:0.5rem"></div>
+    </div>`;
+}
+
+async function lcAdvanceSeason() {
+  const errorEl = document.getElementById("lcAdvanceError");
+  errorEl.textContent = "";
+  const name = document.getElementById("lcAdvanceName").value.trim();
+  const continuing = Array.from(document.querySelectorAll(".lc-continue-check:checked")).map((c) => c.value);
+  const newTeamsRaw = document.getElementById("lcAdvanceNewTeams").value.trim();
+  const newTeams = newTeamsRaw ? newTeamsRaw.split(",").map((s) => s.trim()).filter(Boolean) : [];
+  if (continuing.length + newTeams.length !== 10) {
+    errorEl.textContent = `Need exactly 10 teams total (currently ${continuing.length} continuing + ${newTeams.length} new).`;
+    return;
+  }
+  try {
+    const data = await api(`/api/league-cup/${lcTournamentId}/advance-season`, {
+      method: "POST",
+      json: { name, continuing_teams: continuing, new_teams: newTeams },
+    });
+    window.location.href = `/league-cup?id=${data.tournament.id}`;
+  } catch (e) {
+    errorEl.textContent = e.message || "Advance failed";
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -652,6 +754,24 @@ function lcWire() {
   });
   const drawBtn = document.getElementById("lcDrawBtn");
   if (drawBtn) drawBtn.addEventListener("click", lcDrawCup);
+  const advanceOpenBtn = document.getElementById("lcAdvanceOpenBtn");
+  if (advanceOpenBtn) {
+    advanceOpenBtn.addEventListener("click", () => {
+      lcAdvanceOpen = true;
+      document.getElementById("app").innerHTML = lcRenderApp();
+      lcWire();
+    });
+  }
+  const advanceCancelBtn = document.getElementById("lcAdvanceCancelBtn");
+  if (advanceCancelBtn) {
+    advanceCancelBtn.addEventListener("click", () => {
+      lcAdvanceOpen = false;
+      document.getElementById("app").innerHTML = lcRenderApp();
+      lcWire();
+    });
+  }
+  const advanceSubmitBtn = document.getElementById("lcAdvanceSubmitBtn");
+  if (advanceSubmitBtn) advanceSubmitBtn.addEventListener("click", lcAdvanceSeason);
   const createBtn = document.getElementById("lcCreateBtn");
   if (createBtn) {
     createBtn.addEventListener("click", lcCreate);
