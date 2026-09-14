@@ -12791,10 +12791,14 @@
       // A real detail: a CB joins the attack for a corner, unlike any
       // other cross -- cueBoxRuns deliberately doesn't include CB since
       // that would be wrong for open-play crosses. Only one, not both:
-      // real teams still keep a spare man back for the counter.
+      // real teams still keep a spare man back for the counter. Biased
+      // toward the best aerial presence (same aerials_won90 ranking
+      // cueDefensiveBoxCover's own man-marking already uses just above),
+      // not picked at random -- the real-life reason a CB goes up for a
+      // corner in the first place is that he's a height/heading threat.
       const joiningCb = pinsOf(attackingSide)
         .filter((p) => p.role === "CB")
-        .sort(() => rng() - 0.5)[0];
+        .sort((a, b) => (b.stats.aerials_won90 || 0) - (a.stats.aerials_won90 || 0))[0];
       if (joiningCb) {
         const cbTarget = toPitchPct(attackingSide, 0.5 + (rng() - 0.5) * 0.22, 0.87);
         joiningCb.tx = cbTarget.left;
