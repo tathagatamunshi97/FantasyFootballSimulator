@@ -13987,6 +13987,16 @@
         liveXg: { ...liveXg },
         possSeconds: { ...possSeconds },
         ball: { left: ball.left, top: ball.top },
+        // NOT each pin's own .hasBall field -- that's a vestigial field
+        // from buildPins() that nothing ever keeps in sync (the real
+        // source of truth is this closure-scoped carrierId, checked via
+        // pin.id === carrierId everywhere the decision engine needs to
+        // know who's on the ball). Without it restored, applyResumeState
+        // would leave carrierId null and the whole decide-action pipeline
+        // (shots/passes/dribbles) stalls -- possession/positions still
+        // visibly move (simpler per-tick math, no carrier needed), so the
+        // match LOOKS alive while everything event-driven stays frozen.
+        carrierId,
         pins: allPins.map((p) => JSON.parse(JSON.stringify(p))),
         matchLog: JSON.parse(JSON.stringify(matchLog)),
         benchHome: JSON.parse(JSON.stringify(benchBySide.home || [])),
@@ -14080,6 +14090,14 @@
             p.short = snap.short || p.short;
             p.label = snap.label || p.label;
           }
+          // The broadcast frame's per-pin hasBall IS trustworthy (unlike a
+          // pin's own stored field elsewhere) -- getBroadcastState() always
+          // computed it fresh from the real carrierId at broadcast time.
+          // Without restoring it here, carrierId stays null and the whole
+          // decide-action pipeline (shots/passes/dribbles) stalls, even
+          // though positions/possession keep moving from simpler per-tick
+          // math that doesn't need a carrier.
+          if (snap.hasBall) carrierId = p.id;
         }
       }
     }
@@ -14127,6 +14145,11 @@
           if (p) Object.assign(p, snap);
         }
       }
+      // Explicit field, not derived from any pin's own .hasBall (that field
+      // is never actually kept in sync -- see getEngineState()'s comment).
+      // Without this, carrierId stays null and the decide-action pipeline
+      // stalls even though positions/possession keep moving.
+      carrierId = typeof state.carrierId === "string" && pinById.has(state.carrierId) ? state.carrierId : null;
       if (Array.isArray(state.benchHome)) benchBySide.home = state.benchHome;
       if (Array.isArray(state.benchAway)) benchBySide.away = state.benchAway;
       if (state.homeFormation) homeTeam.formation = state.homeFormation;
