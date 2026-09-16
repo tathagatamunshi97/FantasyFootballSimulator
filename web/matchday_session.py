@@ -676,6 +676,72 @@ def clear_if_references(
     return cleared
 
 
+def restore_session(data: dict[str, Any]) -> dict[str, Any]:
+    """Disaster recovery: reconstruct an active session from a previously
+    backed-up ``/api/matchday`` response -- e.g. one an admin copied out of
+    their browser before a Render redeploy wiped the in-memory session (this
+    module's own disk persistence doesn't survive that; see the module
+    docstring). Accepts the same shape ``_build_public_session_locked``
+    produces, so a raw saved GET response's ``session`` value can be passed
+    straight through. Deliberately refuses to run over an already-active
+    session -- this is a manual last-resort tool, never something that
+    should silently clobber a real live match.
+    """
+    global _session, _frame_seq, _highlight_seq
+    if not isinstance(data, dict):
+        raise ValueError("Invalid session payload")
+    fixture_id = data.get("fixture_id")
+    tournament_id = data.get("tournament_id")
+    board = data.get("board")
+    if not fixture_id or not tournament_id or not isinstance(board, dict):
+        raise ValueError("Session payload missing fixture_id/tournament_id/board")
+    board_state = data.get("board_state") or data.get("frame")
+    snap: dict[str, Any] | None | bool = False
+    with _lock:
+        if _session and _session.get("phase") in ("setup", "running", "live"):
+            raise ValueError(
+                f"A session is already active for {_session.get('home')} vs {_session.get('away')}. "
+                "Dismiss or complete it before restoring another."
+            )
+        frame_seq = int(data.get("frame_seq") or (board_state or {}).get("seq") or 0)
+        _frame_seq = frame_seq
+        _highlight_seq = int(data.get("highlight_seq") or 0)
+        _session = {
+            "engine": data.get("engine") or "tactic_board",
+            "tournament_id": tournament_id,
+            "tournament_name": data.get("tournament_name"),
+            "fixture_id": fixture_id,
+            "stage": data.get("stage"),
+            "home": data.get("home"),
+            "away": data.get("away"),
+            "team_a": data.get("team_a"),
+            "team_b": data.get("team_b"),
+            "is_knockout": bool(data.get("is_knockout")),
+            "is_league": bool(data.get("is_league")),
+            "is_final": bool(data.get("is_final")),
+            "is_experiment": bool(data.get("is_experiment")),
+            "agg_context": data.get("agg_context"),
+            "seed": data.get("seed"),
+            "board": board,
+            "board_state": board_state,
+            "frame_seq": frame_seq,
+            "highlight_clips": data.get("highlight_clips") or [],
+            "highlight_seq": _highlight_seq,
+            "phase": "live",
+            "running": True,
+            "experiment_id": data.get("experiment_id"),
+            "message": f"Restored after a redeploy — {data.get('home')} vs {data.get('away')}.",
+            "result": None,
+            "started_at": data.get("started_at") or _now(),
+            "updated_at": _now(),
+            "restored": True,
+        }
+        _refresh_poll_cache_locked()
+        snap = _persist_locked(force=True)
+    _flush_persist(snap)
+    return active_status()
+
+
 def require_active_session() -> dict[str, Any]:
     s = get_session()
     if not s:

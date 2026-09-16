@@ -616,6 +616,24 @@ def matchday_publish_board_state(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
+@app.post("/api/matchday/restore")
+def matchday_restore_session(
+    body: dict,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+) -> dict:
+    """Disaster recovery: reconstruct an active session from a backed-up
+    /api/matchday response (e.g. saved before a redeploy wiped the
+    in-memory session). Refuses to run over an already-active session."""
+    _require_admin(x_admin_token, x_session_token)
+    if not isinstance(body, dict) or not isinstance(body.get("session"), dict):
+        raise HTTPException(status_code=400, detail='Body must be {"session": <the backed-up session object>}')
+    try:
+        return matchday_session.restore_session(body["session"])
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
 @app.post("/api/matchday/checkpoint")
 def matchday_publish_checkpoint(
     body: dict,
