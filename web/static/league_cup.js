@@ -412,8 +412,12 @@ function lcSeasonXiPitchSvg(xi) {
       </g>`;
     })
     .join("");
+  // Height extended past the 0-100 pitch itself (GK sits at y=92, and its
+  // name label at y+11=103 needs real room below the pitch's own bottom
+  // edge -- an earlier fix that flipped the label above the dot instead
+  // just collided with the CB row's own labels one row up).
   return `
-    <svg viewBox="0 0 100 100" style="width:100%;max-width:460px;height:auto;display:block;margin:0 auto;background:#1e4d33;border-radius:8px" preserveAspectRatio="xMidYMid meet">
+    <svg viewBox="0 0 100 108" style="width:100%;max-width:460px;height:auto;display:block;margin:0 auto;background:#1e4d33;border-radius:8px" preserveAspectRatio="xMidYMid meet">
       <rect x="17.65" y="0" width="64.7" height="17.1" fill="none" stroke="#ffffff55" stroke-width="0.3" />
       <rect x="17.65" y="82.9" width="64.7" height="17.1" fill="none" stroke="#ffffff55" stroke-width="0.3" />
       <line x1="0" y1="50" x2="100" y2="50" stroke="#ffffff40" stroke-width="0.3" />
