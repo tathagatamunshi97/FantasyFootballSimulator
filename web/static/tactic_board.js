@@ -2067,6 +2067,13 @@
         mobileStatEls[el.dataset.ms] = el;
       });
     }
+    // Disaster-recovery resume (applyLegacyFrameState) -- the lightweight
+    // broadcast frame carries its own precomputed mobileStats snapshot
+    // (shots/on-target/big chances/corners/fouls/ppda), but matchLog.events
+    // can't be reconstructed at that granularity from it, so the normal
+    // derivation below would read as zero for the rest of the match. Add
+    // this restored snapshot in as a baseline offset instead of losing it.
+    let restoredStatsBaseline = null;
     function mobileTeamStats(side) {
       const counts = matchLog.counts[side];
       const events = matchLog.events;
@@ -2079,8 +2086,19 @@
       // zone-eligible defensive actions. null until the first defensive
       // action of the match (nothing meaningful to divide by yet).
       const oppCounts = matchLog.counts[oppOf(side)];
-      const ppda = counts.ppda_actions > 0 ? oppCounts.ppda_passes / counts.ppda_actions : null;
-      return { shots: counts.shots, shotsOnTarget, bigChances: counts.big_chances, corners, fouls, ppda };
+      const livePpda = counts.ppda_actions > 0 ? oppCounts.ppda_passes / counts.ppda_actions : null;
+      const base = restoredStatsBaseline ? restoredStatsBaseline[side] : null;
+      return {
+        shots: (base?.shots || 0) + counts.shots,
+        shotsOnTarget: (base?.shotsOnTarget || 0) + shotsOnTarget,
+        bigChances: (base?.bigChances || 0) + counts.big_chances,
+        corners: (base?.corners || 0) + corners,
+        fouls: (base?.fouls || 0) + fouls,
+        // No clean way to blend a ratio across the restore boundary -- keep
+        // showing the restored PPDA until this side has its own post-resume
+        // defensive actions to compute a fresh one from.
+        ppda: livePpda ?? (base?.ppda ?? null),
+      };
     }
     function updateMobileStats(poss) {
       if (!mobileStatsEl) return;
@@ -14015,7 +14033,16 @@
       ft90Away = frame.ft90Away ?? null;
       kickoffDone = true;
       matchLog = emptyMatchLog();
+      if (frame.xg && typeof frame.xg === "object") {
+        liveXg = { home: Number(frame.xg.home) || 0, away: Number(frame.xg.away) || 0 };
+      }
+      if (frame.possPct && typeof frame.possPct === "object") {
+        // possessionPct() only cares about the ratio, not absolute units,
+        // so the restored percentages themselves work fine as seed values.
+        possSeconds = { home: Number(frame.possPct.home) || 0, away: Number(frame.possPct.away) || 0 };
+      }
       const mobile = (frame.mobileStats && typeof frame.mobileStats === "object") ? frame.mobileStats : {};
+      if (mobile.home || mobile.away) restoredStatsBaseline = { home: mobile.home || null, away: mobile.away || null };
       for (const g of mobile.goals || []) {
         matchLog.goals.push({
           side: g.side,
@@ -14061,6 +14088,7 @@
       if (!state || typeof state !== "object") return;
       if (state.legacyFrame && typeof state.legacyFrame === "object") {
         applyLegacyFrameState(state.legacyFrame);
+        syncResumedDisplay();
         return;
       }
       matchMinute = Number(state.matchMinute) || 0;
@@ -14103,6 +14131,19 @@
       if (Array.isArray(state.benchAway)) benchBySide.away = state.benchAway;
       if (state.homeFormation) homeTeam.formation = state.homeFormation;
       if (state.awayFormation) awayTeam.formation = state.awayFormation;
+      syncResumedDisplay();
+    }
+
+    // Several HUD elements are updated imperatively at the moment something
+    // happens (a goal, a card, HT) rather than re-read from state every
+    // tick -- applyResumeState/applyLegacyFrameState change the underlying
+    // variables directly, bypassing those call sites entirely, so the DOM
+    // would otherwise keep showing reset()'s "0 – 0" until the next goal.
+    // updateHud() covers everything that DOES already read live state
+    // (possession/xG/mobile stats/scorers); scoreEl is the one exception.
+    function syncResumedDisplay() {
+      if (scoreEl) scoreEl.textContent = `${homeScore} – ${awayScore}`;
+      updateHud();
     }
 
     function renderPensList(rows) {
