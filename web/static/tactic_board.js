@@ -14054,12 +14054,30 @@
       const mobile = (frame.mobileStats && typeof frame.mobileStats === "object") ? frame.mobileStats : {};
       if (mobile.home || mobile.away) restoredStatsBaseline = { home: mobile.home || null, away: mobile.away || null };
       for (const g of mobile.goals || []) {
-        matchLog.goals.push({
-          side: g.side,
-          minute: g.minute,
-          player: g.player_short || g.player,
-          player_short: g.player_short || g.player,
-        });
+        const player = g.player_short || g.player;
+        // Real user report: goals shown correctly in the live scorers strip
+        // (matchLog.goals) but missing entirely from ratings/season tallies
+        // once the match completed -- both compute_match_ratings and
+        // aggregate_player_tallies credit goals from matchLog.events (type
+        // "goal"), not from this separate display-only list. A live goal
+        // always produces both (see pushMatchEvent above); this frame's
+        // compact mobileStats.goals only carries side/minute/scorer (no
+        // xg/assist/big_chance -- never broadcast at that granularity), so
+        // the reconstructed event is necessarily partial, but a goal
+        // missing from the tally entirely is far worse than one missing
+        // that detail.
+        matchLog.goals.push({ side: g.side, minute: g.minute, player, player_short: player });
+        if (g.side === "home" || g.side === "away") {
+          matchLog.events.push({
+            type: "goal",
+            side: g.side,
+            minute: g.minute,
+            player,
+            player_short: player,
+            detail: null,
+          });
+          matchLog.counts[g.side].goals += 1;
+        }
       }
       for (const c of mobile.cards || []) {
         matchLog.events.push({
@@ -14070,6 +14088,7 @@
           player_short: c.player_short || c.player,
           detail: null,
         });
+        if (c.side === "home" || c.side === "away") matchLog.counts[c.side].cards += 1;
       }
       if (frame.ball && typeof frame.ball === "object") {
         ball.left = Number(frame.ball.left) || 50;
