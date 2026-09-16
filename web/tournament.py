@@ -1109,6 +1109,22 @@ def _season_award_score(role: str, row: dict[str, Any], team_gc_per_match: float
     return g("goals") * 1.5 + g("assists") * 1.2 + g("tackles") * 0.3 + g("interceptions") * 0.3
 
 
+def _is_season_award_result(result: dict[str, Any], competition: str | None) -> bool:
+    """True if this result counts toward season awards. A friendly (an
+    Organ's XI warm-up, tagged competition="friendly") never counts, even
+    when no specific competition filter was requested -- real user report:
+    a player's appearance count was inflated by friendlies they'd played
+    but the actual league/cup fixture count didn't include. A legacy
+    groups+knockout result (no competition tag at all, comp is None) is
+    still included when no filter was requested -- that format never had a
+    friendly concept to exclude in the first place.
+    """
+    comp = result.get("competition")
+    if competition is not None:
+        return comp == competition
+    return comp != "friendly"
+
+
 def _count_player_appearances(t: dict[str, Any], *, competition: str | None = None) -> dict[str, int]:
     """How many matches each player featured in -- derived from the same
     per-match event/player_passing data aggregate_player_tallies already
@@ -1118,7 +1134,7 @@ def _count_player_appearances(t: dict[str, Any], *, competition: str | None = No
     for result in (t.get("match_results") or {}).values():
         if not isinstance(result, dict):
             continue
-        if competition is not None and result.get("competition") != competition:
+        if not _is_season_award_result(result, competition):
             continue
         seen_this_match: set[str] = set()
         for ev in _board_events_from_result(result):
@@ -1142,7 +1158,7 @@ def _team_goals_conceded_per_match(t: dict[str, Any], *, competition: str | None
     for result in (t.get("match_results") or {}).values():
         if not isinstance(result, dict):
             continue
-        if competition is not None and result.get("competition") != competition:
+        if not _is_season_award_result(result, competition):
             continue
         home, away = result.get("home"), result.get("away")
         hg, ag = result.get("home_goals"), result.get("away_goals")
@@ -1179,6 +1195,40 @@ def _pick_team_of_season(qualified: list[dict[str, Any]]) -> list[dict[str, Any]
     return xi
 
 
+def _combined_competitive_tallies(t: dict[str, Any]) -> list[dict[str, Any]]:
+    """League + cup player tallies merged into one row per player+team,
+    deliberately excluding friendlies entirely (an Organ's XI warm-up has
+    no competitive value and shouldn't count toward a season award) --
+    same merge-raw-counters-then-rederive-ratios-once convention
+    merge_player_tallies_by_player already established for the cross-team
+    transfer case, just merging two competition slices instead of teams.
+    """
+    merged: dict[str, dict[str, Any]] = {}
+    for comp in ("league", "cup"):
+        for row in aggregate_player_tallies(t, competition=comp):
+            key = f"{row['team']}\0{row['player']}"
+            target = merged.setdefault(
+                key, {"player": row["player"], "team": row["team"], **{f: 0 for f in _TALLY_FIELDS}}
+            )
+            for field in _TALLY_FIELDS:
+                cur = target.get(field) or 0
+                amt = row.get(field) or 0
+                target[field] = (cur + amt) if isinstance(amt, float) else int(cur) + int(amt)
+    rows = list(merged.values())
+    _add_derived_tally_fields(rows)
+    return rows
+
+
+# Season-awards project -- role display order + how many of the top-scored
+# qualifying players in EACH role bucket to surface. A flat top-N across
+# every role would rank a GK's score against a striker's on formulas that
+# aren't on the same scale at all (see _season_award_score) -- grouping
+# per role, like a real end-of-season stats page, is the only comparison
+# that's actually meaningful.
+_SEASON_AWARD_ROLE_ORDER = ("gk", "centre_back", "fullback", "dm", "cm", "winger", "striker")
+_TOP_N_PER_ROLE = 5
+
+
 def season_awards(tournament_id: str, *, competition: str | None = None) -> dict[str, Any]:
     """Player of the Season + Team of the Season for one tournament, built
     entirely from the existing season stat tallies (aggregate_player_
@@ -1190,12 +1240,16 @@ def season_awards(tournament_id: str, *, competition: str | None = None) -> dict
     wide/forward roles -- see _season_award_score). JIT-recomputed from
     stored match results every call, same philosophy as every other season
     stat in this file, no separate persistence.
+
+    Friendlies never count here (see _is_season_award_result) -- real
+    report: a player's appearance count was inflated by warm-up matches
+    the actual league/cup fixture list didn't include.
     """
     empty: dict[str, Any] = {
         "tournament_id": tournament_id,
         "min_appearances": _MIN_APPEARANCES_FOR_SEASON_AWARDS,
         "player_of_season": None,
-        "leaderboard": [],
+        "leaderboard_by_role": {},
         "team_of_season": [],
     }
     t = load_tournament(tournament_id)
@@ -1203,7 +1257,12 @@ def season_awards(tournament_id: str, *, competition: str | None = None) -> dict
         return empty
 
     try:
-        tallies = aggregate_player_tallies(t, competition=competition)
+        if competition is not None:
+            tallies = aggregate_player_tallies(t, competition=competition)
+        elif t.get("format") == "league_cup":
+            tallies = _combined_competitive_tallies(t)
+        else:
+            tallies = aggregate_player_tallies(t, competition=None)
         if not tallies:
             return empty
         appearances = _count_player_appearances(t, competition=competition)
@@ -1240,11 +1299,17 @@ def season_awards(tournament_id: str, *, competition: str | None = None) -> dict
         player_of_season = ranked[0] if ranked else None
         team_of_season = _pick_team_of_season(agg)
 
+        leaderboard_by_role: dict[str, list[dict[str, Any]]] = {}
+        for role in _SEASON_AWARD_ROLE_ORDER:
+            role_rows = [a for a in ranked if a["role"] == role]
+            if role_rows:
+                leaderboard_by_role[role] = role_rows[:_TOP_N_PER_ROLE]
+
         return {
             "tournament_id": tournament_id,
             "min_appearances": _MIN_APPEARANCES_FOR_SEASON_AWARDS,
             "player_of_season": player_of_season,
-            "leaderboard": ranked[:15],
+            "leaderboard_by_role": leaderboard_by_role,
             "team_of_season": team_of_season,
         }
     except Exception as exc:

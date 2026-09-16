@@ -426,15 +426,22 @@ function lcSeasonXiPitchSvg(xi) {
     </svg>`;
 }
 
+const SEASON_AWARD_ROLE_ORDER = ["gk", "centre_back", "fullback", "dm", "cm", "winger", "striker"];
+const SEASON_AWARD_TOP_N = 5; // must match web/tournament.py's _TOP_N_PER_ROLE
+const SEASON_AWARD_ROLE_LABEL = {
+  gk: "Goalkeepers", centre_back: "Centre-backs", fullback: "Fullbacks", dm: "Defensive midfielders",
+  cm: "Central midfielders", winger: "Wingers", striker: "Strikers",
+};
+
 function lcRenderAwards() {
   const awards = lcTournament.season_awards || {};
   const pos = awards.player_of_season;
-  const board = awards.leaderboard || [];
+  const byRole = awards.leaderboard_by_role || {};
   const xi = awards.team_of_season || [];
   const minApps = awards.min_appearances || 5;
 
-  if (!board.length) {
-    return `<div class="empty"><p>No season awards yet.</p><p class="muted">Stats accumulate as matches are played — a player needs at least ${minApps} appearances to qualify for Player/Team of the Season.</p></div>`;
+  if (!Object.keys(byRole).length) {
+    return `<div class="empty"><p>No season awards yet.</p><p class="muted">Stats accumulate as league/cup matches are played (friendlies don't count) — a player needs at least ${minApps} appearances to qualify for Player/Team of the Season.</p></div>`;
   }
 
   const ROLE_LABEL = {
@@ -457,31 +464,34 @@ function lcRenderAwards() {
       ${lcSeasonXiPitchSvg(xi)}
     </div>`;
 
-  const rows = board
-    .map(
-      (r, i) => `<tr>
-        <td>${i + 1}</td>
-        <td>${esc(r.player)}</td>
-        <td>${esc(r.team)}</td>
-        <td>${esc(ROLE_LABEL[r.role] || r.role || "—")}</td>
-        <td>${r.appearances}</td>
-        <td><strong>${num(r.score, 1)}</strong></td>
-        <td>${r.goals}</td>
-        <td>${r.assists}</td>
-      </tr>`
-    )
+  const roleTables = SEASON_AWARD_ROLE_ORDER.filter((role) => (byRole[role] || []).length)
+    .map((role) => {
+      const rows = (byRole[role] || [])
+        .map(
+          (r, i) => `<tr>
+            <td>${i + 1}</td>
+            <td>${esc(r.player)}</td>
+            <td>${esc(r.team)}</td>
+            <td>${r.appearances}</td>
+            <td><strong>${num(r.score, 1)}</strong></td>
+            <td>${r.goals}</td>
+            <td>${r.assists}</td>
+          </tr>`
+        )
+        .join("");
+      return `<div class="card" style="margin-top:1rem">
+        <h3 style="font-size:0.95rem;margin:0 0 0.5rem">${esc(SEASON_AWARD_ROLE_LABEL[role] || role)}</h3>
+        <div class="report-table-wrap"><table><thead><tr>
+          <th>#</th><th>Player</th><th>Team</th><th>Apps</th><th>Score</th><th>G</th><th>A</th>
+        </tr></thead>
+        <tbody>${rows}</tbody></table></div>
+      </div>`;
+    })
     .join("");
-  const leaderboardCard = `
-    <div class="card" style="margin-top:1rem">
-      <div class="report-eyebrow">Season awards leaderboard</div>
-      <p class="muted" style="margin:0.35rem 0 0.75rem">Every player with ${minApps}+ appearances, ranked by their role-specific score (built from season stat totals — goals, assists, xG, tackles, interceptions, saves, xG saved, passing/progression — not per-match ratings).</p>
-      <div class="report-table-wrap"><table><thead><tr>
-        <th>#</th><th>Player</th><th>Team</th><th>Role</th><th>Apps</th><th>Score</th><th>G</th><th>A</th>
-      </tr></thead>
-      <tbody>${rows}</tbody></table></div>
-    </div>`;
 
-  return `${posCard}${xiCard}${leaderboardCard}`;
+  const leaderboardIntro = `<p class="muted" style="margin:1rem 0 0">Top ${SEASON_AWARD_TOP_N} per role, ranked by their own role-specific score (built from season stat totals — goals, assists, xG, tackles, interceptions, saves, xG saved, passing/progression — not per-match ratings). Scores aren't comparable across roles, so each position is ranked separately rather than one mixed list.</p>`;
+
+  return `${posCard}${xiCard}${leaderboardIntro}${roleTables}`;
 }
 
 // ---------------------------------------------------------------------------
