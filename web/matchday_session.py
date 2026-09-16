@@ -739,6 +739,16 @@ def restore_session(data: dict[str, Any]) -> dict[str, Any]:
         _refresh_poll_cache_locked()
         snap = _persist_locked(force=True)
     _flush_persist(snap)
+    # A restore means this backed-up board_state is the new ground truth --
+    # any checkpoint blob already saved for this fixture (e.g. from an
+    # earlier, now-abandoned live session that had already started posting
+    # its own getEngineState() snapshots) is now stale and would otherwise
+    # shadow this fresh data in get_checkpoint(), which checks the saved
+    # blob before ever falling back to board_state. Real user report: a
+    # restore's board_state showed correct stats/xG to viewers (who read it
+    # directly) while "Resume hosting" pulled a stale, stats-poor checkpoint
+    # from a prior resume attempt instead.
+    _delete_checkpoint_blob(fixture_id)
     return active_status()
 
 
