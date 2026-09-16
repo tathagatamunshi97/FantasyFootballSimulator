@@ -176,6 +176,19 @@ function slotPlayerControl(slot, val, roster, locked = false) {
   roster.forEach((p) => {
     opts.push(`<option value="${esc(p)}" data-slot="${esc(slot)}" ${p === val ? "selected" : ""}>${esc(p)}</option>`);
   });
+  // Real user report: a saved slot's player can end up spelled slightly
+  // differently than the roster list serves it (e.g. an accented vs plain
+  // name for the same person, from some name-canonicalization step
+  // elsewhere touching the saved lineup but not the roster source). With
+  // no matching <option>, no <select> value ends up selected and the
+  // browser defaults to the blank placeholder -- the player silently
+  // "disappears" from their own slot, and if the admin then submits, that
+  // slot's value is genuinely empty. Always keep the actual saved value
+  // selectable, even when it doesn't byte-match anything in roster, so a
+  // spelling drift can never make a player vanish from the UI.
+  if (val && !roster.includes(val)) {
+    opts.push(`<option value="${esc(val)}" data-slot="${esc(slot)}" selected>${esc(val)} (not in current roster)</option>`);
+  }
   return `<select data-slot="${esc(slot)}" ${disabled}>${opts.join("")}</select>`;
 }
 

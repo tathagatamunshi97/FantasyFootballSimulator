@@ -104,6 +104,7 @@ def validate_team_payload(team: dict[str, Any], label: str) -> list[str]:
     if len(lineup) != len(expected_slots):
         errors.append(f"{label}: lineup must have {len(expected_slots)} players for {formation}.")
     seen_slots: set[str] = set()
+    seen_players: set[str] = set()
     players: list[str] = []
     for row in lineup:
         slot = row.get("slot")
@@ -112,7 +113,16 @@ def validate_team_payload(team: dict[str, Any], label: str) -> list[str]:
             errors.append(f"{label}: missing player for slot {slot}.")
         if slot in seen_slots:
             errors.append(f"{label}: duplicate slot {slot}.")
+        # Real user report: a starting XI silently ended up with fewer than
+        # 11 distinct players (one name assigned to two slots) and nothing
+        # here caught it -- duplicate SLOT keys were checked, but never
+        # duplicate PLAYERS across different slots, even though the same
+        # person obviously can't start in two positions at once.
+        if player and player in seen_players:
+            errors.append(f"{label}: {player} is assigned to more than one slot.")
         seen_slots.add(slot)
+        if player:
+            seen_players.add(player)
         players.append(player)
     if expected_slots and seen_slots != set(expected_slots):
         errors.append(f"{label}: slots must be {', '.join(expected_slots)}.")
