@@ -1861,6 +1861,29 @@ def complete_match_from_board_api(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
+@app.post("/api/tournament/{tournament_id}/matches/{match_id}/patch-events")
+def patch_match_events_api(
+    tournament_id: str,
+    match_id: str,
+    body: dict,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+) -> dict:
+    """Disaster recovery: insert events missing from an already-completed
+    match's stored history and recompute player_ratings/potm from the
+    corrected events. Works for both classic tournament and League+Cup
+    fixtures (same underlying match_results store)."""
+    _require_admin(x_admin_token, x_session_token)
+    if not isinstance(body, dict) or not isinstance(body.get("events"), list):
+        raise HTTPException(status_code=400, detail='Body must be {"events": [...]}')
+    try:
+        return tournament.patch_match_events_and_recompute_ratings(tournament_id, match_id, body["events"])
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
 @app.post("/api/tournament/{tournament_id}/knockout/generate")
 def generate_knockout_api(
     tournament_id: str,

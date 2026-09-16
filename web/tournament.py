@@ -3619,6 +3619,68 @@ def _attach_player_ratings_at_completion(
         print(f"tournament: player-ratings-at-completion failed: {exc}")
 
 
+def patch_match_events_and_recompute_ratings(
+    tournament_id: str, match_id: str, new_events: list[dict[str, Any]]
+) -> dict[str, Any]:
+    """Disaster recovery: insert events missing from an already-completed
+    match's stored history (e.g. pre-disconnect goals that a live-match
+    resume couldn't reconstruct in time -- see the matchday checkpoint/
+    resume work) and recompute player_ratings/potm from the corrected
+    events. The final score itself is untouched; this only affects the
+    event-derived breakdown (ratings, POTM, goalscorer/assist tallies,
+    which read board_events fresh on every request).
+
+    Inserted chronologically by minute, not appended -- compute_match_ratings
+    walks goal events in list order to track running score-state for swing
+    multipliers, so a goal inserted out of order would misattribute
+    comeback/go-ahead credit for every goal after it.
+    """
+    t = load_tournament(tournament_id)
+    if not t:
+        raise KeyError(f"Tournament '{tournament_id}' not found")
+    result = (t.get("match_results") or {}).get(match_id)
+    if not isinstance(result, dict):
+        raise KeyError(f"Match '{match_id}' not found in tournament '{tournament_id}'")
+    if result.get("home_goals") is None or result.get("away_goals") is None:
+        raise ValueError(f"Match '{match_id}' has not been completed yet")
+
+    events = list(result.get("board_events") or (result.get("match_log") or {}).get("events") or [])
+    events.extend(new_events)
+    events.sort(key=lambda e: e.get("minute") if e.get("minute") is not None else 0)
+    result["board_events"] = events
+    if isinstance(result.get("match_log"), dict):
+        result["match_log"]["events"] = events
+        result["match_log"]["goals"] = [e for e in events if e.get("type") == "goal"]
+
+    from analysis_explainer import compute_match_ratings, normalize_board_events
+
+    team_a, team_b = _load_teams_for_match(
+        result.get("home"), result.get("away"), tournament_id=tournament_id, match_id=match_id
+    )
+    home_team = FantasyTeam.from_dict(team_a)
+    away_team = FantasyTeam.from_dict(team_b)
+    normalized = normalize_board_events(events, result.get("match_log") if isinstance(result.get("match_log"), dict) else None)
+    player_passing = (result.get("match_log") or {}).get("player_passing") if isinstance(result.get("match_log"), dict) else None
+    ratings = compute_match_ratings(
+        home_team,
+        away_team,
+        normalized,
+        player_passing,
+        home_goals=int(result.get("home_goals") or 0),
+        away_goals=int(result.get("away_goals") or 0),
+    )
+    result["player_ratings"] = ratings
+    result["potm"] = ratings.get("player_of_the_match")
+
+    # _persist_new_match_traces skips rewriting a match's trace blob once
+    # it's in this set (populated on load for anything already carrying
+    # board_trace_stored) -- without discarding it here, the event/ratings
+    # edits above would silently never make it into the saved trace.
+    _persisted_trace_ids.discard((tournament_id, match_id))
+    save_tournament(t)
+    return {"ok": True, "player_ratings": ratings, "potm": result["potm"]}
+
+
 def run_group_match(tournament_id: str, match_id: str) -> dict[str, Any]:
     """Prepare interactive tactic-board match (official score from pins, not Monte Carlo)."""
     return prepare_board_match(tournament_id, match_id)
