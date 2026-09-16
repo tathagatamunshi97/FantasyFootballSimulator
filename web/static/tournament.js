@@ -89,7 +89,14 @@ function analysisControls(fx, result) {
   const mid = esc(fx.id);
   const has = Boolean(result?.has_analysis || analysisCache[fx.id]?.analysis);
   const label = has ? "See analysis" : "Generate analysis";
+  // POTM is computed right at match completion, not behind "Generate
+  // analysis" -- see web/tournament.py's _attach_player_ratings_at_completion.
+  const potm = result?.potm;
+  const potmLine = potm
+    ? `<div class="muted" style="font-size:0.78rem;margin-top:0.15rem">⭐ POTM: ${esc(potm.player)} (${num(potm.rating, 1)})</div>`
+    : "";
   return `<div class="analysis-controls" style="margin-top:0.35rem">
+    ${potmLine}
     <div class="btn-stack">
       <button type="button" class="btn-ghost btn-sm view-analysis-btn" data-match-id="${mid}">${label}</button>
     </div>
@@ -135,7 +142,11 @@ function renderFixtures(t, { showRun = false } = {}) {
               data-xg-home="${esc(String(xgH))}"
               data-xg-away="${esc(String(xgA))}"
             >Watch</button>`;
-            status = `<div><strong>${esc(fx.score)}</strong>${fx.winner ? ` · ${esc(fx.winner)}` : ""}${reviewBadge(result)}${watch}</div>`;
+            const potm = result?.potm;
+            const potmLine = potm
+              ? `<div class="muted" style="font-size:0.78rem;margin-top:0.15rem">⭐ POTM: ${esc(potm.player)} (${num(potm.rating, 1)})</div>`
+              : "";
+            status = `<div><strong>${esc(fx.score)}</strong>${fx.winner ? ` · ${esc(fx.winner)}` : ""}${reviewBadge(result)}${watch}${potmLine}</div>`;
           } else if (showRun) {
             status = `<button type="button" class="btn-ghost btn-sm run-fixture-btn" data-match-id="${esc(fx.id)}">Run</button>
               <a class="btn-link btn-sm" href="/matchday" style="margin-left:0.35rem">Matchday</a>`;

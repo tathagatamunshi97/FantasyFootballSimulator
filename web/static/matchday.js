@@ -85,6 +85,7 @@ function wireMatchdayActions(session) {
         const matchup = report?.matchup || r.matchup;
         const aiVerdict = report?.ai_verdict || r.ai_verdict;
         const aiCommentary = report?.ai_commentary || r.ai_commentary;
+        const playerRatings = report?.player_ratings || r.player_ratings;
         panel.hidden = false;
         let html = "";
         if (typeof renderAnalysis === "function" && analysis) {
@@ -95,6 +96,9 @@ function wireMatchdayActions(session) {
         }
         if (typeof renderAiCommentary === "function" && aiCommentary) {
           html += renderAiCommentary(aiCommentary);
+        }
+        if (typeof renderPlayerRatings === "function" && playerRatings) {
+          html += renderPlayerRatings(playerRatings);
         }
         if (typeof renderSquadAnalysis === "function" && squad) {
           html += renderSquadAnalysis(squad, matchup);
@@ -115,6 +119,7 @@ function wireMatchdayActions(session) {
         matchup: r.matchup,
         ai_verdict: r.ai_verdict,
         ai_commentary: r.ai_commentary,
+        player_ratings: r.player_ratings,
       };
       if (existing.analysis || r.analysis || existing.ai_commentary || r.ai_commentary) {
         showReport(existing);
@@ -155,12 +160,14 @@ function wireMatchdayActions(session) {
           session.result.matchup = data.matchup;
           session.result.ai_verdict = data.ai_verdict;
           session.result.ai_commentary = data.ai_commentary;
+          session.result.player_ratings = data.player_ratings;
           session.result.report = {
             analysis: data.analysis,
             squad_analysis: data.squad_analysis,
             matchup: data.matchup,
             ai_verdict: data.ai_verdict,
             ai_commentary: data.ai_commentary,
+            player_ratings: data.player_ratings,
           };
         }
         showReport(data);

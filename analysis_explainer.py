@@ -1877,3 +1877,465 @@ def enrich_analysis_with_board_result(
                 }
             )
     return out
+
+
+# ---------------------------------------------------------------------------
+# Per-match player ratings + Player of the Match
+#
+# A WhoScored/FotMob-style weighted-events model: start every starter at a
+# neutral 6.0 and add/subtract per contribution logged against them in this
+# match's own event stream (never season totals — see compute_match_ratings'
+# caller, which always scopes `events`/`player_passing` to one result). Every
+# weight below is a first-pass, deliberately simple and tunable -- there is
+# no "correct" football rating formula, real providers disagree with each
+# other too. Clean-sheet/goals-conceded bonuses apply to keeper + defence
+# only, matching the real convention every mainstream rating site uses.
+# ---------------------------------------------------------------------------
+
+_RATING_BASE = 6.0
+_RATING_MIN = 3.0
+_RATING_MAX = 10.0
+
+# Slot roles slot_role() can return that count as "defence" for clean-sheet
+# purposes (goalkeeper handled separately, always eligible).
+_DEFENSIVE_ROLES = {"fullback", "centre_back", "dm"}
+
+# dribble_won/dribble_lost are deliberately NOT in here -- see the capped
+# handling below. A real completed match logged 147 dribble_won events out
+# of 319 total (46% of everything that happened), so a handful of busy
+# players routinely rack up 15-23 of them each; at a flat per-event weight
+# that single stat swamped goals/assists/everything else and pushed 8 of 22
+# players in one real match to the rating ceiling. Everything else here
+# stays uncapped-per-event since none of it appears anywhere near that
+# volume in practice.
+#
+# Tuning pass 2 — real user feedback after watching two live matches: a 10
+# should be very rare, and dribbling volume specifically should never be
+# what gets a player there (see the even-lower dribble cap below). Goal
+# weight raised so a HAT-TRICK is what actually drives a 10 -- one goal
+# plus a good all-around game should land closer to 7.5-8, not the ceiling.
+# Every other positive weight nudged down to match: no single category
+# (shots, key passes, dribbles alone) should be able to carry a player to
+# the ceiling by itself anymore, only genuine hat-trick-level standout games.
+_RATING_EVENT_WEIGHTS: dict[str, float] = {
+    "goal": 1.3,
+    "assist": 0.55,  # applied via the goal event's `assist` field, not its own event
+    "shot": 0.2,
+    "big_chance": 0.2,
+    "key_pass": 0.3,
+    "big_chance_missed": -0.55,
+    "tackle": 0.25,  # dribble_lost credited to the `by` defender
+    "interception": 0.2,  # pass_broken credited to the `by` defender
+    "save": 0.45,
+    "blocked_shot": 0.2,  # credited to the `by` blocker, distinct from the shooter's own shot
+    "foul": -0.3,
+    "yellow_card": -0.5,
+    "red_card": -2.0,
+}
+
+# Dribbles should read as flavor ("lots of dribbles" in the highlight text),
+# never as a rating driver -- capped low enough that even a 20+ dribble
+# match-high barely moves the needle.
+_DRIBBLE_WON_WEIGHT = 0.015
+_DRIBBLE_WON_CAP = 0.3
+_DRIBBLE_LOST_WEIGHT = -0.08
+_DRIBBLE_LOST_CAP = 0.4
+
+# (singular, plural) display form per bump() label — kept as an explicit
+# table rather than string-manipulation pluralization, since several of
+# these put the noun mid-phrase ("big chance missed" -> "big chances
+# missed", not "big chance misseds").
+_LABEL_DISPLAY: dict[str, tuple[str, str]] = {
+    "goal": ("goal", "goals"),
+    "comeback goal": ("comeback goal", "comeback goals"),
+    "go-ahead goal": ("go-ahead goal", "go-ahead goals"),
+    "assist": ("assist", "assists"),
+    "comeback assist": ("comeback assist", "comeback assists"),
+    "go-ahead assist": ("go-ahead assist", "go-ahead assists"),
+    "shot": ("shot", "shots"),
+    "key pass": ("key pass", "key passes"),
+    "big chance missed": ("big chance missed", "big chances missed"),
+    "dribble won": ("dribble won", "dribbles won"),
+    "dribble lost": ("dribble lost", "dribbles lost"),
+    "tackle won": ("tackle won", "tackles won"),
+    "interception": ("interception", "interceptions"),
+    "save": ("save", "saves"),
+    "shot blocked": ("shot blocked", "shots blocked"),
+    "foul conceded": ("foul conceded", "fouls conceded"),
+    "yellow card": ("yellow card", "yellow cards"),
+    "red card": ("red card", "red cards"),
+}
+
+_MAX_HIGHLIGHTS_PER_PLAYER = 4
+
+_PASS_VOLUME_MIN_FOR_ACCURACY_BONUS = 15
+_PASS_ACCURACY_BASELINE = 0.80  # completion% above/below this nudges rating
+_PASS_ACCURACY_WEIGHT = 2.0
+_PASS_ACCURACY_CAP = 0.5
+_PROGRESSIVE_PASS_WEIGHT = 0.05
+_PROGRESSIVE_PASS_CAP = 0.6
+_RESULT_MODIFIER = {"win": 0.3, "draw": 0.0, "loss": -0.2}
+_CLEAN_SHEET_BONUS = 0.5
+
+# A perfect 10 should be rare, and real football's own convention is that a
+# player on the LOSING side essentially never gets one -- the one common
+# exception is a genuine end-to-end thriller, where individual moments can
+# stand out even in defeat. Modeled as: losing-side ratings are capped below
+# the ceiling, UNLESS this match's combined goals clear the "high volume"
+# bar (loosely: a 3+ goal margin game, or a 5+ goal shootout either team
+# could have won).
+_LOSING_TEAM_RATING_CAP = 9.4
+_HIGH_VOLUME_TOTAL_GOALS = 5
+
+# ---------------------------------------------------------------------------
+# Impact model — real user feedback, in two rounds. First: raw event
+# counting treats every goal and every tackle as equal, but a goal that
+# drags your team level from behind (or a defender's stop that specifically
+# neuters the match's most dangerous attacker) obviously matters more than
+# a stat padded onto an already-decided game. Second round: the RATING
+# itself should stay plain event-driven (predictable, transparent -- a goal
+# is worth a goal) -- this "impact" signal should only decide ties, not
+# change the number everyone sees. So: the two dimensions below are tracked
+# in `impact_score` as a pure side-channel, added to contribution_weight/
+# highlights for explanation but NEVER added to `scores` (the actual
+# rating). Both derived purely from this match's own event stream (no
+# season stats needed, keeps this cheap enough to run at match completion —
+# see _attach_player_ratings_at_completion):
+#
+# 1. Scoreline swing — a goal/assist matters more for impact purposes when
+#    it changes the game's shape: dragging a trailing side level or ahead
+#    ("comeback"), or breaking a tie ("go-ahead"), especially late.
+#    Extending an already-won game earns baseline rating only, no impact.
+# 2. Threat containment — a tackle/interception/block earns impact credit
+#    scaled by how dangerous the specific attacker it stopped was THIS
+#    match (their own shots/key passes/dribbles are the proxy for "how live
+#    a threat were they today" -- no player-quality database needed); the
+#    rating credit itself stays the plain baseline regardless.
+#
+# `impact` on each rating row is the sum of this extra, rating-invisible
+# credit -- a clean, explainable "how much of this player's day came from
+# moments that actually swung the match" number, used as the primary
+# Player-of-the-Match tie-break below (ahead of plain goals) when two
+# players land on the identical rating for very different reasons.
+_COMEBACK_GOAL_MULTIPLIER = 1.8  # trailing -> level or ahead
+_GO_AHEAD_GOAL_MULTIPLIER = 1.4  # level -> ahead
+_TRAILING_GOAL_MULTIPLIER = 1.3  # still trailing afterward, but clawing back
+_LATE_GOAL_MINUTE = 80.0
+_LATE_GOAL_KICKER = 1.15
+_GOAL_SWING_MULTIPLIER_CAP = 2.2
+
+# Threat score (0-1ish, see _threat_score) needed to make containing that
+# player "impact" rather than routine defending.
+_ELITE_THREAT_THRESHOLD = 0.5
+_THREAT_SHOT_WEIGHT = 0.35
+_THREAT_KEY_PASS_WEIGHT = 0.3
+_THREAT_DRIBBLE_WEIGHT = 0.06
+_THREAT_NORMALIZER = 3.0  # raw threat points read as "1.0 = full elite threat"
+
+
+def _player_side_slot_map(home_team: Any, away_team: Any) -> dict[str, tuple[str, str, str]]:
+    """player name -> (team_name, side, slot) for every starter on both sides."""
+    out: dict[str, tuple[str, str, str]] = {}
+    for side, team in (("home", home_team), ("away", away_team)):
+        for row in team.lineup:
+            player = (row.player or "").strip()
+            if player:
+                out[player] = (team.name, side, row.slot)
+    return out
+
+
+def compute_match_ratings(
+    home_team: Any,
+    away_team: Any,
+    events: list[dict[str, Any]],
+    player_passing: dict[str, Any] | None,
+    *,
+    home_goals: int,
+    away_goals: int,
+) -> dict[str, Any]:
+    """Per-player 1-10 match rating + Player of the Match for one match.
+
+    `events` must already be scoped to this single match (normalize_board_events
+    output), never a season-wide event stream. `player_passing` is this
+    match's own match_log["player_passing"] map, keyed by player name.
+    """
+    player_map = _player_side_slot_map(home_team, away_team)
+    if not player_map:
+        return {"ratings": [], "player_of_the_match": None}
+
+    # Counted per (player, label) rather than one raw string per event, so a
+    # keeper's 4 saves surfaces as one "4 saves" highlight instead of eating
+    # the whole display cap on four identical lines.
+    contribution_counts: dict[str, dict[str, int]] = {p: {} for p in player_map}
+    contribution_weight: dict[str, dict[str, float]] = {p: {} for p in player_map}
+    one_off_notes: dict[str, list[str]] = {p: [] for p in player_map}
+    scores: dict[str, float] = {p: _RATING_BASE for p in player_map}
+    # Extra credit beyond plain baseline from a swing goal/assist or an
+    # elite-threat containment -- see the impact-model comment above
+    # _COMEBACK_GOAL_MULTIPLIER. Used as the primary Player-of-the-Match
+    # tie-break: two players on the same rating for different reasons, the
+    # one whose contribution actually swung the match wins.
+    impact_score: dict[str, float] = {p: 0.0 for p in player_map}
+
+    def bump_raw(player: str | None, weight: float, label: str) -> None:
+        player = (player or "").strip()
+        if not player or player not in scores:
+            return
+        scores[player] += weight
+        contribution_counts[player][label] = contribution_counts[player].get(label, 0) + 1
+        contribution_weight[player][label] = contribution_weight[player].get(label, 0.0) + abs(weight)
+
+    def bump(player: str | None, event_key: str, label: str) -> None:
+        bump_raw(player, _RATING_EVENT_WEIGHTS[event_key], label)
+
+    # dribble_won/dribble_lost tallied by count only here -- score impact is
+    # applied once after the loop, capped (see _DRIBBLE_WON_CAP/_DRIBBLE_LOST_CAP
+    # above), since raw per-event weighting is what let a handful of busy
+    # players' dribble counts alone push them to the rating ceiling.
+    def count_only(player: str | None, label: str) -> None:
+        player = (player or "").strip()
+        if not player or player not in scores:
+            return
+        contribution_counts[player][label] = contribution_counts[player].get(label, 0) + 1
+
+    # goal/assist (needs chronological score-state -- see the swing pass
+    # below) and tackle/interception/blocked_shot (needs full-match threat
+    # scores, which aren't known until every player's shots/key passes/
+    # dribbles for the WHOLE match are tallied) are deliberately deferred
+    # rather than scored inline here.
+    goal_events: list[dict[str, Any]] = []
+    defensive_events: list[tuple[str, str | None, str | None]] = []
+
+    for ev in events:
+        et = ev.get("type")
+        player = ev.get("player")
+        if et == "goal":
+            goal_events.append(ev)
+        elif et in ("shot", "big_chance"):
+            bump(player, et, "shot")
+        elif et == "key_pass":
+            bump(player, "key_pass", "key pass")
+        elif et == "big_chance_missed":
+            bump(player, "big_chance_missed", "big chance missed")
+        elif et == "dribble_won":
+            count_only(player, "dribble won")
+        elif et == "dribble_lost":
+            count_only(player, "dribble lost")
+            defensive_events.append(("tackle", ev.get("by"), player))
+        elif et == "pass_broken":
+            defensive_events.append(("interception", ev.get("by"), ev.get("against_player")))
+        elif et == "save":
+            bump(player, "save", "save")
+        elif et == "blocked_shot":
+            defensive_events.append(("blocked_shot", ev.get("by"), player))
+        elif et == "foul":
+            bump(player, "foul", "foul conceded")
+        elif et == "yellow_card":
+            bump(player, "yellow_card", "yellow card")
+        elif et == "red_card":
+            bump(player, "red_card", "red card")
+
+    # Threat score (0-1ish): how live an attacking threat this player was
+    # THIS match, from their own shots/key passes/dribbles already tallied
+    # above -- the proxy for "how elite were they today" a defender's
+    # containment gets measured against (see the impact-model comment).
+    def threat_score(player: str | None) -> float:
+        player = (player or "").strip()
+        if not player:
+            return 0.0
+        c = contribution_counts.get(player, {})
+        raw = (
+            c.get("shot", 0) * _THREAT_SHOT_WEIGHT
+            + c.get("key pass", 0) * _THREAT_KEY_PASS_WEIGHT
+            + c.get("dribble won", 0) * _THREAT_DRIBBLE_WEIGHT
+        )
+        return min(1.0, raw / _THREAT_NORMALIZER)
+
+    # Goals/assists, chronologically, applying the scoreline-swing multiplier.
+    running = {"home": 0, "away": 0}
+    for ev in goal_events:
+        side = ev.get("side")
+        opp_side = "away" if side == "home" else "home"
+        team_before = running.get(side, 0)
+        opp_before = running.get(opp_side, 0)
+        if team_before < opp_before:
+            multiplier = (
+                _COMEBACK_GOAL_MULTIPLIER if team_before + 1 >= opp_before else _TRAILING_GOAL_MULTIPLIER
+            )
+            goal_label = "comeback goal" if team_before + 1 >= opp_before else "goal"
+            assist_label = "comeback assist" if team_before + 1 >= opp_before else "assist"
+        elif team_before == opp_before:
+            multiplier = _GO_AHEAD_GOAL_MULTIPLIER
+            goal_label = "go-ahead goal"
+            assist_label = "go-ahead assist"
+        else:
+            multiplier = 1.0
+            goal_label = "goal"
+            assist_label = "assist"
+        minute = float(ev.get("minute") or 0)
+        if minute >= _LATE_GOAL_MINUTE:
+            multiplier *= _LATE_GOAL_KICKER
+        multiplier = min(multiplier, _GOAL_SWING_MULTIPLIER_CAP)
+
+        # Real user feedback: the RATING itself goes back to plain event
+        # counting (flat baseline weight, no swing multiplier applied to
+        # the score) -- only impact_score (the tie-break signal) gets the
+        # swing bonus. The descriptive label (goal_label) still reflects
+        # what actually happened for the highlight text, it just no longer
+        # changes the number.
+        scorer = ev.get("player")
+        goal_baseline = _RATING_EVENT_WEIGHTS["goal"]
+        bump_raw(scorer, goal_baseline, goal_label)
+        scorer_key = (scorer or "").strip()
+        if scorer_key in impact_score and multiplier > 1.0:
+            impact_score[scorer_key] += goal_baseline * (multiplier - 1.0)
+
+        assist = ev.get("assist")
+        if assist and assist != scorer:
+            assist_baseline = _RATING_EVENT_WEIGHTS["assist"]
+            bump_raw(assist, assist_baseline, assist_label)
+            assist_key = (assist or "").strip()
+            if assist_key in impact_score and multiplier > 1.0:
+                impact_score[assist_key] += assist_baseline * (multiplier - 1.0)
+
+        if side in running:
+            running[side] += 1
+
+    # Tackles/interceptions/blocks -- rating stays plain baseline (event-
+    # driven, same as everything else), same as the goal/assist treatment
+    # above: how dangerous the attacker stopped was only feeds impact_score
+    # (the tie-break signal, and the "contained X" highlight), never the
+    # number itself. Containing a nobody vs. containing this match's most
+    # live threat now reads identically in the rating -- only in who wins
+    # a tie, and in the highlight text explaining why.
+    _DEFENSIVE_LABEL = {"tackle": "tackle won", "interception": "interception", "blocked_shot": "shot blocked"}
+    best_contained: dict[str, tuple[float, str]] = {}  # defender -> (threat, attacker) of their best stop
+    for kind, defender, attacker in defensive_events:
+        base_weight = _RATING_EVENT_WEIGHTS[kind]
+        t = threat_score(attacker)
+        bump_raw(defender, base_weight, _DEFENSIVE_LABEL[kind])
+        defender_key = (defender or "").strip()
+        if defender_key in impact_score and t >= _ELITE_THREAT_THRESHOLD:
+            impact_score[defender_key] += base_weight * t
+            attacker_key = (attacker or "").strip()
+            if attacker_key and t > best_contained.get(defender_key, (0.0, ""))[0]:
+                best_contained[defender_key] = (t, attacker_key)
+    for defender_key, (_t, attacker_key) in best_contained.items():
+        one_off_notes[defender_key].append(f"contained {attacker_key}")
+
+    # Capped dribble_won/dribble_lost application (see count_only above) --
+    # the weight actually applied becomes this label's sort weight for
+    # format_highlights too, so "23 dribbles won" doesn't outrank "1 goal"
+    # just because the raw count is bigger than the capped point swing.
+    for player in player_map:
+        dw = contribution_counts[player].get("dribble won", 0)
+        if dw:
+            applied = min(_DRIBBLE_WON_CAP, dw * _DRIBBLE_WON_WEIGHT)
+            scores[player] += applied
+            contribution_weight[player]["dribble won"] = applied
+        dl = contribution_counts[player].get("dribble lost", 0)
+        if dl:
+            applied = max(-_DRIBBLE_LOST_CAP, dl * _DRIBBLE_LOST_WEIGHT)
+            scores[player] += applied
+            contribution_weight[player]["dribble lost"] = abs(applied)
+
+    for player, row in (player_passing or {}).items():
+        if player not in scores or not isinstance(row, dict):
+            continue
+        attempted = float(row.get("passes_attempted") or 0)
+        completed = float(row.get("passes_completed") or 0)
+        if attempted >= _PASS_VOLUME_MIN_FOR_ACCURACY_BONUS:
+            pct = completed / attempted
+            delta = max(
+                -_PASS_ACCURACY_CAP,
+                min(_PASS_ACCURACY_CAP, (pct - _PASS_ACCURACY_BASELINE) * _PASS_ACCURACY_WEIGHT),
+            )
+            if abs(delta) >= 0.05:
+                scores[player] += delta
+                one_off_notes[player].append(
+                    f"{completed:.0f}/{attempted:.0f} passing ({pct * 100:.0f}%)"
+                )
+        progressive = float(row.get("progressive_passes") or 0)
+        if progressive:
+            bonus = min(_PROGRESSIVE_PASS_CAP, progressive * _PROGRESSIVE_PASS_WEIGHT)
+            scores[player] += bonus
+
+    home_result = "win" if home_goals > away_goals else "loss" if home_goals < away_goals else "draw"
+    away_result = "win" if away_goals > home_goals else "loss" if away_goals < home_goals else "draw"
+    for player, (_team, side, _slot) in player_map.items():
+        scores[player] += _RESULT_MODIFIER[home_result if side == "home" else away_result]
+
+    home_clean_sheet = away_goals == 0
+    away_clean_sheet = home_goals == 0
+    for player, (_team, side, slot) in player_map.items():
+        clean = home_clean_sheet if side == "home" else away_clean_sheet
+        if not clean:
+            continue
+        role = slot_role(slot)
+        if role == "gk" or role in _DEFENSIVE_ROLES:
+            scores[player] += _CLEAN_SHEET_BONUS
+            one_off_notes[player].append("clean sheet")
+
+    def format_highlights(player: str) -> list[str]:
+        counted = [
+            (
+                contribution_weight[player][label],
+                count,
+                f"{count} {_LABEL_DISPLAY[label][1] if count != 1 else _LABEL_DISPLAY[label][0]}",
+            )
+            for label, count in contribution_counts[player].items()
+        ]
+        # Highest total point-swing first, so a goal always outranks a
+        # passing-accuracy nudge regardless of which fired first in the match.
+        counted.sort(key=lambda row: row[0], reverse=True)
+        phrases = [row[2] for row in counted] + one_off_notes[player]
+        return phrases[:_MAX_HIGHLIGHTS_PER_PLAYER]
+
+    # A losing-side player is capped below the ceiling -- a perfect 10 on
+    # the losing team essentially never happens in real football rating
+    # conventions -- unless this was itself a high-volume, end-to-end match
+    # (see _HIGH_VOLUME_TOTAL_GOALS) where a losing side's standout moments
+    # are plausible even in defeat.
+    high_volume = (home_goals + away_goals) >= _HIGH_VOLUME_TOTAL_GOALS
+    home_lost = home_goals < away_goals
+    away_lost = away_goals < home_goals
+
+    # Goals/assists can now land under three different labels each (plain,
+    # comeback, go-ahead) depending on the scoreline swing they came with --
+    # sum across all of them for the totals shown/used below.
+    _GOAL_LABELS = ("goal", "comeback goal", "go-ahead goal")
+    _ASSIST_LABELS = ("assist", "comeback assist", "go-ahead assist")
+
+    ratings = []
+    for player, (team, side, slot) in player_map.items():
+        ceiling = _RATING_MAX
+        lost = home_lost if side == "home" else away_lost
+        if lost and not high_volume:
+            ceiling = _LOSING_TEAM_RATING_CAP
+        rating = round(max(_RATING_MIN, min(ceiling, scores[player])), 1)
+        goals = sum(contribution_counts[player].get(lbl, 0) for lbl in _GOAL_LABELS)
+        assists = sum(contribution_counts[player].get(lbl, 0) for lbl in _ASSIST_LABELS)
+        ratings.append(
+            {
+                "player": player,
+                "team": team,
+                "side": side,
+                "slot": slot,
+                "rating": rating,
+                "goals": goals,
+                "assists": assists,
+                "impact": round(impact_score[player], 2),
+                "highlights": format_highlights(player),
+            }
+        )
+    # Tie-break for equal ratings (a real 10.0-vs-10.0 tie is exactly the
+    # scenario a rare-ceiling formula makes plausible): highest impact first
+    # -- the extra credit from a genuine scoreline swing (comeback/go-ahead
+    # goal or assist) or containing this match's most dangerous attacker --
+    # ahead of plain goal count, since two players can land on the same
+    # rating for very different reasons and the more match-defining one
+    # should win. Goals, then alphabetical, are just final determinism.
+    ratings.sort(key=lambda r: (-r["rating"], -r["impact"], -r["goals"], -(r["goals"] + r["assists"]), r["player"]))
+
+    potm = ratings[0] if ratings else None
+    return {"ratings": ratings, "player_of_the_match": potm}

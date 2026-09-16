@@ -1664,7 +1664,7 @@ def _resolve_winner(
     return None
 
 
-_ANALYSIS_RESULT_KEYS = ("analysis", "squad_analysis", "analysis_matchup")
+_ANALYSIS_RESULT_KEYS = ("analysis", "squad_analysis", "analysis_matchup", "player_ratings")
 _BOARD_LOG_KEYS = ("board_events", "match_log")
 # Bump when formation_fit / slot-fit narrative must invalidate persisted match analysis.
 _FIT_FORMULA_VERSION = 3
@@ -3046,6 +3046,7 @@ def complete_from_board(
             "events": stored_events,
             "goals": [e for e in stored_events if e.get("type") == "goal"],
         }
+    _attach_player_ratings_at_completion(result, home, away, tournament_id=tournament_id, match_id=match_id)
     if not is_knockout:
         result["group"] = stage_key
 
@@ -3119,6 +3120,13 @@ def complete_from_board(
         "expected_xg": result.get("expected_xg"),
         "possession_pct": result.get("possession_pct"),
         "has_analysis": False,
+        # Unlike the narrative analysis (still deferred to "Generate
+        # analysis"), player ratings + Player of the Match are already
+        # computed by now (_attach_player_ratings_at_completion above) --
+        # include them here so they broadcast to every Matchday viewer the
+        # moment full time hits, not just admins who later click through.
+        "player_ratings": result.get("player_ratings"),
+        "potm": result.get("potm"),
     }
     if decided:
         md_result["decided_by"] = decided
@@ -3186,9 +3194,99 @@ def _build_and_attach_board_analysis(
         season_overrides=season_overrides,
     )
     result.update(_analysis_payload_from_report(report))
+    # Bug fix — real observed race: get_match_analysis's "generating" branch
+    # already treats `result` as done the moment `analysis` text exists (see
+    # its `_result_has_analysis(result)` early-return), before this whole
+    # function's background job actually finishes. _attach_ai_verdict/
+    # _attach_ai_commentary each make a real, sequential network call to
+    # Gemini (seconds each) -- a poll landing in that window got a response
+    # already reporting "ready" with player_ratings still missing, since it
+    # used to be attached last. This is a fast, local, deterministic
+    # computation with no reason to be ordered behind two network calls --
+    # attach it right away so it's present as soon as `analysis` itself is.
+    _attach_player_ratings(result, home_team, away_team, events, log)
     _attach_ai_verdict(result)
     _attach_ai_commentary(result)
     return _analysis_response(result, match_id)
+
+
+def _attach_player_ratings(
+    result: dict[str, Any],
+    home_team: FantasyTeam,
+    away_team: FantasyTeam,
+    events: Any,
+    log: Any,
+) -> None:
+    """Per-match player ratings + Player of the Match -- best-effort, same
+    fail-open convention as _attach_ai_verdict/_attach_ai_commentary above
+    (a formula bug here must never break the rest of the analysis).
+
+    Idempotent: now computed once already at match-completion time (see
+    _attach_player_ratings_at_completion below), so a later "Generate
+    analysis" call re-entering this must not silently redo/overwrite it --
+    same instant result every time regardless of which caller ran first."""
+    if result.get("player_ratings"):
+        return
+    try:
+        from analysis_explainer import compute_match_ratings, normalize_board_events
+
+        normalized = normalize_board_events(
+            events if isinstance(events, list) else None,
+            log if isinstance(log, (list, dict)) else None,
+        )
+        player_passing = log.get("player_passing") if isinstance(log, dict) else None
+        ratings = compute_match_ratings(
+            home_team,
+            away_team,
+            normalized,
+            player_passing,
+            home_goals=int(result.get("home_goals") or 0),
+            away_goals=int(result.get("away_goals") or 0),
+        )
+        result["player_ratings"] = ratings
+        # "player_ratings" (the full 22-row breakdown) is treated as a heavy
+        # analysis blob and stripped from list/poll payloads (see
+        # match_result_for_api / _ANALYSIS_RESULT_KEYS) -- a full season's
+        # fixture list would otherwise carry every match's full breakdown.
+        # POTM alone is small and meant to be visible everywhere a played
+        # fixture shows up (the whole point of computing this at completion
+        # time, not behind a click), so it's promoted to its own top-level
+        # key that is deliberately NOT in that strip list.
+        result["potm"] = ratings.get("player_of_the_match")
+    except Exception as exc:
+        print(f"tournament: player-ratings build failed: {exc}")
+
+
+def _attach_player_ratings_at_completion(
+    result: dict[str, Any],
+    home_name: str,
+    away_name: str,
+    *,
+    tournament_id: str,
+    match_id: str,
+) -> None:
+    """Compute Player of the Match + full ratings right when the match is
+    recorded -- not gated behind "Generate analysis" -- so it's ready to
+    broadcast to every viewer the moment full time hits.
+
+    A rating only needs each team's current lineup (player -> slot), never
+    the season stat-profiles / formation-fit narrative the full analysis
+    report builds -- so this skips _load_teams_for_match's stats-store
+    warming and prepare_match_player_stats entirely and just loads the two
+    lineups directly, cheap enough to run inline in the completion request
+    rather than as a background job. Best-effort, same fail-open convention
+    as everywhere else here: a lineup-loading hiccup must never block
+    recording the actual match result.
+    """
+    try:
+        team_a, team_b = _load_teams_for_match(
+            home_name, away_name, tournament_id=tournament_id, match_id=match_id
+        )
+        home_team = FantasyTeam.from_dict(team_a)
+        away_team = FantasyTeam.from_dict(team_b)
+        _attach_player_ratings(result, home_team, away_team, result.get("board_events"), result.get("match_log"))
+    except Exception as exc:
+        print(f"tournament: player-ratings-at-completion failed: {exc}")
 
 
 def run_group_match(tournament_id: str, match_id: str) -> dict[str, Any]:
@@ -3488,6 +3586,7 @@ def _analysis_response(result: dict[str, Any], match_id: str) -> dict[str, Any]:
         "matchup": result.get("analysis_matchup"),
         "ai_verdict": result.get("ai_verdict"),
         "ai_commentary": result.get("ai_commentary"),
+        "player_ratings": result.get("player_ratings"),
         "has_analysis": _result_has_analysis(result),
         "experiment_id": result.get("experiment_id"),
         "status": "ready",

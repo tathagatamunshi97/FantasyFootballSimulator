@@ -614,7 +614,16 @@ function lcAnalysisButtonLabel(matchId) {
 
 function lcAnalysisControls(row) {
   const mid = esc(row.resultId);
+  // POTM is computed right at match completion (not behind "Generate
+  // analysis" -- see web/tournament.py's _attach_player_ratings_at_completion),
+  // and survives the lightweight match_result_for_api stripping that the
+  // full ratings breakdown doesn't, so it's already here to show plainly.
+  const potm = (lcTournament.match_results || {})[row.resultId]?.potm;
+  const potmLine = potm
+    ? `<div class="muted" style="font-size:0.78rem;margin-top:0.15rem">⭐ POTM: ${esc(potm.player)} (${num(potm.rating, 1)})</div>`
+    : "";
   return `<div class="analysis-controls" style="margin-top:0.35rem">
+    ${potmLine}
     <div class="btn-stack">
       <button type="button" class="btn-ghost btn-sm view-analysis-btn" data-match-id="${mid}">${lcAnalysisButtonLabel(row.resultId)}</button>
     </div>

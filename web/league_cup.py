@@ -931,6 +931,9 @@ def complete_from_board(
     elif stored_events:
         result["match_log"] = {"events": stored_events, "goals": [e for e in stored_events if e.get("type") == "goal"]}
 
+    tournament._attach_player_ratings_at_completion(
+        result, home, away, tournament_id=tournament_id, match_id=match_id
+    )
     tournament._attach_ai_commentary(result)
 
     t["match_results"][result_id] = result

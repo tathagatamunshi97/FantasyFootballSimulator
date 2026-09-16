@@ -317,8 +317,9 @@ function fillAnalysisPanel(matchId, data) {
   const analysisHtml = typeof renderAnalysis === "function" ? renderAnalysis(data.analysis) : "";
   const aiHtml = typeof renderAiVerdict === "function" ? renderAiVerdict(data.ai_verdict) : "";
   const aiCommentaryHtml = typeof renderAiCommentary === "function" ? renderAiCommentary(data.ai_commentary) : "";
+  const ratingsHtml = typeof renderPlayerRatings === "function" ? renderPlayerRatings(data.player_ratings) : "";
   const squadHtml = typeof renderSquadAnalysis === "function" ? renderSquadAnalysis(data.squad_analysis, data.matchup) : "";
-  panel.innerHTML = header + (analysisHtml || `<p class="muted">No analysis text.</p>`) + aiHtml + aiCommentaryHtml + (squadHtml || "");
+  panel.innerHTML = header + (analysisHtml || `<p class="muted">No analysis text.</p>`) + aiHtml + aiCommentaryHtml + ratingsHtml + (squadHtml || "");
   const btn = document.querySelector(`.view-analysis-btn[data-match-id="${matchId}"]`);
   if (btn) btn.textContent = "Hide analysis";
 }
@@ -765,6 +766,60 @@ function renderAiCommentary(c) {
     </section>`;
 }
 
+/** Rating color bands — reuses the same success/danger tokens the scout
+ * report's kb-adv/kb-dis rows already use, so a rating badge reads
+ * consistently with the rest of the analysis panel in both themes. */
+function ratingColor(rating) {
+  const r = Number(rating);
+  if (!Number.isFinite(r)) return "var(--muted)";
+  if (r >= 7.5) return "var(--success)";
+  if (r < 5.5) return "var(--danger)";
+  return "var(--muted)";
+}
+
+function renderPlayerRatings(playerRatings) {
+  const ratings = playerRatings?.ratings;
+  if (!Array.isArray(ratings) || !ratings.length) return "";
+  const potm = playerRatings.player_of_the_match;
+  const potmHighlights = potm?.highlights?.length ? ` — ${potm.highlights.map(esc).join(", ")}` : "";
+  const potmHtml = potm
+    ? `<div class="analysis-block" style="border-color:rgba(250,204,21,0.35)">
+        <h3>⭐ Player of the Match</h3>
+        <p style="margin:0"><strong>${esc(potm.player)}</strong> <span class="muted">(${esc(potm.team)}, ${esc(potm.slot)})</span> — <span style="color:${ratingColor(potm.rating)};font-weight:600">${num(potm.rating, 1)}</span>${potmHighlights}</p>
+      </div>`
+    : "";
+
+  const bySide = { home: [], away: [] };
+  ratings.forEach((r) => {
+    (bySide[r.side] === undefined ? bySide.home : bySide[r.side]).push(r);
+  });
+
+  const table = (rows) => {
+    if (!rows.length) return "";
+    const trs = rows
+      .map(
+        (r) => `<tr>
+          <td>${esc(r.slot)}</td>
+          <td>${esc(r.player)}</td>
+          <td style="text-align:right;color:${ratingColor(r.rating)};font-weight:600">${num(r.rating, 1)}</td>
+          <td class="muted" style="font-size:0.78rem">${(r.highlights || []).map(esc).join(", ")}</td>
+        </tr>`
+      )
+      .join("");
+    return `<div class="report-table-wrap" style="margin-top:0.5rem"><table><thead><tr><th>Slot</th><th>Player</th><th>Rating</th><th>Notes</th></tr></thead><tbody>${trs}</tbody></table></div>`;
+  };
+
+  return `
+    <section class="card analysis-card" style="margin-top:1rem">
+      <h2>Player ratings</h2>
+      ${potmHtml}
+      <div class="grid grid-2" style="gap:1rem;margin-top:0.5rem">
+        <div><h3 style="margin:0">${esc(bySide.home[0]?.team || "Home")}</h3>${table(bySide.home)}</div>
+        <div><h3 style="margin:0">${esc(bySide.away[0]?.team || "Away")}</h3>${table(bySide.away)}</div>
+      </div>
+    </section>`;
+}
+
 function renderMatchdayList(items) {
   return renderMatchdaySession(null);
 }
@@ -923,6 +978,14 @@ function renderMatchdaySession(status, { isAdmin = false } = {}) {
       r.engine === "tactic_board" || (!r.home_win_pct && r.score)
         ? `<p class="muted">Official pin-board result${r.expected_xg ? ` · xG ${esc(String(r.expected_xg.home))}–${esc(String(r.expected_xg.away))}` : ""}</p>`
         : `<p><strong>${esc(r.winner || "Draw")}</strong> · ${pct(r.home_win_pct)} home · ${pct(r.draw_pct)} draw · ${pct(r.away_win_pct)} away</p>`;
+    // Player ratings + Player of the Match are computed right at match
+    // completion (web/tournament.py's complete_from_board), not behind
+    // "Generate analysis" -- matchday_session's poll payload embeds the
+    // full result verbatim (no stripping, unlike the tournament list/
+    // analysis-tab payloads), so r.player_ratings is already here the
+    // moment phase flips to "result". Broadcast it to every viewer
+    // immediately instead of waiting on a click.
+    const ratingsHtml = typeof renderPlayerRatings === "function" ? renderPlayerRatings(r.player_ratings) : "";
     phaseBody = `
       <div class="card">
         <h3 style="font-size:2rem;margin:0">${esc(r.score || "—")}</h3>
@@ -935,6 +998,7 @@ function renderMatchdaySession(status, { isAdmin = false } = {}) {
         ${analysisBtn}
         ${dismissBtn}
       </div>
+      ${ratingsHtml}
       ${watchCard}
       <div id="matchdayAnalysisPanel" hidden style="margin-top:1rem"></div>`;
   }

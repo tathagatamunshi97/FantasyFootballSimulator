@@ -1956,6 +1956,7 @@
       };
       if (extra.by) entry.by = extra.by;
       if (extra.against) entry.against = extra.against;
+      if (extra.against_player) entry.against_player = extra.against_player;
       if (extra.xg != null && Number.isFinite(Number(extra.xg))) entry.xg = Number(extra.xg);
       if (extra.assist) entry.assist = extra.assist;
       if (extra.assist_short) entry.assist_short = extra.assist_short;
@@ -3181,6 +3182,32 @@
         .filter((o) => o.d <= (maxDist ?? 16))
         .sort((a, b) => a.d - b.d);
       return opp.slice(0, n ?? 2);
+    }
+
+    // Attribution fix — real user report: every dribble/carry/pass contest
+    // below picks who gets tackle/interception credit via nearestOpponent(),
+    // completely ignoring this attacker's actual assigned marker (pin._defMode
+    // === "mark" + pin._markTargetId, set where `mark` is computed a couple
+    // thousand lines up) -- so a DM merely standing closer at the instant of
+    // the roll got "contained the striker" credit that should have gone to
+    // the CB who was genuinely assigned to that striker. Prefer whoever is
+    // actually marking this specific attacker; every call site still falls
+    // back to nearestOpponent() when nobody is (attacker is press-resisted
+    // by a covering/tracking defender instead, or genuinely unmarked).
+    function markingDefenderFor(attacker, maxDist) {
+      if (!attacker) return null;
+      let best = null;
+      let bestD = Infinity;
+      for (const o of pinsOf(oppOf(attacker.side))) {
+        if (o.role === "GK" || o._markTargetId !== attacker.id) continue;
+        const d = dist(o, attacker);
+        if (d < bestD) {
+          bestD = d;
+          best = o;
+        }
+      }
+      if (best && bestD <= (maxDist ?? 20)) return { pin: best, d: bestD };
+      return null;
     }
 
     /**
@@ -6407,7 +6434,15 @@
           // Only credit a real, close-enough-to-plausibly-make-the-
           // challenge defender; if nobody is that close, there's no stop
           // this tick (falls through to the normal advance below).
-          const opp = threat?.pin;
+          //
+          // Attribution fix — stop probability above stays driven by
+          // nearestOpponent (genuine proximity/pressure physics, unchanged),
+          // but WHO gets named/credited (and snapped to the ball below)
+          // prefers whoever is actually assigned to mark this carrier, same
+          // engageRadius so it's never a implausible cross-pitch credit —
+          // only swaps the name when the real marker is right there too.
+          const marker = markingDefenderFor(carrier, engageRadius);
+          const opp = (marker || threat)?.pin;
           if (opp) {
             pushMatchEvent("dribble_lost", carrier.side, {
               player: carrier.player,
@@ -9420,6 +9455,19 @@
                 }
               }
               const defMode = pin._defMode || naturalMode;
+              // Attribution fix — real user report: rating/stats credit for
+              // winning a tackle or interception (doDribble/doCarry/doPass/
+              // driveIntoBox, all far below) used nearestOpponent() at the
+              // moment of the roll, completely independent of THIS marking
+              // assignment -- so a DM who merely happened to be closer when
+              // a striker drifted deep got credited with "containing" them,
+              // even though a CB was the one actually assigned to mark that
+              // striker per defMode. `mark` above is recomputed fresh every
+              // tick (not hysteresis-held like defMode itself), so this
+              // tracks the current target directly off it whenever this pin
+              // is in "mark" mode -- markingDefenderFor() (near
+              // nearestOpponent's own definition) reads it back.
+              pin._markTargetId = defMode === "mark" && mark ? mark.id : null;
 
               // Goalside cover depth: between ball and own goal (depth ≤ ball)
               const goalside = clamp(Math.min(relBall.depth - 0.02, defLine + 0.02), 0.05, midLine + 0.04);
@@ -11067,6 +11115,7 @@
             player: def.player,
             player_short: def.short,
             against: from.side,
+            against_player: to.player,
             by: def.player,
             detail: passKind === "long" ? `cuts out the long ball` : `broke ${from.short}'s pass`,
           });
@@ -11096,6 +11145,7 @@
             player: p.player,
             player_short: p.short,
             against: from.side,
+            against_player: from.player,
             by: p.player,
             detail: `presses ${from.short}`,
           });
@@ -11202,6 +11252,7 @@
               player: bestCb.player,
               player_short: bestCb.short,
               against: from.side,
+              against_player: to.player,
               by: bestCb.player,
               detail: `clears ${from.short}'s cross`,
             });
@@ -11631,7 +11682,17 @@
         // for the foul-quality math just below (opp.stats.* is dereferenced
         // unconditionally) — in normal play a defender within 10 units
         // almost always exists, so it essentially never fires.
-        const opp = threat?.pin || nearestOpponent(carrier, 10)?.pin || pinsOf(oppOf(carrier.side))[3];
+        //
+        // Attribution fix — duel-odds math above (threatMod etc.) stays on
+        // `threat` (genuine nearest-opponent physics, unchanged); only WHO
+        // gets named/credited here prefers this carrier's actual assigned
+        // marker when one is close enough to plausibly be the one who made
+        // the challenge (same radius as the existing threat search).
+        const opp =
+          markingDefenderFor(carrier, scrambling ? 16 : 12)?.pin ||
+          threat?.pin ||
+          nearestOpponent(carrier, 10)?.pin ||
+          pinsOf(oppOf(carrier.side))[3];
         // Engine addition — fouls. A defender "winning" this duel wasn't
         // necessarily a clean tackle; some fraction is a foul instead, more
         // likely in a dangerous last-man situation (attacker already in the
@@ -11942,7 +12003,9 @@
         if (rng() < clamp(dispossessP, 0.03, 0.26) * PRESS_LOOSEN) {
           // threat, or (when fieldPressure alone triggered the gate) the
           // nearest opponent within the pressure radius — always non-null.
-          const opp = threat?.pin || nearestOpponent(carrier, 14)?.pin;
+          // Attribution fix — dispossessP above stays on `threat` (real
+          // physics); naming prefers the assigned marker if one's in range.
+          const opp = markingDefenderFor(carrier, engageRadius)?.pin || threat?.pin || nearestOpponent(carrier, 14)?.pin;
           pushMatchEvent("dribble_lost", carrier.side, {
             player: carrier.player,
             player_short: carrier.short,
