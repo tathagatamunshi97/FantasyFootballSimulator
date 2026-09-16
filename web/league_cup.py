@@ -302,6 +302,7 @@ def tournament_for_api(t: dict[str, Any]) -> dict[str, Any]:
         "cup_team_least_xg_conceded": cup_defence["least_xg_conceded"],
         "purse": team_purse.purse_table_for_tournament(t),
         "pool": transfer_pool.list_pool(t["id"]),
+        "season_awards": tournament.season_awards(t["id"]),
     }
 
 

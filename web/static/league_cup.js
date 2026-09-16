@@ -155,6 +155,7 @@ const LC_TABS = [
   ["cup", "Cup"],
   ["purse", "Purse"],
   ["pool", "Pool"],
+  ["awards", "Awards"],
   ["stats", "Stats"],
   ["analysis", "Analysis"],
 ];
@@ -170,6 +171,7 @@ function lcRenderApp() {
   else if (lcActiveTab === "cup") body = lcRenderCup();
   else if (lcActiveTab === "purse") body = lcRenderPurse();
   else if (lcActiveTab === "pool") body = lcRenderPool();
+  else if (lcActiveTab === "awards") body = lcRenderAwards();
   else if (lcActiveTab === "stats") body = lcRenderStats();
   else if (lcActiveTab === "analysis") body = lcRenderAnalysisTab();
   return `${lcRenderAdvanceSeasonCard()}${tabs}<div style="margin-top:1rem">${body}</div>`;
@@ -383,6 +385,96 @@ function lcRenderPool() {
       </tr></thead>
       <tbody>${body}</tbody></table></div>
     </div>`;
+}
+
+// ---------------------------------------------------------------------------
+// Season awards -- Player of the Season + Team of the Season, JIT-aggregated
+// from every played match's per-match player ratings (see web/tournament.py's
+// season_awards). A pitch diagram reuses the shot map's green-pitch styling
+// for visual consistency across the two features.
+// ---------------------------------------------------------------------------
+
+function lcSeasonXiPitchSvg(xi) {
+  const dots = xi
+    .filter((row) => row.player)
+    .map((row) => {
+      const initials = row.player
+        .split(" ")
+        .map((w) => w[0])
+        .join("")
+        .slice(0, 3)
+        .toUpperCase();
+      const title = `${esc(row.player)} — ${esc(row.slot)} · avg rating ${num(row.avg_rating, 2)} (${row.appearances} apps)`;
+      return `<g>
+        <circle cx="${row.x}" cy="${row.y}" r="6.5" fill="#7c3aed" fill-opacity="0.92" stroke="#fff" stroke-width="0.6"><title>${title}</title></circle>
+        <text x="${row.x}" y="${row.y + 2}" text-anchor="middle" font-size="5" fill="#fff" font-weight="600">${esc(initials)}</text>
+        <text x="${row.x}" y="${row.y + 11}" text-anchor="middle" font-size="4.2" fill="#e6e6e6">${esc(row.player.split(" ").slice(-1)[0])}</text>
+      </g>`;
+    })
+    .join("");
+  return `
+    <svg viewBox="0 0 100 100" style="width:100%;max-width:460px;height:auto;display:block;margin:0 auto;background:#1e4d33;border-radius:8px" preserveAspectRatio="xMidYMid meet">
+      <rect x="17.65" y="0" width="64.7" height="17.1" fill="none" stroke="#ffffff55" stroke-width="0.3" />
+      <rect x="17.65" y="82.9" width="64.7" height="17.1" fill="none" stroke="#ffffff55" stroke-width="0.3" />
+      <line x1="0" y1="50" x2="100" y2="50" stroke="#ffffff40" stroke-width="0.3" />
+      <circle cx="50" cy="50" r="9" fill="none" stroke="#ffffff40" stroke-width="0.3" />
+      ${dots}
+    </svg>`;
+}
+
+function lcRenderAwards() {
+  const awards = lcTournament.season_awards || {};
+  const pos = awards.player_of_season;
+  const board = awards.leaderboard || [];
+  const xi = awards.team_of_season || [];
+  const minApps = awards.min_appearances || 5;
+
+  if (!board.length) {
+    return `<div class="empty"><p>No season awards yet.</p><p class="muted">Ratings accumulate as matches are played — a player needs at least ${minApps} rated appearances to qualify for Player/Team of the Season.</p></div>`;
+  }
+
+  const posCard = pos
+    ? `<div class="card">
+        <div class="report-eyebrow">🏆 Player of the Season</div>
+        <h2 style="margin:0.35rem 0">${esc(pos.player)}</h2>
+        <p class="muted" style="margin:0">${esc(pos.team)} · avg rating <strong>${num(pos.avg_rating, 2)}</strong> across ${pos.appearances} apps · ${pos.potm_count} POTM · ${pos.goals}G ${pos.assists}A</p>
+      </div>`
+    : "";
+
+  const xiFilled = xi.filter((r) => r.player).length;
+  const xiCard = `
+    <div class="card" style="margin-top:1rem">
+      <div class="report-eyebrow">⭐ Team of the Season</div>
+      <p class="muted" style="margin:0.35rem 0 0.75rem">Best XI in a 4-3-3 shape, one qualifying player per role bucket by average rating (${xiFilled}/11 slots filled — a slot stays empty if nobody at that role has ${minApps}+ apps yet).</p>
+      ${lcSeasonXiPitchSvg(xi)}
+    </div>`;
+
+  const rows = board
+    .map(
+      (r, i) => `<tr>
+        <td>${i + 1}</td>
+        <td>${esc(r.player)}</td>
+        <td>${esc(r.team)}</td>
+        <td>${esc(r.primary_role || "—")}</td>
+        <td>${r.appearances}</td>
+        <td><strong>${num(r.avg_rating, 2)}</strong></td>
+        <td>${r.potm_count}</td>
+        <td>${r.goals}</td>
+        <td>${r.assists}</td>
+      </tr>`
+    )
+    .join("");
+  const leaderboardCard = `
+    <div class="card" style="margin-top:1rem">
+      <div class="report-eyebrow">Season ratings leaderboard</div>
+      <p class="muted" style="margin:0.35rem 0 0.75rem">Every player with ${minApps}+ rated appearances, ranked by average match rating (ties broken by POTM count, then appearances).</p>
+      <div class="report-table-wrap"><table><thead><tr>
+        <th>#</th><th>Player</th><th>Team</th><th>Role</th><th>Apps</th><th>Avg rating</th><th>POTM</th><th>G</th><th>A</th>
+      </tr></thead>
+      <tbody>${rows}</tbody></table></div>
+    </div>`;
+
+  return `${posCard}${xiCard}${leaderboardCard}`;
 }
 
 // ---------------------------------------------------------------------------

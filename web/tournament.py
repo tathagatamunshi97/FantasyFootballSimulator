@@ -987,6 +987,149 @@ def team_shot_map(team_name: str, *, player: str | None = None) -> dict[str, Any
         return empty
 
 
+# Season-awards project -- a player needs at least this many rated
+# appearances in the tournament before qualifying for Player of the Season
+# or Team of the Season, so one flukey 9.5 from a single cameo can't win
+# either award. Not tied to league size (unlike the percentile-gate
+# convention elsewhere in this file) since it's gating an individual
+# player's sample size, not a cross-team comparison.
+_MIN_APPEARANCES_FOR_SEASON_AWARDS = 5
+
+# Team of the Season is assembled in this fixed shape (the app's own
+# DEFAULT_FORMATION) rather than picked per-tournament -- a real "Team of
+# the Season" graphic is bound by a chosen formation the same way here.
+# Slot -> (role bucket via slot_roles.slot_role, approximate pitch x/y on a
+# 0-100 scale, attacking toward y=0 -- same convention team_shot_map's
+# normalized y already uses, so a future combined view stays consistent).
+_SEASON_XI_SLOTS: list[tuple[str, str, float, float]] = [
+    ("GK", "gk", 50, 92),
+    ("RB", "fullback", 80, 72),
+    ("RCB", "centre_back", 62, 78),
+    ("LCB", "centre_back", 38, 78),
+    ("LB", "fullback", 20, 72),
+    ("DM", "dm", 50, 58),
+    ("RCM", "cm", 68, 42),
+    ("LCM", "cm", 32, 42),
+    ("RW", "winger", 80, 18),
+    ("ST", "striker", 50, 10),
+    ("LW", "winger", 20, 18),
+]
+
+
+def _pick_team_of_season(qualified: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Greedy fill of _SEASON_XI_SLOTS: for each slot, take the
+    best-avg-rated not-yet-picked player whose PRIMARY role this season
+    (the role they played most often, so a part-time CM/AM doesn't get
+    double-shortlisted) matches that slot's role bucket. A slot with no
+    qualifying candidate is simply left out (empty pitch spot), not
+    force-filled with a wrong-role player."""
+    by_role: dict[str, list[dict[str, Any]]] = {}
+    for a in qualified:
+        by_role.setdefault(a["primary_role"], []).append(a)
+    for rows in by_role.values():
+        rows.sort(key=lambda a: (-a["avg_rating"], -a["appearances"], a["player"]))
+
+    used: set[str] = set()
+    xi: list[dict[str, Any]] = []
+    for slot, role, x, y in _SEASON_XI_SLOTS:
+        candidates = by_role.get(role) or []
+        pick = next((c for c in candidates if c["player"] not in used), None)
+        if pick:
+            used.add(pick["player"])
+            xi.append({"slot": slot, "x": x, "y": y, **pick})
+        else:
+            xi.append({"slot": slot, "x": x, "y": y, "player": None})
+    return xi
+
+
+def season_awards(tournament_id: str, *, competition: str | None = None) -> dict[str, Any]:
+    """Player of the Season + Team of the Season for one tournament, JIT-
+    aggregated from every played match's player_ratings (analysis_explainer.
+    compute_match_ratings, attached at match-completion time) -- same
+    recompute-from-stored-state philosophy as every other season stat in
+    this file, no separate persistence. Matches played before per-match
+    ratings shipped simply contribute nothing (graceful gap, same as
+    zone_breakdown/shots before them).
+    """
+    empty: dict[str, Any] = {
+        "tournament_id": tournament_id,
+        "min_appearances": _MIN_APPEARANCES_FOR_SEASON_AWARDS,
+        "player_of_season": None,
+        "leaderboard": [],
+        "team_of_season": [],
+    }
+    t = load_tournament(tournament_id)
+    if not t:
+        return empty
+
+    try:
+        from slot_roles import slot_role
+
+        agg: dict[str, dict[str, Any]] = {}
+        for result in (t.get("match_results") or {}).values():
+            if not isinstance(result, dict):
+                continue
+            if competition is not None and result.get("competition") != competition:
+                continue
+            ratings_blob = result.get("player_ratings")
+            rows = (ratings_blob or {}).get("ratings") if isinstance(ratings_blob, dict) else None
+            if not rows:
+                continue
+            potm = result.get("potm") or {}
+            potm_player = potm.get("player")
+            for row in rows:
+                key = row.get("player")
+                if not key:
+                    continue
+                a = agg.setdefault(
+                    key,
+                    {
+                        "player": key,
+                        "team": row.get("team"),
+                        "appearances": 0,
+                        "rating_sum": 0.0,
+                        "potm_count": 0,
+                        "goals": 0,
+                        "assists": 0,
+                        "role_counts": {},
+                    },
+                )
+                a["team"] = row.get("team") or a["team"]
+                a["appearances"] += 1
+                a["rating_sum"] += float(row.get("rating") or 0)
+                a["goals"] += int(row.get("goals") or 0)
+                a["assists"] += int(row.get("assists") or 0)
+                role = slot_role(str(row.get("slot") or ""))
+                a["role_counts"][role] = a["role_counts"].get(role, 0) + 1
+                if potm_player == key:
+                    a["potm_count"] += 1
+
+        for a in agg.values():
+            a["avg_rating"] = round(a["rating_sum"] / a["appearances"], 2)
+            a["primary_role"] = (
+                max(a["role_counts"], key=lambda r: (a["role_counts"][r], r)) if a["role_counts"] else None
+            )
+
+        qualified = [a for a in agg.values() if a["appearances"] >= _MIN_APPEARANCES_FOR_SEASON_AWARDS]
+        ranked = sorted(
+            qualified,
+            key=lambda a: (-a["avg_rating"], -a["potm_count"], -a["appearances"], a["player"]),
+        )
+        player_of_season = ranked[0] if ranked else None
+        team_of_season = _pick_team_of_season(qualified)
+
+        return {
+            "tournament_id": tournament_id,
+            "min_appearances": _MIN_APPEARANCES_FOR_SEASON_AWARDS,
+            "player_of_season": player_of_season,
+            "leaderboard": ranked[:15],
+            "team_of_season": team_of_season,
+        }
+    except Exception as exc:
+        print(f"season_awards({tournament_id!r}) failed: {exc}")
+        return empty
+
+
 def team_analysis_summary(team_name: str, *, form_limit: int = 5) -> dict[str, Any]:
     """Recent tournament form + next fixture for a team, for the Squad Hub
     Analysis tab. Best-effort like get_team_immediate_round: a team with no
