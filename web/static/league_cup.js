@@ -404,7 +404,7 @@ function lcSeasonXiPitchSvg(xi) {
         .join("")
         .slice(0, 3)
         .toUpperCase();
-      const title = `${esc(row.player)} — ${esc(row.slot)} · avg rating ${num(row.avg_rating, 2)} (${row.appearances} apps)`;
+      const title = `${esc(row.player)} — ${esc(row.slot)} · score ${num(row.score, 1)} (${row.appearances} apps, ${row.goals}G ${row.assists}A)`;
       return `<g>
         <circle cx="${row.x}" cy="${row.y}" r="6.5" fill="#7c3aed" fill-opacity="0.92" stroke="#fff" stroke-width="0.6"><title>${title}</title></circle>
         <text x="${row.x}" y="${row.y + 2}" text-anchor="middle" font-size="5" fill="#fff" font-weight="600">${esc(initials)}</text>
@@ -430,14 +430,18 @@ function lcRenderAwards() {
   const minApps = awards.min_appearances || 5;
 
   if (!board.length) {
-    return `<div class="empty"><p>No season awards yet.</p><p class="muted">Ratings accumulate as matches are played — a player needs at least ${minApps} rated appearances to qualify for Player/Team of the Season.</p></div>`;
+    return `<div class="empty"><p>No season awards yet.</p><p class="muted">Stats accumulate as matches are played — a player needs at least ${minApps} appearances to qualify for Player/Team of the Season.</p></div>`;
   }
+
+  const ROLE_LABEL = {
+    gk: "GK", centre_back: "CB", fullback: "FB", dm: "DM", cm: "CM", winger: "Winger", striker: "Striker",
+  };
 
   const posCard = pos
     ? `<div class="card">
         <div class="report-eyebrow">🏆 Player of the Season</div>
         <h2 style="margin:0.35rem 0">${esc(pos.player)}</h2>
-        <p class="muted" style="margin:0">${esc(pos.team)} · avg rating <strong>${num(pos.avg_rating, 2)}</strong> across ${pos.appearances} apps · ${pos.potm_count} POTM · ${pos.goals}G ${pos.assists}A</p>
+        <p class="muted" style="margin:0">${esc(pos.team)} · ${esc(ROLE_LABEL[pos.role] || pos.role)} · score <strong>${num(pos.score, 1)}</strong> across ${pos.appearances} apps · ${pos.goals}G ${pos.assists}A</p>
       </div>`
     : "";
 
@@ -445,7 +449,7 @@ function lcRenderAwards() {
   const xiCard = `
     <div class="card" style="margin-top:1rem">
       <div class="report-eyebrow">⭐ Team of the Season</div>
-      <p class="muted" style="margin:0.35rem 0 0.75rem">Best XI in a 4-3-3 shape, one qualifying player per role bucket by average rating (${xiFilled}/11 slots filled — a slot stays empty if nobody at that role has ${minApps}+ apps yet).</p>
+      <p class="muted" style="margin:0.35rem 0 0.75rem">Best XI in a 4-3-3 shape, one qualifying player per role by a role-specific stat score — defending for CBs, saves/xG saved for GK, defending+creativity for fullbacks, passing/defending for DMs, passing/creation/progression/defending for CMs, goal involvement up front (${xiFilled}/11 slots filled — a slot stays empty if nobody at that role has ${minApps}+ apps yet).</p>
       ${lcSeasonXiPitchSvg(xi)}
     </div>`;
 
@@ -455,10 +459,9 @@ function lcRenderAwards() {
         <td>${i + 1}</td>
         <td>${esc(r.player)}</td>
         <td>${esc(r.team)}</td>
-        <td>${esc(r.primary_role || "—")}</td>
+        <td>${esc(ROLE_LABEL[r.role] || r.role || "—")}</td>
         <td>${r.appearances}</td>
-        <td><strong>${num(r.avg_rating, 2)}</strong></td>
-        <td>${r.potm_count}</td>
+        <td><strong>${num(r.score, 1)}</strong></td>
         <td>${r.goals}</td>
         <td>${r.assists}</td>
       </tr>`
@@ -466,10 +469,10 @@ function lcRenderAwards() {
     .join("");
   const leaderboardCard = `
     <div class="card" style="margin-top:1rem">
-      <div class="report-eyebrow">Season ratings leaderboard</div>
-      <p class="muted" style="margin:0.35rem 0 0.75rem">Every player with ${minApps}+ rated appearances, ranked by average match rating (ties broken by POTM count, then appearances).</p>
+      <div class="report-eyebrow">Season awards leaderboard</div>
+      <p class="muted" style="margin:0.35rem 0 0.75rem">Every player with ${minApps}+ appearances, ranked by their role-specific score (built from season stat totals — goals, assists, xG, tackles, interceptions, saves, xG saved, passing/progression — not per-match ratings).</p>
       <div class="report-table-wrap"><table><thead><tr>
-        <th>#</th><th>Player</th><th>Team</th><th>Role</th><th>Apps</th><th>Avg rating</th><th>POTM</th><th>G</th><th>A</th>
+        <th>#</th><th>Player</th><th>Team</th><th>Role</th><th>Apps</th><th>Score</th><th>G</th><th>A</th>
       </tr></thead>
       <tbody>${rows}</tbody></table></div>
     </div>`;

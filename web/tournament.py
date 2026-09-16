@@ -989,18 +989,20 @@ def team_shot_map(team_name: str, *, player: str | None = None) -> dict[str, Any
 
 # Season-awards project -- a player needs at least this many rated
 # appearances in the tournament before qualifying for Player of the Season
-# or Team of the Season, so one flukey 9.5 from a single cameo can't win
-# either award. Not tied to league size (unlike the percentile-gate
+# or Team of the Season, so one flukey big match from a single cameo can't
+# win either award. Not tied to league size (unlike the percentile-gate
 # convention elsewhere in this file) since it's gating an individual
-# player's sample size, not a cross-team comparison.
+# player's sample size, not a cross-team comparison. Appearances aren't a
+# field aggregate_player_tallies tracks (it sums event counts, not "did
+# this player feature"), so season_awards derives its own count below from
+# the same per-match event/player_passing data that feeds the tallies.
 _MIN_APPEARANCES_FOR_SEASON_AWARDS = 5
 
 # Team of the Season is assembled in this fixed shape (the app's own
 # DEFAULT_FORMATION) rather than picked per-tournament -- a real "Team of
 # the Season" graphic is bound by a chosen formation the same way here.
-# Slot -> (role bucket via slot_roles.slot_role, approximate pitch x/y on a
-# 0-100 scale, attacking toward y=0 -- same convention team_shot_map's
-# normalized y already uses, so a future combined view stays consistent).
+# Slot -> (role bucket, approximate pitch x/y on a 0-100 scale, attacking
+# toward y=0 -- same convention team_shot_map's normalized y already uses).
 _SEASON_XI_SLOTS: list[tuple[str, str, float, float]] = [
     ("GK", "gk", 50, 92),
     ("RB", "fullback", 80, 72),
@@ -1015,19 +1017,154 @@ _SEASON_XI_SLOTS: list[tuple[str, str, float, float]] = [
     ("LW", "winger", 20, 18),
 ]
 
+# Cached-stats primary_position -> role bucket, for slotting a player into
+# Team of the Season and picking their scoring formula. Deliberately NOT
+# derived from any match's formation slot (that's the per-match-ratings
+# approach this project explicitly moved away from) -- this is the same
+# primary_position field team_ratings.py/formation_fit.py already source
+# from the stats cache everywhere else in this app.
+_POSITION_TO_ROLE: dict[str, str] = {
+    "GK": "gk",
+    "CB": "centre_back",
+    "RB": "fullback",
+    "LB": "fullback",
+    "RWB": "fullback",
+    "LWB": "fullback",
+    "DM": "dm",
+    "CDM": "dm",
+    "CM": "cm",
+    "AM": "cm",
+    "CAM": "cm",
+    "RM": "cm",
+    "LM": "cm",
+    "RW": "winger",
+    "LW": "winger",
+    "W": "winger",
+    "ST": "striker",
+    "CF": "striker",
+    "FW": "striker",
+}
+_FPL_TO_ROLE_FALLBACK: dict[str, str] = {"GK": "gk", "DEF": "centre_back", "MID": "cm", "FWD": "striker"}
+
+
+def _role_for_player(stats: Any) -> str | None:
+    if stats is None:
+        return None
+    role = _POSITION_TO_ROLE.get(str(getattr(stats, "primary_position", "") or "").upper())
+    if role:
+        return role
+    return _FPL_TO_ROLE_FALLBACK.get(str(getattr(stats, "fpl_position", "") or "").upper())
+
+
+def _season_award_score(role: str, row: dict[str, Any], team_gc_per_match: float | None) -> float:
+    """Role-specific composite, built only from aggregate_player_tallies'
+    already-summed season fields (+ each player's own team's goals-
+    conceded-per-match as the shared defensive-solidity signal -- clean_
+    sheets/goals_conceded are only ever tallied onto the match's identified
+    GK, never outfield defenders, so a CB/fullback's own defensive RESULT
+    has to come from their team's record, not a personal tally). Weights
+    are a judgment call, not a derived constant -- tune freely.
+    """
+    g = lambda f: float(row.get(f) or 0)  # noqa: E731
+    gc = team_gc_per_match if team_gc_per_match is not None else 1.2  # neutral default, no team data yet
+
+    if role == "gk":
+        # "saves made and xG saved" -- saves is shot-stopping volume,
+        # xg_prevented (xg_faced - goals_conceded) is the real skill signal
+        # (can be negative), clean_sheets a small results bonus on top.
+        xg_prevented = row.get("xg_prevented")
+        return g("saves") * 0.5 + (float(xg_prevented) if xg_prevented is not None else 0.0) * 3.0 + g("clean_sheets") * 1.5
+    if role == "centre_back":
+        # "defending, low goals conceded" -- individual defensive actions
+        # plus the team's own defensive record (lower gc = higher credit).
+        return g("tackles") * 0.6 + g("interceptions") * 0.6 + g("progressive_passes") * 0.05 + max(0.0, 3.0 - gc) * 2.0
+    if role == "fullback":
+        # "defending + creativity/attacking" -- same defensive base as CB
+        # but blended with the creative/attacking output a fullback is
+        # also expected to contribute.
+        return (
+            g("tackles") * 0.45 + g("interceptions") * 0.45 + max(0.0, 3.0 - gc) * 1.2
+            + g("key_passes") * 0.4 + g("assists") * 1.2 + g("crosses_completed") * 0.25 + g("progressive_passes") * 0.08
+        )
+    if role == "dm":
+        # "defensive activities, passing" -- screening + passing volume,
+        # light creative credit only.
+        pass_pct = row.get("pass_completion_pct")
+        return (
+            g("tackles") * 0.6 + g("interceptions") * 0.6 + g("progressive_passes") * 0.1
+            + g("passes_completed") * 0.015 + (float(pass_pct) if pass_pct is not None else 0.0) * 0.02
+        )
+    if role == "cm":
+        # "passing, creation, progression, defensive activities" -- the
+        # most balanced role, so no single component dominates.
+        return (
+            g("key_passes") * 0.5 + g("progressive_passes") * 0.12 + g("assists") * 1.0
+            + g("tackles") * 0.3 + g("interceptions") * 0.3 + g("big_chances_created") * 0.4
+        )
+    if role == "winger":
+        return g("goals") * 1.8 + g("assists") * 1.5 + g("key_passes") * 0.5 + g("dribbles") * 0.15 + g("xg") * 0.8 + g("big_chances_created") * 0.6
+    if role == "striker":
+        conv = row.get("shot_conversion_pct")
+        return g("goals") * 2.2 + g("assists") * 1.0 + g("xg") * 0.8 + g("big_chance_goals") * 0.5 + (float(conv) if conv is not None else 0.0) * 0.02
+    return g("goals") * 1.5 + g("assists") * 1.2 + g("tackles") * 0.3 + g("interceptions") * 0.3
+
+
+def _count_player_appearances(t: dict[str, Any], *, competition: str | None = None) -> dict[str, int]:
+    """How many matches each player featured in -- derived from the same
+    per-match event/player_passing data aggregate_player_tallies already
+    reads (not a stored field), since a "did this player play" signal
+    doesn't exist anywhere as its own counter."""
+    counts: dict[str, int] = {}
+    for result in (t.get("match_results") or {}).values():
+        if not isinstance(result, dict):
+            continue
+        if competition is not None and result.get("competition") != competition:
+            continue
+        seen_this_match: set[str] = set()
+        for ev in _board_events_from_result(result):
+            for field in ("player", "by", "assist"):
+                name = str(ev.get(field) or "").strip()
+                if name:
+                    seen_this_match.add(name)
+        passing = (result.get("match_log") or {}).get("player_passing")
+        if isinstance(passing, dict):
+            for name in passing:
+                name = str(name or "").strip()
+                if name:
+                    seen_this_match.add(name)
+        for name in seen_this_match:
+            counts[name] = counts.get(name, 0) + 1
+    return counts
+
+
+def _team_goals_conceded_per_match(t: dict[str, Any], *, competition: str | None = None) -> dict[str, float]:
+    totals: dict[str, list[float]] = {}
+    for result in (t.get("match_results") or {}).values():
+        if not isinstance(result, dict):
+            continue
+        if competition is not None and result.get("competition") != competition:
+            continue
+        home, away = result.get("home"), result.get("away")
+        hg, ag = result.get("home_goals"), result.get("away_goals")
+        if home is None or away is None or hg is None or ag is None:
+            continue
+        totals.setdefault(str(home), []).append(float(ag))
+        totals.setdefault(str(away), []).append(float(hg))
+    return {team: (sum(vals) / len(vals)) for team, vals in totals.items() if vals}
+
 
 def _pick_team_of_season(qualified: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Greedy fill of _SEASON_XI_SLOTS: for each slot, take the
-    best-avg-rated not-yet-picked player whose PRIMARY role this season
-    (the role they played most often, so a part-time CM/AM doesn't get
-    double-shortlisted) matches that slot's role bucket. A slot with no
-    qualifying candidate is simply left out (empty pitch spot), not
-    force-filled with a wrong-role player."""
+    """Greedy fill of _SEASON_XI_SLOTS: for each slot, take the best-scored
+    not-yet-picked qualifying player whose stats-cache position maps to
+    that slot's role bucket. A slot with no qualifying candidate is simply
+    left out (empty pitch spot), not force-filled with a wrong-role player.
+    """
     by_role: dict[str, list[dict[str, Any]]] = {}
     for a in qualified:
-        by_role.setdefault(a["primary_role"], []).append(a)
+        if a.get("role"):
+            by_role.setdefault(a["role"], []).append(a)
     for rows in by_role.values():
-        rows.sort(key=lambda a: (-a["avg_rating"], -a["appearances"], a["player"]))
+        rows.sort(key=lambda a: (-a["score"], -a["appearances"], a["player"]))
 
     used: set[str] = set()
     xi: list[dict[str, Any]] = []
@@ -1043,13 +1180,16 @@ def _pick_team_of_season(qualified: list[dict[str, Any]]) -> list[dict[str, Any]
 
 
 def season_awards(tournament_id: str, *, competition: str | None = None) -> dict[str, Any]:
-    """Player of the Season + Team of the Season for one tournament, JIT-
-    aggregated from every played match's player_ratings (analysis_explainer.
-    compute_match_ratings, attached at match-completion time) -- same
-    recompute-from-stored-state philosophy as every other season stat in
-    this file, no separate persistence. Matches played before per-match
-    ratings shipped simply contribute nothing (graceful gap, same as
-    zone_breakdown/shots before them).
+    """Player of the Season + Team of the Season for one tournament, built
+    entirely from the existing season stat tallies (aggregate_player_
+    tallies) -- deliberately NOT connected to per-match player ratings/POTM
+    at all, per explicit direction: award criteria come from captured
+    stats, scored per role (defending for CBs, saves/xG-saved for GKs,
+    defending+creativity for fullbacks, passing/defending for DMs,
+    passing/creation/progression/defending for CMs, goal involvement for
+    wide/forward roles -- see _season_award_score). JIT-recomputed from
+    stored match results every call, same philosophy as every other season
+    stat in this file, no separate persistence.
     """
     empty: dict[str, Any] = {
         "tournament_id": tournament_id,
@@ -1063,60 +1203,42 @@ def season_awards(tournament_id: str, *, competition: str | None = None) -> dict
         return empty
 
     try:
-        from slot_roles import slot_role
+        tallies = aggregate_player_tallies(t, competition=competition)
+        if not tallies:
+            return empty
+        appearances = _count_player_appearances(t, competition=competition)
+        team_gc = _team_goals_conceded_per_match(t, competition=competition)
 
-        agg: dict[str, dict[str, Any]] = {}
-        for result in (t.get("match_results") or {}).values():
-            if not isinstance(result, dict):
-                continue
-            if competition is not None and result.get("competition") != competition:
-                continue
-            ratings_blob = result.get("player_ratings")
-            rows = (ratings_blob or {}).get("ratings") if isinstance(ratings_blob, dict) else None
-            if not rows:
-                continue
-            potm = result.get("potm") or {}
-            potm_player = potm.get("player")
-            for row in rows:
-                key = row.get("player")
-                if not key:
-                    continue
-                a = agg.setdefault(
-                    key,
-                    {
-                        "player": key,
-                        "team": row.get("team"),
-                        "appearances": 0,
-                        "rating_sum": 0.0,
-                        "potm_count": 0,
-                        "goals": 0,
-                        "assists": 0,
-                        "role_counts": {},
-                    },
-                )
-                a["team"] = row.get("team") or a["team"]
-                a["appearances"] += 1
-                a["rating_sum"] += float(row.get("rating") or 0)
-                a["goals"] += int(row.get("goals") or 0)
-                a["assists"] += int(row.get("assists") or 0)
-                role = slot_role(str(row.get("slot") or ""))
-                a["role_counts"][role] = a["role_counts"].get(role, 0) + 1
-                if potm_player == key:
-                    a["potm_count"] += 1
+        names = [row["player"] for row in tallies]
+        from web.state import get_stats_store
 
-        for a in agg.values():
-            a["avg_rating"] = round(a["rating_sum"] / a["appearances"], 2)
-            a["primary_role"] = (
-                max(a["role_counts"], key=lambda r: (a["role_counts"][r], r)) if a["role_counts"] else None
+        stats_map = get_stats_store().cached_stats_map(names)
+
+        agg: list[dict[str, Any]] = []
+        for row in tallies:
+            player = row["player"]
+            apps = appearances.get(player, 0)
+            if apps < _MIN_APPEARANCES_FOR_SEASON_AWARDS:
+                continue
+            role = _role_for_player(stats_map.get(player))
+            if not role:
+                continue
+            score = round(_season_award_score(role, row, team_gc.get(row.get("team"))), 2)
+            agg.append(
+                {
+                    "player": player,
+                    "team": row.get("team"),
+                    "role": role,
+                    "appearances": apps,
+                    "score": score,
+                    "goals": int(row.get("goals") or 0),
+                    "assists": int(row.get("assists") or 0),
+                }
             )
 
-        qualified = [a for a in agg.values() if a["appearances"] >= _MIN_APPEARANCES_FOR_SEASON_AWARDS]
-        ranked = sorted(
-            qualified,
-            key=lambda a: (-a["avg_rating"], -a["potm_count"], -a["appearances"], a["player"]),
-        )
+        ranked = sorted(agg, key=lambda a: (-a["score"], -a["goals"], -a["assists"], a["player"]))
         player_of_season = ranked[0] if ranked else None
-        team_of_season = _pick_team_of_season(qualified)
+        team_of_season = _pick_team_of_season(agg)
 
         return {
             "tournament_id": tournament_id,
