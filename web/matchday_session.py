@@ -21,10 +21,16 @@ ROOT = Path(__file__).resolve().parent.parent
 SESSION_FILE = ROOT / "data" / "matchday_session.json"
 # Throttle board-frame disk writes (frames can publish many times per second).
 _PERSIST_MIN_INTERVAL_S = 2.0
+# Full-engine-state checkpoints (see publish_checkpoint) are far heavier than
+# a display frame and only exist for disconnect recovery, so they're saved
+# much less often than the ~220ms board-state stream.
+_CHECKPOINTS_DIR = ROOT / "data" / "matchday_checkpoints"
+_CHECKPOINT_MIN_INTERVAL_S = 12.0
 
 _lock = threading.Lock()
 _session: dict[str, Any] | None = None
 _frame_seq = 0
+_last_checkpoint_mono = 0.0
 # Recorded highlight-clip replays (friendly matches only) -- a bundled
 # buildup-to-event recording, published once per resolved event, kept
 # separate from _frame_seq/board_state (the continuous per-tick position
@@ -456,6 +462,119 @@ def publish_highlight_clip(clip: dict[str, Any]) -> int:
     return seq
 
 
+def _checkpoint_path(fixture_id: str) -> Path:
+    return _CHECKPOINTS_DIR / f"{fixture_id}.json"
+
+
+def _save_checkpoint_blob(fixture_id: str, checkpoint: dict[str, Any]) -> None:
+    """Dual-write (R2 best-effort + disk), overwritten in place per fixture --
+    same idea as tournament.py's match-trace blobs, but this one is mutated
+    repeatedly for one fixture rather than written once and kept forever."""
+    try:
+        import r2_storage
+
+        if r2_storage.is_r2_enabled():
+            r2_storage.save_json_blob(f"matchday_checkpoints/{fixture_id}.json", checkpoint)
+    except Exception:
+        pass
+    try:
+        path = _checkpoint_path(fixture_id)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(checkpoint, ensure_ascii=False), encoding="utf-8")
+    except OSError as exc:
+        print(f"Matchday: failed to save checkpoint for {fixture_id}: {exc}")
+
+
+def _load_checkpoint_blob(fixture_id: str) -> dict[str, Any] | None:
+    try:
+        import r2_storage
+
+        if r2_storage.is_r2_enabled():
+            data = r2_storage.load_json_blob(f"matchday_checkpoints/{fixture_id}.json")
+            if isinstance(data, dict):
+                return data
+    except Exception:
+        pass
+    path = _checkpoint_path(fixture_id)
+    if not path.exists():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else None
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
+def _delete_checkpoint_blob(fixture_id: str) -> None:
+    try:
+        import r2_storage
+
+        if r2_storage.is_r2_enabled():
+            r2_storage.delete_json_blob(f"matchday_checkpoints/{fixture_id}.json")
+    except Exception:
+        pass
+    try:
+        path = _checkpoint_path(fixture_id)
+        if path.exists():
+            path.unlink()
+    except OSError:
+        pass
+
+
+def publish_checkpoint(body: dict[str, Any]) -> dict[str, Any]:
+    """Host periodically posts a full engine-state snapshot (getEngineState()
+    on the live tactic board) so a disconnected host can be recovered close
+    to where the match left off, instead of "Resume hosting" restarting the
+    whole fixture from kickoff. Deliberately separate from publish_board_state
+    (the ~220ms display-frame stream): this is heavier and only needed for
+    recovery, so it's throttled server-side too (in case a client bug bypasses
+    its own throttle) and the write happens outside the lock, same pattern as
+    _flush_persist.
+    """
+    global _last_checkpoint_mono
+    checkpoint = body.get("checkpoint")
+    if not isinstance(checkpoint, dict):
+        return {"ok": False, "reason": "no checkpoint payload"}
+    with _lock:
+        if not _session or _session.get("phase") not in ("setup", "live"):
+            return {"ok": False, "reason": "no active live session"}
+        fixture_id = _session.get("fixture_id")
+        if not fixture_id:
+            return {"ok": False, "reason": "no fixture id"}
+        now = time.monotonic()
+        if not body.get("force") and (now - _last_checkpoint_mono) < _CHECKPOINT_MIN_INTERVAL_S:
+            return {"ok": True, "skipped": True}
+        _last_checkpoint_mono = now
+    _save_checkpoint_blob(fixture_id, checkpoint)
+    return {"ok": True}
+
+
+def get_checkpoint() -> dict[str, Any] | None:
+    """Latest checkpoint for the currently active fixture, if any.
+
+    Falls back to the lightweight board_state frame (always saved, even for
+    matches that started before this feature shipped, or that disconnected
+    before the first ~15s checkpoint interval elapsed) wrapped as a
+    ``legacyFrame`` -- tactic_board.js's applyResumeState recognizes that
+    shape and does a best-effort reconstruction (score/clock/goals/cards/
+    positions, not the deep per-pin tactical state a real checkpoint has).
+    Still far better than "Resume hosting" restarting from a cold kickoff.
+    """
+    with _lock:
+        if not _session:
+            return None
+        fixture_id = _session.get("fixture_id")
+        board_state = _session.get("board_state")
+    if not fixture_id:
+        return None
+    saved = _load_checkpoint_blob(fixture_id)
+    if saved:
+        return saved
+    if isinstance(board_state, dict):
+        return {"v": 0, "legacyFrame": board_state}
+    return None
+
+
 def set_running(experiment_id: str, message: str = "Running simulation…") -> None:
     global _session
     snap: dict[str, Any] | None | bool = False
@@ -487,9 +606,11 @@ def update_message(message: str) -> None:
 def set_result(result: dict[str, Any], *, experiment_id: str | None = None) -> None:
     global _session
     snap: dict[str, Any] | None | bool = False
+    fixture_id = None
     with _lock:
         if not _session:
             return
+        fixture_id = _session.get("fixture_id")
         _session["phase"] = "result"
         _session["running"] = False
         _session["result"] = copy.deepcopy(result)
@@ -506,11 +627,14 @@ def set_result(result: dict[str, Any], *, experiment_id: str | None = None) -> N
         _refresh_poll_cache_locked()
         snap = _persist_locked(force=True)
     _flush_persist(snap)
+    if fixture_id:
+        _delete_checkpoint_blob(fixture_id)
 
 
 def clear_session() -> None:
     global _session, _frame_seq, _highlight_seq
     snap: dict[str, Any] | None | bool = False
+    fixture_id = _session.get("fixture_id") if _session else None
     with _lock:
         _session = None
         _frame_seq = 0
@@ -518,6 +642,8 @@ def clear_session() -> None:
         _refresh_poll_cache_locked()
         snap = _persist_locked(force=True)
     _flush_persist(snap)
+    if fixture_id:
+        _delete_checkpoint_blob(fixture_id)
 
 
 def clear_if_references(

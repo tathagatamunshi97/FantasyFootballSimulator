@@ -13930,6 +13930,181 @@
       };
     }
 
+    // Disconnect-recovery checkpoint — a full engine-state snapshot, distinct
+    // from getBroadcastState() (which is a cheap display frame sent every
+    // ~220ms and deliberately omits matchLog / per-pin internals). This is
+    // heavier and only taken every ~12s (see matchday.js), so it can afford
+    // to carry everything needed to rehydrate a fresh createBoard() close to
+    // where a disconnected host left off: score/clock/break state, matchLog
+    // (the actual source of truth for goals/cards/subs/ratings), every pin's
+    // full state (position, target, role, stats, cards, marking assignment —
+    // whatever fields exist on it, via the JSON round-trip below, so this
+    // never goes stale as new per-pin fields get added elsewhere), and the
+    // current bench/formation (mutated in place by the Adjust Team modal).
+    // Deliberately NOT captured: short-lived decision timers (spell,
+    // actionTimer, pendingSetPiece, streak counters, commentary buffer) —
+    // losing an in-progress pass/spell mid-flight on resume is a one-tick
+    // cosmetic blip, not a correctness issue, and chasing exact fidelity
+    // there would mean re-serializing internals that change with nearly
+    // every future engine tweak. See applyResumeState for the restore side.
+    function getEngineState() {
+      return {
+        v: 1,
+        matchMinute,
+        homeScore,
+        awayScore,
+        possession,
+        phase,
+        decidedBy,
+        breakKind,
+        clockCap,
+        halfTimePaused,
+        breakPaused,
+        pensActive,
+        penScore: { ...penScore },
+        penLog: penLog.slice(),
+        ft90Home,
+        ft90Away,
+        sentOffCount: { ...sentOffCount },
+        liveXg: { ...liveXg },
+        possSeconds: { ...possSeconds },
+        ball: { left: ball.left, top: ball.top },
+        pins: allPins.map((p) => JSON.parse(JSON.stringify(p))),
+        matchLog: JSON.parse(JSON.stringify(matchLog)),
+        benchHome: JSON.parse(JSON.stringify(benchBySide.home || [])),
+        benchAway: JSON.parse(JSON.stringify(benchBySide.away || [])),
+        homeFormation: homeTeam.formation,
+        awayFormation: awayTeam.formation,
+        savedAt: Date.now(),
+      };
+    }
+
+    // Restore side of getEngineState — called once, right after reset(),
+    // when createBoard() is opened with opts.resumeState (see matchday.js's
+    // "Resume hosting" flow). Deliberately mirrors reset()'s field list for
+    // the state that matters (score/clock/cards/log/pins) and leaves
+    // everything reset() already zeroed for the short-lived decision state
+    // (spell, actionTimer, etc.) exactly as reset() left it — a fresh spell
+    // starts naturally on the next tick from the restored ball/pin positions.
+    // Best-effort recovery for a match that started BEFORE checkpointing
+    // shipped (or disconnected before the first ~15s checkpoint interval
+    // elapsed) -- there's no getEngineState() snapshot for it, only the
+    // lightweight display frame that's always been broadcast/persisted
+    // (matchday_session.get_checkpoint falls back to this). Reconstructs
+    // score/clock/goals/cards/positions from it; deliberately can't recover
+    // _sentOff/_yellowCards/_defMode/full matchLog stats (never broadcast at
+    // that granularity) -- the engine just re-derives tactical state fresh
+    // from the restored positions, and first-half shot/tackle detail is
+    // lost for ratings purposes on this one match. Still far better than a
+    // cold kickoff restart: score, goals, cards and player positions carry
+    // over exactly.
+    function applyLegacyFrameState(frame) {
+      if (!frame || typeof frame !== "object") return;
+      matchMinute = Number(frame.minute) || 0;
+      homeScore = Math.max(0, Math.round(Number(frame.homeGoals) || 0));
+      awayScore = Math.max(0, Math.round(Number(frame.awayGoals) || 0));
+      possession = frame.possession === "away" ? "away" : "home";
+      decidedBy = frame.decidedBy || "ft";
+      breakKind = frame.breakKind || null;
+      clockCap = Number(frame.clockCap) || 90;
+      halfTimePaused = frame.status === "ht";
+      pensActive = frame.status === "pens";
+      penScore = { home: Number(frame.pensHome) || 0, away: Number(frame.pensAway) || 0 };
+      penLog = Array.isArray(frame.penLog) ? frame.penLog.slice() : [];
+      ft90Home = frame.ft90Home ?? null;
+      ft90Away = frame.ft90Away ?? null;
+      kickoffDone = true;
+      matchLog = emptyMatchLog();
+      const mobile = (frame.mobileStats && typeof frame.mobileStats === "object") ? frame.mobileStats : {};
+      for (const g of mobile.goals || []) {
+        matchLog.goals.push({
+          side: g.side,
+          minute: g.minute,
+          player: g.player_short || g.player,
+          player_short: g.player_short || g.player,
+        });
+      }
+      for (const c of mobile.cards || []) {
+        matchLog.events.push({
+          type: "yellow_card",
+          side: c.side,
+          minute: c.minute,
+          player: c.player_short || c.player,
+          player_short: c.player_short || c.player,
+          detail: null,
+        });
+      }
+      if (frame.ball && typeof frame.ball === "object") {
+        ball.left = Number(frame.ball.left) || 50;
+        ball.top = Number(frame.ball.top) || 50;
+      }
+      if (Array.isArray(frame.pins)) {
+        for (const snap of frame.pins) {
+          const p = snap && snap.id ? pinById.get(snap.id) : null;
+          if (!p) continue;
+          if (snap.left != null) p.left = Number(snap.left);
+          if (snap.top != null) p.top = Number(snap.top);
+          if (snap.tx != null) p.tx = Number(snap.tx);
+          if (snap.ty != null) p.ty = Number(snap.ty);
+          if (snap.slot) p.slot = snap.slot;
+          if (snap.role) p.role = snap.role;
+          if (snap.player) {
+            p.player = snap.player;
+            p.short = snap.short || p.short;
+            p.label = snap.label || p.label;
+          }
+        }
+      }
+    }
+
+    function applyResumeState(state) {
+      if (!state || typeof state !== "object") return;
+      if (state.legacyFrame && typeof state.legacyFrame === "object") {
+        applyLegacyFrameState(state.legacyFrame);
+        return;
+      }
+      matchMinute = Number(state.matchMinute) || 0;
+      homeScore = Math.max(0, Math.round(Number(state.homeScore) || 0));
+      awayScore = Math.max(0, Math.round(Number(state.awayScore) || 0));
+      possession = state.possession === "away" ? "away" : "home";
+      phase = state.phase || "BUILD_UP";
+      decidedBy = state.decidedBy || "ft";
+      breakKind = state.breakKind || null;
+      clockCap = Number(state.clockCap) || 90;
+      halfTimePaused = Boolean(state.halfTimePaused);
+      breakPaused = Boolean(state.breakPaused);
+      pensActive = Boolean(state.pensActive);
+      penScore = state.penScore && typeof state.penScore === "object" ? { ...state.penScore } : { home: 0, away: 0 };
+      penLog = Array.isArray(state.penLog) ? state.penLog.slice() : [];
+      ft90Home = state.ft90Home ?? null;
+      ft90Away = state.ft90Away ?? null;
+      kickoffDone = true;
+      sentOffCount =
+        state.sentOffCount && typeof state.sentOffCount === "object"
+          ? { ...state.sentOffCount }
+          : { home: 0, away: 0 };
+      liveXg = state.liveXg && typeof state.liveXg === "object" ? { ...state.liveXg } : { home: 0, away: 0 };
+      possSeconds =
+        state.possSeconds && typeof state.possSeconds === "object" ? { ...state.possSeconds } : { home: 0, away: 0 };
+      if (state.ball && typeof state.ball === "object") {
+        ball.left = Number(state.ball.left) || 50;
+        ball.top = Number(state.ball.top) || 50;
+      }
+      if (state.matchLog && typeof state.matchLog === "object") {
+        matchLog = JSON.parse(JSON.stringify(state.matchLog));
+      }
+      if (Array.isArray(state.pins)) {
+        for (const snap of state.pins) {
+          const p = snap && snap.id ? pinById.get(snap.id) : null;
+          if (p) Object.assign(p, snap);
+        }
+      }
+      if (Array.isArray(state.benchHome)) benchBySide.home = state.benchHome;
+      if (Array.isArray(state.benchAway)) benchBySide.away = state.benchAway;
+      if (state.homeFormation) homeTeam.formation = state.homeFormation;
+      if (state.awayFormation) awayTeam.formation = state.awayFormation;
+    }
+
     function renderPensList(rows) {
       if (!pensListEl) return;
       const list = rows || penLog;
@@ -15718,6 +15893,7 @@
     }
 
     reset();
+    if (opts.resumeState) applyResumeState(opts.resumeState);
     if (viewerMode) {
       // Start smooth follow loop; frames arrive via applyBroadcastState
       playing = false;
@@ -15748,6 +15924,7 @@
       reset,
       getScore: () => ({ homeGoals: homeScore, awayGoals: awayScore }),
       getMatchLog: getMatchLogPayload,
+      getEngineState,
       getOobStats: () => ({ ...oobStats }),
       getCornerStats: () => ({ ...cornerStats, delivery: { ...cornerStats.delivery } }),
       getFkStats: () => ({ ...fkStats }),
@@ -15997,6 +16174,7 @@
         mobileBroadcast: Boolean(meta.mobileBroadcast),
         recordedHighlights: Boolean(meta.recordedHighlights),
         onHighlightClip: meta.onHighlightClip || null,
+        resumeState: meta.resumeState || null,
       };
     } else {
       opts = {

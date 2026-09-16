@@ -30,6 +30,12 @@ let _refreshInFlight = false;
 let _publishClipQueue = [];
 let _publishClipBusy = false;
 let _lastHighlightSeq = -1;
+// Disconnect-recovery checkpoint (see getEngineState() in tactic_board.js) --
+// much heavier than a display frame, so posted far less often than the
+// ~220ms broadcast stream. Piggybacks on queueBroadcast's own cadence rather
+// than a separate timer.
+const CHECKPOINT_INTERVAL_MS = 15000;
+let _lastCheckpointAt = 0;
 
 function destroyLiveBoard() {
   if (_liveBoard && typeof _liveBoard.destroy === "function") {
@@ -42,6 +48,7 @@ function destroyLiveBoard() {
   _publishQueue = null;
   _publishClipQueue = [];
   _lastHighlightSeq = -1;
+  _lastCheckpointAt = 0;
 }
 
 function wireMatchdayActions(session) {
@@ -207,6 +214,22 @@ function queueBroadcast(frame) {
   if (!_hosting || !frame) return;
   _publishQueue = frame;
   flushPublish();
+  maybeQueueCheckpoint();
+}
+
+async function maybeQueueCheckpoint() {
+  if (!_hosting || !_liveBoard || typeof _liveBoard.getEngineState !== "function") return;
+  const now = Date.now();
+  if (now - _lastCheckpointAt < CHECKPOINT_INTERVAL_MS) return;
+  _lastCheckpointAt = now;
+  const hasAdminAuth = Boolean(getAdminToken()) || isAdminUser();
+  if (!hasAdminAuth) return;
+  try {
+    const checkpoint = _liveBoard.getEngineState();
+    await api("/api/matchday/checkpoint", { method: "POST", json: { checkpoint } });
+  } catch (_) {
+    // Best-effort recovery data -- next interval retries, never blocks play.
+  }
 }
 
 async function flushClipPublish() {
@@ -320,7 +343,7 @@ async function saveFullTime(score, session) {
   }
 }
 
-async function startHostBoard(session) {
+async function startHostBoard(session, { resumeState = null } = {}) {
   if (!session) return;
   const mount = document.querySelector("[data-tactic-mount]");
   if (!mount || typeof TacticBoard === "undefined") return;
@@ -347,6 +370,7 @@ async function startHostBoard(session) {
       showPrematch: false,
       autoplay: true,
       hostMode: true,
+      resumeState,
       isKnockout: Boolean(session.is_knockout),
       isLeague: Boolean(session.is_league),
       isFinal: Boolean(session.is_final),
@@ -456,7 +480,9 @@ function showResumeHostPrompt(session) {
       reconnected mid-match). You're watching it read-only.
       <button type="button" id="matchdayResumeHostBtn" class="btn-primary btn-sm" style="margin-left:0.5rem">Resume hosting</button>
       <span class="muted" style="display:block;margin-top:0.35rem;font-size:0.8rem">
-        This restarts the simulation from kickoff — only use it if the original host is gone for good.
+        Picks up from the last saved checkpoint (score/cards/events preserved,
+        up to ~15s of play may replay) if one exists, otherwise restarts from
+        kickoff — only use it if the original host is gone for good.
       </span>
     </div>`;
   const btn = document.getElementById("matchdayResumeHostBtn");
@@ -465,9 +491,22 @@ function showResumeHostPrompt(session) {
       btn.disabled = true;
       hideResumeHostPrompt();
       destroyLiveBoard();
-      await startHostBoard(session);
+      const resumeState = await fetchCheckpointBestEffort();
+      await startHostBoard(session, { resumeState });
     });
   }
+}
+
+async function fetchCheckpointBestEffort() {
+  try {
+    const data = await api("/api/matchday/checkpoint");
+    if (data && data.checkpoint && typeof data.checkpoint === "object") {
+      return data.checkpoint;
+    }
+  } catch (_) {
+    // No checkpoint reachable -- caller falls back to a cold kickoff start.
+  }
+  return null;
 }
 
 async function ensureLiveBoard(session, { isAdmin }) {
@@ -491,7 +530,14 @@ async function ensureLiveBoard(session, { isAdmin }) {
       return;
     }
     hideResumeHostPrompt();
-    await startHostBoard(session);
+    // A "genuine first start" per the check above, OR a session whose own
+    // board_state/frame_seq got wiped (e.g. a server redeploy that lost the
+    // in-memory session entirely) but whose fixture_id still has a saved
+    // checkpoint blob (survives a redeploy -- see save_matchday_checkpoint's
+    // R2 dual-write) from before it was lost. Checking here too, not just
+    // in showResumeHostPrompt's button, closes that gap.
+    const resumeState = await fetchCheckpointBestEffort();
+    await startHostBoard(session, { resumeState });
   } else {
     await startViewerBoard(session);
   }

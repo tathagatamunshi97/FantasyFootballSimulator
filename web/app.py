@@ -616,6 +616,35 @@ def matchday_publish_board_state(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
+@app.post("/api/matchday/checkpoint")
+def matchday_publish_checkpoint(
+    body: dict,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+) -> dict:
+    """Host periodically publishes a full engine-state snapshot (heavier than
+    board-state, throttled to every ~12s) so a disconnected host's live match
+    can be recovered close to where it left off instead of restarting from
+    kickoff. See matchday_session.publish_checkpoint and getEngineState() in
+    tactic_board.js."""
+    _require_admin(x_admin_token, x_session_token)
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=400, detail="Invalid checkpoint")
+    return matchday_session.publish_checkpoint(body)
+
+
+@app.get("/api/matchday/checkpoint")
+def matchday_get_checkpoint(
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+) -> dict:
+    """Latest recovery checkpoint for the active fixture, if any — used by
+    the "Resume hosting" flow to rehydrate the engine instead of a cold
+    kickoff restart."""
+    _require_admin(x_admin_token, x_session_token)
+    return {"checkpoint": matchday_session.get_checkpoint()}
+
+
 @app.post("/api/matchday/highlight-clip")
 def matchday_publish_highlight_clip(
     body: dict,
