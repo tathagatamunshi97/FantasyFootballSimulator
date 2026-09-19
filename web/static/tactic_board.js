@@ -305,10 +305,13 @@
    * Raised to 0.04 per explicit request (2026-09-07), after a 30%
    * away-advantage experiment was reverted back to a home push the same
    * session. Raised again to 0.05 same session, per explicit request.
+   * Raised to 0.15 per explicit request (2026-09-19) -- well above the
+   * 0.10 level a prior session found "too big" (see above); the user was
+   * told that history and asked for it anyway.
    * Mirrors the Monte-Carlo engine's own (1 + home_adv) multiplicative
    * pattern; that engine's home_advantage stays at 0 by design, this is
    * live-engine-only. */
-  const HOME_ADV_PUSH = 0.05;
+  const HOME_ADV_PUSH = 0.15;
   /** Man-down push — a side attacking a shorthanded (red-carded) opponent
    * gets the same 4-site multiplicative nudge HOME_ADV_PUSH uses (xg,
    * chance creation, dribble defending, finishing), just favoring whoever
