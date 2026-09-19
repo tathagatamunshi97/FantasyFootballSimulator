@@ -36,6 +36,19 @@ _LEGEND_POSITION_MAP: dict[str, tuple[str, str]] = {
     "ST": ("ST", "FWD"),
 }
 
+# Real user report -- the attribute-pack workbook spells a legend's name
+# differently than the team-roster Google Sheet does (accent, diacritic,
+# whatever), and that workbook spelling becomes this player's canonical
+# "player_name" everywhere downstream (stats resolution, match prep) --
+# never touching the roster's own spelling, which is what every UI dropdown
+# actually lists. The two spellings then can't be matched against each
+# other, and the player silently disappears from any slot the mismatched
+# name gets written into. Correct at the source (right where the workbook
+# is read) rather than chasing it through every consumer.
+_LEGEND_NAME_OVERRIDES: dict[str, str] = {
+    "Robert Pirès": "Robert Pires",
+}
+
 # Illustrative "peak season" tag per legend -- these are attribute-based
 # estimates, not scraped from a real season, so the label is bookkeeping
 # only. Kept stable across workbook revisions so replacing the file doesn't
@@ -76,7 +89,7 @@ _LEGEND_SEASON_SUFFIX: dict[str, str] = {
     "Tony Adams": "97/98",
     "Patrice Evra": "10/11",
     "Fernando Morientes": "00/01",
-    "Robert Pirès": "01/02",
+    "Robert Pires": "01/02",
     "Guti": "99/00",
     "James Milner": "13/14",
 }
@@ -281,6 +294,7 @@ def _load_legend_attribute_profiles() -> list[dict[str, Any]]:
         name = str(record.get("Player") or "").strip()
         if not name:
             continue
+        name = _LEGEND_NAME_OVERRIDES.get(name, name)
         pos_code = str(record.get("Position") or "").strip().upper()
         primary_position, fpl_position = _LEGEND_POSITION_MAP.get(pos_code, ("MF", "MID"))
         row: dict[str, Any] = {
