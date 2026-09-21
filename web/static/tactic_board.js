@@ -308,10 +308,16 @@
    * Raised to 0.15 per explicit request (2026-09-19) -- well above the
    * 0.10 level a prior session found "too big" (see above); the user was
    * told that history and asked for it anyway.
+   * Raised to 0.5 per explicit request (2026-09-21) -- far above every
+   * prior level tried in this file; a multiplicative push this large
+   * (e.g. 1.5x xG / finishing / chance creation for the home side, and
+   * defenders 50% easier to dribble past) can let a weaker home side
+   * beat a genuinely stronger away side on the push alone. Requested
+   * directly, not diagnosed as a bug.
    * Mirrors the Monte-Carlo engine's own (1 + home_adv) multiplicative
    * pattern; that engine's home_advantage stays at 0 by design, this is
    * live-engine-only. */
-  const HOME_ADV_PUSH = 0.15;
+  const HOME_ADV_PUSH = 0.5;
   /** Man-down push — a side attacking a shorthanded (red-carded) opponent
    * gets the same 4-site multiplicative nudge HOME_ADV_PUSH uses (xg,
    * chance creation, dribble defending, finishing), just favoring whoever
