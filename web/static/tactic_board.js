@@ -314,10 +314,12 @@
    * defenders 50% easier to dribble past) can let a weaker home side
    * beat a genuinely stronger away side on the push alone. Requested
    * directly, not diagnosed as a bug.
+   * Reverted back to 0.05 same day (2026-09-21), per explicit request --
+   * back to the same level set on 2026-09-07.
    * Mirrors the Monte-Carlo engine's own (1 + home_adv) multiplicative
    * pattern; that engine's home_advantage stays at 0 by design, this is
    * live-engine-only. */
-  const HOME_ADV_PUSH = 0.5;
+  const HOME_ADV_PUSH = 0.05;
   /** Man-down push — a side attacking a shorthanded (red-carded) opponent
    * gets the same 4-site multiplicative nudge HOME_ADV_PUSH uses (xg,
    * chance creation, dribble defending, finishing), just favoring whoever
