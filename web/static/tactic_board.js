@@ -316,10 +316,15 @@
    * directly, not diagnosed as a bug.
    * Reverted back to 0.05 same day (2026-09-21), per explicit request --
    * back to the same level set on 2026-09-07.
+   * Raised to 0.25 (2026-09-22), per explicit request -- now running
+   * alongside AWAY_ADV_PUSH (0.25) under the same homeAdvActive gate, so
+   * both sides get an equal push and the net effect is close to neutral
+   * relative to each other (still a genuine boost vs a non-qualifying
+   * fixture, e.g. a friendly).
    * Mirrors the Monte-Carlo engine's own (1 + home_adv) multiplicative
    * pattern; that engine's home_advantage stays at 0 by design, this is
    * live-engine-only. */
-  const HOME_ADV_PUSH = 0.05;
+  const HOME_ADV_PUSH = 0.25;
   /** Away-side push, added 2026-09-21 per explicit request, alongside
    * (not instead of) HOME_ADV_PUSH — both sides get boosted under the
    * same homeAdvActive gate, home smaller (0.05) and away much larger
