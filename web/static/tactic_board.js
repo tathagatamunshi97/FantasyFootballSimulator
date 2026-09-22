@@ -324,10 +324,13 @@
    * Dropped to 0 same day (2026-09-22), per explicit request -- home
    * push removed entirely, replaced by an away-only push (AWAY_ADV_PUSH,
    * now 0.25).
+   * Raised back to 0.05 (2026-09-23), per explicit request, alongside
+   * reverting AWAY_ADV_PUSH back to 0 -- back to a home-only push at the
+   * 2026-09-07 level.
    * Mirrors the Monte-Carlo engine's own (1 + home_adv) multiplicative
    * pattern; that engine's home_advantage stays at 0 by design, this is
    * live-engine-only. */
-  const HOME_ADV_PUSH = 0;
+  const HOME_ADV_PUSH = 0.05;
   /** Away-side push, added 2026-09-21 per explicit request, alongside
    * (not instead of) HOME_ADV_PUSH — both sides get boosted under the
    * same homeAdvActive gate, home smaller (0.05) and away much larger
@@ -341,8 +344,10 @@
    * home-only push (HOME_ADV_PUSH, then 0.25), nothing for the away side.
    * Raised back to 0.25 same day, per explicit request -- HOME_ADV_PUSH
    * dropped to 0 in the same change, so this is now an away-only push.
-   * Raised to 0.40 (2026-09-23), per explicit request. */
-  const AWAY_ADV_PUSH = 0.4;
+   * Raised to 0.40 (2026-09-23), per explicit request.
+   * Reverted to 0 same day, per explicit request, alongside HOME_ADV_PUSH
+   * moving back to 0.05 -- back to a home-only push. */
+  const AWAY_ADV_PUSH = 0;
   /** Man-down push — a side attacking a shorthanded (red-carded) opponent
    * gets the same 4-site multiplicative nudge HOME_ADV_PUSH uses (xg,
    * chance creation, dribble defending, finishing), just favoring whoever
