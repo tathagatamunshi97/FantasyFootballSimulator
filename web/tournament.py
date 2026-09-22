@@ -987,6 +987,65 @@ def team_shot_map(team_name: str, *, player: str | None = None) -> dict[str, Any
         return empty
 
 
+def goal_xg_report(tournament_id: str) -> dict[str, Any]:
+    """Admin diagnostic (2026-09-23, one-off data question): every goal
+    scored in this tournament, paired with the xG of the shot that scored
+    it. Reads each match's events directly (load_tournament already calls
+    _hydrate_match_traces, so board-trace-only matches are covered too,
+    not just the ones with an inline shots/match_log blob) rather than the
+    already-derived `shots` field on match_result, which only exists for
+    matches completed after the shot-map project shipped.
+
+    A shot/big_chance/penalty event with outcome == "goal" carries the xg
+    that produced it (see doShot's ballFlight construction in
+    tactic_board.js); a plain "goal" event has no xg of its own, so this
+    intentionally reads shot-type events, not goal-type ones.
+    """
+    t = load_tournament(tournament_id)
+    if not t:
+        return {"tournament_id": tournament_id, "matches_with_events": 0, "goals_total": 0, "goals_with_xg": []}
+    match_results = t.get("match_results") or {}
+    goals: list[dict[str, Any]] = []
+    matches_with_events = 0
+    for match_id, result in match_results.items():
+        if not isinstance(result, dict):
+            continue
+        events = result.get("board_events")
+        if not isinstance(events, list):
+            log = result.get("match_log")
+            events = log.get("events") if isinstance(log, dict) else None
+        if not isinstance(events, list):
+            continue
+        matches_with_events += 1
+        for ev in events:
+            if not isinstance(ev, dict):
+                continue
+            if ev.get("type") not in ("shot", "big_chance", "penalty"):
+                continue
+            if ev.get("outcome") != "goal":
+                continue
+            xg = ev.get("xg")
+            if xg is None:
+                continue
+            goals.append(
+                {
+                    "match_id": match_id,
+                    "side": ev.get("side"),
+                    "player": ev.get("player"),
+                    "minute": ev.get("minute"),
+                    "xg": xg,
+                    "chance_type": "penalty" if ev.get("type") == "penalty" else ("big_chance" if ev.get("type") == "big_chance" else "open_play"),
+                }
+            )
+    return {
+        "tournament_id": tournament_id,
+        "matches_total": len(match_results),
+        "matches_with_events": matches_with_events,
+        "goals_total": len(goals),
+        "goals": goals,
+    }
+
+
 # Season-awards project -- a player needs at least this many rated
 # appearances in the tournament before qualifying for Player of the Season
 # or Team of the Season, so one flukey big match from a single cameo can't

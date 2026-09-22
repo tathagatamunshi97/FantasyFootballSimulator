@@ -267,6 +267,19 @@ def admin_storage_status(
     return {"postgres": db_status, "r2": r2_status}
 
 
+@app.get("/api/admin/tournament/{tournament_id}/goal-xg")
+def admin_tournament_goal_xg(
+    tournament_id: str,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+) -> dict:
+    """Admin diagnostic (2026-09-23, one-off data question): every goal in
+    this tournament with the xG of the shot that scored it. See
+    tournament.goal_xg_report."""
+    _require_admin(x_admin_token, x_session_token)
+    return tournament.goal_xg_report(tournament_id)
+
+
 @app.post("/api/login")
 def login(body: LoginRequest) -> dict:
     result = auth.attempt_login(body.name, body.password)
