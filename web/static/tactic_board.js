@@ -340,8 +340,9 @@
    * Dropped to 0 (2026-09-22), per explicit request -- back to a
    * home-only push (HOME_ADV_PUSH, then 0.25), nothing for the away side.
    * Raised back to 0.25 same day, per explicit request -- HOME_ADV_PUSH
-   * dropped to 0 in the same change, so this is now an away-only push. */
-  const AWAY_ADV_PUSH = 0.25;
+   * dropped to 0 in the same change, so this is now an away-only push.
+   * Raised to 0.40 (2026-09-23), per explicit request. */
+  const AWAY_ADV_PUSH = 0.4;
   /** Man-down push — a side attacking a shorthanded (red-carded) opponent
    * gets the same 4-site multiplicative nudge HOME_ADV_PUSH uses (xg,
    * chance creation, dribble defending, finishing), just favoring whoever
@@ -4599,6 +4600,19 @@
       return Boolean(pin && pin.stats && pin.stats.assists90 > pin.stats.xa90);
     }
 
+    /** Curated per-player archetype corrections, checked before the
+     * stat-derived classification below. Added 2026-09-22 per explicit
+     * request -- Luis Suárez's cached big_chances_missed90 (0.332) sits
+     * just above the clinical_big_chance threshold (0.25), landing him on
+     * half_chance_scorer, which the user considers a mischaracterization
+     * for a real clinical finisher. Same pattern as KNOWN_PLAYER_POSITIONS_
+     * BY_NAME (player_names.py) -- an explicit table for a specific named
+     * correction, not a change to the general-purpose thresholds every
+     * other player still runs through. */
+    const FINISHER_ARCHETYPE_OVERRIDES = {
+      "Luis Suárez": "clinical_big_chance",
+    };
+
     /**
      * Finisher archetype profiling: decompose finishing pattern into big-chance
      * vs half-chance efficiency. A player with high big_chances_missed but high
@@ -4664,6 +4678,10 @@
       // which single archetype string won above, for any future caller
       // that wants both facts rather than just the primary label.
       const alsoOverPerforms = goals > npxg * 1.2;
+
+      if (pin.player && Object.prototype.hasOwnProperty.call(FINISHER_ARCHETYPE_OVERRIDES, pin.player)) {
+        archetype = FINISHER_ARCHETYPE_OVERRIDES[pin.player];
+      }
 
       return {
         archetype,
