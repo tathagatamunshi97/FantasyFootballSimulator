@@ -333,8 +333,12 @@
    * size the away push dominates the net outcome, same "can let a weaker
    * side win on the push alone" caveat as HOME_ADV_PUSH's own 0.5
    * experiment earlier the same day.
-   * Dropped to 0.25 same day, per explicit request. */
-  const AWAY_ADV_PUSH = 0.25;
+   * Dropped to 0.25 same day, per explicit request.
+   * Dropped to 0 (2026-09-22), per explicit request -- back to a
+   * home-only push (HOME_ADV_PUSH, now 0.25), nothing for the away side.
+   * Left wired at all 4 sites rather than removed, in case a nonzero
+   * value is wanted again later. */
+  const AWAY_ADV_PUSH = 0;
   /** Man-down push — a side attacking a shorthanded (red-carded) opponent
    * gets the same 4-site multiplicative nudge HOME_ADV_PUSH uses (xg,
    * chance creation, dribble defending, finishing), just favoring whoever
