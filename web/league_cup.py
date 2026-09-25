@@ -510,11 +510,14 @@ def draw_cup_round(tournament_id: str, *, seed: int | None = None) -> dict[str, 
     rounds_out = [{"name": "R8", "label": "Round of 8", "ties": r8_ties}]
     prev_ids = [ti["id"] for ti in r8_ties]
     for rname, rlabel in (("SF", "Semi-finals"), ("Final", "Final")):
+        # Final is single-leg / neutral-venue per explicit request (2026-09-25)
+        # -- every earlier round stays two-legged, home+away.
+        two_legged = rname != "Final"
         next_ties = []
         for j in range(0, len(prev_ids), 2):
             feeds = prev_ids[j : j + 2]
             tie_id = f"cup-{rname.lower()}-{j // 2 + 1}"
-            next_ties.append(tournament._build_tie(tie_id, None, None, feeds, True))
+            next_ties.append(tournament._build_tie(tie_id, None, None, feeds, two_legged))
         rounds_out.append({"name": rname, "label": rlabel, "ties": next_ties})
         prev_ids = [ti["id"] for ti in next_ties]
 
@@ -654,8 +657,9 @@ def prepare_board_match(tournament_id: str, match_id: str) -> dict[str, Any]:
 
     leg_context: dict[str, Any] | None = None
     if kind == "cup":
-        leg_context = {"leg": fx["leg"], "twoLegged": True}
-        if fx["leg"] == 2:
+        two_legged_tie = len(tie.get("legs") or []) == 2
+        leg_context = {"leg": fx["leg"], "twoLegged": two_legged_tie}
+        if two_legged_tie and fx["leg"] == 2:
             leg1 = tie["legs"][0]
             if not leg1.get("played"):
                 raise ValueError("Leg 1 has not been played yet")
@@ -762,9 +766,24 @@ def complete_from_board(
     tie_decided: str | None = None
     agg_home_goals: int | None = None
     agg_away_goals: int | None = None
+    single_leg_tie = len(tie.get("legs") or []) == 1 if kind == "cup" else False
 
     if kind == "cup":
-        if fx["leg"] == 1:
+        if single_leg_tie:
+            # Single-leg tie (e.g. a neutral-venue Final, see draw_cup_round) --
+            # this one match IS the tie, not just leg 1 of a two-legged one.
+            # No aggregate/away-goals math needed (_resolve_tie_leg is built
+            # for that); take the live engine's own winner/decided_by/pens
+            # as the tie's result directly -- a knockout single match can
+            # still go to AET/pens, unlike a league fixture.
+            if winner is None:
+                if home_goals > away_goals:
+                    winner = home
+                elif away_goals > home_goals:
+                    winner = away
+            tie_winner = winner
+            tie_decided = decided
+        elif fx["leg"] == 1:
             winner = None
             decided = None
             ph = pa = None
@@ -943,7 +962,7 @@ def complete_from_board(
     fx["score"] = score
     fx["home_goals"] = int(home_goals)
     fx["away_goals"] = int(away_goals)
-    if kind == "cup" and decided and fx["leg"] != 1:
+    if kind == "cup" and decided and (fx["leg"] != 1 or single_leg_tie):
         fx["decided_by"] = decided
 
     if kind == "league":
@@ -1012,7 +1031,7 @@ def reset_match_result(tournament_id: str, match_id: str) -> dict[str, Any]:
 
     if kind == "league":
         _recompute_league_table(t)
-    elif kind == "cup" and tie.get("played") and fx["leg"] == 2:
+    elif kind == "cup" and tie.get("played") and (fx["leg"] == 2 or len(tie.get("legs") or []) == 1):
         tie["played"] = False
         tie["winner"] = None
         tie["result_id"] = None
