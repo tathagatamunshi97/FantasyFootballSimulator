@@ -536,6 +536,40 @@ def draw_cup_round(tournament_id: str, *, seed: int | None = None) -> dict[str, 
     return t
 
 
+def make_tie_single_leg(tournament_id: str, tie_id: str) -> dict[str, Any]:
+    """One-off admin data patch (2026-09-25): convert an already-drawn,
+    unplayed two-legged tie (in practice, a Final drawn before the
+    single-leg-Final code change) into a genuine single-leg tie, matching
+    what draw_cup_round now builds going forward. Refuses if either leg
+    has already been played, or the tie isn't already two-legged, so this
+    can't corrupt an in-progress or already-single-leg tie.
+    """
+    t = _require_league_cup(tournament_id)
+    tie = None
+    for rnd in t["cup"]["rounds"]:
+        for ti in rnd["ties"]:
+            if ti["id"] == tie_id:
+                tie = ti
+                break
+        if tie:
+            break
+    if tie is None:
+        for ti in t["cup"]["playoff"]["ties"]:
+            if ti["id"] == tie_id:
+                tie = ti
+                break
+    if tie is None:
+        raise KeyError(f"Tie '{tie_id}' not found")
+    legs = tie.get("legs") or []
+    if len(legs) != 2:
+        raise ValueError(f"Tie '{tie_id}' is not currently two-legged (has {len(legs)} leg(s))")
+    if any(leg.get("played") for leg in legs):
+        raise ValueError(f"Tie '{tie_id}' already has a played leg -- cannot convert mid-tie")
+    tie["legs"] = legs[:1]
+    tournament.save_tournament(t)
+    return t
+
+
 def _advance_cup_stage(t: dict[str, Any], tie: dict[str, Any], winner: str) -> None:
     tie_id = tie["id"]
     for rnd in t["cup"]["rounds"]:

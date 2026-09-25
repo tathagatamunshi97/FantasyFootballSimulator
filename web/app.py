@@ -2231,6 +2231,25 @@ def reset_league_cup_match_api(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
+@app.post("/api/admin/league-cup/{tournament_id}/cup/{tie_id}/make-single-leg")
+def admin_make_tie_single_leg_api(
+    tournament_id: str,
+    tie_id: str,
+    x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+) -> dict:
+    """One-off admin data patch (2026-09-25): convert an already-drawn,
+    unplayed two-legged tie into single-leg. See league_cup.make_tie_single_leg."""
+    _require_admin(x_admin_token, x_session_token)
+    try:
+        t = league_cup.make_tie_single_leg(tournament_id, tie_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"tournament": t}
+
+
 @app.post("/api/league-cup/{tournament_id}/cup/draw")
 def draw_league_cup_round_api(
     tournament_id: str,
