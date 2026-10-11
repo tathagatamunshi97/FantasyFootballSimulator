@@ -16331,7 +16331,7 @@
         organicGoals: !meta.viewerMode,
         showPrematch: meta.showPrematch !== false && !meta.viewerMode,
         autoplay: meta.showPrematch === false && meta.autoplay !== false && !meta.viewerMode,
-        seed: meta.seed || hashSeed(`${meta.matchId || b.match_id || ""}-live`),
+        seed: meta.seed || Number(b.seed_override) || hashSeed(`${meta.matchId || b.match_id || ""}-live`),
         hostMode: Boolean(meta.hostMode),
         viewerMode: Boolean(meta.viewerMode),
         hideControls: Boolean(meta.hideControls) || Boolean(meta.viewerMode),

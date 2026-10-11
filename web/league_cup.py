@@ -679,6 +679,16 @@ def _resolve_tie_leg(
 # ---------------------------------------------------------------------------
 
 
+# Admin-pinned engine seeds for specific league fixtures, keyed by
+# (fixture id, home team, away team). Fixture ids are only unique within one
+# tournament, so the team names are part of the key to keep a later season's
+# lg-64 from picking this up by accident. The live board reads the value from
+# board["seed_override"] (see openTournamentWatch in tactic_board.js).
+_FIXTURE_SEED_OVERRIDES: dict[tuple[str, str, str], int] = {
+    ("lg-64", "MasterSimulator FC", "Sayaninjal FC"): 100084,
+}
+
+
 def prepare_board_match(tournament_id: str, match_id: str) -> dict[str, Any]:
     t = _require_league_cup(tournament_id)
     kind, fx, tie = _find_playable(t, match_id)
@@ -717,6 +727,9 @@ def prepare_board_match(tournament_id: str, match_id: str) -> dict[str, Any]:
         "unit_home": home_payload.get("_unit") or {},
         "unit_away": away_payload.get("_unit") or {},
     }
+    seed_override = _FIXTURE_SEED_OVERRIDES.get((match_id, home, away)) if kind == "league" else None
+    if seed_override is not None:
+        board["seed_override"] = seed_override
     seed = abs(hash(f"{tournament_id}:{match_id}")) % (2**31)
     is_final = bool(
         kind == "cup"
