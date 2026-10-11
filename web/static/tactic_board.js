@@ -1194,14 +1194,25 @@
     }
     const rawXgHome = Number(opts.xgHome);
     const rawXgAway = Number(opts.xgAway);
+    // Home/away advantage raises a side's chance volume AND per-shot xG (see
+    // HOME_ADV_PUSH / AWAY_ADV_PUSH), so its expected xG for the match is
+    // roughly (1 + push)^2 higher. The pre-match target is rating-only and
+    // knew nothing about the push, which made xgPaceMul see a pushed side as
+    // "running hot" and throttle exactly the advantage the push was giving it
+    // (2026-10-11). Scaling the target keeps the brake neutral to the push.
+    // Skipped when the push isn't active (friendlies, neutral-venue Final).
+    const homePushTargetScale = homeAdvActive ? (1 + HOME_ADV_PUSH) ** 2 : 1;
+    const awayPushTargetScale = homeAdvActive ? (1 + AWAY_ADV_PUSH) ** 2 : 1;
     const targetXgHome =
-      Number.isFinite(rawXgHome) && rawXgHome > 0.05
+      (Number.isFinite(rawXgHome) && rawXgHome > 0.05
         ? rawXgHome
-        : approxXgTarget(unitFinHome, unitCreateHome, defendAway, midDefAway, gkAway, transitionRiskAway, unitMidHome, unitMidAway);
+        : approxXgTarget(unitFinHome, unitCreateHome, defendAway, midDefAway, gkAway, transitionRiskAway, unitMidHome, unitMidAway)) *
+      homePushTargetScale;
     const targetXgAway =
-      Number.isFinite(rawXgAway) && rawXgAway > 0.05
+      (Number.isFinite(rawXgAway) && rawXgAway > 0.05
         ? rawXgAway
-        : approxXgTarget(unitFinAway, unitCreateAway, defendHome, midDefHome, gkHome, transitionRiskHome, unitMidAway, unitMidHome);
+        : approxXgTarget(unitFinAway, unitCreateAway, defendHome, midDefHome, gkHome, transitionRiskHome, unitMidAway, unitMidHome)) *
+      awayPushTargetScale;
 
     function sideAttack(side) {
       return side === "home" ? attackHome : attackAway;
@@ -10510,7 +10521,12 @@
       const baseTerm = 0.42 + create * 0.24 + atk * 0.18 - def * 0.03 + noise;
       const paceMul = xgPaceMul(side, "spellChanceP");
       const openingMul = matchOpeningDamp();
-      const finalProb = clamp(baseTerm * vol * lerp(1, supp, 0.45) * paceMul * leadProtectMul * homePushMul * awayPushMul * manDownMul * openingMul, 0.32, 0.72);
+      // Home/away push is applied AFTER the 0.72 gate cap, not inside it
+      // (2026-10-11): measured at 95% of home spells already sitting at the
+      // cap, so a x1.5 push inside the clamp realised as only x1.05. Result
+      // is identical to before whenever no push is active.
+      const gateBeforePush = clamp(baseTerm * vol * lerp(1, supp, 0.45) * paceMul * leadProtectMul * manDownMul * openingMul, 0.32, 0.72);
+      const finalProb = clamp(gateBeforePush * homePushMul * awayPushMul, 0.32, 0.95);
       paceLog.push({
         minute: Math.round(matchMinute * 10) / 10,
         side,
@@ -12301,7 +12317,13 @@
       const awayPush = homeAdvActive && carrier.side === "away" ? 1 + AWAY_ADV_PUSH : 1;
       // Red-card project — man-down push (finishing). See MAN_DOWN_PUSH.
       const manDownPush = (sentOffCount[oppOf(carrier.side)] || 0) > 0 ? 1 + MAN_DOWN_PUSH : 1;
-      return rng() < clamp((p + missBoost) * homePush * awayPush * manDownPush, lo, boostedHi);
+      // Home/away push is applied AFTER the finisher-quality ceiling
+      // (boostedHi), not inside it (2026-10-11): inside the clamp, a x1.5
+      // push on a strong finisher already near their ceiling was almost
+      // entirely cut off (goals per xG fell 1.26 -> 1.03 with the push on).
+      // Identical to before whenever no push is active.
+      const pBeforePush = clamp((p + missBoost) * manDownPush, lo, boostedHi);
+      return rng() < clamp(pBeforePush * homePush * awayPush, lo, 0.95);
     }
 
     /**
