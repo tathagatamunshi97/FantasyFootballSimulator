@@ -327,10 +327,12 @@
    * Raised back to 0.05 (2026-09-23), per explicit request, alongside
    * reverting AWAY_ADV_PUSH back to 0 -- back to a home-only push at the
    * 2026-09-07 level.
+   * Raised to 0.5 (2026-10-11), per explicit request -- same level
+   * tried once before on 2026-09-21.
    * Mirrors the Monte-Carlo engine's own (1 + home_adv) multiplicative
    * pattern; that engine's home_advantage stays at 0 by design, this is
    * live-engine-only. */
-  const HOME_ADV_PUSH = 0.05;
+  const HOME_ADV_PUSH = 0.5;
   /** Away-side push, added 2026-09-21 per explicit request, alongside
    * (not instead of) HOME_ADV_PUSH — both sides get boosted under the
    * same homeAdvActive gate, home smaller (0.05) and away much larger
