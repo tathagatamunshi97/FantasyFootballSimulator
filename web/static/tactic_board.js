@@ -331,10 +331,17 @@
    * tried once before on 2026-09-21.
    * Reverted to 0.05 (2026-10-11), per explicit request -- back to the
    * 2026-09-07 level, alongside AWAY_ADV_PUSH moving to 0.75.
+   * Raised to 0.70 (2026-10-12), per explicit request, alongside
+   * AWAY_ADV_PUSH going back to 0 -- a home-only push, and the largest
+   * home value tried in this file (0.5 was the previous high). At this
+   * size (1.7x xG / finishing / chance creation for the home side,
+   * defenders 70% easier to dribble past) the push will dominate outcomes
+   * in league/knockout fixtures; the pre-match xG target is scaled by
+   * (1 + 0.70)^2 to match, same as for the away push before it.
    * Mirrors the Monte-Carlo engine's own (1 + home_adv) multiplicative
    * pattern; that engine's home_advantage stays at 0 by design, this is
    * live-engine-only. */
-  const HOME_ADV_PUSH = 0.05;
+  const HOME_ADV_PUSH = 0.7;
   /** Away-side push, added 2026-09-21 per explicit request, alongside
    * (not instead of) HOME_ADV_PUSH — both sides get boosted under the
    * same homeAdvActive gate, home smaller (0.05) and away much larger
@@ -354,8 +361,10 @@
    * Raised to 0.75 (2026-10-11), per explicit request -- the largest value
    * tried in this file; with HOME_ADV_PUSH back at 0.05 the away side is
    * now strongly favoured under the homeAdvActive gate (league/knockout
-   * fixtures). The pre-match xG target is scaled by (1 + 0.75)^2 to match. */
-  const AWAY_ADV_PUSH = 0.75;
+   * fixtures). The pre-match xG target is scaled by (1 + 0.75)^2 to match.
+   * Reverted to 0 (2026-10-12), per explicit request, alongside
+   * HOME_ADV_PUSH moving to 0.70 -- no away advantage. */
+  const AWAY_ADV_PUSH = 0;
   /** Man-down push — a side attacking a shorthanded (red-carded) opponent
    * gets the same 4-site multiplicative nudge HOME_ADV_PUSH uses (xg,
    * chance creation, dribble defending, finishing), just favoring whoever
