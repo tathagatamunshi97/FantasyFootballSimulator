@@ -2932,6 +2932,14 @@ def _board_side_payload(team: FantasyTeam, player_stats: dict[str, Any]) -> dict
         row["rating_percentile"] = rating_pct.get(name, 0.5)
         row["goals_conceded_percentile"] = conceded_pct.get(name, 0.5)
         row["goals90_percentile"] = goals90_pct.get(name, 0.5)
+        # One-shot "guaranteed red card next match" flag -- see
+        # next_match_flags.py and the forcedRed hook in tactic_board.js.
+        # Only present on the flagged player so every other payload is
+        # byte-for-byte unchanged.
+        from web import next_match_flags
+
+        if next_match_flags.is_forced_red(name):
+            row["force_red"] = 1
         return row
 
     lineup = []
@@ -3436,6 +3444,9 @@ def complete_from_board(
             "goals": [e for e in stored_events if e.get("type") == "goal"],
         }
     _attach_player_ratings_at_completion(result, home, away, tournament_id=tournament_id, match_id=match_id)
+    from web import next_match_flags
+
+    next_match_flags.consume_after_match(result.get("board_events"))
     if not is_knockout:
         result["group"] = stage_key
 

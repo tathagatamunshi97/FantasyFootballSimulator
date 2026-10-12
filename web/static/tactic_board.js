@@ -651,6 +651,10 @@
       clean_sheet_pct: numPos(s.clean_sheet_pct, role === "GK" ? 30 : 0),
       yellow_cards90: num(s.yellow_cards90, 0),
       red_cards90: num(s.red_cards90, 0),
+      // One-shot "guaranteed straight red this match" flag set server-side
+      // for the flagged player only (web/next_match_flags.py) -- see
+      // forcedRedCheck and the foul-card block in doDribble.
+      forceRed: Number(s.force_red) > 0,
       // 0 deliberately means "no rating data" (see isMaestroPin-adjacent
       // Batch F usage) -- excluded from averages downstream, not treated as
       // a real bottom-of-the-scale rating.
@@ -11921,6 +11925,9 @@
               cardOutcome = !isGk && rng() < straightRedShare ? "red_straight" : "yellow";
             }
           }
+          // Flagged player (admin-requested guaranteed red): any foul he
+          // commits is a straight red, whatever the roll above said.
+          if (opp.stats.forceRed && !isGk) cardOutcome = "red_straight";
           if (mobileBroadcast && cardOutcome !== "none") {
             triggerMobileHighlight();
           }
@@ -15147,7 +15154,47 @@
       }
     }
 
+    // Guaranteed red for a player flagged via web/next_match_flags.py. The
+    // organic foul path (see doDribble) only fires when he's the defender
+    // in a lost duel, which a forward may never be, so "sure" needs this
+    // fallback: once the match reaches a fixed minute (deterministic from
+    // the match seed, no rng draw -- an unflagged match's random sequence is
+    // untouched) and an opponent has the ball, he hauls that carrier down
+    // and is sent off. Mirrors the straight-red branch in doDribble.
+    const forcedRedAtMinute = 15 + (Math.abs(Math.floor(Number(seed) || 0)) % 60);
+    function forcedRedCheck() {
+      if (!live || finished || halfTimePaused || breakPaused || pensActive) return false;
+      if (matchMinute < forcedRedAtMinute) return false;
+      const offender = allPins.find((p) => p.stats && p.stats.forceRed && !p._sentOff);
+      if (!offender) return false;
+      const victim = findCarrier();
+      if (!victim || victim.side === offender.side) return false;
+      offender._sentOff = true;
+      sentOffCount[offender.side] = (sentOffCount[offender.side] || 0) + 1;
+      pushMatchEvent("foul", offender.side, {
+        player: offender.player,
+        player_short: offender.short,
+        against: victim.player,
+        detail: `on ${victim.short}`,
+      });
+      say(`Foul! ${offender.short} on ${victim.short}`, 1.3);
+      pushMatchEvent("red_card", offender.side, {
+        player: offender.player,
+        player_short: offender.short,
+        against: victim.player,
+        detail: "straight red",
+      });
+      say(`RED CARD — ${offender.short} is off!`, 2.2);
+      parkSentOffPin(offender);
+      clearLastPasser();
+      spell = null;
+      giveBall(victim, `${victim.short} will restart it`);
+      triggerRedCardStoppage(offender.side, offender.player);
+      return true;
+    }
+
     function tickDecision() {
+      if (forcedRedCheck()) return;
       // Hierarchy every decision tick: STATE → SHAPE (both teams) → ball decision
       if (spell && spell.side === possession) syncPossessionState();
       updateTeamShape();

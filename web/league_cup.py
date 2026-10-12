@@ -1001,6 +1001,9 @@ def complete_from_board(
     tournament._attach_player_ratings_at_completion(
         result, home, away, tournament_id=tournament_id, match_id=match_id
     )
+    from web import next_match_flags
+
+    next_match_flags.consume_after_match(result.get("board_events"))
     tournament._attach_ai_commentary(result)
 
     t["match_results"][result_id] = result
