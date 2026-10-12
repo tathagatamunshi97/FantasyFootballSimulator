@@ -5,6 +5,7 @@ import copy
 from typing import Any
 
 from models import PlayerStats, _normalize_stat_gaps
+from player_stat_boosts import apply_stat_boosts
 from seasonal_stats import (
     build_prime_stats_dict,
     build_season_stats_dict,
@@ -162,6 +163,9 @@ def prepare_match_player_stats(
                     f"{team.get('name', side_key)} peak-season ({peak_season_raw}): {exc}"
                 ) from exc
 
+    # After overrides so a boosted player stays boosted whatever their base
+    # stats came from; player_stats entries are per-match deep copies.
+    apply_stat_boosts(player_stats)
     return player_stats, overrides, name_map
 
 
@@ -231,4 +235,5 @@ def prepare_team_player_stats(
             if not cache_only:
                 raise
 
+    apply_stat_boosts(player_stats)
     return player_stats, name_map
