@@ -367,8 +367,11 @@
    * now strongly favoured under the homeAdvActive gate (league/knockout
    * fixtures). The pre-match xG target is scaled by (1 + 0.75)^2 to match.
    * Reverted to 0 (2026-10-12), per explicit request, alongside
-   * HOME_ADV_PUSH moving to 0.70 -- no away advantage. */
-  const AWAY_ADV_PUSH = 0;
+   * HOME_ADV_PUSH moving to 0.70 -- no away advantage.
+   * Raised to 0.50 (2026-10-13), per explicit request, with HOME_ADV_PUSH at
+   * 0.10 -- the away side is now favoured under the homeAdvActive gate. The
+   * pre-match xG target is scaled by (1 + 0.50)^2 to match. */
+  const AWAY_ADV_PUSH = 0.5;
   /** Man-down push — a side attacking a shorthanded (red-carded) opponent
    * gets the same 4-site multiplicative nudge HOME_ADV_PUSH uses (xg,
    * chance creation, dribble defending, finishing), just favoring whoever
