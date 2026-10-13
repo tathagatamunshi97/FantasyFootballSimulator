@@ -344,8 +344,10 @@
    * it's now a deliberate, requested value.
    * Mirrors the Monte-Carlo engine's own (1 + home_adv) multiplicative
    * pattern; that engine's home_advantage stays at 0 by design, this is
-   * live-engine-only. */
-  const HOME_ADV_PUSH = 0.1;
+   * live-engine-only.
+   * Removed (set to 0, 2026-10-13), per explicit request -- no home boost;
+   * only the away push (AWAY_ADV_PUSH, 0.50) remains. */
+  const HOME_ADV_PUSH = 0;
   /** Away-side push, added 2026-09-21 per explicit request, alongside
    * (not instead of) HOME_ADV_PUSH — both sides get boosted under the
    * same homeAdvActive gate, home smaller (0.05) and away much larger
