@@ -25,9 +25,7 @@ _R2_KEY = "next_match_flags/consumed.json"
 _lock = threading.Lock()
 
 # player -> token. Guaranteed straight red in the player's next match.
-FORCED_RED: dict[str, str] = {
-    "Michael Olise": "2026-10-12",
-}
+FORCED_RED: dict[str, str] = {}
 
 _FORCED_RED_BY_KEY = {normalize_key(n): (n, tok) for n, tok in FORCED_RED.items()}
 
