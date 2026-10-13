@@ -338,10 +338,14 @@
    * defenders 70% easier to dribble past) the push will dominate outcomes
    * in league/knockout fixtures; the pre-match xG target is scaled by
    * (1 + 0.70)^2 to match, same as for the away push before it.
+   * Reverted to 0.10 (2026-10-13), per explicit request -- still a
+   * home-only push (AWAY_ADV_PUSH stays 0). 0.10 is the level a prior
+   * session (2026-08-31) once found "too big" via batch (see above), but
+   * it's now a deliberate, requested value.
    * Mirrors the Monte-Carlo engine's own (1 + home_adv) multiplicative
    * pattern; that engine's home_advantage stays at 0 by design, this is
    * live-engine-only. */
-  const HOME_ADV_PUSH = 0.7;
+  const HOME_ADV_PUSH = 0.1;
   /** Away-side push, added 2026-09-21 per explicit request, alongside
    * (not instead of) HOME_ADV_PUSH — both sides get boosted under the
    * same homeAdvActive gate, home smaller (0.05) and away much larger
