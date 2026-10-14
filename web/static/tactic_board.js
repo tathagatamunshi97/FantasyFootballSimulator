@@ -349,8 +349,15 @@
    * only the away push (AWAY_ADV_PUSH, 0.50) remains.
    * Restored at 0.50 (2026-10-14), per explicit request, alongside
    * AWAY_ADV_PUSH going back to 0 -- a home-only push again, same level as
-   * 2026-09-21 / 2026-10-11. */
-  const HOME_ADV_PUSH = 0.5;
+   * 2026-09-21 / 2026-10-11.
+   * Reduced to 0.05 (2026-10-14), per explicit request, EXCEPT in
+   * scenario-scoreline matches (web/scenario_overrides.py), which keep
+   * 0.50 -- see SCENARIO_HOME_ADV_PUSH / homeAdvPush in createBoard. */
+  const HOME_ADV_PUSH = 0.05;
+  /** Home push used instead of HOME_ADV_PUSH when a board is steering to a
+   * scenario scoreline (2026-10-14, per explicit request): 0.50 kept the
+   * steered matches' xG closest to their target scores in batch tests. */
+  const SCENARIO_HOME_ADV_PUSH = 0.5;
   /** Away-side push, added 2026-09-21 per explicit request, alongside
    * (not instead of) HOME_ADV_PUSH — both sides get boosted under the
    * same homeAdvActive gate, home smaller (0.05) and away much larger
@@ -924,6 +931,9 @@
       const ok = (n) => Number.isInteger(n) && n >= 0 && n <= 15;
       return ok(h) && ok(a) ? { home: h, away: a } : null;
     })();
+    // Per-board home push: scenario-scoreline matches keep the larger push,
+    // every other competitive fixture uses HOME_ADV_PUSH.
+    const homeAdvPush = scenarioScore ? SCENARIO_HOME_ADV_PUSH : HOME_ADV_PUSH;
     // Goals already decided per side (counted when a shot/penalty is ruled
     // in, not when the ball lands, so two quick chances can't overshoot).
     const scenarioCommitted = { home: 0, away: 0 };
@@ -1256,7 +1266,7 @@
     // "running hot" and throttle exactly the advantage the push was giving it
     // (2026-10-11). Scaling the target keeps the brake neutral to the push.
     // Skipped when the push isn't active (friendlies, neutral-venue Final).
-    const homePushTargetScale = homeAdvActive ? (1 + HOME_ADV_PUSH) ** 2 : 1;
+    const homePushTargetScale = homeAdvActive ? (1 + homeAdvPush) ** 2 : 1;
     const awayPushTargetScale = homeAdvActive ? (1 + AWAY_ADV_PUSH) ** 2 : 1;
     const targetXgHome =
       (Number.isFinite(rawXgHome) && rawXgHome > 0.05
@@ -2408,7 +2418,7 @@
         ceil = Math.min(0.75, ceil + (fq >= 0.7 ? 0.04 : 0));
       }
       // Home-side push in real competitive fixtures (shot quality) — see HOME_ADV_PUSH.
-      if (homeAdvActive && carrier.side === "home") xg *= 1 + HOME_ADV_PUSH;
+      if (homeAdvActive && carrier.side === "home") xg *= 1 + homeAdvPush;
       // Away-side push in real competitive fixtures (shot quality) — see AWAY_ADV_PUSH.
       if (homeAdvActive && carrier.side === "away") xg *= 1 + AWAY_ADV_PUSH;
       // Red-card project — man-down push (shot quality). See MAN_DOWN_PUSH.
@@ -10571,7 +10581,7 @@
       // pattern-weight shift in pickAttackPattern.
       const leadProtectMul = (leadProtectUntil[side] || 0) > matchMinute ? 0.72 : 1;
       // Home-side push in real competitive fixtures (chance creation) — see HOME_ADV_PUSH.
-      const homePushMul = homeAdvActive && side === "home" ? 1 + HOME_ADV_PUSH : 1;
+      const homePushMul = homeAdvActive && side === "home" ? 1 + homeAdvPush : 1;
       // Away-side push in real competitive fixtures (chance creation) — see AWAY_ADV_PUSH.
       const awayPushMul = homeAdvActive && side === "away" ? 1 + AWAY_ADV_PUSH : 1;
       // Red-card project — man-down push (chance creation). See MAN_DOWN_PUSH.
@@ -11757,7 +11767,7 @@
       // Home-side push in real competitive fixtures (defending) — the home
       // side is tougher to dribble past. See HOME_ADV_PUSH.
       const defenderIsHome = oppOf(carrier.side) === "home";
-      let pushedSuccessP = homeAdvActive && defenderIsHome ? successP * (1 - HOME_ADV_PUSH) : successP;
+      let pushedSuccessP = homeAdvActive && defenderIsHome ? successP * (1 - homeAdvPush) : successP;
       // Away-side push in real competitive fixtures (defending) — the away
       // side is tougher to dribble past. See AWAY_ADV_PUSH.
       if (homeAdvActive && !defenderIsHome) pushedSuccessP *= 1 - AWAY_ADV_PUSH;
@@ -12430,7 +12440,7 @@
       }
       const boostedHi = clamp(hi + missBoost, hi, 0.85);
       // Home-side push in real competitive fixtures (finishing) — see HOME_ADV_PUSH.
-      const homePush = homeAdvActive && carrier.side === "home" ? 1 + HOME_ADV_PUSH : 1;
+      const homePush = homeAdvActive && carrier.side === "home" ? 1 + homeAdvPush : 1;
       // Away-side push in real competitive fixtures (finishing) — see AWAY_ADV_PUSH.
       const awayPush = homeAdvActive && carrier.side === "away" ? 1 + AWAY_ADV_PUSH : 1;
       // Red-card project — man-down push (finishing). See MAN_DOWN_PUSH.
