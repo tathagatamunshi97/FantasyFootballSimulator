@@ -407,6 +407,12 @@ def start_experiment_live_match(exp_id: str) -> dict[str, Any]:
         "unit_home": home_payload.get("_unit") or {},
         "unit_away": away_payload.get("_unit") or {},
     }
+    # Scenario-modelling scoreline (Team Lab only) -- see web/scenario_overrides.py.
+    from web import scenario_overrides
+
+    scenario = scenario_overrides.scenario_score_for(home_team.name, away_team.name)
+    if scenario:
+        board["scenario_score"] = scenario
     seed = abs(hash(f"experiment:{exp_id}")) % (2**31)
     status = matchday_session.start_board_session(
         tournament_id="",

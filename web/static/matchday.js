@@ -374,6 +374,11 @@ async function startHostBoard(session, { resumeState = null } = {}) {
       isKnockout: Boolean(session.is_knockout),
       isLeague: Boolean(session.is_league),
       isFinal: Boolean(session.is_final),
+      // Scenario steering is enabled for configured Team Lab friendlies and
+      // configured league fixtures. The board payload must carry scenario_score;
+      // cup/knockout fixtures are never opted in here.
+      isFriendly: Boolean(session.is_experiment) && !session.tournament_id,
+      isScenarioMatch: Boolean(session.is_league) && Boolean(board.scenario_score),
       aggContext: session.agg_context || null,
       broadcastIntervalMs: 220,
       onBroadcast: (frame) => queueBroadcast(frame),

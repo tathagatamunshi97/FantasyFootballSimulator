@@ -727,6 +727,16 @@ def prepare_board_match(tournament_id: str, match_id: str) -> dict[str, Any]:
         "unit_home": home_payload.get("_unit") or {},
         "unit_away": away_payload.get("_unit") or {},
     }
+
+    # Scenario scorelines are opt-in by team pairing and apply to league
+    # fixtures only. Cup/knockout fixtures deliberately remain unaffected.
+    if kind == "league":
+        from web import scenario_overrides
+
+        scenario = scenario_overrides.scenario_score_for(home, away)
+        if scenario:
+            board["scenario_score"] = scenario
+
     seed_override = _FIXTURE_SEED_OVERRIDES.get((match_id, home, away)) if kind == "league" else None
     if seed_override is not None:
         board["seed_override"] = seed_override

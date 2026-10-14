@@ -346,8 +346,11 @@
    * pattern; that engine's home_advantage stays at 0 by design, this is
    * live-engine-only.
    * Removed (set to 0, 2026-10-13), per explicit request -- no home boost;
-   * only the away push (AWAY_ADV_PUSH, 0.50) remains. */
-  const HOME_ADV_PUSH = 0;
+   * only the away push (AWAY_ADV_PUSH, 0.50) remains.
+   * Restored at 0.50 (2026-10-14), per explicit request, alongside
+   * AWAY_ADV_PUSH going back to 0 -- a home-only push again, same level as
+   * 2026-09-21 / 2026-10-11. */
+  const HOME_ADV_PUSH = 0.5;
   /** Away-side push, added 2026-09-21 per explicit request, alongside
    * (not instead of) HOME_ADV_PUSH — both sides get boosted under the
    * same homeAdvActive gate, home smaller (0.05) and away much larger
@@ -372,8 +375,10 @@
    * HOME_ADV_PUSH moving to 0.70 -- no away advantage.
    * Raised to 0.50 (2026-10-13), per explicit request, with HOME_ADV_PUSH at
    * 0.10 -- the away side is now favoured under the homeAdvActive gate. The
-   * pre-match xG target is scaled by (1 + 0.50)^2 to match. */
-  const AWAY_ADV_PUSH = 0.5;
+   * pre-match xG target is scaled by (1 + 0.50)^2 to match.
+   * Removed (set to 0, 2026-10-14), per explicit request, alongside
+   * HOME_ADV_PUSH being restored at 0.50 -- no away advantage. */
+  const AWAY_ADV_PUSH = 0;
   /** Man-down push — a side attacking a shorthanded (red-carded) opponent
    * gets the same 4-site multiplicative nudge HOME_ADV_PUSH uses (xg,
    * chance creation, dribble defending, finishing), just favoring whoever
@@ -906,6 +911,25 @@
     // Unified gate for HOME_ADV_PUSH: any real competitive fixture (league
     // table or knockout tie) except a neutral-venue Final.
     const homeAdvActive = (isKnockout && !isFinalRound) || isLeague;
+    // Scenario-modelling scoreline. Existing Team Lab friendlies remain
+    // eligible; configured league fixtures opt in separately. Cup/knockout
+    // fixtures, viewers, and non-live boards are always excluded.
+    const isFriendlyScenario = Boolean(opts.isFriendly) && live && !viewerMode && !isLeague && !isKnockout;
+    const isLeagueScenario = Boolean(opts.isScenarioMatch) && live && !viewerMode && isLeague && !isKnockout;
+    const scenarioEligible = isFriendlyScenario || isLeagueScenario;
+    const scenarioScore = (() => {
+      if (!scenarioEligible || !opts.scenarioScore) return null;
+      const h = Number(opts.scenarioScore.home);
+      const a = Number(opts.scenarioScore.away);
+      const ok = (n) => Number.isInteger(n) && n >= 0 && n <= 15;
+      return ok(h) && ok(a) ? { home: h, away: a } : null;
+    })();
+    // Goals already decided per side (counted when a shot/penalty is ruled
+    // in, not when the ball lands, so two quick chances can't overshoot).
+    const scenarioCommitted = { home: 0, away: 0 };
+    // Scenario scorelines must be completed by normal live goal events before
+    // the 90-minute cap. No stoppage time or direct score adjustments are used.
+    let scenarioCredited = { home: 0, away: 0 };
     // Two-legged tie context (leg 2 only — see prepare_board_match in
     // tournament.py): { leg, twoLegged, enteringAggHome, enteringAggAway }.
     // Leg 1 of a two-legged tie gets { leg: 1, twoLegged: true } with no
@@ -1220,8 +1244,11 @@
       const midDelta = clamp(ownMid - oppMid, -0.8, 0.8);
       return (atkXg + createXg) * suppression * (1 + 0.1 * midDelta);
     }
-    const rawXgHome = Number(opts.xgHome);
-    const rawXgAway = Number(opts.xgAway);
+    // A scenario target also becomes the xG pacing target, so a side that
+    // needs goals creates more chances (xgPaceMul) instead of every goal
+    // coming from finishing alone.
+    const rawXgHome = scenarioScore ? scenarioScore.home : Number(opts.xgHome);
+    const rawXgAway = scenarioScore ? scenarioScore.away : Number(opts.xgAway);
     // Home/away advantage raises a side's chance volume AND per-shot xG (see
     // HOME_ADV_PUSH / AWAY_ADV_PUSH), so its expected xG for the match is
     // roughly (1 + push)^2 higher. The pre-match target is rating-only and
@@ -2429,6 +2456,14 @@
         };
       }
       if (decidedBy && decidedBy !== "ft") payload.decided_by = decidedBy;
+      // Marks a scenario-steered friendly so its numbers are never mistaken
+      // for an organic result (conversion/keeper figures are steered).
+      if (scenarioScore) {
+        payload.scenario = {
+          target: { ...scenarioScore },
+          credited: { ...scenarioCredited },
+        };
+      }
       return payload;
     }
 
@@ -11005,6 +11040,58 @@
       return pending.find((g) => g.minute <= minute + 2) || (minute >= 86 ? pending[0] : null);
     }
 
+    function scenarioNeed(side) {
+      return scenarioScore ? Math.max(0, scenarioScore[side] - scenarioCommitted[side]) : 0;
+    }
+
+    /**
+     * Final say on whether a shot/penalty scores in a scenario match.
+     * A side at its target can't score again. A side short of it keeps every
+     * goal it earns organically and, when the remaining shots it is likely
+     * to get won't close the gap at a normal ~30% conversion, has misses
+     * turned into goals at the rate needed. The late controller can force a
+     * live shot; the normal ball-flight/markGoal path records every goal.
+     */
+    function scenarioFinalize(side, organicScored) {
+      if (!scenarioScore) return organicScored;
+      const need = scenarioNeed(side);
+      let scored = organicScored;
+      if (need <= 0) {
+        scored = false;
+      } else if (!scored) {
+        const minsLeft = Math.max(1, 90 - matchMinute);
+        const shotRate = Math.max(1, matchLog.counts[side].shots) / Math.max(10, matchMinute);
+        const shotsLeft = Math.max(1, shotRate * minsLeft);
+        const deficit = need - shotsLeft * 0.3;
+        if (deficit > 0) scored = rng() < clamp(deficit / shotsLeft, 0, 0.95);
+      }
+      if (scored) scenarioCommitted[side] += 1;
+      return scored;
+    }
+
+    /**
+     * Activate the scenario finisher early enough for all outstanding target
+     * goals to resolve before 90'. The start minute adapts to the combined
+     * deficit: one remaining goal starts around 82', while high-scoring targets
+     * start much earlier. Once active, the controller takes immediate live
+     * shots; scenarioFinalize only allows goals still needed by the target.
+     */
+    function scenarioLateSide(minute) {
+      if (!scenarioScore) return null;
+      const homeNeed = scenarioNeed("home");
+      const awayNeed = scenarioNeed("away");
+      const totalNeed = homeNeed + awayNeed;
+      if (totalNeed <= 0) return null;
+      const activationMinute = Math.max(0, 90 - totalNeed * 2.8 - 5);
+      if (minute < activationMinute) return null;
+      let pick = null;
+      for (const side of ["home", "away"]) {
+        const need = scenarioNeed(side);
+        if (need > 0 && (!pick || need > scenarioNeed(pick))) pick = side;
+      }
+      return pick;
+    }
+
     // Conversion/passing stats project -- `meta` (chanceType/xg) carries the
     // originating shot's own values through from doShot/the penalty
     // resolution so the goal event and big_chance_goals counter can be
@@ -12454,7 +12541,8 @@
       liveXg[fouledSide] += 0.76;
       matchLog.counts[fouledSide].xg = Math.round(liveXg[fouledSide] * 1000) / 1000;
 
-      const scored = rng() < penConvertChance(taker, keeper);
+      let scored = rng() < penConvertChance(taker, keeper);
+      if (scenarioScore) scored = scenarioFinalize(fouledSide, scored);
       if (scored) {
         const netLeft = attackGoalLeft();
         const netTop = attackGoalTop(fouledSide);
@@ -13297,6 +13385,7 @@
           saveScale;
         if (rng() < clamp(saveP, 0.04, roleFin && boxed && fq >= 0.7 ? 0.42 : 0.55)) willScore = false;
       }
+      if (scenarioScore && !replayScore) willScore = scenarioFinalize(carrier.side, willScore);
 
       // Engine fix — anti-drought bookkeeping (organic path only; replay/forced
       // scorelines don't run this). Tracks consecutive missed big chances so
@@ -13608,6 +13697,36 @@
           }
           doShot(shooter.id === carrier.id ? carrier : shooter, true);
           return;
+        }
+      }
+
+      // Scenario matches: once the adaptive completion window opens, take
+      // immediate live shots rather than spending the remaining clock on
+      // build-up. Goals still travel through doShot -> ballFlight -> markGoal.
+      if (scenarioScore && !replayScore) {
+        const lateSide = scenarioLateSide(matchMinute);
+        const scenarioMustShootNow = Boolean(lateSide);
+        if (lateSide && lateSide === possession && (phase !== "BUILD_UP" || scenarioMustShootNow)) {
+          if (scenarioMustShootNow) {
+            doShot(carrier, true);
+            return;
+          }
+          const shooter = shooterTarget(carrier);
+          if (shooter.id !== carrier.id) {
+            doPass(carrier, shooter, "through");
+            return;
+          }
+          doShot(carrier, true);
+          return;
+        }
+        if (lateSide && lateSide !== possession) {
+          const attacker = pinsOf(lateSide).find((p) => p.role === "ST" || p.role === "AM" || p.role === "W");
+          if (attacker) {
+            spell = null;
+            giveBall(attacker, `${attacker.short} breaks away`);
+            actionTimer = 0.45;
+            return;
+          }
         }
       }
 
@@ -15041,14 +15160,36 @@
         }
         scoreEl.textContent = `${homeScore} – ${awayScore}`;
       }
+
+      // Strict full time: scenario targets are never reconciled by editing the
+      // score and never extend the clock. The adaptive live-shot controller
+      // starts early according to the outstanding goal count so target goals
+      // should already have resolved through normal match events by 90'.
+      if (scenarioScore && !replayScore) {
+        const missingHome = Math.max(0, scenarioScore.home - homeScore);
+        const missingAway = Math.max(0, scenarioScore.away - awayScore);
+        if (missingHome || missingAway) {
+          console.warn("Scenario target not completed by 90 minutes", {
+            target: { ...scenarioScore },
+            score: { home: homeScore, away: awayScore },
+            missing: { home: missingHome, away: missingAway },
+            minute: matchMinute,
+          });
+        }
+      }
+
+      // Retain the field for backwards-compatible match-log consumers, but
+      // scenarioCredited is always zero: all target goals were live events.
+      if (scenarioScore) scenarioCredited = { home: 0, away: 0 };
       ft90Home = homeScore;
       ft90Away = awayScore;
       if (isKnockout && tieStillUndecided()) {
         enterExtraTimeIntro();
-        return;
+        return false;
       }
       decidedBy = "ft";
       finishMatch();
+      return false;
     }
 
     function handleEndOfEtPeriod(cap) {
@@ -15582,7 +15723,10 @@
 
       if (matchMinute >= cap) {
         if (cap <= 90) {
-          handleEndOfNinety();
+          if (handleEndOfNinety()) {
+            raf = requestAnimationFrame(tick);
+            return;
+          }
         } else {
           handleEndOfEtPeriod(cap);
         }
@@ -16409,6 +16553,11 @@
         isKnockout: Boolean(meta.isKnockout || meta.knockout),
         isLeague: Boolean(meta.isLeague || meta.league),
         isFinal: Boolean(meta.isFinal),
+        // Scenario scoreline -- createBoard validates the explicit match-type
+        // opt-in as well as the target score and live-board state.
+        isFriendly: Boolean(meta.isFriendly),
+        isScenarioMatch: Boolean(meta.isScenarioMatch),
+        scenarioScore: b.scenario_score || null,
         aggContext: meta.aggContext || null,
         onBroadcast: meta.onBroadcast || null,
         broadcastIntervalMs: meta.broadcastIntervalMs,
