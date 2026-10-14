@@ -1176,9 +1176,9 @@ KNOWN_PLAYER_POSITIONS_BY_NAME: dict[str, dict[str, Any]] = {
         "positions": ["CB"],
     },
     "Lamine Yamal": {
-        "primary_position": "LW",
+        "primary_position": "RW",
         "fpl_position": "FWD",
-        "positions": ["LW"],
+        "positions": ["RW", "LW"],
     },
     "Julián Alvarez": {
         "primary_position": "ST",
