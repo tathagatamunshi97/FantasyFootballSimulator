@@ -14280,6 +14280,10 @@
       matchMinute = Number(frame.minute) || 0;
       homeScore = Math.max(0, Math.round(Number(frame.homeGoals) || 0));
       awayScore = Math.max(0, Math.round(Number(frame.awayGoals) || 0));
+      // Scenario target: goals already on the board count as committed (in-flight shots are not restored), otherwise a
+      // resumed match thinks the whole target is still owed and overshoots it.
+      scenarioCommitted.home = homeScore;
+      scenarioCommitted.away = awayScore;
       possession = frame.possession === "away" ? "away" : "home";
       decidedBy = frame.decidedBy || "ft";
       breakKind = frame.breakKind || null;
@@ -14380,6 +14384,9 @@
       matchMinute = Number(state.matchMinute) || 0;
       homeScore = Math.max(0, Math.round(Number(state.homeScore) || 0));
       awayScore = Math.max(0, Math.round(Number(state.awayScore) || 0));
+      // Scenario target: see applyLegacyFrameState.
+      scenarioCommitted.home = homeScore;
+      scenarioCommitted.away = awayScore;
       possession = state.possession === "away" ? "away" : "home";
       phase = state.phase || "BUILD_UP";
       decidedBy = state.decidedBy || "ft";
