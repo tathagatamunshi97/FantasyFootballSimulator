@@ -29,7 +29,6 @@ PLAYER_STAT_BOOSTS: dict[str, float] = {
     # Nerfs: a factor below 1 scales output rates down and mistake rates up;
     # exactly 0 floors every output stat and percentage (see _FLOOR).
     "Matz Sels": 0.0,
-    "Michael Olise": 0.5,
 }
 
 _BOOST_BY_KEY = {normalize_key(name): factor for name, factor in PLAYER_STAT_BOOSTS.items()}

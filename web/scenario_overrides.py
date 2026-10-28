@@ -27,10 +27,10 @@ from player_names import normalize_key
 FRIENDLY_SCENARIOS: list[dict[str, Any]] = [
     # Placeholder -- fill in "home", "away" or both to activate, e.g.
     #   {"home": "Sayaninjal FC", "away": "Nesha Korechi FC", "home_goals": 4, "away_goals": 2},
-    {"home": "Sayaninjal FC", "away": "Nesha Korechi FC", "home_goals": 4, "away_goals": 2},
+    {"home": "Sayaninjal FC", "away": "Nesha Korechi FC", "home_goals": 3, "away_goals": 2},
     {"home": "MasterSimulator FC", "away": "Slip & Hop FC", "home_goals": 5, "away_goals": 2},
     {"home": "MasterSimulator FC", "away": "Council of Kangs", "home_goals": 3, "away_goals": 1},
-    {"home": "Diddy's Didier FC", "away": "MasterSimulator FC", "home_goals": 2, "away_goals": 7},
+    {"home": "Diddy's Didier FC", "away": "MasterSimulator FC", "home_goals": 3, "away_goals": 4},
 ]
 
 
